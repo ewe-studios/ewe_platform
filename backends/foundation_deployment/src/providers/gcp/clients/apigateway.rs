@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -108,6 +110,13 @@ pub fn apigateway_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -120,14 +129,14 @@ pub fn apigateway_projects_locations_get_execute(
 
 pub fn apigateway_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigatewayProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayLocation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigateway_projects_locations_get_builder(client, name)?;
+    let builder = apigateway_projects_locations_get_builder(client, &args.name)?;
     apigateway_projects_locations_get_execute(builder)
 }
 
@@ -249,6 +258,21 @@ pub fn apigateway_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -261,11 +285,7 @@ pub fn apigateway_projects_locations_list_execute(
 
 pub fn apigateway_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigatewayProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ApigatewayListLocationsResponse>, ApiError>,
@@ -276,11 +296,11 @@ pub fn apigateway_projects_locations_list(
 > {
     let builder = apigateway_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigateway_projects_locations_list_execute(builder)
 }
@@ -392,6 +412,17 @@ pub fn apigateway_projects_locations_apis_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: apiId
+    pub apiId: Option<String>,
+    /// Request body.
+    pub body: ApigatewayApi,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis
 /// Creates a new Api in a given project and location.
 ///
@@ -404,16 +435,19 @@ pub fn apigateway_projects_locations_apis_create_execute(
 
 pub fn apigateway_projects_locations_apis_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    apiId: Option<&str>,
-    body: &ApigatewayApi,
+    args: &ApigatewayProjectsLocationsApisCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigateway_projects_locations_apis_create_builder(client, parent, apiId, body)?;
+    let builder = apigateway_projects_locations_apis_create_builder(
+        client,
+        &args.parent,
+        args.apiId.as_deref(),
+        &args.body,
+    )?;
     apigateway_projects_locations_apis_create_execute(builder)
 }
 
@@ -509,6 +543,13 @@ pub fn apigateway_projects_locations_apis_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
 /// Deletes a single Api.
 ///
@@ -521,14 +562,14 @@ pub fn apigateway_projects_locations_apis_delete_execute(
 
 pub fn apigateway_projects_locations_apis_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigatewayProjectsLocationsApisDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigateway_projects_locations_apis_delete_builder(client, name)?;
+    let builder = apigateway_projects_locations_apis_delete_builder(client, &args.name)?;
     apigateway_projects_locations_apis_delete_execute(builder)
 }
 
@@ -624,6 +665,13 @@ pub fn apigateway_projects_locations_apis_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
 /// Gets details of a single Api.
 ///
@@ -636,14 +684,14 @@ pub fn apigateway_projects_locations_apis_get_execute(
 
 pub fn apigateway_projects_locations_apis_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigatewayProjectsLocationsApisGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayApi>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigateway_projects_locations_apis_get_builder(client, name)?;
+    let builder = apigateway_projects_locations_apis_get_builder(client, &args.name)?;
     apigateway_projects_locations_apis_get_execute(builder)
 }
 
@@ -751,6 +799,15 @@ pub fn apigateway_projects_locations_apis_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -763,8 +820,7 @@ pub fn apigateway_projects_locations_apis_get_iam_policy_execute(
 
 pub fn apigateway_projects_locations_apis_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigatewayProjectsLocationsApisGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayPolicy>, ApiError>, P = ApiPending>
         + Send
@@ -773,8 +829,8 @@ pub fn apigateway_projects_locations_apis_get_iam_policy(
 > {
     let builder = apigateway_projects_locations_apis_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigateway_projects_locations_apis_get_iam_policy_execute(builder)
 }
@@ -897,6 +953,21 @@ pub fn apigateway_projects_locations_apis_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis
 /// Lists Apis in a given project and location.
 ///
@@ -909,11 +980,7 @@ pub fn apigateway_projects_locations_apis_list_execute(
 
 pub fn apigateway_projects_locations_apis_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigatewayProjectsLocationsApisListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ApigatewayListApisResponse>, ApiError>,
@@ -923,7 +990,12 @@ pub fn apigateway_projects_locations_apis_list(
     ApiError,
 > {
     let builder = apigateway_projects_locations_apis_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigateway_projects_locations_apis_list_execute(builder)
 }
@@ -1035,6 +1107,17 @@ pub fn apigateway_projects_locations_apis_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ApigatewayApi,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
 /// Updates the parameters of a single Api.
 ///
@@ -1047,16 +1130,19 @@ pub fn apigateway_projects_locations_apis_patch_execute(
 
 pub fn apigateway_projects_locations_apis_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ApigatewayApi,
+    args: &ApigatewayProjectsLocationsApisPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigateway_projects_locations_apis_patch_builder(client, name, updateMask, body)?;
+    let builder = apigateway_projects_locations_apis_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apigateway_projects_locations_apis_patch_execute(builder)
 }
 
@@ -1155,6 +1241,15 @@ pub fn apigateway_projects_locations_apis_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: ApigatewaySetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1167,16 +1262,18 @@ pub fn apigateway_projects_locations_apis_set_iam_policy_execute(
 
 pub fn apigateway_projects_locations_apis_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &ApigatewaySetIamPolicyRequest,
+    args: &ApigatewayProjectsLocationsApisSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigateway_projects_locations_apis_set_iam_policy_builder(client, resource, body)?;
+    let builder = apigateway_projects_locations_apis_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     apigateway_projects_locations_apis_set_iam_policy_execute(builder)
 }
 
@@ -1277,6 +1374,15 @@ pub fn apigateway_projects_locations_apis_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: ApigatewayTestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1289,8 +1395,7 @@ pub fn apigateway_projects_locations_apis_test_iam_permissions_execute(
 
 pub fn apigateway_projects_locations_apis_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &ApigatewayTestIamPermissionsRequest,
+    args: &ApigatewayProjectsLocationsApisTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ApigatewayTestIamPermissionsResponse>, ApiError>,
@@ -1299,8 +1404,11 @@ pub fn apigateway_projects_locations_apis_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigateway_projects_locations_apis_test_iam_permissions_builder(client, resource, body)?;
+    let builder = apigateway_projects_locations_apis_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     apigateway_projects_locations_apis_test_iam_permissions_execute(builder)
 }
 
@@ -1411,6 +1519,17 @@ pub fn apigateway_projects_locations_apis_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: apiConfigId
+    pub apiConfigId: Option<String>,
+    /// Request body.
+    pub body: ApigatewayApiConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/configs
 /// Creates a new ApiConfig in a given project and location.
 ///
@@ -1423,9 +1542,7 @@ pub fn apigateway_projects_locations_apis_configs_create_execute(
 
 pub fn apigateway_projects_locations_apis_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    apiConfigId: Option<&str>,
-    body: &ApigatewayApiConfig,
+    args: &ApigatewayProjectsLocationsApisConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayOperation>, ApiError>, P = ApiPending>
         + Send
@@ -1434,9 +1551,9 @@ pub fn apigateway_projects_locations_apis_configs_create(
 > {
     let builder = apigateway_projects_locations_apis_configs_create_builder(
         client,
-        parent,
-        apiConfigId,
-        body,
+        &args.parent,
+        args.apiConfigId.as_deref(),
+        &args.body,
     )?;
     apigateway_projects_locations_apis_configs_create_execute(builder)
 }
@@ -1533,6 +1650,13 @@ pub fn apigateway_projects_locations_apis_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/configs/{configsId}
 /// Deletes a single ApiConfig.
 ///
@@ -1545,14 +1669,14 @@ pub fn apigateway_projects_locations_apis_configs_delete_execute(
 
 pub fn apigateway_projects_locations_apis_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigatewayProjectsLocationsApisConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigateway_projects_locations_apis_configs_delete_builder(client, name)?;
+    let builder = apigateway_projects_locations_apis_configs_delete_builder(client, &args.name)?;
     apigateway_projects_locations_apis_configs_delete_execute(builder)
 }
 
@@ -1660,6 +1784,15 @@ pub fn apigateway_projects_locations_apis_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/configs/{configsId}
 /// Gets details of a single ApiConfig.
 ///
@@ -1672,15 +1805,18 @@ pub fn apigateway_projects_locations_apis_configs_get_execute(
 
 pub fn apigateway_projects_locations_apis_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &ApigatewayProjectsLocationsApisConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayApiConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigateway_projects_locations_apis_configs_get_builder(client, name, view)?;
+    let builder = apigateway_projects_locations_apis_configs_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     apigateway_projects_locations_apis_configs_get_execute(builder)
 }
 
@@ -1788,6 +1924,15 @@ pub fn apigateway_projects_locations_apis_configs_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_configs_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisConfigsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/configs/{configsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1800,8 +1945,7 @@ pub fn apigateway_projects_locations_apis_configs_get_iam_policy_execute(
 
 pub fn apigateway_projects_locations_apis_configs_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigatewayProjectsLocationsApisConfigsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayPolicy>, ApiError>, P = ApiPending>
         + Send
@@ -1810,8 +1954,8 @@ pub fn apigateway_projects_locations_apis_configs_get_iam_policy(
 > {
     let builder = apigateway_projects_locations_apis_configs_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigateway_projects_locations_apis_configs_get_iam_policy_execute(builder)
 }
@@ -1934,6 +2078,21 @@ pub fn apigateway_projects_locations_apis_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/configs
 /// Lists ApiConfigs in a given project and location.
 ///
@@ -1946,11 +2105,7 @@ pub fn apigateway_projects_locations_apis_configs_list_execute(
 
 pub fn apigateway_projects_locations_apis_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigatewayProjectsLocationsApisConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ApigatewayListApiConfigsResponse>, ApiError>,
@@ -1960,7 +2115,12 @@ pub fn apigateway_projects_locations_apis_configs_list(
     ApiError,
 > {
     let builder = apigateway_projects_locations_apis_configs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigateway_projects_locations_apis_configs_list_execute(builder)
 }
@@ -2072,6 +2232,17 @@ pub fn apigateway_projects_locations_apis_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ApigatewayApiConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/configs/{configsId}
 /// Updates the parameters of a single ApiConfig.
 ///
@@ -2084,17 +2255,19 @@ pub fn apigateway_projects_locations_apis_configs_patch_execute(
 
 pub fn apigateway_projects_locations_apis_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ApigatewayApiConfig,
+    args: &ApigatewayProjectsLocationsApisConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigateway_projects_locations_apis_configs_patch_builder(client, name, updateMask, body)?;
+    let builder = apigateway_projects_locations_apis_configs_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apigateway_projects_locations_apis_configs_patch_execute(builder)
 }
 
@@ -2193,6 +2366,15 @@ pub fn apigateway_projects_locations_apis_configs_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_configs_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisConfigsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: ApigatewaySetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/configs/{configsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -2205,16 +2387,18 @@ pub fn apigateway_projects_locations_apis_configs_set_iam_policy_execute(
 
 pub fn apigateway_projects_locations_apis_configs_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &ApigatewaySetIamPolicyRequest,
+    args: &ApigatewayProjectsLocationsApisConfigsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigateway_projects_locations_apis_configs_set_iam_policy_builder(client, resource, body)?;
+    let builder = apigateway_projects_locations_apis_configs_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     apigateway_projects_locations_apis_configs_set_iam_policy_execute(builder)
 }
 
@@ -2315,6 +2499,15 @@ pub fn apigateway_projects_locations_apis_configs_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_apis_configs_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsApisConfigsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: ApigatewayTestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/configs/{configsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2327,8 +2520,7 @@ pub fn apigateway_projects_locations_apis_configs_test_iam_permissions_execute(
 
 pub fn apigateway_projects_locations_apis_configs_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &ApigatewayTestIamPermissionsRequest,
+    args: &ApigatewayProjectsLocationsApisConfigsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ApigatewayTestIamPermissionsResponse>, ApiError>,
@@ -2338,7 +2530,9 @@ pub fn apigateway_projects_locations_apis_configs_test_iam_permissions(
     ApiError,
 > {
     let builder = apigateway_projects_locations_apis_configs_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigateway_projects_locations_apis_configs_test_iam_permissions_execute(builder)
 }
@@ -2450,6 +2644,17 @@ pub fn apigateway_projects_locations_gateways_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_gateways_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsGatewaysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: gatewayId
+    pub gatewayId: Option<String>,
+    /// Request body.
+    pub body: ApigatewayGateway,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways
 /// Creates a new Gateway in a given project and location.
 ///
@@ -2462,17 +2667,19 @@ pub fn apigateway_projects_locations_gateways_create_execute(
 
 pub fn apigateway_projects_locations_gateways_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    gatewayId: Option<&str>,
-    body: &ApigatewayGateway,
+    args: &ApigatewayProjectsLocationsGatewaysCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigateway_projects_locations_gateways_create_builder(client, parent, gatewayId, body)?;
+    let builder = apigateway_projects_locations_gateways_create_builder(
+        client,
+        &args.parent,
+        args.gatewayId.as_deref(),
+        &args.body,
+    )?;
     apigateway_projects_locations_gateways_create_execute(builder)
 }
 
@@ -2568,6 +2775,13 @@ pub fn apigateway_projects_locations_gateways_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_gateways_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsGatewaysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
 /// Deletes a single Gateway.
 ///
@@ -2580,14 +2794,14 @@ pub fn apigateway_projects_locations_gateways_delete_execute(
 
 pub fn apigateway_projects_locations_gateways_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigatewayProjectsLocationsGatewaysDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigateway_projects_locations_gateways_delete_builder(client, name)?;
+    let builder = apigateway_projects_locations_gateways_delete_builder(client, &args.name)?;
     apigateway_projects_locations_gateways_delete_execute(builder)
 }
 
@@ -2683,6 +2897,13 @@ pub fn apigateway_projects_locations_gateways_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_gateways_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsGatewaysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
 /// Gets details of a single Gateway.
 ///
@@ -2695,14 +2916,14 @@ pub fn apigateway_projects_locations_gateways_get_execute(
 
 pub fn apigateway_projects_locations_gateways_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigatewayProjectsLocationsGatewaysGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayGateway>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigateway_projects_locations_gateways_get_builder(client, name)?;
+    let builder = apigateway_projects_locations_gateways_get_builder(client, &args.name)?;
     apigateway_projects_locations_gateways_get_execute(builder)
 }
 
@@ -2810,6 +3031,15 @@ pub fn apigateway_projects_locations_gateways_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_gateways_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsGatewaysGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2822,8 +3052,7 @@ pub fn apigateway_projects_locations_gateways_get_iam_policy_execute(
 
 pub fn apigateway_projects_locations_gateways_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigatewayProjectsLocationsGatewaysGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayPolicy>, ApiError>, P = ApiPending>
         + Send
@@ -2832,8 +3061,8 @@ pub fn apigateway_projects_locations_gateways_get_iam_policy(
 > {
     let builder = apigateway_projects_locations_gateways_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigateway_projects_locations_gateways_get_iam_policy_execute(builder)
 }
@@ -2956,6 +3185,21 @@ pub fn apigateway_projects_locations_gateways_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_gateways_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsGatewaysListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways
 /// Lists Gateways in a given project and location.
 ///
@@ -2968,11 +3212,7 @@ pub fn apigateway_projects_locations_gateways_list_execute(
 
 pub fn apigateway_projects_locations_gateways_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigatewayProjectsLocationsGatewaysListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ApigatewayListGatewaysResponse>, ApiError>,
@@ -2982,7 +3222,12 @@ pub fn apigateway_projects_locations_gateways_list(
     ApiError,
 > {
     let builder = apigateway_projects_locations_gateways_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigateway_projects_locations_gateways_list_execute(builder)
 }
@@ -3094,6 +3339,17 @@ pub fn apigateway_projects_locations_gateways_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_gateways_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsGatewaysPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ApigatewayGateway,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}
 /// Updates the parameters of a single Gateway.
 ///
@@ -3106,17 +3362,19 @@ pub fn apigateway_projects_locations_gateways_patch_execute(
 
 pub fn apigateway_projects_locations_gateways_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ApigatewayGateway,
+    args: &ApigatewayProjectsLocationsGatewaysPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigateway_projects_locations_gateways_patch_builder(client, name, updateMask, body)?;
+    let builder = apigateway_projects_locations_gateways_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apigateway_projects_locations_gateways_patch_execute(builder)
 }
 
@@ -3215,6 +3473,15 @@ pub fn apigateway_projects_locations_gateways_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_gateways_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsGatewaysSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: ApigatewaySetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3227,16 +3494,18 @@ pub fn apigateway_projects_locations_gateways_set_iam_policy_execute(
 
 pub fn apigateway_projects_locations_gateways_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &ApigatewaySetIamPolicyRequest,
+    args: &ApigatewayProjectsLocationsGatewaysSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigateway_projects_locations_gateways_set_iam_policy_builder(client, resource, body)?;
+    let builder = apigateway_projects_locations_gateways_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     apigateway_projects_locations_gateways_set_iam_policy_execute(builder)
 }
 
@@ -3337,6 +3606,15 @@ pub fn apigateway_projects_locations_gateways_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_gateways_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsGatewaysTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: ApigatewayTestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/gateways/{gatewaysId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3349,8 +3627,7 @@ pub fn apigateway_projects_locations_gateways_test_iam_permissions_execute(
 
 pub fn apigateway_projects_locations_gateways_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &ApigatewayTestIamPermissionsRequest,
+    args: &ApigatewayProjectsLocationsGatewaysTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ApigatewayTestIamPermissionsResponse>, ApiError>,
@@ -3360,7 +3637,9 @@ pub fn apigateway_projects_locations_gateways_test_iam_permissions(
     ApiError,
 > {
     let builder = apigateway_projects_locations_gateways_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigateway_projects_locations_gateways_test_iam_permissions_execute(builder)
 }
@@ -3458,6 +3737,15 @@ pub fn apigateway_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ApigatewayCancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -3470,13 +3758,13 @@ pub fn apigateway_projects_locations_operations_cancel_execute(
 
 pub fn apigateway_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ApigatewayCancelOperationRequest,
+    args: &ApigatewayProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigateway_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        apigateway_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     apigateway_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -3570,6 +3858,13 @@ pub fn apigateway_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -3582,12 +3877,12 @@ pub fn apigateway_projects_locations_operations_delete_execute(
 
 pub fn apigateway_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigatewayProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigateway_projects_locations_operations_delete_builder(client, name)?;
+    let builder = apigateway_projects_locations_operations_delete_builder(client, &args.name)?;
     apigateway_projects_locations_operations_delete_execute(builder)
 }
 
@@ -3683,6 +3978,13 @@ pub fn apigateway_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3695,14 +3997,14 @@ pub fn apigateway_projects_locations_operations_get_execute(
 
 pub fn apigateway_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigatewayProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApigatewayOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigateway_projects_locations_operations_get_builder(client, name)?;
+    let builder = apigateway_projects_locations_operations_get_builder(client, &args.name)?;
     apigateway_projects_locations_operations_get_execute(builder)
 }
 
@@ -3824,6 +4126,21 @@ pub fn apigateway_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigateway_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigatewayProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -3836,11 +4153,7 @@ pub fn apigateway_projects_locations_operations_list_execute(
 
 pub fn apigateway_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ApigatewayProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ApigatewayListOperationsResponse>, ApiError>,
@@ -3851,11 +4164,11 @@ pub fn apigateway_projects_locations_operations_list(
 > {
     let builder = apigateway_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     apigateway_projects_locations_operations_list_execute(builder)
 }

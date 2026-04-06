@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET /apps
 /// List Apps
@@ -28,7 +30,7 @@ pub fn get_apps_builder(
     app_role: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/apps",);
+    let url = format!("https://api.machines.dev/v1/apps",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -88,9 +90,17 @@ pub fn get_apps_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -112,6 +122,15 @@ pub fn get_apps_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsArgs {
+    /// Query parameter: org_slug
+    pub org_slug: Option<String>,
+    /// Query parameter: app_role
+    pub app_role: Option<String>,
+}
+
 /// GET /apps
 /// List Apps
 ///
@@ -124,15 +143,14 @@ pub fn get_apps_execute(
 
 pub fn get_apps(
     client: &SimpleHttpClient,
-    org_slug: Option<&str>,
-    app_role: Option<&str>,
+    args: &GetAppsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAppsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_apps_builder(client, org_slug, app_role)?;
+    let builder = get_apps_builder(client, args.org_slug.as_deref(), args.app_role.as_deref())?;
     get_apps_execute(builder)
 }
 
@@ -147,7 +165,7 @@ pub fn post_apps_builder(
     body: &CreateAppRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/apps",);
+    let url = format!("https://api.machines.dev/v1/apps",);
 
     // Build request
     let builder = client
@@ -193,9 +211,17 @@ pub fn post_apps_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -214,6 +240,13 @@ pub fn post_apps_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsArgs {
+    /// Request body.
+    pub body: CreateAppRequest,
+}
+
 /// POST /apps
 /// Create App
 ///
@@ -226,12 +259,12 @@ pub fn post_apps_execute(
 
 pub fn post_apps(
     client: &SimpleHttpClient,
-    body: &CreateAppRequest,
+    args: &PostAppsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_builder(client, body)?;
+    let builder = post_apps_builder(client, &args.body)?;
     post_apps_execute(builder)
 }
 
@@ -246,7 +279,7 @@ pub fn get_apps_app_name_builder(
     app_name: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/apps/{}", app_name,);
+    let url = format!("https://api.machines.dev/v1/apps/{}", app_name,);
 
     // Build request
     let builder = client
@@ -290,9 +323,17 @@ pub fn get_apps_app_name_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -314,6 +355,13 @@ pub fn get_apps_app_name_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+}
+
 /// GET /apps/{app_name}
 /// Get App
 ///
@@ -326,12 +374,12 @@ pub fn get_apps_app_name_execute(
 
 pub fn get_apps_app_name(
     client: &SimpleHttpClient,
-    app_name: &str,
+    args: &GetAppsAppNameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<App>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_builder(client, app_name)?;
+    let builder = get_apps_app_name_builder(client, &args.app_name)?;
     get_apps_app_name_execute(builder)
 }
 
@@ -346,7 +394,7 @@ pub fn delete_apps_app_name_builder(
     app_name: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/apps/{}", app_name,);
+    let url = format!("https://api.machines.dev/v1/apps/{}", app_name,);
 
     // Build request
     let builder = client
@@ -390,9 +438,17 @@ pub fn delete_apps_app_name_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -411,6 +467,13 @@ pub fn delete_apps_app_name_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_apps_app_name`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteAppsAppNameArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+}
+
 /// DELETE /apps/{app_name}
 /// Destroy App
 ///
@@ -423,12 +486,12 @@ pub fn delete_apps_app_name_execute(
 
 pub fn delete_apps_app_name(
     client: &SimpleHttpClient,
-    app_name: &str,
+    args: &DeleteAppsAppNameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_builder(client, app_name)?;
+    let builder = delete_apps_app_name_builder(client, &args.app_name)?;
     delete_apps_app_name_execute(builder)
 }
 
@@ -446,7 +509,7 @@ pub fn get_apps_app_name_certificates_builder(
     limit: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/apps/{}/certificates", app_name,);
+    let url = format!("https://api.machines.dev/v1/apps/{}/certificates", app_name,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -509,9 +572,17 @@ pub fn get_apps_app_name_certificates_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -533,6 +604,19 @@ pub fn get_apps_app_name_certificates_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_certificates`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameCertificatesArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: cursor
+    pub cursor: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<i32>,
+}
+
 /// GET /apps/{app_name}/certificates
 /// List certificates for app
 ///
@@ -545,17 +629,20 @@ pub fn get_apps_app_name_certificates_execute(
 
 pub fn get_apps_app_name_certificates(
     client: &SimpleHttpClient,
-    app_name: &str,
-    filter: Option<&str>,
-    cursor: Option<&str>,
-    limit: Option<i32>,
+    args: &GetAppsAppNameCertificatesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCertificatesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_certificates_builder(client, app_name, filter, cursor, limit)?;
+    let builder = get_apps_app_name_certificates_builder(
+        client,
+        &args.app_name,
+        args.filter.as_deref(),
+        args.cursor.as_deref(),
+        args.limit,
+    )?;
     get_apps_app_name_certificates_execute(builder)
 }
 
@@ -572,7 +659,7 @@ pub fn post_apps_app_name_certificates_acme_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/certificates/acme",
+        "https://api.machines.dev/v1/apps/{}/certificates/acme",
         app_name,
     );
 
@@ -622,9 +709,17 @@ pub fn post_apps_app_name_certificates_acme_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -646,6 +741,15 @@ pub fn post_apps_app_name_certificates_acme_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_certificates_acme`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameCertificatesAcmeArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Request body.
+    pub body: CreateAcmeCertificateRequest,
+}
+
 /// POST /apps/{app_name}/certificates/acme
 /// Request ACME certificate
 ///
@@ -658,15 +762,14 @@ pub fn post_apps_app_name_certificates_acme_execute(
 
 pub fn post_apps_app_name_certificates_acme(
     client: &SimpleHttpClient,
-    app_name: &str,
-    body: &CreateAcmeCertificateRequest,
+    args: &PostAppsAppNameCertificatesAcmeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_certificates_acme_builder(client, app_name, body)?;
+    let builder = post_apps_app_name_certificates_acme_builder(client, &args.app_name, &args.body)?;
     post_apps_app_name_certificates_acme_execute(builder)
 }
 
@@ -683,7 +786,7 @@ pub fn post_apps_app_name_certificates_custom_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/certificates/custom",
+        "https://api.machines.dev/v1/apps/{}/certificates/custom",
         app_name,
     );
 
@@ -733,9 +836,17 @@ pub fn post_apps_app_name_certificates_custom_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -757,6 +868,15 @@ pub fn post_apps_app_name_certificates_custom_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_certificates_custom`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameCertificatesCustomArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Request body.
+    pub body: CreateCustomCertificateRequest,
+}
+
 /// POST /apps/{app_name}/certificates/custom
 /// Upload custom certificate
 ///
@@ -769,15 +889,15 @@ pub fn post_apps_app_name_certificates_custom_execute(
 
 pub fn post_apps_app_name_certificates_custom(
     client: &SimpleHttpClient,
-    app_name: &str,
-    body: &CreateCustomCertificateRequest,
+    args: &PostAppsAppNameCertificatesCustomArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_certificates_custom_builder(client, app_name, body)?;
+    let builder =
+        post_apps_app_name_certificates_custom_builder(client, &args.app_name, &args.body)?;
     post_apps_app_name_certificates_custom_execute(builder)
 }
 
@@ -794,7 +914,7 @@ pub fn get_apps_app_name_certificates_hostname_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/certificates/{}",
+        "https://api.machines.dev/v1/apps/{}/certificates/{}",
         app_name, hostname,
     );
 
@@ -842,9 +962,17 @@ pub fn get_apps_app_name_certificates_hostname_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -866,6 +994,15 @@ pub fn get_apps_app_name_certificates_hostname_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_certificates_hostname`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameCertificatesHostnameArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: hostname
+    pub hostname: String,
+}
+
 /// GET /apps/{app_name}/certificates/{hostname}
 /// Get certificate details
 ///
@@ -878,15 +1015,15 @@ pub fn get_apps_app_name_certificates_hostname_execute(
 
 pub fn get_apps_app_name_certificates_hostname(
     client: &SimpleHttpClient,
-    app_name: &str,
-    hostname: &str,
+    args: &GetAppsAppNameCertificatesHostnameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_certificates_hostname_builder(client, app_name, hostname)?;
+    let builder =
+        get_apps_app_name_certificates_hostname_builder(client, &args.app_name, &args.hostname)?;
     get_apps_app_name_certificates_hostname_execute(builder)
 }
 
@@ -903,7 +1040,7 @@ pub fn delete_apps_app_name_certificates_hostname_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/certificates/{}",
+        "https://api.machines.dev/v1/apps/{}/certificates/{}",
         app_name, hostname,
     );
 
@@ -949,9 +1086,17 @@ pub fn delete_apps_app_name_certificates_hostname_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -970,6 +1115,15 @@ pub fn delete_apps_app_name_certificates_hostname_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_apps_app_name_certificates_hostname`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteAppsAppNameCertificatesHostnameArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: hostname
+    pub hostname: String,
+}
+
 /// DELETE /apps/{app_name}/certificates/{hostname}
 /// Remove certificate
 ///
@@ -982,13 +1136,13 @@ pub fn delete_apps_app_name_certificates_hostname_execute(
 
 pub fn delete_apps_app_name_certificates_hostname(
     client: &SimpleHttpClient,
-    app_name: &str,
-    hostname: &str,
+    args: &DeleteAppsAppNameCertificatesHostnameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_certificates_hostname_builder(client, app_name, hostname)?;
+    let builder =
+        delete_apps_app_name_certificates_hostname_builder(client, &args.app_name, &args.hostname)?;
     delete_apps_app_name_certificates_hostname_execute(builder)
 }
 
@@ -1005,7 +1159,7 @@ pub fn delete_apps_app_name_certificates_hostname_acme_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/certificates/{}/acme",
+        "https://api.machines.dev/v1/apps/{}/certificates/{}/acme",
         app_name, hostname,
     );
 
@@ -1053,9 +1207,17 @@ pub fn delete_apps_app_name_certificates_hostname_acme_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1077,6 +1239,15 @@ pub fn delete_apps_app_name_certificates_hostname_acme_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_apps_app_name_certificates_hostname_acme`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteAppsAppNameCertificatesHostnameAcmeArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: hostname
+    pub hostname: String,
+}
+
 /// DELETE /apps/{app_name}/certificates/{hostname}/acme
 /// Remove ACME certificates
 ///
@@ -1089,16 +1260,18 @@ pub fn delete_apps_app_name_certificates_hostname_acme_execute(
 
 pub fn delete_apps_app_name_certificates_hostname_acme(
     client: &SimpleHttpClient,
-    app_name: &str,
-    hostname: &str,
+    args: &DeleteAppsAppNameCertificatesHostnameAcmeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        delete_apps_app_name_certificates_hostname_acme_builder(client, app_name, hostname)?;
+    let builder = delete_apps_app_name_certificates_hostname_acme_builder(
+        client,
+        &args.app_name,
+        &args.hostname,
+    )?;
     delete_apps_app_name_certificates_hostname_acme_execute(builder)
 }
 
@@ -1115,7 +1288,7 @@ pub fn post_apps_app_name_certificates_hostname_check_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/certificates/{}/check",
+        "https://api.machines.dev/v1/apps/{}/certificates/{}/check",
         app_name, hostname,
     );
 
@@ -1163,9 +1336,17 @@ pub fn post_apps_app_name_certificates_hostname_check_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1187,6 +1368,15 @@ pub fn post_apps_app_name_certificates_hostname_check_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_certificates_hostname_check`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameCertificatesHostnameCheckArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: hostname
+    pub hostname: String,
+}
+
 /// POST /apps/{app_name}/certificates/{hostname}/check
 /// Check DNS and re-validate certificate
 ///
@@ -1199,16 +1389,18 @@ pub fn post_apps_app_name_certificates_hostname_check_execute(
 
 pub fn post_apps_app_name_certificates_hostname_check(
     client: &SimpleHttpClient,
-    app_name: &str,
-    hostname: &str,
+    args: &PostAppsAppNameCertificatesHostnameCheckArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateCheckResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_certificates_hostname_check_builder(client, app_name, hostname)?;
+    let builder = post_apps_app_name_certificates_hostname_check_builder(
+        client,
+        &args.app_name,
+        &args.hostname,
+    )?;
     post_apps_app_name_certificates_hostname_check_execute(builder)
 }
 
@@ -1225,7 +1417,7 @@ pub fn delete_apps_app_name_certificates_hostname_custom_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/certificates/{}/custom",
+        "https://api.machines.dev/v1/apps/{}/certificates/{}/custom",
         app_name, hostname,
     );
 
@@ -1275,9 +1467,17 @@ pub fn delete_apps_app_name_certificates_hostname_custom_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1299,6 +1499,15 @@ pub fn delete_apps_app_name_certificates_hostname_custom_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_apps_app_name_certificates_hostname_custom`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteAppsAppNameCertificatesHostnameCustomArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: hostname
+    pub hostname: String,
+}
+
 /// DELETE /apps/{app_name}/certificates/{hostname}/custom
 /// Remove custom certificate
 ///
@@ -1311,8 +1520,7 @@ pub fn delete_apps_app_name_certificates_hostname_custom_execute(
 
 pub fn delete_apps_app_name_certificates_hostname_custom(
     client: &SimpleHttpClient,
-    app_name: &str,
-    hostname: &str,
+    args: &DeleteAppsAppNameCertificatesHostnameCustomArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DestroyCustomCertificateResponse>, ApiError>,
@@ -1321,8 +1529,11 @@ pub fn delete_apps_app_name_certificates_hostname_custom(
         + 'static,
     ApiError,
 > {
-    let builder =
-        delete_apps_app_name_certificates_hostname_custom_builder(client, app_name, hostname)?;
+    let builder = delete_apps_app_name_certificates_hostname_custom_builder(
+        client,
+        &args.app_name,
+        &args.hostname,
+    )?;
     delete_apps_app_name_certificates_hostname_custom_execute(builder)
 }
 
@@ -1338,7 +1549,7 @@ pub fn post_apps_app_name_deploy_token_builder(
     body: &CreateAppDeployTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/apps/{}/deploy_token", app_name,);
+    let url = format!("https://api.machines.dev/v1/apps/{}/deploy_token", app_name,);
 
     // Build request
     let builder = client
@@ -1386,9 +1597,17 @@ pub fn post_apps_app_name_deploy_token_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1410,6 +1629,15 @@ pub fn post_apps_app_name_deploy_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_deploy_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameDeployTokenArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Request body.
+    pub body: CreateAppDeployTokenRequest,
+}
+
 /// POST /apps/{app_name}/deploy_token
 /// Create App deploy token
 ///
@@ -1422,15 +1650,14 @@ pub fn post_apps_app_name_deploy_token_execute(
 
 pub fn post_apps_app_name_deploy_token(
     client: &SimpleHttpClient,
-    app_name: &str,
-    body: &CreateAppDeployTokenRequest,
+    args: &PostAppsAppNameDeployTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreateAppResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_deploy_token_builder(client, app_name, body)?;
+    let builder = post_apps_app_name_deploy_token_builder(client, &args.app_name, &args.body)?;
     post_apps_app_name_deploy_token_execute(builder)
 }
 
@@ -1445,7 +1672,10 @@ pub fn get_apps_app_name_ip_assignments_builder(
     app_name: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/apps/{}/ip_assignments", app_name,);
+    let url = format!(
+        "https://api.machines.dev/v1/apps/{}/ip_assignments",
+        app_name,
+    );
 
     // Build request
     let builder = client
@@ -1491,9 +1721,17 @@ pub fn get_apps_app_name_ip_assignments_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1515,6 +1753,13 @@ pub fn get_apps_app_name_ip_assignments_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_ip_assignments`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameIpAssignmentsArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+}
+
 /// GET /apps/{app_name}/ip_assignments
 /// List IP assignments for app
 ///
@@ -1527,14 +1772,14 @@ pub fn get_apps_app_name_ip_assignments_execute(
 
 pub fn get_apps_app_name_ip_assignments(
     client: &SimpleHttpClient,
-    app_name: &str,
+    args: &GetAppsAppNameIpAssignmentsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListIPAssignmentsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_ip_assignments_builder(client, app_name)?;
+    let builder = get_apps_app_name_ip_assignments_builder(client, &args.app_name)?;
     get_apps_app_name_ip_assignments_execute(builder)
 }
 
@@ -1550,7 +1795,10 @@ pub fn post_apps_app_name_ip_assignments_builder(
     body: &AssignIPRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/apps/{}/ip_assignments", app_name,);
+    let url = format!(
+        "https://api.machines.dev/v1/apps/{}/ip_assignments",
+        app_name,
+    );
 
     // Build request
     let builder = client
@@ -1598,9 +1846,17 @@ pub fn post_apps_app_name_ip_assignments_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1622,6 +1878,15 @@ pub fn post_apps_app_name_ip_assignments_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_ip_assignments`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameIpAssignmentsArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Request body.
+    pub body: AssignIPRequest,
+}
+
 /// POST /apps/{app_name}/ip_assignments
 /// Assign new IP address to app
 ///
@@ -1634,15 +1899,14 @@ pub fn post_apps_app_name_ip_assignments_execute(
 
 pub fn post_apps_app_name_ip_assignments(
     client: &SimpleHttpClient,
-    app_name: &str,
-    body: &AssignIPRequest,
+    args: &PostAppsAppNameIpAssignmentsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IPAssignment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_ip_assignments_builder(client, app_name, body)?;
+    let builder = post_apps_app_name_ip_assignments_builder(client, &args.app_name, &args.body)?;
     post_apps_app_name_ip_assignments_execute(builder)
 }
 
@@ -1659,7 +1923,7 @@ pub fn delete_apps_app_name_ip_assignments_ip_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/ip_assignments/{}",
+        "https://api.machines.dev/v1/apps/{}/ip_assignments/{}",
         app_name, ip,
     );
 
@@ -1705,9 +1969,17 @@ pub fn delete_apps_app_name_ip_assignments_ip_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1726,6 +1998,15 @@ pub fn delete_apps_app_name_ip_assignments_ip_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_apps_app_name_ip_assignments_ip`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteAppsAppNameIpAssignmentsIpArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: ip
+    pub ip: String,
+}
+
 /// DELETE /apps/{app_name}/ip_assignments/{ip}
 /// Remove IP assignment from app
 ///
@@ -1738,13 +2019,12 @@ pub fn delete_apps_app_name_ip_assignments_ip_execute(
 
 pub fn delete_apps_app_name_ip_assignments_ip(
     client: &SimpleHttpClient,
-    app_name: &str,
-    ip: &str,
+    args: &DeleteAppsAppNameIpAssignmentsIpArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_ip_assignments_ip_builder(client, app_name, ip)?;
+    let builder = delete_apps_app_name_ip_assignments_ip_builder(client, &args.app_name, &args.ip)?;
     delete_apps_app_name_ip_assignments_ip_execute(builder)
 }
 
@@ -1763,7 +2043,7 @@ pub fn get_apps_app_name_machines_builder(
     summary: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/apps/{}/machines", app_name,);
+    let url = format!("https://api.machines.dev/v1/apps/{}/machines", app_name,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1827,9 +2107,17 @@ pub fn get_apps_app_name_machines_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1848,6 +2136,21 @@ pub fn get_apps_app_name_machines_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_machines`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameMachinesArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Query parameter: include_deleted
+    pub include_deleted: Option<bool>,
+    /// Query parameter: region
+    pub region: Option<String>,
+    /// Query parameter: state
+    pub state: Option<String>,
+    /// Query parameter: summary
+    pub summary: Option<bool>,
+}
+
 /// GET /apps/{app_name}/machines
 /// List Machines
 ///
@@ -1860,22 +2163,18 @@ pub fn get_apps_app_name_machines_execute(
 
 pub fn get_apps_app_name_machines(
     client: &SimpleHttpClient,
-    app_name: &str,
-    include_deleted: Option<bool>,
-    region: Option<&str>,
-    state: Option<&str>,
-    summary: Option<bool>,
+    args: &GetAppsAppNameMachinesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = get_apps_app_name_machines_builder(
         client,
-        app_name,
-        include_deleted,
-        region,
-        state,
-        summary,
+        &args.app_name,
+        args.include_deleted,
+        args.region.as_deref(),
+        args.state.as_deref(),
+        args.summary,
     )?;
     get_apps_app_name_machines_execute(builder)
 }
@@ -1892,7 +2191,7 @@ pub fn post_apps_app_name_machines_builder(
     body: &CreateMachineRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/apps/{}/machines", app_name,);
+    let url = format!("https://api.machines.dev/v1/apps/{}/machines", app_name,);
 
     // Build request
     let builder = client
@@ -1938,9 +2237,17 @@ pub fn post_apps_app_name_machines_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1962,6 +2269,15 @@ pub fn post_apps_app_name_machines_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_machines`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameMachinesArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Request body.
+    pub body: CreateMachineRequest,
+}
+
 /// POST /apps/{app_name}/machines
 /// Create Machine
 ///
@@ -1974,13 +2290,12 @@ pub fn post_apps_app_name_machines_execute(
 
 pub fn post_apps_app_name_machines(
     client: &SimpleHttpClient,
-    app_name: &str,
-    body: &CreateMachineRequest,
+    args: &PostAppsAppNameMachinesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_machines_builder(client, app_name, body)?;
+    let builder = post_apps_app_name_machines_builder(client, &args.app_name, &args.body)?;
     post_apps_app_name_machines_execute(builder)
 }
 
@@ -1997,7 +2312,7 @@ pub fn get_apps_app_name_machines_machine_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}",
+        "https://api.machines.dev/v1/apps/{}/machines/{}",
         app_name, machine_id,
     );
 
@@ -2043,9 +2358,17 @@ pub fn get_apps_app_name_machines_machine_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2067,6 +2390,15 @@ pub fn get_apps_app_name_machines_machine_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_machines_machine_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameMachinesMachineIdArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+}
+
 /// GET /apps/{app_name}/machines/{machine_id}
 /// Get Machine
 ///
@@ -2079,13 +2411,13 @@ pub fn get_apps_app_name_machines_machine_id_execute(
 
 pub fn get_apps_app_name_machines_machine_id(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
+    args: &GetAppsAppNameMachinesMachineIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_machines_machine_id_builder(client, app_name, machine_id)?;
+    let builder =
+        get_apps_app_name_machines_machine_id_builder(client, &args.app_name, &args.machine_id)?;
     get_apps_app_name_machines_machine_id_execute(builder)
 }
 
@@ -2103,7 +2435,7 @@ pub fn post_apps_app_name_machines_machine_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}",
+        "https://api.machines.dev/v1/apps/{}/machines/{}",
         app_name, machine_id,
     );
 
@@ -2151,9 +2483,17 @@ pub fn post_apps_app_name_machines_machine_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2175,6 +2515,17 @@ pub fn post_apps_app_name_machines_machine_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_machines_machine_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameMachinesMachineIdArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Request body.
+    pub body: UpdateMachineRequest,
+}
+
 /// POST /apps/{app_name}/machines/{machine_id}
 /// Update Machine
 ///
@@ -2187,15 +2538,17 @@ pub fn post_apps_app_name_machines_machine_id_execute(
 
 pub fn post_apps_app_name_machines_machine_id(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    body: &UpdateMachineRequest,
+    args: &PostAppsAppNameMachinesMachineIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_machines_machine_id_builder(client, app_name, machine_id, body)?;
+    let builder = post_apps_app_name_machines_machine_id_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+        &args.body,
+    )?;
     post_apps_app_name_machines_machine_id_execute(builder)
 }
 
@@ -2213,7 +2566,7 @@ pub fn delete_apps_app_name_machines_machine_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}",
+        "https://api.machines.dev/v1/apps/{}/machines/{}",
         app_name, machine_id,
     );
 
@@ -2270,9 +2623,17 @@ pub fn delete_apps_app_name_machines_machine_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2291,6 +2652,17 @@ pub fn delete_apps_app_name_machines_machine_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_apps_app_name_machines_machine_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteAppsAppNameMachinesMachineIdArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// DELETE /apps/{app_name}/machines/{machine_id}
 /// Destroy Machine
 ///
@@ -2303,15 +2675,17 @@ pub fn delete_apps_app_name_machines_machine_id_execute(
 
 pub fn delete_apps_app_name_machines_machine_id(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    force: Option<bool>,
+    args: &DeleteAppsAppNameMachinesMachineIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        delete_apps_app_name_machines_machine_id_builder(client, app_name, machine_id, force)?;
+    let builder = delete_apps_app_name_machines_machine_id_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+        args.force,
+    )?;
     delete_apps_app_name_machines_machine_id_execute(builder)
 }
 
@@ -2328,7 +2702,7 @@ pub fn post_apps_app_name_machines_machine_id_cordon_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/cordon",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/cordon",
         app_name, machine_id,
     );
 
@@ -2374,9 +2748,17 @@ pub fn post_apps_app_name_machines_machine_id_cordon_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2395,6 +2777,15 @@ pub fn post_apps_app_name_machines_machine_id_cordon_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_machines_machine_id_cordon`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameMachinesMachineIdCordonArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+}
+
 /// POST /apps/{app_name}/machines/{machine_id}/cordon
 /// Cordon Machine
 ///
@@ -2407,14 +2798,16 @@ pub fn post_apps_app_name_machines_machine_id_cordon_execute(
 
 pub fn post_apps_app_name_machines_machine_id_cordon(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
+    args: &PostAppsAppNameMachinesMachineIdCordonArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_machines_machine_id_cordon_builder(client, app_name, machine_id)?;
+    let builder = post_apps_app_name_machines_machine_id_cordon_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+    )?;
     post_apps_app_name_machines_machine_id_cordon_execute(builder)
 }
 
@@ -2432,7 +2825,7 @@ pub fn get_apps_app_name_machines_machine_id_events_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/events",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/events",
         app_name, machine_id,
     );
 
@@ -2489,9 +2882,17 @@ pub fn get_apps_app_name_machines_machine_id_events_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2510,6 +2911,17 @@ pub fn get_apps_app_name_machines_machine_id_events_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_machines_machine_id_events`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameMachinesMachineIdEventsArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Query parameter: limit
+    pub limit: Option<i32>,
+}
+
 /// GET /apps/{app_name}/machines/{machine_id}/events
 /// List Events
 ///
@@ -2522,15 +2934,17 @@ pub fn get_apps_app_name_machines_machine_id_events_execute(
 
 pub fn get_apps_app_name_machines_machine_id_events(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    limit: Option<i32>,
+    args: &GetAppsAppNameMachinesMachineIdEventsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_apps_app_name_machines_machine_id_events_builder(client, app_name, machine_id, limit)?;
+    let builder = get_apps_app_name_machines_machine_id_events_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+        args.limit,
+    )?;
     get_apps_app_name_machines_machine_id_events_execute(builder)
 }
 
@@ -2548,7 +2962,7 @@ pub fn post_apps_app_name_machines_machine_id_exec_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/exec",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/exec",
         app_name, machine_id,
     );
 
@@ -2598,9 +3012,17 @@ pub fn post_apps_app_name_machines_machine_id_exec_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2622,6 +3044,17 @@ pub fn post_apps_app_name_machines_machine_id_exec_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_machines_machine_id_exec`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameMachinesMachineIdExecArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Request body.
+    pub body: MachineExecRequest,
+}
+
 /// POST /apps/{app_name}/machines/{machine_id}/exec
 /// Execute Command
 ///
@@ -2634,17 +3067,19 @@ pub fn post_apps_app_name_machines_machine_id_exec_execute(
 
 pub fn post_apps_app_name_machines_machine_id_exec(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    body: &MachineExecRequest,
+    args: &PostAppsAppNameMachinesMachineIdExecArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Flydv1ExecResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_machines_machine_id_exec_builder(client, app_name, machine_id, body)?;
+    let builder = post_apps_app_name_machines_machine_id_exec_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+        &args.body,
+    )?;
     post_apps_app_name_machines_machine_id_exec_execute(builder)
 }
 
@@ -2661,7 +3096,7 @@ pub fn get_apps_app_name_machines_machine_id_lease_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/lease",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/lease",
         app_name, machine_id,
     );
 
@@ -2707,9 +3142,17 @@ pub fn get_apps_app_name_machines_machine_id_lease_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2731,6 +3174,15 @@ pub fn get_apps_app_name_machines_machine_id_lease_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_machines_machine_id_lease`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameMachinesMachineIdLeaseArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+}
+
 /// GET /apps/{app_name}/machines/{machine_id}/lease
 /// Get Lease
 ///
@@ -2743,14 +3195,16 @@ pub fn get_apps_app_name_machines_machine_id_lease_execute(
 
 pub fn get_apps_app_name_machines_machine_id_lease(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
+    args: &GetAppsAppNameMachinesMachineIdLeaseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Lease>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_apps_app_name_machines_machine_id_lease_builder(client, app_name, machine_id)?;
+    let builder = get_apps_app_name_machines_machine_id_lease_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+    )?;
     get_apps_app_name_machines_machine_id_lease_execute(builder)
 }
 
@@ -2768,7 +3222,7 @@ pub fn post_apps_app_name_machines_machine_id_lease_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/lease",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/lease",
         app_name, machine_id,
     );
 
@@ -2816,9 +3270,17 @@ pub fn post_apps_app_name_machines_machine_id_lease_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2840,6 +3302,17 @@ pub fn post_apps_app_name_machines_machine_id_lease_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_machines_machine_id_lease`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameMachinesMachineIdLeaseArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Request body.
+    pub body: CreateLeaseRequest,
+}
+
 /// POST /apps/{app_name}/machines/{machine_id}/lease
 /// Create Lease
 ///
@@ -2852,15 +3325,17 @@ pub fn post_apps_app_name_machines_machine_id_lease_execute(
 
 pub fn post_apps_app_name_machines_machine_id_lease(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    body: &CreateLeaseRequest,
+    args: &PostAppsAppNameMachinesMachineIdLeaseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Lease>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_machines_machine_id_lease_builder(client, app_name, machine_id, body)?;
+    let builder = post_apps_app_name_machines_machine_id_lease_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+        &args.body,
+    )?;
     post_apps_app_name_machines_machine_id_lease_execute(builder)
 }
 
@@ -2877,7 +3352,7 @@ pub fn delete_apps_app_name_machines_machine_id_lease_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/lease",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/lease",
         app_name, machine_id,
     );
 
@@ -2923,9 +3398,17 @@ pub fn delete_apps_app_name_machines_machine_id_lease_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2944,6 +3427,15 @@ pub fn delete_apps_app_name_machines_machine_id_lease_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_apps_app_name_machines_machine_id_lease`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteAppsAppNameMachinesMachineIdLeaseArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+}
+
 /// DELETE /apps/{app_name}/machines/{machine_id}/lease
 /// Release Lease
 ///
@@ -2956,14 +3448,16 @@ pub fn delete_apps_app_name_machines_machine_id_lease_execute(
 
 pub fn delete_apps_app_name_machines_machine_id_lease(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
+    args: &DeleteAppsAppNameMachinesMachineIdLeaseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        delete_apps_app_name_machines_machine_id_lease_builder(client, app_name, machine_id)?;
+    let builder = delete_apps_app_name_machines_machine_id_lease_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+    )?;
     delete_apps_app_name_machines_machine_id_lease_execute(builder)
 }
 
@@ -2980,7 +3474,7 @@ pub fn get_apps_app_name_machines_machine_id_memory_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/memory",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/memory",
         app_name, machine_id,
     );
 
@@ -3028,9 +3522,17 @@ pub fn get_apps_app_name_machines_machine_id_memory_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3052,6 +3554,15 @@ pub fn get_apps_app_name_machines_machine_id_memory_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_machines_machine_id_memory`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameMachinesMachineIdMemoryArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+}
+
 /// GET /apps/{app_name}/machines/{machine_id}/memory
 /// Get Machine Memory
 ///
@@ -3064,16 +3575,18 @@ pub fn get_apps_app_name_machines_machine_id_memory_execute(
 
 pub fn get_apps_app_name_machines_machine_id_memory(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
+    args: &GetAppsAppNameMachinesMachineIdMemoryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MainMemoryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_apps_app_name_machines_machine_id_memory_builder(client, app_name, machine_id)?;
+    let builder = get_apps_app_name_machines_machine_id_memory_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+    )?;
     get_apps_app_name_machines_machine_id_memory_execute(builder)
 }
 
@@ -3091,7 +3604,7 @@ pub fn put_apps_app_name_machines_machine_id_memory_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/memory",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/memory",
         app_name, machine_id,
     );
 
@@ -3141,9 +3654,17 @@ pub fn put_apps_app_name_machines_machine_id_memory_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3165,6 +3686,17 @@ pub fn put_apps_app_name_machines_machine_id_memory_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_apps_app_name_machines_machine_id_memory`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutAppsAppNameMachinesMachineIdMemoryArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Request body.
+    pub body: MainSetMemoryLimitRequest,
+}
+
 /// PUT /apps/{app_name}/machines/{machine_id}/memory
 /// Set Machine Memory Limit
 ///
@@ -3177,17 +3709,19 @@ pub fn put_apps_app_name_machines_machine_id_memory_execute(
 
 pub fn put_apps_app_name_machines_machine_id_memory(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    body: &MainSetMemoryLimitRequest,
+    args: &PutAppsAppNameMachinesMachineIdMemoryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MainMemoryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        put_apps_app_name_machines_machine_id_memory_builder(client, app_name, machine_id, body)?;
+    let builder = put_apps_app_name_machines_machine_id_memory_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+        &args.body,
+    )?;
     put_apps_app_name_machines_machine_id_memory_execute(builder)
 }
 
@@ -3205,7 +3739,7 @@ pub fn post_apps_app_name_machines_machine_id_memory_reclaim_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/memory/reclaim",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/memory/reclaim",
         app_name, machine_id,
     );
 
@@ -3255,9 +3789,17 @@ pub fn post_apps_app_name_machines_machine_id_memory_reclaim_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3279,6 +3821,17 @@ pub fn post_apps_app_name_machines_machine_id_memory_reclaim_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_machines_machine_id_memory_reclaim`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameMachinesMachineIdMemoryReclaimArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Request body.
+    pub body: MainReclaimMemoryRequest,
+}
+
 /// POST /apps/{app_name}/machines/{machine_id}/memory/reclaim
 /// Reclaim Machine Memory
 ///
@@ -3291,9 +3844,7 @@ pub fn post_apps_app_name_machines_machine_id_memory_reclaim_execute(
 
 pub fn post_apps_app_name_machines_machine_id_memory_reclaim(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    body: &MainReclaimMemoryRequest,
+    args: &PostAppsAppNameMachinesMachineIdMemoryReclaimArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MainReclaimMemoryResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3301,7 +3852,10 @@ pub fn post_apps_app_name_machines_machine_id_memory_reclaim(
     ApiError,
 > {
     let builder = post_apps_app_name_machines_machine_id_memory_reclaim_builder(
-        client, app_name, machine_id, body,
+        client,
+        &args.app_name,
+        &args.machine_id,
+        &args.body,
     )?;
     post_apps_app_name_machines_machine_id_memory_reclaim_execute(builder)
 }
@@ -3319,7 +3873,7 @@ pub fn get_apps_app_name_machines_machine_id_metadata_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/metadata",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/metadata",
         app_name, machine_id,
     );
 
@@ -3365,9 +3919,17 @@ pub fn get_apps_app_name_machines_machine_id_metadata_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3386,6 +3948,15 @@ pub fn get_apps_app_name_machines_machine_id_metadata_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_machines_machine_id_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameMachinesMachineIdMetadataArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+}
+
 /// GET /apps/{app_name}/machines/{machine_id}/metadata
 /// Get Metadata
 ///
@@ -3398,14 +3969,16 @@ pub fn get_apps_app_name_machines_machine_id_metadata_execute(
 
 pub fn get_apps_app_name_machines_machine_id_metadata(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
+    args: &GetAppsAppNameMachinesMachineIdMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_apps_app_name_machines_machine_id_metadata_builder(client, app_name, machine_id)?;
+    let builder = get_apps_app_name_machines_machine_id_metadata_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+    )?;
     get_apps_app_name_machines_machine_id_metadata_execute(builder)
 }
 
@@ -3423,7 +3996,7 @@ pub fn put_apps_app_name_machines_machine_id_metadata_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/metadata",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/metadata",
         app_name, machine_id,
     );
 
@@ -3471,9 +4044,17 @@ pub fn put_apps_app_name_machines_machine_id_metadata_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3492,6 +4073,17 @@ pub fn put_apps_app_name_machines_machine_id_metadata_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_apps_app_name_machines_machine_id_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutAppsAppNameMachinesMachineIdMetadataArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Request body.
+    pub body: UpdateMetadataRequest,
+}
+
 /// PUT /apps/{app_name}/machines/{machine_id}/metadata
 /// Update Metadata (`set/remove` multiple keys)
 ///
@@ -3504,15 +4096,17 @@ pub fn put_apps_app_name_machines_machine_id_metadata_execute(
 
 pub fn put_apps_app_name_machines_machine_id_metadata(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    body: &UpdateMetadataRequest,
+    args: &PutAppsAppNameMachinesMachineIdMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        put_apps_app_name_machines_machine_id_metadata_builder(client, app_name, machine_id, body)?;
+    let builder = put_apps_app_name_machines_machine_id_metadata_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+        &args.body,
+    )?;
     put_apps_app_name_machines_machine_id_metadata_execute(builder)
 }
 
@@ -3530,7 +4124,7 @@ pub fn get_apps_app_name_machines_machine_id_metadata_key_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/metadata/{}",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/metadata/{}",
         app_name, machine_id, key,
     );
 
@@ -3578,9 +4172,17 @@ pub fn get_apps_app_name_machines_machine_id_metadata_key_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3602,6 +4204,17 @@ pub fn get_apps_app_name_machines_machine_id_metadata_key_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_machines_machine_id_metadata_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameMachinesMachineIdMetadataKeyArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Path parameter: key
+    pub key: String,
+}
+
 /// GET /apps/{app_name}/machines/{machine_id}/metadata/{key}
 /// Get Metadata Value
 ///
@@ -3614,9 +4227,7 @@ pub fn get_apps_app_name_machines_machine_id_metadata_key_execute(
 
 pub fn get_apps_app_name_machines_machine_id_metadata_key(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    key: &str,
+    args: &GetAppsAppNameMachinesMachineIdMetadataKeyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MetadataValueResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3624,7 +4235,10 @@ pub fn get_apps_app_name_machines_machine_id_metadata_key(
     ApiError,
 > {
     let builder = get_apps_app_name_machines_machine_id_metadata_key_builder(
-        client, app_name, machine_id, key,
+        client,
+        &args.app_name,
+        &args.machine_id,
+        &args.key,
     )?;
     get_apps_app_name_machines_machine_id_metadata_key_execute(builder)
 }
@@ -3644,7 +4258,7 @@ pub fn post_apps_app_name_machines_machine_id_metadata_key_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/metadata/{}",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/metadata/{}",
         app_name, machine_id, key,
     );
 
@@ -3692,9 +4306,17 @@ pub fn post_apps_app_name_machines_machine_id_metadata_key_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3713,6 +4335,19 @@ pub fn post_apps_app_name_machines_machine_id_metadata_key_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_machines_machine_id_metadata_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameMachinesMachineIdMetadataKeyArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Path parameter: key
+    pub key: String,
+    /// Request body.
+    pub body: UpsertMetadataKeyRequest,
+}
+
 /// POST /apps/{app_name}/machines/{machine_id}/metadata/{key}
 /// Upsert Metadata Key
 ///
@@ -3725,16 +4360,17 @@ pub fn post_apps_app_name_machines_machine_id_metadata_key_execute(
 
 pub fn post_apps_app_name_machines_machine_id_metadata_key(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    key: &str,
-    body: &UpsertMetadataKeyRequest,
+    args: &PostAppsAppNameMachinesMachineIdMetadataKeyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = post_apps_app_name_machines_machine_id_metadata_key_builder(
-        client, app_name, machine_id, key, body,
+        client,
+        &args.app_name,
+        &args.machine_id,
+        &args.key,
+        &args.body,
     )?;
     post_apps_app_name_machines_machine_id_metadata_key_execute(builder)
 }
@@ -3753,7 +4389,7 @@ pub fn delete_apps_app_name_machines_machine_id_metadata_key_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/metadata/{}",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/metadata/{}",
         app_name, machine_id, key,
     );
 
@@ -3799,9 +4435,17 @@ pub fn delete_apps_app_name_machines_machine_id_metadata_key_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3820,6 +4464,17 @@ pub fn delete_apps_app_name_machines_machine_id_metadata_key_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_apps_app_name_machines_machine_id_metadata_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteAppsAppNameMachinesMachineIdMetadataKeyArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Path parameter: key
+    pub key: String,
+}
+
 /// DELETE /apps/{app_name}/machines/{machine_id}/metadata/{key}
 /// Delete Metadata
 ///
@@ -3832,15 +4487,16 @@ pub fn delete_apps_app_name_machines_machine_id_metadata_key_execute(
 
 pub fn delete_apps_app_name_machines_machine_id_metadata_key(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    key: &str,
+    args: &DeleteAppsAppNameMachinesMachineIdMetadataKeyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = delete_apps_app_name_machines_machine_id_metadata_key_builder(
-        client, app_name, machine_id, key,
+        client,
+        &args.app_name,
+        &args.machine_id,
+        &args.key,
     )?;
     delete_apps_app_name_machines_machine_id_metadata_key_execute(builder)
 }
@@ -3860,7 +4516,7 @@ pub fn get_apps_app_name_machines_machine_id_ps_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/ps",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/ps",
         app_name, machine_id,
     );
 
@@ -3920,9 +4576,17 @@ pub fn get_apps_app_name_machines_machine_id_ps_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3941,6 +4605,19 @@ pub fn get_apps_app_name_machines_machine_id_ps_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_machines_machine_id_ps`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameMachinesMachineIdPsArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Query parameter: sort_by
+    pub sort_by: Option<String>,
+    /// Query parameter: order
+    pub order: Option<String>,
+}
+
 /// GET /apps/{app_name}/machines/{machine_id}/ps
 /// List Processes
 ///
@@ -3953,16 +4630,17 @@ pub fn get_apps_app_name_machines_machine_id_ps_execute(
 
 pub fn get_apps_app_name_machines_machine_id_ps(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    sort_by: Option<&str>,
-    order: Option<&str>,
+    args: &GetAppsAppNameMachinesMachineIdPsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = get_apps_app_name_machines_machine_id_ps_builder(
-        client, app_name, machine_id, sort_by, order,
+        client,
+        &args.app_name,
+        &args.machine_id,
+        args.sort_by.as_deref(),
+        args.order.as_deref(),
     )?;
     get_apps_app_name_machines_machine_id_ps_execute(builder)
 }
@@ -3982,7 +4660,7 @@ pub fn post_apps_app_name_machines_machine_id_restart_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/restart",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/restart",
         app_name, machine_id,
     );
 
@@ -4042,9 +4720,17 @@ pub fn post_apps_app_name_machines_machine_id_restart_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4063,6 +4749,19 @@ pub fn post_apps_app_name_machines_machine_id_restart_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_machines_machine_id_restart`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameMachinesMachineIdRestartArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Query parameter: timeout
+    pub timeout: Option<String>,
+    /// Query parameter: signal
+    pub signal: Option<String>,
+}
+
 /// POST /apps/{app_name}/machines/{machine_id}/restart
 /// Restart Machine
 ///
@@ -4075,16 +4774,17 @@ pub fn post_apps_app_name_machines_machine_id_restart_execute(
 
 pub fn post_apps_app_name_machines_machine_id_restart(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    timeout: Option<&str>,
-    signal: Option<&str>,
+    args: &PostAppsAppNameMachinesMachineIdRestartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = post_apps_app_name_machines_machine_id_restart_builder(
-        client, app_name, machine_id, timeout, signal,
+        client,
+        &args.app_name,
+        &args.machine_id,
+        args.timeout.as_deref(),
+        args.signal.as_deref(),
     )?;
     post_apps_app_name_machines_machine_id_restart_execute(builder)
 }
@@ -4103,7 +4803,7 @@ pub fn post_apps_app_name_machines_machine_id_signal_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/signal",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/signal",
         app_name, machine_id,
     );
 
@@ -4151,9 +4851,17 @@ pub fn post_apps_app_name_machines_machine_id_signal_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4172,6 +4880,17 @@ pub fn post_apps_app_name_machines_machine_id_signal_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_machines_machine_id_signal`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameMachinesMachineIdSignalArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Request body.
+    pub body: SignalRequest,
+}
+
 /// POST /apps/{app_name}/machines/{machine_id}/signal
 /// Signal Machine
 ///
@@ -4184,15 +4903,17 @@ pub fn post_apps_app_name_machines_machine_id_signal_execute(
 
 pub fn post_apps_app_name_machines_machine_id_signal(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    body: &SignalRequest,
+    args: &PostAppsAppNameMachinesMachineIdSignalArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_machines_machine_id_signal_builder(client, app_name, machine_id, body)?;
+    let builder = post_apps_app_name_machines_machine_id_signal_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+        &args.body,
+    )?;
     post_apps_app_name_machines_machine_id_signal_execute(builder)
 }
 
@@ -4209,7 +4930,7 @@ pub fn post_apps_app_name_machines_machine_id_start_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/start",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/start",
         app_name, machine_id,
     );
 
@@ -4255,9 +4976,17 @@ pub fn post_apps_app_name_machines_machine_id_start_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4276,6 +5005,15 @@ pub fn post_apps_app_name_machines_machine_id_start_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_machines_machine_id_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameMachinesMachineIdStartArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+}
+
 /// POST /apps/{app_name}/machines/{machine_id}/start
 /// Start Machine
 ///
@@ -4288,14 +5026,16 @@ pub fn post_apps_app_name_machines_machine_id_start_execute(
 
 pub fn post_apps_app_name_machines_machine_id_start(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
+    args: &PostAppsAppNameMachinesMachineIdStartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_machines_machine_id_start_builder(client, app_name, machine_id)?;
+    let builder = post_apps_app_name_machines_machine_id_start_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+    )?;
     post_apps_app_name_machines_machine_id_start_execute(builder)
 }
 
@@ -4313,7 +5053,7 @@ pub fn post_apps_app_name_machines_machine_id_stop_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/stop",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/stop",
         app_name, machine_id,
     );
 
@@ -4361,9 +5101,17 @@ pub fn post_apps_app_name_machines_machine_id_stop_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4382,6 +5130,17 @@ pub fn post_apps_app_name_machines_machine_id_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_machines_machine_id_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameMachinesMachineIdStopArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Request body.
+    pub body: StopRequest,
+}
+
 /// POST /apps/{app_name}/machines/{machine_id}/stop
 /// Stop Machine
 ///
@@ -4394,15 +5153,17 @@ pub fn post_apps_app_name_machines_machine_id_stop_execute(
 
 pub fn post_apps_app_name_machines_machine_id_stop(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    body: &StopRequest,
+    args: &PostAppsAppNameMachinesMachineIdStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_machines_machine_id_stop_builder(client, app_name, machine_id, body)?;
+    let builder = post_apps_app_name_machines_machine_id_stop_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+        &args.body,
+    )?;
     post_apps_app_name_machines_machine_id_stop_execute(builder)
 }
 
@@ -4419,7 +5180,7 @@ pub fn post_apps_app_name_machines_machine_id_suspend_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/suspend",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/suspend",
         app_name, machine_id,
     );
 
@@ -4465,9 +5226,17 @@ pub fn post_apps_app_name_machines_machine_id_suspend_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4486,6 +5255,15 @@ pub fn post_apps_app_name_machines_machine_id_suspend_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_machines_machine_id_suspend`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameMachinesMachineIdSuspendArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+}
+
 /// POST /apps/{app_name}/machines/{machine_id}/suspend
 /// Suspend Machine
 ///
@@ -4498,14 +5276,16 @@ pub fn post_apps_app_name_machines_machine_id_suspend_execute(
 
 pub fn post_apps_app_name_machines_machine_id_suspend(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
+    args: &PostAppsAppNameMachinesMachineIdSuspendArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_machines_machine_id_suspend_builder(client, app_name, machine_id)?;
+    let builder = post_apps_app_name_machines_machine_id_suspend_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+    )?;
     post_apps_app_name_machines_machine_id_suspend_execute(builder)
 }
 
@@ -4522,7 +5302,7 @@ pub fn post_apps_app_name_machines_machine_id_uncordon_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/uncordon",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/uncordon",
         app_name, machine_id,
     );
 
@@ -4568,9 +5348,17 @@ pub fn post_apps_app_name_machines_machine_id_uncordon_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4589,6 +5377,15 @@ pub fn post_apps_app_name_machines_machine_id_uncordon_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_machines_machine_id_uncordon`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameMachinesMachineIdUncordonArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+}
+
 /// POST /apps/{app_name}/machines/{machine_id}/uncordon
 /// Uncordon Machine
 ///
@@ -4601,14 +5398,16 @@ pub fn post_apps_app_name_machines_machine_id_uncordon_execute(
 
 pub fn post_apps_app_name_machines_machine_id_uncordon(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
+    args: &PostAppsAppNameMachinesMachineIdUncordonArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_machines_machine_id_uncordon_builder(client, app_name, machine_id)?;
+    let builder = post_apps_app_name_machines_machine_id_uncordon_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+    )?;
     post_apps_app_name_machines_machine_id_uncordon_execute(builder)
 }
 
@@ -4625,7 +5424,7 @@ pub fn get_apps_app_name_machines_machine_id_versions_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/versions",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/versions",
         app_name, machine_id,
     );
 
@@ -4671,9 +5470,17 @@ pub fn get_apps_app_name_machines_machine_id_versions_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4692,6 +5499,15 @@ pub fn get_apps_app_name_machines_machine_id_versions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_machines_machine_id_versions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameMachinesMachineIdVersionsArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+}
+
 /// GET /apps/{app_name}/machines/{machine_id}/versions
 /// List Versions
 ///
@@ -4704,14 +5520,16 @@ pub fn get_apps_app_name_machines_machine_id_versions_execute(
 
 pub fn get_apps_app_name_machines_machine_id_versions(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
+    args: &GetAppsAppNameMachinesMachineIdVersionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_apps_app_name_machines_machine_id_versions_builder(client, app_name, machine_id)?;
+    let builder = get_apps_app_name_machines_machine_id_versions_builder(
+        client,
+        &args.app_name,
+        &args.machine_id,
+    )?;
     get_apps_app_name_machines_machine_id_versions_execute(builder)
 }
 
@@ -4733,7 +5551,7 @@ pub fn get_apps_app_name_machines_machine_id_wait_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/machines/{}/wait",
+        "https://api.machines.dev/v1/apps/{}/machines/{}/wait",
         app_name, machine_id,
     );
 
@@ -4804,9 +5622,17 @@ pub fn get_apps_app_name_machines_machine_id_wait_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4828,6 +5654,25 @@ pub fn get_apps_app_name_machines_machine_id_wait_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_machines_machine_id_wait`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameMachinesMachineIdWaitArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: machine_id
+    pub machine_id: String,
+    /// Query parameter: version
+    pub version: Option<String>,
+    /// Query parameter: instance_id
+    pub instance_id: Option<String>,
+    /// Query parameter: from_event_id
+    pub from_event_id: Option<String>,
+    /// Query parameter: timeout
+    pub timeout: Option<i32>,
+    /// Query parameter: state
+    pub state: Option<String>,
+}
+
 /// GET /apps/{app_name}/machines/{machine_id}/wait
 /// Wait for State
 ///
@@ -4840,13 +5685,7 @@ pub fn get_apps_app_name_machines_machine_id_wait_execute(
 
 pub fn get_apps_app_name_machines_machine_id_wait(
     client: &SimpleHttpClient,
-    app_name: &str,
-    machine_id: &str,
-    version: Option<&str>,
-    instance_id: Option<&str>,
-    from_event_id: Option<&str>,
-    timeout: Option<i32>,
-    state: Option<&str>,
+    args: &GetAppsAppNameMachinesMachineIdWaitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WaitMachineResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4855,13 +5694,13 @@ pub fn get_apps_app_name_machines_machine_id_wait(
 > {
     let builder = get_apps_app_name_machines_machine_id_wait_builder(
         client,
-        app_name,
-        machine_id,
-        version,
-        instance_id,
-        from_event_id,
-        timeout,
-        state,
+        &args.app_name,
+        &args.machine_id,
+        args.version.as_deref(),
+        args.instance_id.as_deref(),
+        args.from_event_id.as_deref(),
+        args.timeout,
+        args.state.as_deref(),
     )?;
     get_apps_app_name_machines_machine_id_wait_execute(builder)
 }
@@ -4879,7 +5718,7 @@ pub fn get_apps_app_name_secretkeys_builder(
     types: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/apps/{}/secretkeys", app_name,);
+    let url = format!("https://api.machines.dev/v1/apps/{}/secretkeys", app_name,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4937,9 +5776,17 @@ pub fn get_apps_app_name_secretkeys_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4961,6 +5808,17 @@ pub fn get_apps_app_name_secretkeys_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_secretkeys`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameSecretkeysArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Query parameter: min_version
+    pub min_version: Option<String>,
+    /// Query parameter: types
+    pub types: Option<String>,
+}
+
 /// GET /apps/{app_name}/secretkeys
 /// List secret keys belonging to an app
 ///
@@ -4973,14 +5831,17 @@ pub fn get_apps_app_name_secretkeys_execute(
 
 pub fn get_apps_app_name_secretkeys(
     client: &SimpleHttpClient,
-    app_name: &str,
-    min_version: Option<&str>,
-    types: Option<&str>,
+    args: &GetAppsAppNameSecretkeysArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretKeys>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_secretkeys_builder(client, app_name, min_version, types)?;
+    let builder = get_apps_app_name_secretkeys_builder(
+        client,
+        &args.app_name,
+        args.min_version.as_deref(),
+        args.types.as_deref(),
+    )?;
     get_apps_app_name_secretkeys_execute(builder)
 }
 
@@ -4998,7 +5859,7 @@ pub fn get_apps_app_name_secretkeys_secret_name_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/secretkeys/{}",
+        "https://api.machines.dev/v1/apps/{}/secretkeys/{}",
         app_name, secret_name,
     );
 
@@ -5055,9 +5916,17 @@ pub fn get_apps_app_name_secretkeys_secret_name_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5079,6 +5948,17 @@ pub fn get_apps_app_name_secretkeys_secret_name_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_secretkeys_secret_name`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameSecretkeysSecretNameArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: secret_name
+    pub secret_name: String,
+    /// Query parameter: min_version
+    pub min_version: Option<String>,
+}
+
 /// GET /apps/{app_name}/secretkeys/{secret_name}
 /// Get an app's secret key
 ///
@@ -5091,18 +5971,16 @@ pub fn get_apps_app_name_secretkeys_secret_name_execute(
 
 pub fn get_apps_app_name_secretkeys_secret_name(
     client: &SimpleHttpClient,
-    app_name: &str,
-    secret_name: &str,
-    min_version: Option<&str>,
+    args: &GetAppsAppNameSecretkeysSecretNameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecretKey>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = get_apps_app_name_secretkeys_secret_name_builder(
         client,
-        app_name,
-        secret_name,
-        min_version,
+        &args.app_name,
+        &args.secret_name,
+        args.min_version.as_deref(),
     )?;
     get_apps_app_name_secretkeys_secret_name_execute(builder)
 }
@@ -5121,7 +5999,7 @@ pub fn post_apps_app_name_secretkeys_secret_name_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/secretkeys/{}",
+        "https://api.machines.dev/v1/apps/{}/secretkeys/{}",
         app_name, secret_name,
     );
 
@@ -5171,9 +6049,17 @@ pub fn post_apps_app_name_secretkeys_secret_name_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5195,6 +6081,17 @@ pub fn post_apps_app_name_secretkeys_secret_name_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_secretkeys_secret_name`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameSecretkeysSecretNameArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: secret_name
+    pub secret_name: String,
+    /// Request body.
+    pub body: SetSecretkeyRequest,
+}
+
 /// POST /apps/{app_name}/secretkeys/{secret_name}
 /// Create or update a secret key
 ///
@@ -5207,17 +6104,19 @@ pub fn post_apps_app_name_secretkeys_secret_name_execute(
 
 pub fn post_apps_app_name_secretkeys_secret_name(
     client: &SimpleHttpClient,
-    app_name: &str,
-    secret_name: &str,
-    body: &SetSecretkeyRequest,
+    args: &PostAppsAppNameSecretkeysSecretNameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SetSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_secretkeys_secret_name_builder(client, app_name, secret_name, body)?;
+    let builder = post_apps_app_name_secretkeys_secret_name_builder(
+        client,
+        &args.app_name,
+        &args.secret_name,
+        &args.body,
+    )?;
     post_apps_app_name_secretkeys_secret_name_execute(builder)
 }
 
@@ -5234,7 +6133,7 @@ pub fn delete_apps_app_name_secretkeys_secret_name_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/secretkeys/{}",
+        "https://api.machines.dev/v1/apps/{}/secretkeys/{}",
         app_name, secret_name,
     );
 
@@ -5282,9 +6181,17 @@ pub fn delete_apps_app_name_secretkeys_secret_name_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5306,6 +6213,15 @@ pub fn delete_apps_app_name_secretkeys_secret_name_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_apps_app_name_secretkeys_secret_name`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteAppsAppNameSecretkeysSecretNameArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: secret_name
+    pub secret_name: String,
+}
+
 /// DELETE /apps/{app_name}/secretkeys/{secret_name}
 /// Delete an app's secret key
 ///
@@ -5318,16 +6234,18 @@ pub fn delete_apps_app_name_secretkeys_secret_name_execute(
 
 pub fn delete_apps_app_name_secretkeys_secret_name(
     client: &SimpleHttpClient,
-    app_name: &str,
-    secret_name: &str,
+    args: &DeleteAppsAppNameSecretkeysSecretNameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeleteSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        delete_apps_app_name_secretkeys_secret_name_builder(client, app_name, secret_name)?;
+    let builder = delete_apps_app_name_secretkeys_secret_name_builder(
+        client,
+        &args.app_name,
+        &args.secret_name,
+    )?;
     delete_apps_app_name_secretkeys_secret_name_execute(builder)
 }
 
@@ -5346,7 +6264,7 @@ pub fn post_apps_app_name_secretkeys_secret_name_decrypt_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/secretkeys/{}/decrypt",
+        "https://api.machines.dev/v1/apps/{}/secretkeys/{}/decrypt",
         app_name, secret_name,
     );
 
@@ -5407,9 +6325,17 @@ pub fn post_apps_app_name_secretkeys_secret_name_decrypt_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5431,6 +6357,19 @@ pub fn post_apps_app_name_secretkeys_secret_name_decrypt_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_secretkeys_secret_name_decrypt`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameSecretkeysSecretNameDecryptArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: secret_name
+    pub secret_name: String,
+    /// Query parameter: min_version
+    pub min_version: Option<String>,
+    /// Request body.
+    pub body: DecryptSecretkeyRequest,
+}
+
 /// POST /apps/{app_name}/secretkeys/{secret_name}/decrypt
 /// Decrypt with a secret key
 ///
@@ -5443,10 +6382,7 @@ pub fn post_apps_app_name_secretkeys_secret_name_decrypt_execute(
 
 pub fn post_apps_app_name_secretkeys_secret_name_decrypt(
     client: &SimpleHttpClient,
-    app_name: &str,
-    secret_name: &str,
-    min_version: Option<&str>,
-    body: &DecryptSecretkeyRequest,
+    args: &PostAppsAppNameSecretkeysSecretNameDecryptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DecryptSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5455,10 +6391,10 @@ pub fn post_apps_app_name_secretkeys_secret_name_decrypt(
 > {
     let builder = post_apps_app_name_secretkeys_secret_name_decrypt_builder(
         client,
-        app_name,
-        secret_name,
-        min_version,
-        body,
+        &args.app_name,
+        &args.secret_name,
+        args.min_version.as_deref(),
+        &args.body,
     )?;
     post_apps_app_name_secretkeys_secret_name_decrypt_execute(builder)
 }
@@ -5478,7 +6414,7 @@ pub fn post_apps_app_name_secretkeys_secret_name_encrypt_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/secretkeys/{}/encrypt",
+        "https://api.machines.dev/v1/apps/{}/secretkeys/{}/encrypt",
         app_name, secret_name,
     );
 
@@ -5539,9 +6475,17 @@ pub fn post_apps_app_name_secretkeys_secret_name_encrypt_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5563,6 +6507,19 @@ pub fn post_apps_app_name_secretkeys_secret_name_encrypt_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_secretkeys_secret_name_encrypt`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameSecretkeysSecretNameEncryptArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: secret_name
+    pub secret_name: String,
+    /// Query parameter: min_version
+    pub min_version: Option<String>,
+    /// Request body.
+    pub body: EncryptSecretkeyRequest,
+}
+
 /// POST /apps/{app_name}/secretkeys/{secret_name}/encrypt
 /// Encrypt with a secret key
 ///
@@ -5575,10 +6532,7 @@ pub fn post_apps_app_name_secretkeys_secret_name_encrypt_execute(
 
 pub fn post_apps_app_name_secretkeys_secret_name_encrypt(
     client: &SimpleHttpClient,
-    app_name: &str,
-    secret_name: &str,
-    min_version: Option<&str>,
-    body: &EncryptSecretkeyRequest,
+    args: &PostAppsAppNameSecretkeysSecretNameEncryptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EncryptSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5587,10 +6541,10 @@ pub fn post_apps_app_name_secretkeys_secret_name_encrypt(
 > {
     let builder = post_apps_app_name_secretkeys_secret_name_encrypt_builder(
         client,
-        app_name,
-        secret_name,
-        min_version,
-        body,
+        &args.app_name,
+        &args.secret_name,
+        args.min_version.as_deref(),
+        &args.body,
     )?;
     post_apps_app_name_secretkeys_secret_name_encrypt_execute(builder)
 }
@@ -5609,7 +6563,7 @@ pub fn post_apps_app_name_secretkeys_secret_name_generate_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/secretkeys/{}/generate",
+        "https://api.machines.dev/v1/apps/{}/secretkeys/{}/generate",
         app_name, secret_name,
     );
 
@@ -5659,9 +6613,17 @@ pub fn post_apps_app_name_secretkeys_secret_name_generate_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5683,6 +6645,17 @@ pub fn post_apps_app_name_secretkeys_secret_name_generate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_secretkeys_secret_name_generate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameSecretkeysSecretNameGenerateArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: secret_name
+    pub secret_name: String,
+    /// Request body.
+    pub body: SetSecretkeyRequest,
+}
+
 /// POST /apps/{app_name}/secretkeys/{secret_name}/generate
 /// Generate a random secret key
 ///
@@ -5695,9 +6668,7 @@ pub fn post_apps_app_name_secretkeys_secret_name_generate_execute(
 
 pub fn post_apps_app_name_secretkeys_secret_name_generate(
     client: &SimpleHttpClient,
-    app_name: &str,
-    secret_name: &str,
-    body: &SetSecretkeyRequest,
+    args: &PostAppsAppNameSecretkeysSecretNameGenerateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SetSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5706,9 +6677,9 @@ pub fn post_apps_app_name_secretkeys_secret_name_generate(
 > {
     let builder = post_apps_app_name_secretkeys_secret_name_generate_builder(
         client,
-        app_name,
-        secret_name,
-        body,
+        &args.app_name,
+        &args.secret_name,
+        &args.body,
     )?;
     post_apps_app_name_secretkeys_secret_name_generate_execute(builder)
 }
@@ -5728,7 +6699,7 @@ pub fn post_apps_app_name_secretkeys_secret_name_sign_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/secretkeys/{}/sign",
+        "https://api.machines.dev/v1/apps/{}/secretkeys/{}/sign",
         app_name, secret_name,
     );
 
@@ -5789,9 +6760,17 @@ pub fn post_apps_app_name_secretkeys_secret_name_sign_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5813,6 +6792,19 @@ pub fn post_apps_app_name_secretkeys_secret_name_sign_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_secretkeys_secret_name_sign`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameSecretkeysSecretNameSignArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: secret_name
+    pub secret_name: String,
+    /// Query parameter: min_version
+    pub min_version: Option<String>,
+    /// Request body.
+    pub body: SignSecretkeyRequest,
+}
+
 /// POST /apps/{app_name}/secretkeys/{secret_name}/sign
 /// Sign with a secret key
 ///
@@ -5825,10 +6817,7 @@ pub fn post_apps_app_name_secretkeys_secret_name_sign_execute(
 
 pub fn post_apps_app_name_secretkeys_secret_name_sign(
     client: &SimpleHttpClient,
-    app_name: &str,
-    secret_name: &str,
-    min_version: Option<&str>,
-    body: &SignSecretkeyRequest,
+    args: &PostAppsAppNameSecretkeysSecretNameSignArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SignSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5837,10 +6826,10 @@ pub fn post_apps_app_name_secretkeys_secret_name_sign(
 > {
     let builder = post_apps_app_name_secretkeys_secret_name_sign_builder(
         client,
-        app_name,
-        secret_name,
-        min_version,
-        body,
+        &args.app_name,
+        &args.secret_name,
+        args.min_version.as_deref(),
+        &args.body,
     )?;
     post_apps_app_name_secretkeys_secret_name_sign_execute(builder)
 }
@@ -5860,7 +6849,7 @@ pub fn post_apps_app_name_secretkeys_secret_name_verify_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/secretkeys/{}/verify",
+        "https://api.machines.dev/v1/apps/{}/secretkeys/{}/verify",
         app_name, secret_name,
     );
 
@@ -5919,9 +6908,17 @@ pub fn post_apps_app_name_secretkeys_secret_name_verify_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5940,6 +6937,19 @@ pub fn post_apps_app_name_secretkeys_secret_name_verify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_secretkeys_secret_name_verify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameSecretkeysSecretNameVerifyArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: secret_name
+    pub secret_name: String,
+    /// Query parameter: min_version
+    pub min_version: Option<String>,
+    /// Request body.
+    pub body: VerifySecretkeyRequest,
+}
+
 /// POST /apps/{app_name}/secretkeys/{secret_name}/verify
 /// Verify with a secret key
 ///
@@ -5952,20 +6962,17 @@ pub fn post_apps_app_name_secretkeys_secret_name_verify_execute(
 
 pub fn post_apps_app_name_secretkeys_secret_name_verify(
     client: &SimpleHttpClient,
-    app_name: &str,
-    secret_name: &str,
-    min_version: Option<&str>,
-    body: &VerifySecretkeyRequest,
+    args: &PostAppsAppNameSecretkeysSecretNameVerifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = post_apps_app_name_secretkeys_secret_name_verify_builder(
         client,
-        app_name,
-        secret_name,
-        min_version,
-        body,
+        &args.app_name,
+        &args.secret_name,
+        args.min_version.as_deref(),
+        &args.body,
     )?;
     post_apps_app_name_secretkeys_secret_name_verify_execute(builder)
 }
@@ -5983,7 +6990,7 @@ pub fn get_apps_app_name_secrets_builder(
     show_secrets: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/apps/{}/secrets", app_name,);
+    let url = format!("https://api.machines.dev/v1/apps/{}/secrets", app_name,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -6041,9 +7048,17 @@ pub fn get_apps_app_name_secrets_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6065,6 +7080,17 @@ pub fn get_apps_app_name_secrets_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_secrets`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameSecretsArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Query parameter: min_version
+    pub min_version: Option<String>,
+    /// Query parameter: show_secrets
+    pub show_secrets: Option<bool>,
+}
+
 /// GET /apps/{app_name}/secrets
 /// List app secrets belonging to an app
 ///
@@ -6077,14 +7103,17 @@ pub fn get_apps_app_name_secrets_execute(
 
 pub fn get_apps_app_name_secrets(
     client: &SimpleHttpClient,
-    app_name: &str,
-    min_version: Option<&str>,
-    show_secrets: Option<bool>,
+    args: &GetAppsAppNameSecretsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppSecrets>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_secrets_builder(client, app_name, min_version, show_secrets)?;
+    let builder = get_apps_app_name_secrets_builder(
+        client,
+        &args.app_name,
+        args.min_version.as_deref(),
+        args.show_secrets,
+    )?;
     get_apps_app_name_secrets_execute(builder)
 }
 
@@ -6100,7 +7129,7 @@ pub fn post_apps_app_name_secrets_builder(
     body: &AppSecretsUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/apps/{}/secrets", app_name,);
+    let url = format!("https://api.machines.dev/v1/apps/{}/secrets", app_name,);
 
     // Build request
     let builder = client
@@ -6148,9 +7177,17 @@ pub fn post_apps_app_name_secrets_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6172,6 +7209,15 @@ pub fn post_apps_app_name_secrets_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_secrets`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameSecretsArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Request body.
+    pub body: AppSecretsUpdateRequest,
+}
+
 /// POST /apps/{app_name}/secrets
 /// Update app secrets belonging to an app
 ///
@@ -6184,15 +7230,14 @@ pub fn post_apps_app_name_secrets_execute(
 
 pub fn post_apps_app_name_secrets(
     client: &SimpleHttpClient,
-    app_name: &str,
-    body: &AppSecretsUpdateRequest,
+    args: &PostAppsAppNameSecretsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppSecretsUpdateResp>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_secrets_builder(client, app_name, body)?;
+    let builder = post_apps_app_name_secrets_builder(client, &args.app_name, &args.body)?;
     post_apps_app_name_secrets_execute(builder)
 }
 
@@ -6211,7 +7256,7 @@ pub fn get_apps_app_name_secrets_secret_name_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/secrets/{}",
+        "https://api.machines.dev/v1/apps/{}/secrets/{}",
         app_name, secret_name,
     );
 
@@ -6271,9 +7316,17 @@ pub fn get_apps_app_name_secrets_secret_name_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6295,6 +7348,19 @@ pub fn get_apps_app_name_secrets_secret_name_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_secrets_secret_name`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameSecretsSecretNameArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: secret_name
+    pub secret_name: String,
+    /// Query parameter: min_version
+    pub min_version: Option<String>,
+    /// Query parameter: show_secrets
+    pub show_secrets: Option<bool>,
+}
+
 /// GET /apps/{app_name}/secrets/{secret_name}
 /// Get an app secret
 ///
@@ -6307,20 +7373,17 @@ pub fn get_apps_app_name_secrets_secret_name_execute(
 
 pub fn get_apps_app_name_secrets_secret_name(
     client: &SimpleHttpClient,
-    app_name: &str,
-    secret_name: &str,
-    min_version: Option<&str>,
-    show_secrets: Option<bool>,
+    args: &GetAppsAppNameSecretsSecretNameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppSecret>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = get_apps_app_name_secrets_secret_name_builder(
         client,
-        app_name,
-        secret_name,
-        min_version,
-        show_secrets,
+        &args.app_name,
+        &args.secret_name,
+        args.min_version.as_deref(),
+        args.show_secrets,
     )?;
     get_apps_app_name_secrets_secret_name_execute(builder)
 }
@@ -6339,7 +7402,7 @@ pub fn post_apps_app_name_secrets_secret_name_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/secrets/{}",
+        "https://api.machines.dev/v1/apps/{}/secrets/{}",
         app_name, secret_name,
     );
 
@@ -6389,9 +7452,17 @@ pub fn post_apps_app_name_secrets_secret_name_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6413,6 +7484,17 @@ pub fn post_apps_app_name_secrets_secret_name_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_secrets_secret_name`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameSecretsSecretNameArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: secret_name
+    pub secret_name: String,
+    /// Request body.
+    pub body: SetAppSecretRequest,
+}
+
 /// POST /apps/{app_name}/secrets/{secret_name}
 /// Create or update Secret
 ///
@@ -6425,17 +7507,19 @@ pub fn post_apps_app_name_secrets_secret_name_execute(
 
 pub fn post_apps_app_name_secrets_secret_name(
     client: &SimpleHttpClient,
-    app_name: &str,
-    secret_name: &str,
-    body: &SetAppSecretRequest,
+    args: &PostAppsAppNameSecretsSecretNameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SetAppSecretResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_secrets_secret_name_builder(client, app_name, secret_name, body)?;
+    let builder = post_apps_app_name_secrets_secret_name_builder(
+        client,
+        &args.app_name,
+        &args.secret_name,
+        &args.body,
+    )?;
     post_apps_app_name_secrets_secret_name_execute(builder)
 }
 
@@ -6452,7 +7536,7 @@ pub fn delete_apps_app_name_secrets_secret_name_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/secrets/{}",
+        "https://api.machines.dev/v1/apps/{}/secrets/{}",
         app_name, secret_name,
     );
 
@@ -6500,9 +7584,17 @@ pub fn delete_apps_app_name_secrets_secret_name_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6524,6 +7616,15 @@ pub fn delete_apps_app_name_secrets_secret_name_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_apps_app_name_secrets_secret_name`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteAppsAppNameSecretsSecretNameArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: secret_name
+    pub secret_name: String,
+}
+
 /// DELETE /apps/{app_name}/secrets/{secret_name}
 /// Delete an app secret
 ///
@@ -6536,15 +7637,18 @@ pub fn delete_apps_app_name_secrets_secret_name_execute(
 
 pub fn delete_apps_app_name_secrets_secret_name(
     client: &SimpleHttpClient,
-    app_name: &str,
-    secret_name: &str,
+    args: &DeleteAppsAppNameSecretsSecretNameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeleteAppSecretResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_secrets_secret_name_builder(client, app_name, secret_name)?;
+    let builder = delete_apps_app_name_secrets_secret_name_builder(
+        client,
+        &args.app_name,
+        &args.secret_name,
+    )?;
     delete_apps_app_name_secrets_secret_name_execute(builder)
 }
 
@@ -6560,7 +7664,7 @@ pub fn get_apps_app_name_volumes_builder(
     summary: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/apps/{}/volumes", app_name,);
+    let url = format!("https://api.machines.dev/v1/apps/{}/volumes", app_name,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -6615,9 +7719,17 @@ pub fn get_apps_app_name_volumes_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6636,6 +7748,15 @@ pub fn get_apps_app_name_volumes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_volumes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameVolumesArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Query parameter: summary
+    pub summary: Option<bool>,
+}
+
 /// GET /apps/{app_name}/volumes
 /// List Volumes
 ///
@@ -6648,13 +7769,12 @@ pub fn get_apps_app_name_volumes_execute(
 
 pub fn get_apps_app_name_volumes(
     client: &SimpleHttpClient,
-    app_name: &str,
-    summary: Option<bool>,
+    args: &GetAppsAppNameVolumesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_volumes_builder(client, app_name, summary)?;
+    let builder = get_apps_app_name_volumes_builder(client, &args.app_name, args.summary)?;
     get_apps_app_name_volumes_execute(builder)
 }
 
@@ -6670,7 +7790,7 @@ pub fn post_apps_app_name_volumes_builder(
     body: &CreateVolumeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/apps/{}/volumes", app_name,);
+    let url = format!("https://api.machines.dev/v1/apps/{}/volumes", app_name,);
 
     // Build request
     let builder = client
@@ -6716,9 +7836,17 @@ pub fn post_apps_app_name_volumes_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6740,6 +7868,15 @@ pub fn post_apps_app_name_volumes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_volumes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameVolumesArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Request body.
+    pub body: CreateVolumeRequest,
+}
+
 /// POST /apps/{app_name}/volumes
 /// Create Volume
 ///
@@ -6752,13 +7889,12 @@ pub fn post_apps_app_name_volumes_execute(
 
 pub fn post_apps_app_name_volumes(
     client: &SimpleHttpClient,
-    app_name: &str,
-    body: &CreateVolumeRequest,
+    args: &PostAppsAppNameVolumesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_apps_app_name_volumes_builder(client, app_name, body)?;
+    let builder = post_apps_app_name_volumes_builder(client, &args.app_name, &args.body)?;
     post_apps_app_name_volumes_execute(builder)
 }
 
@@ -6775,7 +7911,7 @@ pub fn get_apps_app_name_volumes_volume_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/volumes/{}",
+        "https://api.machines.dev/v1/apps/{}/volumes/{}",
         app_name, volume_id,
     );
 
@@ -6821,9 +7957,17 @@ pub fn get_apps_app_name_volumes_volume_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6845,6 +7989,15 @@ pub fn get_apps_app_name_volumes_volume_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_volumes_volume_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameVolumesVolumeIdArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: volume_id
+    pub volume_id: String,
+}
+
 /// GET /apps/{app_name}/volumes/{volume_id}
 /// Get Volume
 ///
@@ -6857,13 +8010,13 @@ pub fn get_apps_app_name_volumes_volume_id_execute(
 
 pub fn get_apps_app_name_volumes_volume_id(
     client: &SimpleHttpClient,
-    app_name: &str,
-    volume_id: &str,
+    args: &GetAppsAppNameVolumesVolumeIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_apps_app_name_volumes_volume_id_builder(client, app_name, volume_id)?;
+    let builder =
+        get_apps_app_name_volumes_volume_id_builder(client, &args.app_name, &args.volume_id)?;
     get_apps_app_name_volumes_volume_id_execute(builder)
 }
 
@@ -6881,7 +8034,7 @@ pub fn put_apps_app_name_volumes_volume_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/volumes/{}",
+        "https://api.machines.dev/v1/apps/{}/volumes/{}",
         app_name, volume_id,
     );
 
@@ -6929,9 +8082,17 @@ pub fn put_apps_app_name_volumes_volume_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6953,6 +8114,17 @@ pub fn put_apps_app_name_volumes_volume_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_apps_app_name_volumes_volume_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutAppsAppNameVolumesVolumeIdArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: volume_id
+    pub volume_id: String,
+    /// Request body.
+    pub body: UpdateVolumeRequest,
+}
+
 /// PUT /apps/{app_name}/volumes/{volume_id}
 /// Update Volume
 ///
@@ -6965,14 +8137,17 @@ pub fn put_apps_app_name_volumes_volume_id_execute(
 
 pub fn put_apps_app_name_volumes_volume_id(
     client: &SimpleHttpClient,
-    app_name: &str,
-    volume_id: &str,
-    body: &UpdateVolumeRequest,
+    args: &PutAppsAppNameVolumesVolumeIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = put_apps_app_name_volumes_volume_id_builder(client, app_name, volume_id, body)?;
+    let builder = put_apps_app_name_volumes_volume_id_builder(
+        client,
+        &args.app_name,
+        &args.volume_id,
+        &args.body,
+    )?;
     put_apps_app_name_volumes_volume_id_execute(builder)
 }
 
@@ -6989,7 +8164,7 @@ pub fn delete_apps_app_name_volumes_volume_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/volumes/{}",
+        "https://api.machines.dev/v1/apps/{}/volumes/{}",
         app_name, volume_id,
     );
 
@@ -7035,9 +8210,17 @@ pub fn delete_apps_app_name_volumes_volume_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7059,6 +8242,15 @@ pub fn delete_apps_app_name_volumes_volume_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_apps_app_name_volumes_volume_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteAppsAppNameVolumesVolumeIdArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: volume_id
+    pub volume_id: String,
+}
+
 /// DELETE /apps/{app_name}/volumes/{volume_id}
 /// Destroy Volume
 ///
@@ -7071,13 +8263,13 @@ pub fn delete_apps_app_name_volumes_volume_id_execute(
 
 pub fn delete_apps_app_name_volumes_volume_id(
     client: &SimpleHttpClient,
-    app_name: &str,
-    volume_id: &str,
+    args: &DeleteAppsAppNameVolumesVolumeIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_apps_app_name_volumes_volume_id_builder(client, app_name, volume_id)?;
+    let builder =
+        delete_apps_app_name_volumes_volume_id_builder(client, &args.app_name, &args.volume_id)?;
     delete_apps_app_name_volumes_volume_id_execute(builder)
 }
 
@@ -7095,7 +8287,7 @@ pub fn put_apps_app_name_volumes_volume_id_extend_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/volumes/{}/extend",
+        "https://api.machines.dev/v1/apps/{}/volumes/{}/extend",
         app_name, volume_id,
     );
 
@@ -7145,9 +8337,17 @@ pub fn put_apps_app_name_volumes_volume_id_extend_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7169,6 +8369,17 @@ pub fn put_apps_app_name_volumes_volume_id_extend_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_apps_app_name_volumes_volume_id_extend`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutAppsAppNameVolumesVolumeIdExtendArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: volume_id
+    pub volume_id: String,
+    /// Request body.
+    pub body: ExtendVolumeRequest,
+}
+
 /// PUT /apps/{app_name}/volumes/{volume_id}/extend
 /// Extend Volume
 ///
@@ -7181,17 +8392,19 @@ pub fn put_apps_app_name_volumes_volume_id_extend_execute(
 
 pub fn put_apps_app_name_volumes_volume_id_extend(
     client: &SimpleHttpClient,
-    app_name: &str,
-    volume_id: &str,
-    body: &ExtendVolumeRequest,
+    args: &PutAppsAppNameVolumesVolumeIdExtendArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExtendVolumeResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        put_apps_app_name_volumes_volume_id_extend_builder(client, app_name, volume_id, body)?;
+    let builder = put_apps_app_name_volumes_volume_id_extend_builder(
+        client,
+        &args.app_name,
+        &args.volume_id,
+        &args.body,
+    )?;
     put_apps_app_name_volumes_volume_id_extend_execute(builder)
 }
 
@@ -7208,7 +8421,7 @@ pub fn get_apps_app_name_volumes_volume_id_snapshots_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/volumes/{}/snapshots",
+        "https://api.machines.dev/v1/apps/{}/volumes/{}/snapshots",
         app_name, volume_id,
     );
 
@@ -7254,9 +8467,17 @@ pub fn get_apps_app_name_volumes_volume_id_snapshots_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7275,6 +8496,15 @@ pub fn get_apps_app_name_volumes_volume_id_snapshots_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_apps_app_name_volumes_volume_id_snapshots`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetAppsAppNameVolumesVolumeIdSnapshotsArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: volume_id
+    pub volume_id: String,
+}
+
 /// GET /apps/{app_name}/volumes/{volume_id}/snapshots
 /// List Snapshots
 ///
@@ -7287,14 +8517,16 @@ pub fn get_apps_app_name_volumes_volume_id_snapshots_execute(
 
 pub fn get_apps_app_name_volumes_volume_id_snapshots(
     client: &SimpleHttpClient,
-    app_name: &str,
-    volume_id: &str,
+    args: &GetAppsAppNameVolumesVolumeIdSnapshotsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        get_apps_app_name_volumes_volume_id_snapshots_builder(client, app_name, volume_id)?;
+    let builder = get_apps_app_name_volumes_volume_id_snapshots_builder(
+        client,
+        &args.app_name,
+        &args.volume_id,
+    )?;
     get_apps_app_name_volumes_volume_id_snapshots_execute(builder)
 }
 
@@ -7311,7 +8543,7 @@ pub fn post_apps_app_name_volumes_volume_id_snapshots_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/apps/{}/volumes/{}/snapshots",
+        "https://api.machines.dev/v1/apps/{}/volumes/{}/snapshots",
         app_name, volume_id,
     );
 
@@ -7357,9 +8589,17 @@ pub fn post_apps_app_name_volumes_volume_id_snapshots_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7378,6 +8618,15 @@ pub fn post_apps_app_name_volumes_volume_id_snapshots_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_apps_app_name_volumes_volume_id_snapshots`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostAppsAppNameVolumesVolumeIdSnapshotsArgs {
+    /// Path parameter: app_name
+    pub app_name: String,
+    /// Path parameter: volume_id
+    pub volume_id: String,
+}
+
 /// POST /apps/{app_name}/volumes/{volume_id}/snapshots
 /// Create Snapshot
 ///
@@ -7390,14 +8639,16 @@ pub fn post_apps_app_name_volumes_volume_id_snapshots_execute(
 
 pub fn post_apps_app_name_volumes_volume_id_snapshots(
     client: &SimpleHttpClient,
-    app_name: &str,
-    volume_id: &str,
+    args: &PostAppsAppNameVolumesVolumeIdSnapshotsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        post_apps_app_name_volumes_volume_id_snapshots_builder(client, app_name, volume_id)?;
+    let builder = post_apps_app_name_volumes_volume_id_snapshots_builder(
+        client,
+        &args.app_name,
+        &args.volume_id,
+    )?;
     post_apps_app_name_volumes_volume_id_snapshots_execute(builder)
 }
 
@@ -7419,7 +8670,7 @@ pub fn get_orgs_org_slug_machines_builder(
     limit: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/orgs/{}/machines", org_slug,);
+    let url = format!("https://api.machines.dev/v1/orgs/{}/machines", org_slug,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -7494,9 +8745,17 @@ pub fn get_orgs_org_slug_machines_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7518,6 +8777,27 @@ pub fn get_orgs_org_slug_machines_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_orgs_org_slug_machines`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetOrgsOrgSlugMachinesArgs {
+    /// Path parameter: org_slug
+    pub org_slug: String,
+    /// Query parameter: include_deleted
+    pub include_deleted: Option<bool>,
+    /// Query parameter: region
+    pub region: Option<String>,
+    /// Query parameter: state
+    pub state: Option<String>,
+    /// Query parameter: summary
+    pub summary: Option<bool>,
+    /// Query parameter: updated_after
+    pub updated_after: Option<String>,
+    /// Query parameter: cursor
+    pub cursor: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<i32>,
+}
+
 /// GET /orgs/{org_slug}/machines
 /// List All Machines
 ///
@@ -7530,14 +8810,7 @@ pub fn get_orgs_org_slug_machines_execute(
 
 pub fn get_orgs_org_slug_machines(
     client: &SimpleHttpClient,
-    org_slug: &str,
-    include_deleted: Option<bool>,
-    region: Option<&str>,
-    state: Option<&str>,
-    summary: Option<bool>,
-    updated_after: Option<&str>,
-    cursor: Option<&str>,
-    limit: Option<i32>,
+    args: &GetOrgsOrgSlugMachinesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OrgMachinesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7546,14 +8819,14 @@ pub fn get_orgs_org_slug_machines(
 > {
     let builder = get_orgs_org_slug_machines_builder(
         client,
-        org_slug,
-        include_deleted,
-        region,
-        state,
-        summary,
-        updated_after,
-        cursor,
-        limit,
+        &args.org_slug,
+        args.include_deleted,
+        args.region.as_deref(),
+        args.state.as_deref(),
+        args.summary,
+        args.updated_after.as_deref(),
+        args.cursor.as_deref(),
+        args.limit,
     )?;
     get_orgs_org_slug_machines_execute(builder)
 }
@@ -7576,7 +8849,7 @@ pub fn get_orgs_org_slug_volumes_builder(
     limit: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/orgs/{}/volumes", org_slug,);
+    let url = format!("https://api.machines.dev/v1/orgs/{}/volumes", org_slug,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -7651,9 +8924,17 @@ pub fn get_orgs_org_slug_volumes_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7675,6 +8956,27 @@ pub fn get_orgs_org_slug_volumes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_orgs_org_slug_volumes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetOrgsOrgSlugVolumesArgs {
+    /// Path parameter: org_slug
+    pub org_slug: String,
+    /// Query parameter: include_deleted
+    pub include_deleted: Option<bool>,
+    /// Query parameter: region
+    pub region: Option<String>,
+    /// Query parameter: state
+    pub state: Option<String>,
+    /// Query parameter: summary
+    pub summary: Option<bool>,
+    /// Query parameter: updated_after
+    pub updated_after: Option<String>,
+    /// Query parameter: cursor
+    pub cursor: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<i32>,
+}
+
 /// GET /orgs/{org_slug}/volumes
 /// List All Volumes
 ///
@@ -7687,14 +8989,7 @@ pub fn get_orgs_org_slug_volumes_execute(
 
 pub fn get_orgs_org_slug_volumes(
     client: &SimpleHttpClient,
-    org_slug: &str,
-    include_deleted: Option<bool>,
-    region: Option<&str>,
-    state: Option<&str>,
-    summary: Option<bool>,
-    updated_after: Option<&str>,
-    cursor: Option<&str>,
-    limit: Option<i32>,
+    args: &GetOrgsOrgSlugVolumesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OrgVolumesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7703,14 +8998,14 @@ pub fn get_orgs_org_slug_volumes(
 > {
     let builder = get_orgs_org_slug_volumes_builder(
         client,
-        org_slug,
-        include_deleted,
-        region,
-        state,
-        summary,
-        updated_after,
-        cursor,
-        limit,
+        &args.org_slug,
+        args.include_deleted,
+        args.region.as_deref(),
+        args.state.as_deref(),
+        args.summary,
+        args.updated_after.as_deref(),
+        args.cursor.as_deref(),
+        args.limit,
     )?;
     get_orgs_org_slug_volumes_execute(builder)
 }
@@ -7726,7 +9021,7 @@ pub fn post_platform_placements_builder(
     body: &MainGetPlacementsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/platform/placements",);
+    let url = format!("https://api.machines.dev/v1/platform/placements",);
 
     // Build request
     let builder = client
@@ -7774,9 +9069,17 @@ pub fn post_platform_placements_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7798,6 +9101,13 @@ pub fn post_platform_placements_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_platform_placements`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostPlatformPlacementsArgs {
+    /// Request body.
+    pub body: MainGetPlacementsRequest,
+}
+
 /// POST /platform/placements
 /// Get Placements
 ///
@@ -7810,14 +9120,14 @@ pub fn post_platform_placements_execute(
 
 pub fn post_platform_placements(
     client: &SimpleHttpClient,
-    body: &MainGetPlacementsRequest,
+    args: &PostPlatformPlacementsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MainGetPlacementsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_platform_placements_builder(client, body)?;
+    let builder = post_platform_placements_builder(client, &args.body)?;
     post_platform_placements_execute(builder)
 }
 
@@ -7831,7 +9141,7 @@ pub fn get_platform_regions_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/platform/regions",);
+    let url = format!("https://api.machines.dev/v1/platform/regions",);
 
     // Build request
     let builder = client
@@ -7877,9 +9187,17 @@ pub fn get_platform_regions_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7933,7 +9251,7 @@ pub fn post_tokens_kms_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/tokens/kms",);
+    let url = format!("https://api.machines.dev/v1/tokens/kms",);
 
     // Build request
     let builder = client
@@ -7977,9 +9295,17 @@ pub fn post_tokens_kms_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8029,7 +9355,7 @@ pub fn post_tokens_oidc_builder(
     body: &CreateOIDCTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/tokens/oidc",);
+    let url = format!("https://api.machines.dev/v1/tokens/oidc",);
 
     // Build request
     let builder = client
@@ -8075,9 +9401,17 @@ pub fn post_tokens_oidc_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8096,6 +9430,13 @@ pub fn post_tokens_oidc_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_tokens_oidc`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostTokensOidcArgs {
+    /// Request body.
+    pub body: CreateOIDCTokenRequest,
+}
+
 /// POST /tokens/oidc
 /// Request an OIDC token
 ///
@@ -8108,12 +9449,12 @@ pub fn post_tokens_oidc_execute(
 
 pub fn post_tokens_oidc(
     client: &SimpleHttpClient,
-    body: &CreateOIDCTokenRequest,
+    args: &PostTokensOidcArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_tokens_oidc_builder(client, body)?;
+    let builder = post_tokens_oidc_builder(client, &args.body)?;
     post_tokens_oidc_execute(builder)
 }
 
@@ -8127,7 +9468,7 @@ pub fn get_v1_tokens_current_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/tokens/current",);
+    let url = format!("https://api.machines.dev/v1/v1/tokens/current",);
 
     // Build request
     let builder = client
@@ -8173,9 +9514,17 @@ pub fn get_v1_tokens_current_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 

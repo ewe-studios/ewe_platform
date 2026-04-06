@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notes:batchCreate
 /// Creates new notes in batch.
@@ -111,6 +113,15 @@ pub fn containeranalysis_projects_locations_notes_batch_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_notes_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesBatchCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchCreateNotesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notes:batchCreate
 /// Creates new notes in batch.
 ///
@@ -123,16 +134,18 @@ pub fn containeranalysis_projects_locations_notes_batch_create_execute(
 
 pub fn containeranalysis_projects_locations_notes_batch_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchCreateNotesRequest,
+    args: &ContaineranalysisProjectsLocationsNotesBatchCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchCreateNotesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        containeranalysis_projects_locations_notes_batch_create_builder(client, parent, body)?;
+    let builder = containeranalysis_projects_locations_notes_batch_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     containeranalysis_projects_locations_notes_batch_create_execute(builder)
 }
 
@@ -241,6 +254,17 @@ pub fn containeranalysis_projects_locations_notes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_notes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: noteId
+    pub noteId: Option<String>,
+    /// Request body.
+    pub body: Note,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notes
 /// Creates a new note.
 ///
@@ -253,15 +277,17 @@ pub fn containeranalysis_projects_locations_notes_create_execute(
 
 pub fn containeranalysis_projects_locations_notes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    noteId: Option<&str>,
-    body: &Note,
+    args: &ContaineranalysisProjectsLocationsNotesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        containeranalysis_projects_locations_notes_create_builder(client, parent, noteId, body)?;
+    let builder = containeranalysis_projects_locations_notes_create_builder(
+        client,
+        &args.parent,
+        args.noteId.as_deref(),
+        &args.body,
+    )?;
     containeranalysis_projects_locations_notes_create_execute(builder)
 }
 
@@ -355,6 +381,13 @@ pub fn containeranalysis_projects_locations_notes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_notes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}
 /// Deletes the specified note.
 ///
@@ -367,12 +400,12 @@ pub fn containeranalysis_projects_locations_notes_delete_execute(
 
 pub fn containeranalysis_projects_locations_notes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContaineranalysisProjectsLocationsNotesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_locations_notes_delete_builder(client, name)?;
+    let builder = containeranalysis_projects_locations_notes_delete_builder(client, &args.name)?;
     containeranalysis_projects_locations_notes_delete_execute(builder)
 }
 
@@ -466,6 +499,13 @@ pub fn containeranalysis_projects_locations_notes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_notes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}
 /// Gets the specified note.
 ///
@@ -478,12 +518,12 @@ pub fn containeranalysis_projects_locations_notes_get_execute(
 
 pub fn containeranalysis_projects_locations_notes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContaineranalysisProjectsLocationsNotesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_locations_notes_get_builder(client, name)?;
+    let builder = containeranalysis_projects_locations_notes_get_builder(client, &args.name)?;
     containeranalysis_projects_locations_notes_get_execute(builder)
 }
 
@@ -580,6 +620,15 @@ pub fn containeranalysis_projects_locations_notes_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_notes_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}:getIamPolicy
 /// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
 ///
@@ -592,14 +641,16 @@ pub fn containeranalysis_projects_locations_notes_get_iam_policy_execute(
 
 pub fn containeranalysis_projects_locations_notes_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &ContaineranalysisProjectsLocationsNotesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        containeranalysis_projects_locations_notes_get_iam_policy_builder(client, resource, body)?;
+    let builder = containeranalysis_projects_locations_notes_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     containeranalysis_projects_locations_notes_get_iam_policy_execute(builder)
 }
 
@@ -719,6 +770,21 @@ pub fn containeranalysis_projects_locations_notes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_notes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notes
 /// Lists notes for the specified project.
 ///
@@ -731,11 +797,7 @@ pub fn containeranalysis_projects_locations_notes_list_execute(
 
 pub fn containeranalysis_projects_locations_notes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ContaineranalysisProjectsLocationsNotesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListNotesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -744,11 +806,11 @@ pub fn containeranalysis_projects_locations_notes_list(
 > {
     let builder = containeranalysis_projects_locations_notes_list_builder(
         client,
-        parent,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     containeranalysis_projects_locations_notes_list_execute(builder)
 }
@@ -858,6 +920,17 @@ pub fn containeranalysis_projects_locations_notes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_notes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Note,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}
 /// Updates the specified note.
 ///
@@ -870,15 +943,17 @@ pub fn containeranalysis_projects_locations_notes_patch_execute(
 
 pub fn containeranalysis_projects_locations_notes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Note,
+    args: &ContaineranalysisProjectsLocationsNotesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        containeranalysis_projects_locations_notes_patch_builder(client, name, updateMask, body)?;
+    let builder = containeranalysis_projects_locations_notes_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     containeranalysis_projects_locations_notes_patch_execute(builder)
 }
 
@@ -975,6 +1050,15 @@ pub fn containeranalysis_projects_locations_notes_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_notes_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}:setIamPolicy
 /// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
 ///
@@ -987,14 +1071,16 @@ pub fn containeranalysis_projects_locations_notes_set_iam_policy_execute(
 
 pub fn containeranalysis_projects_locations_notes_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ContaineranalysisProjectsLocationsNotesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        containeranalysis_projects_locations_notes_set_iam_policy_builder(client, resource, body)?;
+    let builder = containeranalysis_projects_locations_notes_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     containeranalysis_projects_locations_notes_set_iam_policy_execute(builder)
 }
 
@@ -1095,6 +1181,15 @@ pub fn containeranalysis_projects_locations_notes_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_notes_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}:testIamPermissions
 /// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
 ///
@@ -1107,8 +1202,7 @@ pub fn containeranalysis_projects_locations_notes_test_iam_permissions_execute(
 
 pub fn containeranalysis_projects_locations_notes_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ContaineranalysisProjectsLocationsNotesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1118,7 +1212,9 @@ pub fn containeranalysis_projects_locations_notes_test_iam_permissions(
     ApiError,
 > {
     let builder = containeranalysis_projects_locations_notes_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     containeranalysis_projects_locations_notes_test_iam_permissions_execute(builder)
 }
@@ -1237,6 +1333,19 @@ pub fn containeranalysis_projects_locations_notes_occurrences_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_notes_occurrences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsNotesOccurrencesListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notes/{notesId}/occurrences
 /// Lists occurrences referencing the specified note. Provider projects can use this method to get all occurrences across consumer projects referencing the specified note.
 ///
@@ -1249,10 +1358,7 @@ pub fn containeranalysis_projects_locations_notes_occurrences_list_execute(
 
 pub fn containeranalysis_projects_locations_notes_occurrences_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContaineranalysisProjectsLocationsNotesOccurrencesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNoteOccurrencesResponse>, ApiError>,
@@ -1262,7 +1368,11 @@ pub fn containeranalysis_projects_locations_notes_occurrences_list(
     ApiError,
 > {
     let builder = containeranalysis_projects_locations_notes_occurrences_list_builder(
-        client, name, filter, pageSize, pageToken,
+        client,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     containeranalysis_projects_locations_notes_occurrences_list_execute(builder)
 }
@@ -1364,6 +1474,15 @@ pub fn containeranalysis_projects_locations_occurrences_batch_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_occurrences_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesBatchCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchCreateOccurrencesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences:batchCreate
 /// Creates new occurrences in batch.
 ///
@@ -1376,8 +1495,7 @@ pub fn containeranalysis_projects_locations_occurrences_batch_create_execute(
 
 pub fn containeranalysis_projects_locations_occurrences_batch_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchCreateOccurrencesRequest,
+    args: &ContaineranalysisProjectsLocationsOccurrencesBatchCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchCreateOccurrencesResponse>, ApiError>,
@@ -1387,7 +1505,9 @@ pub fn containeranalysis_projects_locations_occurrences_batch_create(
     ApiError,
 > {
     let builder = containeranalysis_projects_locations_occurrences_batch_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     containeranalysis_projects_locations_occurrences_batch_create_execute(builder)
 }
@@ -1485,6 +1605,15 @@ pub fn containeranalysis_projects_locations_occurrences_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_occurrences_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Occurrence,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences
 /// Creates a new occurrence.
 ///
@@ -1497,14 +1626,16 @@ pub fn containeranalysis_projects_locations_occurrences_create_execute(
 
 pub fn containeranalysis_projects_locations_occurrences_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Occurrence,
+    args: &ContaineranalysisProjectsLocationsOccurrencesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        containeranalysis_projects_locations_occurrences_create_builder(client, parent, body)?;
+    let builder = containeranalysis_projects_locations_occurrences_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     containeranalysis_projects_locations_occurrences_create_execute(builder)
 }
 
@@ -1598,6 +1729,13 @@ pub fn containeranalysis_projects_locations_occurrences_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_occurrences_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}
 /// Deletes the specified occurrence. For example, use this method to delete an occurrence when the occurrence is no longer applicable for the given resource.
 ///
@@ -1610,12 +1748,13 @@ pub fn containeranalysis_projects_locations_occurrences_delete_execute(
 
 pub fn containeranalysis_projects_locations_occurrences_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContaineranalysisProjectsLocationsOccurrencesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_locations_occurrences_delete_builder(client, name)?;
+    let builder =
+        containeranalysis_projects_locations_occurrences_delete_builder(client, &args.name)?;
     containeranalysis_projects_locations_occurrences_delete_execute(builder)
 }
 
@@ -1709,6 +1848,13 @@ pub fn containeranalysis_projects_locations_occurrences_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_occurrences_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}
 /// Gets the specified occurrence.
 ///
@@ -1721,12 +1867,12 @@ pub fn containeranalysis_projects_locations_occurrences_get_execute(
 
 pub fn containeranalysis_projects_locations_occurrences_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContaineranalysisProjectsLocationsOccurrencesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_locations_occurrences_get_builder(client, name)?;
+    let builder = containeranalysis_projects_locations_occurrences_get_builder(client, &args.name)?;
     containeranalysis_projects_locations_occurrences_get_execute(builder)
 }
 
@@ -1823,6 +1969,15 @@ pub fn containeranalysis_projects_locations_occurrences_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_occurrences_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}:getIamPolicy
 /// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
 ///
@@ -1835,14 +1990,15 @@ pub fn containeranalysis_projects_locations_occurrences_get_iam_policy_execute(
 
 pub fn containeranalysis_projects_locations_occurrences_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &ContaineranalysisProjectsLocationsOccurrencesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = containeranalysis_projects_locations_occurrences_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     containeranalysis_projects_locations_occurrences_get_iam_policy_execute(builder)
 }
@@ -1937,6 +2093,13 @@ pub fn containeranalysis_projects_locations_occurrences_get_notes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_occurrences_get_notes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesGetNotesArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}/notes
 /// Gets the note attached to the specified occurrence. Consumer projects can use this method to get a note that belongs to a provider project.
 ///
@@ -1949,12 +2112,13 @@ pub fn containeranalysis_projects_locations_occurrences_get_notes_execute(
 
 pub fn containeranalysis_projects_locations_occurrences_get_notes(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContaineranalysisProjectsLocationsOccurrencesGetNotesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_locations_occurrences_get_notes_builder(client, name)?;
+    let builder =
+        containeranalysis_projects_locations_occurrences_get_notes_builder(client, &args.name)?;
     containeranalysis_projects_locations_occurrences_get_notes_execute(builder)
 }
 
@@ -2068,6 +2232,17 @@ pub fn containeranalysis_projects_locations_occurrences_get_vulnerability_summar
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_occurrences_get_vulnerability_summary`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesGetVulnerabilitySummaryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences:vulnerabilitySummary
 /// Gets a summary of the number and severity of occurrences.
 ///
@@ -2080,9 +2255,7 @@ pub fn containeranalysis_projects_locations_occurrences_get_vulnerability_summar
 
 pub fn containeranalysis_projects_locations_occurrences_get_vulnerability_summary(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ContaineranalysisProjectsLocationsOccurrencesGetVulnerabilitySummaryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<VulnerabilityOccurrencesSummary>, ApiError>,
@@ -2094,9 +2267,9 @@ pub fn containeranalysis_projects_locations_occurrences_get_vulnerability_summar
     let builder =
         containeranalysis_projects_locations_occurrences_get_vulnerability_summary_builder(
             client,
-            parent,
-            filter,
-            returnPartialSuccess,
+            &args.parent,
+            args.filter.as_deref(),
+            args.returnPartialSuccess,
         )?;
     containeranalysis_projects_locations_occurrences_get_vulnerability_summary_execute(builder)
 }
@@ -2217,6 +2390,21 @@ pub fn containeranalysis_projects_locations_occurrences_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_occurrences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences
 /// Lists occurrences for the specified project.
 ///
@@ -2229,11 +2417,7 @@ pub fn containeranalysis_projects_locations_occurrences_list_execute(
 
 pub fn containeranalysis_projects_locations_occurrences_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ContaineranalysisProjectsLocationsOccurrencesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOccurrencesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2242,11 +2426,11 @@ pub fn containeranalysis_projects_locations_occurrences_list(
 > {
     let builder = containeranalysis_projects_locations_occurrences_list_builder(
         client,
-        parent,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     containeranalysis_projects_locations_occurrences_list_execute(builder)
 }
@@ -2356,6 +2540,17 @@ pub fn containeranalysis_projects_locations_occurrences_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_occurrences_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Occurrence,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}
 /// Updates the specified occurrence.
 ///
@@ -2368,15 +2563,16 @@ pub fn containeranalysis_projects_locations_occurrences_patch_execute(
 
 pub fn containeranalysis_projects_locations_occurrences_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Occurrence,
+    args: &ContaineranalysisProjectsLocationsOccurrencesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = containeranalysis_projects_locations_occurrences_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     containeranalysis_projects_locations_occurrences_patch_execute(builder)
 }
@@ -2474,6 +2670,15 @@ pub fn containeranalysis_projects_locations_occurrences_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_occurrences_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}:setIamPolicy
 /// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
 ///
@@ -2486,14 +2691,15 @@ pub fn containeranalysis_projects_locations_occurrences_set_iam_policy_execute(
 
 pub fn containeranalysis_projects_locations_occurrences_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ContaineranalysisProjectsLocationsOccurrencesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = containeranalysis_projects_locations_occurrences_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     containeranalysis_projects_locations_occurrences_set_iam_policy_execute(builder)
 }
@@ -2595,6 +2801,15 @@ pub fn containeranalysis_projects_locations_occurrences_test_iam_permissions_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_occurrences_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsOccurrencesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/occurrences/{occurrencesId}:testIamPermissions
 /// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
 ///
@@ -2607,8 +2822,7 @@ pub fn containeranalysis_projects_locations_occurrences_test_iam_permissions_exe
 
 pub fn containeranalysis_projects_locations_occurrences_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ContaineranalysisProjectsLocationsOccurrencesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2618,7 +2832,9 @@ pub fn containeranalysis_projects_locations_occurrences_test_iam_permissions(
     ApiError,
 > {
     let builder = containeranalysis_projects_locations_occurrences_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     containeranalysis_projects_locations_occurrences_test_iam_permissions_execute(builder)
 }
@@ -2718,6 +2934,15 @@ pub fn containeranalysis_projects_locations_resources_export_sbom_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_locations_resources_export_sbom`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsLocationsResourcesExportSbomArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExportSBOMRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/resources/{resourcesId}:exportSBOM
 /// Generates an SBOM for the given resource.
 ///
@@ -2730,16 +2955,16 @@ pub fn containeranalysis_projects_locations_resources_export_sbom_execute(
 
 pub fn containeranalysis_projects_locations_resources_export_sbom(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExportSBOMRequest,
+    args: &ContaineranalysisProjectsLocationsResourcesExportSbomArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExportSBOMResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        containeranalysis_projects_locations_resources_export_sbom_builder(client, name, body)?;
+    let builder = containeranalysis_projects_locations_resources_export_sbom_builder(
+        client, &args.name, &args.body,
+    )?;
     containeranalysis_projects_locations_resources_export_sbom_execute(builder)
 }
 
@@ -2838,6 +3063,15 @@ pub fn containeranalysis_projects_notes_batch_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_notes_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesBatchCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchCreateNotesRequest,
+}
+
 /// GET v1/projects/{projectsId}/notes:batchCreate
 /// Creates new notes in batch.
 ///
@@ -2850,15 +3084,15 @@ pub fn containeranalysis_projects_notes_batch_create_execute(
 
 pub fn containeranalysis_projects_notes_batch_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchCreateNotesRequest,
+    args: &ContaineranalysisProjectsNotesBatchCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchCreateNotesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_notes_batch_create_builder(client, parent, body)?;
+    let builder =
+        containeranalysis_projects_notes_batch_create_builder(client, &args.parent, &args.body)?;
     containeranalysis_projects_notes_batch_create_execute(builder)
 }
 
@@ -2967,6 +3201,17 @@ pub fn containeranalysis_projects_notes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_notes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: noteId
+    pub noteId: Option<String>,
+    /// Request body.
+    pub body: Note,
+}
+
 /// GET v1/projects/{projectsId}/notes
 /// Creates a new note.
 ///
@@ -2979,14 +3224,17 @@ pub fn containeranalysis_projects_notes_create_execute(
 
 pub fn containeranalysis_projects_notes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    noteId: Option<&str>,
-    body: &Note,
+    args: &ContaineranalysisProjectsNotesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_notes_create_builder(client, parent, noteId, body)?;
+    let builder = containeranalysis_projects_notes_create_builder(
+        client,
+        &args.parent,
+        args.noteId.as_deref(),
+        &args.body,
+    )?;
     containeranalysis_projects_notes_create_execute(builder)
 }
 
@@ -3080,6 +3328,13 @@ pub fn containeranalysis_projects_notes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_notes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/notes/{notesId}
 /// Deletes the specified note.
 ///
@@ -3092,12 +3347,12 @@ pub fn containeranalysis_projects_notes_delete_execute(
 
 pub fn containeranalysis_projects_notes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContaineranalysisProjectsNotesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_notes_delete_builder(client, name)?;
+    let builder = containeranalysis_projects_notes_delete_builder(client, &args.name)?;
     containeranalysis_projects_notes_delete_execute(builder)
 }
 
@@ -3191,6 +3446,13 @@ pub fn containeranalysis_projects_notes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_notes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/notes/{notesId}
 /// Gets the specified note.
 ///
@@ -3203,12 +3465,12 @@ pub fn containeranalysis_projects_notes_get_execute(
 
 pub fn containeranalysis_projects_notes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContaineranalysisProjectsNotesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_notes_get_builder(client, name)?;
+    let builder = containeranalysis_projects_notes_get_builder(client, &args.name)?;
     containeranalysis_projects_notes_get_execute(builder)
 }
 
@@ -3305,6 +3567,15 @@ pub fn containeranalysis_projects_notes_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_notes_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/notes/{notesId}:getIamPolicy
 /// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
 ///
@@ -3317,13 +3588,16 @@ pub fn containeranalysis_projects_notes_get_iam_policy_execute(
 
 pub fn containeranalysis_projects_notes_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &ContaineranalysisProjectsNotesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_notes_get_iam_policy_builder(client, resource, body)?;
+    let builder = containeranalysis_projects_notes_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     containeranalysis_projects_notes_get_iam_policy_execute(builder)
 }
 
@@ -3443,6 +3717,21 @@ pub fn containeranalysis_projects_notes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_notes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/notes
 /// Lists notes for the specified project.
 ///
@@ -3455,11 +3744,7 @@ pub fn containeranalysis_projects_notes_list_execute(
 
 pub fn containeranalysis_projects_notes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ContaineranalysisProjectsNotesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListNotesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3468,11 +3753,11 @@ pub fn containeranalysis_projects_notes_list(
 > {
     let builder = containeranalysis_projects_notes_list_builder(
         client,
-        parent,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     containeranalysis_projects_notes_list_execute(builder)
 }
@@ -3582,6 +3867,17 @@ pub fn containeranalysis_projects_notes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_notes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Note,
+}
+
 /// GET v1/projects/{projectsId}/notes/{notesId}
 /// Updates the specified note.
 ///
@@ -3594,14 +3890,17 @@ pub fn containeranalysis_projects_notes_patch_execute(
 
 pub fn containeranalysis_projects_notes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Note,
+    args: &ContaineranalysisProjectsNotesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_notes_patch_builder(client, name, updateMask, body)?;
+    let builder = containeranalysis_projects_notes_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     containeranalysis_projects_notes_patch_execute(builder)
 }
 
@@ -3698,6 +3997,15 @@ pub fn containeranalysis_projects_notes_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_notes_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/notes/{notesId}:setIamPolicy
 /// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
 ///
@@ -3710,13 +4018,16 @@ pub fn containeranalysis_projects_notes_set_iam_policy_execute(
 
 pub fn containeranalysis_projects_notes_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ContaineranalysisProjectsNotesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_notes_set_iam_policy_builder(client, resource, body)?;
+    let builder = containeranalysis_projects_notes_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     containeranalysis_projects_notes_set_iam_policy_execute(builder)
 }
 
@@ -3817,6 +4128,15 @@ pub fn containeranalysis_projects_notes_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_notes_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/notes/{notesId}:testIamPermissions
 /// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
 ///
@@ -3829,8 +4149,7 @@ pub fn containeranalysis_projects_notes_test_iam_permissions_execute(
 
 pub fn containeranalysis_projects_notes_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ContaineranalysisProjectsNotesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3839,8 +4158,11 @@ pub fn containeranalysis_projects_notes_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        containeranalysis_projects_notes_test_iam_permissions_builder(client, resource, body)?;
+    let builder = containeranalysis_projects_notes_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     containeranalysis_projects_notes_test_iam_permissions_execute(builder)
 }
 
@@ -3958,6 +4280,19 @@ pub fn containeranalysis_projects_notes_occurrences_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_notes_occurrences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsNotesOccurrencesListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/notes/{notesId}/occurrences
 /// Lists occurrences referencing the specified note. Provider projects can use this method to get all occurrences across consumer projects referencing the specified note.
 ///
@@ -3970,10 +4305,7 @@ pub fn containeranalysis_projects_notes_occurrences_list_execute(
 
 pub fn containeranalysis_projects_notes_occurrences_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContaineranalysisProjectsNotesOccurrencesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNoteOccurrencesResponse>, ApiError>,
@@ -3983,7 +4315,11 @@ pub fn containeranalysis_projects_notes_occurrences_list(
     ApiError,
 > {
     let builder = containeranalysis_projects_notes_occurrences_list_builder(
-        client, name, filter, pageSize, pageToken,
+        client,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     containeranalysis_projects_notes_occurrences_list_execute(builder)
 }
@@ -4085,6 +4421,15 @@ pub fn containeranalysis_projects_occurrences_batch_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_occurrences_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesBatchCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchCreateOccurrencesRequest,
+}
+
 /// GET v1/projects/{projectsId}/occurrences:batchCreate
 /// Creates new occurrences in batch.
 ///
@@ -4097,8 +4442,7 @@ pub fn containeranalysis_projects_occurrences_batch_create_execute(
 
 pub fn containeranalysis_projects_occurrences_batch_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchCreateOccurrencesRequest,
+    args: &ContaineranalysisProjectsOccurrencesBatchCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchCreateOccurrencesResponse>, ApiError>,
@@ -4107,8 +4451,11 @@ pub fn containeranalysis_projects_occurrences_batch_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        containeranalysis_projects_occurrences_batch_create_builder(client, parent, body)?;
+    let builder = containeranalysis_projects_occurrences_batch_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     containeranalysis_projects_occurrences_batch_create_execute(builder)
 }
 
@@ -4205,6 +4552,15 @@ pub fn containeranalysis_projects_occurrences_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_occurrences_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Occurrence,
+}
+
 /// GET v1/projects/{projectsId}/occurrences
 /// Creates a new occurrence.
 ///
@@ -4217,13 +4573,13 @@ pub fn containeranalysis_projects_occurrences_create_execute(
 
 pub fn containeranalysis_projects_occurrences_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Occurrence,
+    args: &ContaineranalysisProjectsOccurrencesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_occurrences_create_builder(client, parent, body)?;
+    let builder =
+        containeranalysis_projects_occurrences_create_builder(client, &args.parent, &args.body)?;
     containeranalysis_projects_occurrences_create_execute(builder)
 }
 
@@ -4317,6 +4673,13 @@ pub fn containeranalysis_projects_occurrences_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_occurrences_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/occurrences/{occurrencesId}
 /// Deletes the specified occurrence. For example, use this method to delete an occurrence when the occurrence is no longer applicable for the given resource.
 ///
@@ -4329,12 +4692,12 @@ pub fn containeranalysis_projects_occurrences_delete_execute(
 
 pub fn containeranalysis_projects_occurrences_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContaineranalysisProjectsOccurrencesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_occurrences_delete_builder(client, name)?;
+    let builder = containeranalysis_projects_occurrences_delete_builder(client, &args.name)?;
     containeranalysis_projects_occurrences_delete_execute(builder)
 }
 
@@ -4428,6 +4791,13 @@ pub fn containeranalysis_projects_occurrences_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_occurrences_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/occurrences/{occurrencesId}
 /// Gets the specified occurrence.
 ///
@@ -4440,12 +4810,12 @@ pub fn containeranalysis_projects_occurrences_get_execute(
 
 pub fn containeranalysis_projects_occurrences_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContaineranalysisProjectsOccurrencesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_occurrences_get_builder(client, name)?;
+    let builder = containeranalysis_projects_occurrences_get_builder(client, &args.name)?;
     containeranalysis_projects_occurrences_get_execute(builder)
 }
 
@@ -4542,6 +4912,15 @@ pub fn containeranalysis_projects_occurrences_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_occurrences_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/occurrences/{occurrencesId}:getIamPolicy
 /// Gets the access control policy for a note or an occurrence resource. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
 ///
@@ -4554,14 +4933,16 @@ pub fn containeranalysis_projects_occurrences_get_iam_policy_execute(
 
 pub fn containeranalysis_projects_occurrences_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &ContaineranalysisProjectsOccurrencesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        containeranalysis_projects_occurrences_get_iam_policy_builder(client, resource, body)?;
+    let builder = containeranalysis_projects_occurrences_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     containeranalysis_projects_occurrences_get_iam_policy_execute(builder)
 }
 
@@ -4655,6 +5036,13 @@ pub fn containeranalysis_projects_occurrences_get_notes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_occurrences_get_notes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesGetNotesArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/occurrences/{occurrencesId}/notes
 /// Gets the note attached to the specified occurrence. Consumer projects can use this method to get a note that belongs to a provider project.
 ///
@@ -4667,12 +5055,12 @@ pub fn containeranalysis_projects_occurrences_get_notes_execute(
 
 pub fn containeranalysis_projects_occurrences_get_notes(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContaineranalysisProjectsOccurrencesGetNotesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_occurrences_get_notes_builder(client, name)?;
+    let builder = containeranalysis_projects_occurrences_get_notes_builder(client, &args.name)?;
     containeranalysis_projects_occurrences_get_notes_execute(builder)
 }
 
@@ -4786,6 +5174,17 @@ pub fn containeranalysis_projects_occurrences_get_vulnerability_summary_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_occurrences_get_vulnerability_summary`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesGetVulnerabilitySummaryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/occurrences:vulnerabilitySummary
 /// Gets a summary of the number and severity of occurrences.
 ///
@@ -4798,9 +5197,7 @@ pub fn containeranalysis_projects_occurrences_get_vulnerability_summary_execute(
 
 pub fn containeranalysis_projects_occurrences_get_vulnerability_summary(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ContaineranalysisProjectsOccurrencesGetVulnerabilitySummaryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<VulnerabilityOccurrencesSummary>, ApiError>,
@@ -4811,9 +5208,9 @@ pub fn containeranalysis_projects_occurrences_get_vulnerability_summary(
 > {
     let builder = containeranalysis_projects_occurrences_get_vulnerability_summary_builder(
         client,
-        parent,
-        filter,
-        returnPartialSuccess,
+        &args.parent,
+        args.filter.as_deref(),
+        args.returnPartialSuccess,
     )?;
     containeranalysis_projects_occurrences_get_vulnerability_summary_execute(builder)
 }
@@ -4934,6 +5331,21 @@ pub fn containeranalysis_projects_occurrences_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_occurrences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/occurrences
 /// Lists occurrences for the specified project.
 ///
@@ -4946,11 +5358,7 @@ pub fn containeranalysis_projects_occurrences_list_execute(
 
 pub fn containeranalysis_projects_occurrences_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ContaineranalysisProjectsOccurrencesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOccurrencesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4959,11 +5367,11 @@ pub fn containeranalysis_projects_occurrences_list(
 > {
     let builder = containeranalysis_projects_occurrences_list_builder(
         client,
-        parent,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     containeranalysis_projects_occurrences_list_execute(builder)
 }
@@ -5073,6 +5481,17 @@ pub fn containeranalysis_projects_occurrences_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_occurrences_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Occurrence,
+}
+
 /// GET v1/projects/{projectsId}/occurrences/{occurrencesId}
 /// Updates the specified occurrence.
 ///
@@ -5085,15 +5504,17 @@ pub fn containeranalysis_projects_occurrences_patch_execute(
 
 pub fn containeranalysis_projects_occurrences_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Occurrence,
+    args: &ContaineranalysisProjectsOccurrencesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Occurrence>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        containeranalysis_projects_occurrences_patch_builder(client, name, updateMask, body)?;
+    let builder = containeranalysis_projects_occurrences_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     containeranalysis_projects_occurrences_patch_execute(builder)
 }
 
@@ -5190,6 +5611,15 @@ pub fn containeranalysis_projects_occurrences_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_occurrences_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/occurrences/{occurrencesId}:setIamPolicy
 /// Sets the access control policy on the specified note or occurrence. Requires containeranalysis.notes.`setIamPolicy` or containeranalysis.occurrences.`setIamPolicy` permission if the resource is a note or an occurrence, respectively. The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
 ///
@@ -5202,14 +5632,16 @@ pub fn containeranalysis_projects_occurrences_set_iam_policy_execute(
 
 pub fn containeranalysis_projects_occurrences_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ContaineranalysisProjectsOccurrencesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        containeranalysis_projects_occurrences_set_iam_policy_builder(client, resource, body)?;
+    let builder = containeranalysis_projects_occurrences_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     containeranalysis_projects_occurrences_set_iam_policy_execute(builder)
 }
 
@@ -5310,6 +5742,15 @@ pub fn containeranalysis_projects_occurrences_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_occurrences_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsOccurrencesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/occurrences/{occurrencesId}:testIamPermissions
 /// Returns the permissions that a caller has on the specified note or occurrence. Requires list permission on the project (for example, containeranalysis.notes.list). The resource takes the format projects/[PROJECT_ID]/notes/[NOTE_ID] for notes and projects/[PROJECT_ID]/occurrences/[OCCURRENCE_ID] for occurrences.
 ///
@@ -5322,8 +5763,7 @@ pub fn containeranalysis_projects_occurrences_test_iam_permissions_execute(
 
 pub fn containeranalysis_projects_occurrences_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ContaineranalysisProjectsOccurrencesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -5333,7 +5773,9 @@ pub fn containeranalysis_projects_occurrences_test_iam_permissions(
     ApiError,
 > {
     let builder = containeranalysis_projects_occurrences_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     containeranalysis_projects_occurrences_test_iam_permissions_execute(builder)
 }
@@ -5433,6 +5875,15 @@ pub fn containeranalysis_projects_resources_export_sbom_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`containeranalysis_projects_resources_export_sbom`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContaineranalysisProjectsResourcesExportSbomArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExportSBOMRequest,
+}
+
 /// GET v1/projects/{projectsId}/resources/{resourcesId}:exportSBOM
 /// Generates an SBOM for the given resource.
 ///
@@ -5445,14 +5896,14 @@ pub fn containeranalysis_projects_resources_export_sbom_execute(
 
 pub fn containeranalysis_projects_resources_export_sbom(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExportSBOMRequest,
+    args: &ContaineranalysisProjectsResourcesExportSbomArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExportSBOMResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = containeranalysis_projects_resources_export_sbom_builder(client, name, body)?;
+    let builder =
+        containeranalysis_projects_resources_export_sbom_builder(client, &args.name, &args.body)?;
     containeranalysis_projects_resources_export_sbom_execute(builder)
 }

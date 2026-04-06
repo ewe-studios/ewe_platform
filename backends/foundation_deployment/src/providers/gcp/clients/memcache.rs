@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn memcache_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn memcache_projects_locations_get_execute(
 
 pub fn memcache_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MemcacheProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = memcache_projects_locations_get_builder(client, name)?;
+    let builder = memcache_projects_locations_get_builder(client, &args.name)?;
     memcache_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn memcache_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -255,11 +279,7 @@ pub fn memcache_projects_locations_list_execute(
 
 pub fn memcache_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MemcacheProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn memcache_projects_locations_list(
 > {
     let builder = memcache_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     memcache_projects_locations_list_execute(builder)
 }
@@ -370,6 +390,15 @@ pub fn memcache_projects_locations_instances_apply_parameters_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_instances_apply_parameters`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsInstancesApplyParametersArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ApplyParametersRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:applyParameters
 /// ApplyParameters restarts the set of specified nodes in order to update them to the current set of parameters for the Memcached Instance.
 ///
@@ -382,14 +411,14 @@ pub fn memcache_projects_locations_instances_apply_parameters_execute(
 
 pub fn memcache_projects_locations_instances_apply_parameters(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ApplyParametersRequest,
+    args: &MemcacheProjectsLocationsInstancesApplyParametersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        memcache_projects_locations_instances_apply_parameters_builder(client, name, body)?;
+    let builder = memcache_projects_locations_instances_apply_parameters_builder(
+        client, &args.name, &args.body,
+    )?;
     memcache_projects_locations_instances_apply_parameters_execute(builder)
 }
 
@@ -498,6 +527,17 @@ pub fn memcache_projects_locations_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: instanceId
+    pub instanceId: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
 /// Creates a new Instance in a given location.
 ///
@@ -510,15 +550,17 @@ pub fn memcache_projects_locations_instances_create_execute(
 
 pub fn memcache_projects_locations_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    instanceId: Option<&str>,
-    body: &Instance,
+    args: &MemcacheProjectsLocationsInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        memcache_projects_locations_instances_create_builder(client, parent, instanceId, body)?;
+    let builder = memcache_projects_locations_instances_create_builder(
+        client,
+        &args.parent,
+        args.instanceId.as_deref(),
+        &args.body,
+    )?;
     memcache_projects_locations_instances_create_execute(builder)
 }
 
@@ -612,6 +654,13 @@ pub fn memcache_projects_locations_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Deletes a single Instance.
 ///
@@ -624,12 +673,12 @@ pub fn memcache_projects_locations_instances_delete_execute(
 
 pub fn memcache_projects_locations_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MemcacheProjectsLocationsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = memcache_projects_locations_instances_delete_builder(client, name)?;
+    let builder = memcache_projects_locations_instances_delete_builder(client, &args.name)?;
     memcache_projects_locations_instances_delete_execute(builder)
 }
 
@@ -723,6 +772,13 @@ pub fn memcache_projects_locations_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Gets details of a single Instance.
 ///
@@ -735,12 +791,12 @@ pub fn memcache_projects_locations_instances_get_execute(
 
 pub fn memcache_projects_locations_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MemcacheProjectsLocationsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = memcache_projects_locations_instances_get_builder(client, name)?;
+    let builder = memcache_projects_locations_instances_get_builder(client, &args.name)?;
     memcache_projects_locations_instances_get_execute(builder)
 }
 
@@ -836,6 +892,13 @@ pub fn memcache_projects_locations_instances_get_tags_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_instances_get_tags`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsInstancesGetTagsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:getTags
 /// Returns tags directly bound to a GCP resource.
 ///
@@ -848,14 +911,14 @@ pub fn memcache_projects_locations_instances_get_tags_execute(
 
 pub fn memcache_projects_locations_instances_get_tags(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MemcacheProjectsLocationsInstancesGetTagsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetTagsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = memcache_projects_locations_instances_get_tags_builder(client, name)?;
+    let builder = memcache_projects_locations_instances_get_tags_builder(client, &args.name)?;
     memcache_projects_locations_instances_get_tags_execute(builder)
 }
 
@@ -975,6 +1038,21 @@ pub fn memcache_projects_locations_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
 /// Lists Instances in a given location.
 ///
@@ -987,11 +1065,7 @@ pub fn memcache_projects_locations_instances_list_execute(
 
 pub fn memcache_projects_locations_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MemcacheProjectsLocationsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -999,7 +1073,12 @@ pub fn memcache_projects_locations_instances_list(
     ApiError,
 > {
     let builder = memcache_projects_locations_instances_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     memcache_projects_locations_instances_list_execute(builder)
 }
@@ -1109,6 +1188,17 @@ pub fn memcache_projects_locations_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Updates an existing Instance in a given project and location.
 ///
@@ -1121,15 +1211,17 @@ pub fn memcache_projects_locations_instances_patch_execute(
 
 pub fn memcache_projects_locations_instances_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Instance,
+    args: &MemcacheProjectsLocationsInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        memcache_projects_locations_instances_patch_builder(client, name, updateMask, body)?;
+    let builder = memcache_projects_locations_instances_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     memcache_projects_locations_instances_patch_execute(builder)
 }
 
@@ -1226,6 +1318,15 @@ pub fn memcache_projects_locations_instances_reschedule_maintenance_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_instances_reschedule_maintenance`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsInstancesRescheduleMaintenanceArgs {
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: RescheduleMaintenanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:rescheduleMaintenance
 /// Reschedules upcoming maintenance event.
 ///
@@ -1238,14 +1339,15 @@ pub fn memcache_projects_locations_instances_reschedule_maintenance_execute(
 
 pub fn memcache_projects_locations_instances_reschedule_maintenance(
     client: &SimpleHttpClient,
-    instance: &str,
-    body: &RescheduleMaintenanceRequest,
+    args: &MemcacheProjectsLocationsInstancesRescheduleMaintenanceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = memcache_projects_locations_instances_reschedule_maintenance_builder(
-        client, instance, body,
+        client,
+        &args.instance,
+        &args.body,
     )?;
     memcache_projects_locations_instances_reschedule_maintenance_execute(builder)
 }
@@ -1345,6 +1447,15 @@ pub fn memcache_projects_locations_instances_set_tags_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_instances_set_tags`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsInstancesSetTagsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SetTagsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:setTags
 /// Updates tags directly bound to a GCP resource.
 ///
@@ -1357,15 +1468,15 @@ pub fn memcache_projects_locations_instances_set_tags_execute(
 
 pub fn memcache_projects_locations_instances_set_tags(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SetTagsRequest,
+    args: &MemcacheProjectsLocationsInstancesSetTagsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SetTagsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = memcache_projects_locations_instances_set_tags_builder(client, name, body)?;
+    let builder =
+        memcache_projects_locations_instances_set_tags_builder(client, &args.name, &args.body)?;
     memcache_projects_locations_instances_set_tags_execute(builder)
 }
 
@@ -1462,6 +1573,15 @@ pub fn memcache_projects_locations_instances_update_parameters_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_instances_update_parameters`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsInstancesUpdateParametersArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpdateParametersRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:updateParameters
 /// Updates the defined Memcached parameters for an existing instance. This method only stages the parameters, it must be followed by ApplyParameters to apply the parameters to nodes of the Memcached instance.
 ///
@@ -1474,14 +1594,14 @@ pub fn memcache_projects_locations_instances_update_parameters_execute(
 
 pub fn memcache_projects_locations_instances_update_parameters(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateParametersRequest,
+    args: &MemcacheProjectsLocationsInstancesUpdateParametersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        memcache_projects_locations_instances_update_parameters_builder(client, name, body)?;
+    let builder = memcache_projects_locations_instances_update_parameters_builder(
+        client, &args.name, &args.body,
+    )?;
     memcache_projects_locations_instances_update_parameters_execute(builder)
 }
 
@@ -1578,6 +1698,15 @@ pub fn memcache_projects_locations_instances_upgrade_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_instances_upgrade`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsInstancesUpgradeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudMemcacheV1UpgradeInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:upgrade
 /// Upgrades the Memcache instance to a newer memcached engine version specified in the request.
 ///
@@ -1590,13 +1719,13 @@ pub fn memcache_projects_locations_instances_upgrade_execute(
 
 pub fn memcache_projects_locations_instances_upgrade(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudMemcacheV1UpgradeInstanceRequest,
+    args: &MemcacheProjectsLocationsInstancesUpgradeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = memcache_projects_locations_instances_upgrade_builder(client, name, body)?;
+    let builder =
+        memcache_projects_locations_instances_upgrade_builder(client, &args.name, &args.body)?;
     memcache_projects_locations_instances_upgrade_execute(builder)
 }
 
@@ -1693,6 +1822,15 @@ pub fn memcache_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1705,13 +1843,13 @@ pub fn memcache_projects_locations_operations_cancel_execute(
 
 pub fn memcache_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &MemcacheProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = memcache_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        memcache_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     memcache_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1805,6 +1943,13 @@ pub fn memcache_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1817,12 +1962,12 @@ pub fn memcache_projects_locations_operations_delete_execute(
 
 pub fn memcache_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MemcacheProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = memcache_projects_locations_operations_delete_builder(client, name)?;
+    let builder = memcache_projects_locations_operations_delete_builder(client, &args.name)?;
     memcache_projects_locations_operations_delete_execute(builder)
 }
 
@@ -1916,6 +2061,13 @@ pub fn memcache_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1928,12 +2080,12 @@ pub fn memcache_projects_locations_operations_get_execute(
 
 pub fn memcache_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MemcacheProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = memcache_projects_locations_operations_get_builder(client, name)?;
+    let builder = memcache_projects_locations_operations_get_builder(client, &args.name)?;
     memcache_projects_locations_operations_get_execute(builder)
 }
 
@@ -2053,6 +2205,21 @@ pub fn memcache_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`memcache_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MemcacheProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -2065,11 +2232,7 @@ pub fn memcache_projects_locations_operations_list_execute(
 
 pub fn memcache_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &MemcacheProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2078,11 +2241,11 @@ pub fn memcache_projects_locations_operations_list(
 > {
     let builder = memcache_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     memcache_projects_locations_operations_list_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/folders/{foldersId}/contacts:compute
 /// Lists all contacts for the resource that are subscribed to the specified notification categories, including contacts inherited from any parent resources.
@@ -134,6 +136,19 @@ pub fn essentialcontacts_folders_contacts_compute_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_folders_contacts_compute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsFoldersContactsComputeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: notificationCategories
+    pub notificationCategories: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/contacts:compute
 /// Lists all contacts for the resource that are subscribed to the specified notification categories, including contacts inherited from any parent resources.
 ///
@@ -146,10 +161,7 @@ pub fn essentialcontacts_folders_contacts_compute_execute(
 
 pub fn essentialcontacts_folders_contacts_compute(
     client: &SimpleHttpClient,
-    parent: &str,
-    notificationCategories: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EssentialcontactsFoldersContactsComputeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -163,10 +175,10 @@ pub fn essentialcontacts_folders_contacts_compute(
 > {
     let builder = essentialcontacts_folders_contacts_compute_builder(
         client,
-        parent,
-        notificationCategories,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.notificationCategories.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     essentialcontacts_folders_contacts_compute_execute(builder)
 }
@@ -268,6 +280,15 @@ pub fn essentialcontacts_folders_contacts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_folders_contacts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsFoldersContactsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudEssentialcontactsV1Contact,
+}
+
 /// GET v1/folders/{foldersId}/contacts
 /// Adds a new contact for a resource.
 ///
@@ -280,8 +301,7 @@ pub fn essentialcontacts_folders_contacts_create_execute(
 
 pub fn essentialcontacts_folders_contacts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudEssentialcontactsV1Contact,
+    args: &EssentialcontactsFoldersContactsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
@@ -290,7 +310,8 @@ pub fn essentialcontacts_folders_contacts_create(
         + 'static,
     ApiError,
 > {
-    let builder = essentialcontacts_folders_contacts_create_builder(client, parent, body)?;
+    let builder =
+        essentialcontacts_folders_contacts_create_builder(client, &args.parent, &args.body)?;
     essentialcontacts_folders_contacts_create_execute(builder)
 }
 
@@ -386,6 +407,13 @@ pub fn essentialcontacts_folders_contacts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_folders_contacts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsFoldersContactsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/contacts/{contactsId}
 /// Deletes a contact.
 ///
@@ -398,14 +426,14 @@ pub fn essentialcontacts_folders_contacts_delete_execute(
 
 pub fn essentialcontacts_folders_contacts_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EssentialcontactsFoldersContactsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = essentialcontacts_folders_contacts_delete_builder(client, name)?;
+    let builder = essentialcontacts_folders_contacts_delete_builder(client, &args.name)?;
     essentialcontacts_folders_contacts_delete_execute(builder)
 }
 
@@ -503,6 +531,13 @@ pub fn essentialcontacts_folders_contacts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_folders_contacts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsFoldersContactsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/contacts/{contactsId}
 /// Gets a single contact.
 ///
@@ -515,7 +550,7 @@ pub fn essentialcontacts_folders_contacts_get_execute(
 
 pub fn essentialcontacts_folders_contacts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EssentialcontactsFoldersContactsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
@@ -524,7 +559,7 @@ pub fn essentialcontacts_folders_contacts_get(
         + 'static,
     ApiError,
 > {
-    let builder = essentialcontacts_folders_contacts_get_builder(client, name)?;
+    let builder = essentialcontacts_folders_contacts_get_builder(client, &args.name)?;
     essentialcontacts_folders_contacts_get_execute(builder)
 }
 
@@ -639,6 +674,17 @@ pub fn essentialcontacts_folders_contacts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_folders_contacts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsFoldersContactsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/contacts
 /// Lists the contacts that have been set on a resource.
 ///
@@ -651,9 +697,7 @@ pub fn essentialcontacts_folders_contacts_list_execute(
 
 pub fn essentialcontacts_folders_contacts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EssentialcontactsFoldersContactsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudEssentialcontactsV1ListContactsResponse>, ApiError>,
@@ -662,8 +706,12 @@ pub fn essentialcontacts_folders_contacts_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        essentialcontacts_folders_contacts_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = essentialcontacts_folders_contacts_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     essentialcontacts_folders_contacts_list_execute(builder)
 }
 
@@ -776,6 +824,17 @@ pub fn essentialcontacts_folders_contacts_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_folders_contacts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsFoldersContactsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudEssentialcontactsV1Contact,
+}
+
 /// GET v1/folders/{foldersId}/contacts/{contactsId}
 /// Updates a contact. Note: A contact's email address cannot be changed.
 ///
@@ -788,9 +847,7 @@ pub fn essentialcontacts_folders_contacts_patch_execute(
 
 pub fn essentialcontacts_folders_contacts_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudEssentialcontactsV1Contact,
+    args: &EssentialcontactsFoldersContactsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
@@ -799,7 +856,12 @@ pub fn essentialcontacts_folders_contacts_patch(
         + 'static,
     ApiError,
 > {
-    let builder = essentialcontacts_folders_contacts_patch_builder(client, name, updateMask, body)?;
+    let builder = essentialcontacts_folders_contacts_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     essentialcontacts_folders_contacts_patch_execute(builder)
 }
 
@@ -898,6 +960,15 @@ pub fn essentialcontacts_folders_contacts_send_test_message_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_folders_contacts_send_test_message`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsFoldersContactsSendTestMessageArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleCloudEssentialcontactsV1SendTestMessageRequest,
+}
+
 /// GET v1/folders/{foldersId}/contacts:sendTestMessage
 /// Allows a contact admin to send a test message to contact to verify that it has been configured correctly.
 ///
@@ -910,16 +981,18 @@ pub fn essentialcontacts_folders_contacts_send_test_message_execute(
 
 pub fn essentialcontacts_folders_contacts_send_test_message(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleCloudEssentialcontactsV1SendTestMessageRequest,
+    args: &EssentialcontactsFoldersContactsSendTestMessageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        essentialcontacts_folders_contacts_send_test_message_builder(client, resource, body)?;
+    let builder = essentialcontacts_folders_contacts_send_test_message_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     essentialcontacts_folders_contacts_send_test_message_execute(builder)
 }
 
@@ -1041,6 +1114,19 @@ pub fn essentialcontacts_organizations_contacts_compute_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_organizations_contacts_compute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsOrganizationsContactsComputeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: notificationCategories
+    pub notificationCategories: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/contacts:compute
 /// Lists all contacts for the resource that are subscribed to the specified notification categories, including contacts inherited from any parent resources.
 ///
@@ -1053,10 +1139,7 @@ pub fn essentialcontacts_organizations_contacts_compute_execute(
 
 pub fn essentialcontacts_organizations_contacts_compute(
     client: &SimpleHttpClient,
-    parent: &str,
-    notificationCategories: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EssentialcontactsOrganizationsContactsComputeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1070,10 +1153,10 @@ pub fn essentialcontacts_organizations_contacts_compute(
 > {
     let builder = essentialcontacts_organizations_contacts_compute_builder(
         client,
-        parent,
-        notificationCategories,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.notificationCategories.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     essentialcontacts_organizations_contacts_compute_execute(builder)
 }
@@ -1175,6 +1258,15 @@ pub fn essentialcontacts_organizations_contacts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_organizations_contacts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsOrganizationsContactsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudEssentialcontactsV1Contact,
+}
+
 /// GET v1/organizations/{organizationsId}/contacts
 /// Adds a new contact for a resource.
 ///
@@ -1187,8 +1279,7 @@ pub fn essentialcontacts_organizations_contacts_create_execute(
 
 pub fn essentialcontacts_organizations_contacts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudEssentialcontactsV1Contact,
+    args: &EssentialcontactsOrganizationsContactsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
@@ -1197,7 +1288,8 @@ pub fn essentialcontacts_organizations_contacts_create(
         + 'static,
     ApiError,
 > {
-    let builder = essentialcontacts_organizations_contacts_create_builder(client, parent, body)?;
+    let builder =
+        essentialcontacts_organizations_contacts_create_builder(client, &args.parent, &args.body)?;
     essentialcontacts_organizations_contacts_create_execute(builder)
 }
 
@@ -1293,6 +1385,13 @@ pub fn essentialcontacts_organizations_contacts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_organizations_contacts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsOrganizationsContactsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/contacts/{contactsId}
 /// Deletes a contact.
 ///
@@ -1305,14 +1404,14 @@ pub fn essentialcontacts_organizations_contacts_delete_execute(
 
 pub fn essentialcontacts_organizations_contacts_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EssentialcontactsOrganizationsContactsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = essentialcontacts_organizations_contacts_delete_builder(client, name)?;
+    let builder = essentialcontacts_organizations_contacts_delete_builder(client, &args.name)?;
     essentialcontacts_organizations_contacts_delete_execute(builder)
 }
 
@@ -1410,6 +1509,13 @@ pub fn essentialcontacts_organizations_contacts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_organizations_contacts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsOrganizationsContactsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/contacts/{contactsId}
 /// Gets a single contact.
 ///
@@ -1422,7 +1528,7 @@ pub fn essentialcontacts_organizations_contacts_get_execute(
 
 pub fn essentialcontacts_organizations_contacts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EssentialcontactsOrganizationsContactsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
@@ -1431,7 +1537,7 @@ pub fn essentialcontacts_organizations_contacts_get(
         + 'static,
     ApiError,
 > {
-    let builder = essentialcontacts_organizations_contacts_get_builder(client, name)?;
+    let builder = essentialcontacts_organizations_contacts_get_builder(client, &args.name)?;
     essentialcontacts_organizations_contacts_get_execute(builder)
 }
 
@@ -1546,6 +1652,17 @@ pub fn essentialcontacts_organizations_contacts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_organizations_contacts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsOrganizationsContactsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/contacts
 /// Lists the contacts that have been set on a resource.
 ///
@@ -1558,9 +1675,7 @@ pub fn essentialcontacts_organizations_contacts_list_execute(
 
 pub fn essentialcontacts_organizations_contacts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EssentialcontactsOrganizationsContactsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudEssentialcontactsV1ListContactsResponse>, ApiError>,
@@ -1569,8 +1684,12 @@ pub fn essentialcontacts_organizations_contacts_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        essentialcontacts_organizations_contacts_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = essentialcontacts_organizations_contacts_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     essentialcontacts_organizations_contacts_list_execute(builder)
 }
 
@@ -1683,6 +1802,17 @@ pub fn essentialcontacts_organizations_contacts_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_organizations_contacts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsOrganizationsContactsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudEssentialcontactsV1Contact,
+}
+
 /// GET v1/organizations/{organizationsId}/contacts/{contactsId}
 /// Updates a contact. Note: A contact's email address cannot be changed.
 ///
@@ -1695,9 +1825,7 @@ pub fn essentialcontacts_organizations_contacts_patch_execute(
 
 pub fn essentialcontacts_organizations_contacts_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudEssentialcontactsV1Contact,
+    args: &EssentialcontactsOrganizationsContactsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
@@ -1706,8 +1834,12 @@ pub fn essentialcontacts_organizations_contacts_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        essentialcontacts_organizations_contacts_patch_builder(client, name, updateMask, body)?;
+    let builder = essentialcontacts_organizations_contacts_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     essentialcontacts_organizations_contacts_patch_execute(builder)
 }
 
@@ -1806,6 +1938,15 @@ pub fn essentialcontacts_organizations_contacts_send_test_message_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_organizations_contacts_send_test_message`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsOrganizationsContactsSendTestMessageArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleCloudEssentialcontactsV1SendTestMessageRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/contacts:sendTestMessage
 /// Allows a contact admin to send a test message to contact to verify that it has been configured correctly.
 ///
@@ -1818,16 +1959,18 @@ pub fn essentialcontacts_organizations_contacts_send_test_message_execute(
 
 pub fn essentialcontacts_organizations_contacts_send_test_message(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleCloudEssentialcontactsV1SendTestMessageRequest,
+    args: &EssentialcontactsOrganizationsContactsSendTestMessageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        essentialcontacts_organizations_contacts_send_test_message_builder(client, resource, body)?;
+    let builder = essentialcontacts_organizations_contacts_send_test_message_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     essentialcontacts_organizations_contacts_send_test_message_execute(builder)
 }
 
@@ -1949,6 +2092,19 @@ pub fn essentialcontacts_projects_contacts_compute_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_projects_contacts_compute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsProjectsContactsComputeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: notificationCategories
+    pub notificationCategories: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/contacts:compute
 /// Lists all contacts for the resource that are subscribed to the specified notification categories, including contacts inherited from any parent resources.
 ///
@@ -1961,10 +2117,7 @@ pub fn essentialcontacts_projects_contacts_compute_execute(
 
 pub fn essentialcontacts_projects_contacts_compute(
     client: &SimpleHttpClient,
-    parent: &str,
-    notificationCategories: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EssentialcontactsProjectsContactsComputeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1978,10 +2131,10 @@ pub fn essentialcontacts_projects_contacts_compute(
 > {
     let builder = essentialcontacts_projects_contacts_compute_builder(
         client,
-        parent,
-        notificationCategories,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.notificationCategories.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     essentialcontacts_projects_contacts_compute_execute(builder)
 }
@@ -2083,6 +2236,15 @@ pub fn essentialcontacts_projects_contacts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_projects_contacts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsProjectsContactsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudEssentialcontactsV1Contact,
+}
+
 /// GET v1/projects/{projectsId}/contacts
 /// Adds a new contact for a resource.
 ///
@@ -2095,8 +2257,7 @@ pub fn essentialcontacts_projects_contacts_create_execute(
 
 pub fn essentialcontacts_projects_contacts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudEssentialcontactsV1Contact,
+    args: &EssentialcontactsProjectsContactsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
@@ -2105,7 +2266,8 @@ pub fn essentialcontacts_projects_contacts_create(
         + 'static,
     ApiError,
 > {
-    let builder = essentialcontacts_projects_contacts_create_builder(client, parent, body)?;
+    let builder =
+        essentialcontacts_projects_contacts_create_builder(client, &args.parent, &args.body)?;
     essentialcontacts_projects_contacts_create_execute(builder)
 }
 
@@ -2201,6 +2363,13 @@ pub fn essentialcontacts_projects_contacts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_projects_contacts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsProjectsContactsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/contacts/{contactsId}
 /// Deletes a contact.
 ///
@@ -2213,14 +2382,14 @@ pub fn essentialcontacts_projects_contacts_delete_execute(
 
 pub fn essentialcontacts_projects_contacts_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EssentialcontactsProjectsContactsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = essentialcontacts_projects_contacts_delete_builder(client, name)?;
+    let builder = essentialcontacts_projects_contacts_delete_builder(client, &args.name)?;
     essentialcontacts_projects_contacts_delete_execute(builder)
 }
 
@@ -2318,6 +2487,13 @@ pub fn essentialcontacts_projects_contacts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_projects_contacts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsProjectsContactsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/contacts/{contactsId}
 /// Gets a single contact.
 ///
@@ -2330,7 +2506,7 @@ pub fn essentialcontacts_projects_contacts_get_execute(
 
 pub fn essentialcontacts_projects_contacts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &EssentialcontactsProjectsContactsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
@@ -2339,7 +2515,7 @@ pub fn essentialcontacts_projects_contacts_get(
         + 'static,
     ApiError,
 > {
-    let builder = essentialcontacts_projects_contacts_get_builder(client, name)?;
+    let builder = essentialcontacts_projects_contacts_get_builder(client, &args.name)?;
     essentialcontacts_projects_contacts_get_execute(builder)
 }
 
@@ -2454,6 +2630,17 @@ pub fn essentialcontacts_projects_contacts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_projects_contacts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsProjectsContactsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/contacts
 /// Lists the contacts that have been set on a resource.
 ///
@@ -2466,9 +2653,7 @@ pub fn essentialcontacts_projects_contacts_list_execute(
 
 pub fn essentialcontacts_projects_contacts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &EssentialcontactsProjectsContactsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudEssentialcontactsV1ListContactsResponse>, ApiError>,
@@ -2477,8 +2662,12 @@ pub fn essentialcontacts_projects_contacts_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        essentialcontacts_projects_contacts_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = essentialcontacts_projects_contacts_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     essentialcontacts_projects_contacts_list_execute(builder)
 }
 
@@ -2591,6 +2780,17 @@ pub fn essentialcontacts_projects_contacts_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_projects_contacts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsProjectsContactsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudEssentialcontactsV1Contact,
+}
+
 /// GET v1/projects/{projectsId}/contacts/{contactsId}
 /// Updates a contact. Note: A contact's email address cannot be changed.
 ///
@@ -2603,9 +2803,7 @@ pub fn essentialcontacts_projects_contacts_patch_execute(
 
 pub fn essentialcontacts_projects_contacts_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudEssentialcontactsV1Contact,
+    args: &EssentialcontactsProjectsContactsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
@@ -2614,8 +2812,12 @@ pub fn essentialcontacts_projects_contacts_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        essentialcontacts_projects_contacts_patch_builder(client, name, updateMask, body)?;
+    let builder = essentialcontacts_projects_contacts_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     essentialcontacts_projects_contacts_patch_execute(builder)
 }
 
@@ -2714,6 +2916,15 @@ pub fn essentialcontacts_projects_contacts_send_test_message_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`essentialcontacts_projects_contacts_send_test_message`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct EssentialcontactsProjectsContactsSendTestMessageArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleCloudEssentialcontactsV1SendTestMessageRequest,
+}
+
 /// GET v1/projects/{projectsId}/contacts:sendTestMessage
 /// Allows a contact admin to send a test message to contact to verify that it has been configured correctly.
 ///
@@ -2726,15 +2937,17 @@ pub fn essentialcontacts_projects_contacts_send_test_message_execute(
 
 pub fn essentialcontacts_projects_contacts_send_test_message(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleCloudEssentialcontactsV1SendTestMessageRequest,
+    args: &EssentialcontactsProjectsContactsSendTestMessageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        essentialcontacts_projects_contacts_send_test_message_builder(client, resource, body)?;
+    let builder = essentialcontacts_projects_contacts_send_test_message_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     essentialcontacts_projects_contacts_send_test_message_execute(builder)
 }

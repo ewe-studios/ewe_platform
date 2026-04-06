@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/enterprises/{enterprisesId}/devices/{devicesId}:executeCommand
 /// Executes a command to device managed by the enterprise.
@@ -117,6 +119,15 @@ pub fn smartdevicemanagement_enterprises_devices_execute_command_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`smartdevicemanagement_enterprises_devices_execute_command`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SmartdevicemanagementEnterprisesDevicesExecuteCommandArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandRequest,
+}
+
 /// GET v1/enterprises/{enterprisesId}/devices/{devicesId}:executeCommand
 /// Executes a command to device managed by the enterprise.
 ///
@@ -129,8 +140,7 @@ pub fn smartdevicemanagement_enterprises_devices_execute_command_execute(
 
 pub fn smartdevicemanagement_enterprises_devices_execute_command(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleHomeEnterpriseSdmV1ExecuteDeviceCommandRequest,
+    args: &SmartdevicemanagementEnterprisesDevicesExecuteCommandArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -142,8 +152,9 @@ pub fn smartdevicemanagement_enterprises_devices_execute_command(
         + 'static,
     ApiError,
 > {
-    let builder =
-        smartdevicemanagement_enterprises_devices_execute_command_builder(client, name, body)?;
+    let builder = smartdevicemanagement_enterprises_devices_execute_command_builder(
+        client, &args.name, &args.body,
+    )?;
     smartdevicemanagement_enterprises_devices_execute_command_execute(builder)
 }
 
@@ -241,6 +252,13 @@ pub fn smartdevicemanagement_enterprises_devices_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`smartdevicemanagement_enterprises_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SmartdevicemanagementEnterprisesDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}/devices/{devicesId}
 /// Gets a device managed by the enterprise.
 ///
@@ -253,7 +271,7 @@ pub fn smartdevicemanagement_enterprises_devices_get_execute(
 
 pub fn smartdevicemanagement_enterprises_devices_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SmartdevicemanagementEnterprisesDevicesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1Device>, ApiError>,
@@ -262,7 +280,7 @@ pub fn smartdevicemanagement_enterprises_devices_get(
         + 'static,
     ApiError,
 > {
-    let builder = smartdevicemanagement_enterprises_devices_get_builder(client, name)?;
+    let builder = smartdevicemanagement_enterprises_devices_get_builder(client, &args.name)?;
     smartdevicemanagement_enterprises_devices_get_execute(builder)
 }
 
@@ -373,6 +391,15 @@ pub fn smartdevicemanagement_enterprises_devices_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`smartdevicemanagement_enterprises_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SmartdevicemanagementEnterprisesDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+}
+
 /// GET v1/enterprises/{enterprisesId}/devices
 /// Lists devices managed by the enterprise.
 ///
@@ -385,8 +412,7 @@ pub fn smartdevicemanagement_enterprises_devices_list_execute(
 
 pub fn smartdevicemanagement_enterprises_devices_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    args: &SmartdevicemanagementEnterprisesDevicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1ListDevicesResponse>, ApiError>,
@@ -395,7 +421,11 @@ pub fn smartdevicemanagement_enterprises_devices_list(
         + 'static,
     ApiError,
 > {
-    let builder = smartdevicemanagement_enterprises_devices_list_builder(client, parent, filter)?;
+    let builder = smartdevicemanagement_enterprises_devices_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+    )?;
     smartdevicemanagement_enterprises_devices_list_execute(builder)
 }
 
@@ -493,6 +523,13 @@ pub fn smartdevicemanagement_enterprises_structures_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`smartdevicemanagement_enterprises_structures_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SmartdevicemanagementEnterprisesStructuresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}/structures/{structuresId}
 /// Gets a structure managed by the enterprise.
 ///
@@ -505,7 +542,7 @@ pub fn smartdevicemanagement_enterprises_structures_get_execute(
 
 pub fn smartdevicemanagement_enterprises_structures_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SmartdevicemanagementEnterprisesStructuresGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1Structure>, ApiError>,
@@ -514,7 +551,7 @@ pub fn smartdevicemanagement_enterprises_structures_get(
         + 'static,
     ApiError,
 > {
-    let builder = smartdevicemanagement_enterprises_structures_get_builder(client, name)?;
+    let builder = smartdevicemanagement_enterprises_structures_get_builder(client, &args.name)?;
     smartdevicemanagement_enterprises_structures_get_execute(builder)
 }
 
@@ -625,6 +662,15 @@ pub fn smartdevicemanagement_enterprises_structures_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`smartdevicemanagement_enterprises_structures_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SmartdevicemanagementEnterprisesStructuresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+}
+
 /// GET v1/enterprises/{enterprisesId}/structures
 /// Lists structures managed by the enterprise.
 ///
@@ -637,8 +683,7 @@ pub fn smartdevicemanagement_enterprises_structures_list_execute(
 
 pub fn smartdevicemanagement_enterprises_structures_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    args: &SmartdevicemanagementEnterprisesStructuresListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1ListStructuresResponse>, ApiError>,
@@ -647,8 +692,11 @@ pub fn smartdevicemanagement_enterprises_structures_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        smartdevicemanagement_enterprises_structures_list_builder(client, parent, filter)?;
+    let builder = smartdevicemanagement_enterprises_structures_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+    )?;
     smartdevicemanagement_enterprises_structures_list_execute(builder)
 }
 
@@ -746,6 +794,13 @@ pub fn smartdevicemanagement_enterprises_structures_rooms_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`smartdevicemanagement_enterprises_structures_rooms_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SmartdevicemanagementEnterprisesStructuresRoomsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}/structures/{structuresId}/rooms/{roomsId}
 /// Gets a room managed by the enterprise.
 ///
@@ -758,7 +813,7 @@ pub fn smartdevicemanagement_enterprises_structures_rooms_get_execute(
 
 pub fn smartdevicemanagement_enterprises_structures_rooms_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SmartdevicemanagementEnterprisesStructuresRoomsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1Room>, ApiError>,
@@ -767,7 +822,8 @@ pub fn smartdevicemanagement_enterprises_structures_rooms_get(
         + 'static,
     ApiError,
 > {
-    let builder = smartdevicemanagement_enterprises_structures_rooms_get_builder(client, name)?;
+    let builder =
+        smartdevicemanagement_enterprises_structures_rooms_get_builder(client, &args.name)?;
     smartdevicemanagement_enterprises_structures_rooms_get_execute(builder)
 }
 
@@ -866,6 +922,13 @@ pub fn smartdevicemanagement_enterprises_structures_rooms_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`smartdevicemanagement_enterprises_structures_rooms_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SmartdevicemanagementEnterprisesStructuresRoomsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/enterprises/{enterprisesId}/structures/{structuresId}/rooms
 /// Lists rooms managed by the enterprise.
 ///
@@ -878,7 +941,7 @@ pub fn smartdevicemanagement_enterprises_structures_rooms_list_execute(
 
 pub fn smartdevicemanagement_enterprises_structures_rooms_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &SmartdevicemanagementEnterprisesStructuresRoomsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleHomeEnterpriseSdmV1ListRoomsResponse>, ApiError>,
@@ -887,6 +950,7 @@ pub fn smartdevicemanagement_enterprises_structures_rooms_list(
         + 'static,
     ApiError,
 > {
-    let builder = smartdevicemanagement_enterprises_structures_rooms_list_builder(client, parent)?;
+    let builder =
+        smartdevicemanagement_enterprises_structures_rooms_list_builder(client, &args.parent)?;
     smartdevicemanagement_enterprises_structures_rooms_list_execute(builder)
 }

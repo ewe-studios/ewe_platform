@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn managedkafka_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn managedkafka_projects_locations_get_execute(
 
 pub fn managedkafka_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_get_builder(client, name)?;
+    let builder = managedkafka_projects_locations_get_builder(client, &args.name)?;
     managedkafka_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn managedkafka_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn managedkafka_projects_locations_list_execute(
 
 pub fn managedkafka_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn managedkafka_projects_locations_list(
 > {
     let builder = managedkafka_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     managedkafka_projects_locations_list_execute(builder)
 }
@@ -386,6 +406,19 @@ pub fn managedkafka_projects_locations_clusters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: clusterId
+    pub clusterId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
 /// Creates a new cluster in a given project and location.
 ///
@@ -398,16 +431,17 @@ pub fn managedkafka_projects_locations_clusters_create_execute(
 
 pub fn managedkafka_projects_locations_clusters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    clusterId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Cluster,
+    args: &ManagedkafkaProjectsLocationsClustersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_clusters_create_builder(
-        client, parent, clusterId, requestId, body,
+        client,
+        &args.parent,
+        args.clusterId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     managedkafka_projects_locations_clusters_create_execute(builder)
 }
@@ -514,6 +548,15 @@ pub fn managedkafka_projects_locations_clusters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
 /// Deletes a single cluster.
 ///
@@ -526,13 +569,16 @@ pub fn managedkafka_projects_locations_clusters_delete_execute(
 
 pub fn managedkafka_projects_locations_clusters_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsClustersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_clusters_delete_builder(client, name, requestId)?;
+    let builder = managedkafka_projects_locations_clusters_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     managedkafka_projects_locations_clusters_delete_execute(builder)
 }
 
@@ -638,6 +684,15 @@ pub fn managedkafka_projects_locations_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
 /// Returns the properties of a single cluster.
 ///
@@ -650,13 +705,16 @@ pub fn managedkafka_projects_locations_clusters_get_execute(
 
 pub fn managedkafka_projects_locations_clusters_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_clusters_get_builder(client, name, view)?;
+    let builder = managedkafka_projects_locations_clusters_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     managedkafka_projects_locations_clusters_get_execute(builder)
 }
 
@@ -776,6 +834,21 @@ pub fn managedkafka_projects_locations_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters
 /// Lists the clusters in a given project and location.
 ///
@@ -788,11 +861,7 @@ pub fn managedkafka_projects_locations_clusters_list_execute(
 
 pub fn managedkafka_projects_locations_clusters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsClustersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -800,7 +869,12 @@ pub fn managedkafka_projects_locations_clusters_list(
     ApiError,
 > {
     let builder = managedkafka_projects_locations_clusters_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     managedkafka_projects_locations_clusters_list_execute(builder)
 }
@@ -914,6 +988,19 @@ pub fn managedkafka_projects_locations_clusters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}
 /// Updates the properties of a single cluster.
 ///
@@ -926,16 +1013,17 @@ pub fn managedkafka_projects_locations_clusters_patch_execute(
 
 pub fn managedkafka_projects_locations_clusters_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Cluster,
+    args: &ManagedkafkaProjectsLocationsClustersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_clusters_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     managedkafka_projects_locations_clusters_patch_execute(builder)
 }
@@ -1035,6 +1123,15 @@ pub fn managedkafka_projects_locations_clusters_acls_add_acl_entry_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_acls_add_acl_entry`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersAclsAddAclEntryArgs {
+    /// Path parameter: acl
+    pub acl: String,
+    /// Request body.
+    pub body: AclEntry,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}:addAclEntry
 /// Incremental update: Adds an acl entry to an acl. Creates the acl if it does not exist yet.
 ///
@@ -1047,16 +1144,16 @@ pub fn managedkafka_projects_locations_clusters_acls_add_acl_entry_execute(
 
 pub fn managedkafka_projects_locations_clusters_acls_add_acl_entry(
     client: &SimpleHttpClient,
-    acl: &str,
-    body: &AclEntry,
+    args: &ManagedkafkaProjectsLocationsClustersAclsAddAclEntryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddAclEntryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        managedkafka_projects_locations_clusters_acls_add_acl_entry_builder(client, acl, body)?;
+    let builder = managedkafka_projects_locations_clusters_acls_add_acl_entry_builder(
+        client, &args.acl, &args.body,
+    )?;
     managedkafka_projects_locations_clusters_acls_add_acl_entry_execute(builder)
 }
 
@@ -1165,6 +1262,17 @@ pub fn managedkafka_projects_locations_clusters_acls_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_acls_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersAclsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: aclId
+    pub aclId: Option<String>,
+    /// Request body.
+    pub body: Acl,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls
 /// Creates a new acl in the given project, location, and cluster.
 ///
@@ -1177,15 +1285,17 @@ pub fn managedkafka_projects_locations_clusters_acls_create_execute(
 
 pub fn managedkafka_projects_locations_clusters_acls_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    aclId: Option<&str>,
-    body: &Acl,
+    args: &ManagedkafkaProjectsLocationsClustersAclsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Acl>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        managedkafka_projects_locations_clusters_acls_create_builder(client, parent, aclId, body)?;
+    let builder = managedkafka_projects_locations_clusters_acls_create_builder(
+        client,
+        &args.parent,
+        args.aclId.as_deref(),
+        &args.body,
+    )?;
     managedkafka_projects_locations_clusters_acls_create_execute(builder)
 }
 
@@ -1279,6 +1389,13 @@ pub fn managedkafka_projects_locations_clusters_acls_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_acls_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersAclsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
 /// Deletes an acl.
 ///
@@ -1291,12 +1408,12 @@ pub fn managedkafka_projects_locations_clusters_acls_delete_execute(
 
 pub fn managedkafka_projects_locations_clusters_acls_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsClustersAclsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_clusters_acls_delete_builder(client, name)?;
+    let builder = managedkafka_projects_locations_clusters_acls_delete_builder(client, &args.name)?;
     managedkafka_projects_locations_clusters_acls_delete_execute(builder)
 }
 
@@ -1390,6 +1507,13 @@ pub fn managedkafka_projects_locations_clusters_acls_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_acls_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersAclsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
 /// Returns the properties of a single acl.
 ///
@@ -1402,12 +1526,12 @@ pub fn managedkafka_projects_locations_clusters_acls_get_execute(
 
 pub fn managedkafka_projects_locations_clusters_acls_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsClustersAclsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Acl>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_clusters_acls_get_builder(client, name)?;
+    let builder = managedkafka_projects_locations_clusters_acls_get_builder(client, &args.name)?;
     managedkafka_projects_locations_clusters_acls_get_execute(builder)
 }
 
@@ -1519,6 +1643,17 @@ pub fn managedkafka_projects_locations_clusters_acls_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_acls_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersAclsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls
 /// Lists the acls in a given cluster.
 ///
@@ -1531,9 +1666,7 @@ pub fn managedkafka_projects_locations_clusters_acls_list_execute(
 
 pub fn managedkafka_projects_locations_clusters_acls_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsClustersAclsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAclsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1541,7 +1674,10 @@ pub fn managedkafka_projects_locations_clusters_acls_list(
     ApiError,
 > {
     let builder = managedkafka_projects_locations_clusters_acls_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     managedkafka_projects_locations_clusters_acls_list_execute(builder)
 }
@@ -1651,6 +1787,17 @@ pub fn managedkafka_projects_locations_clusters_acls_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_acls_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersAclsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Acl,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}
 /// Updates the properties of a single acl.
 ///
@@ -1663,15 +1810,16 @@ pub fn managedkafka_projects_locations_clusters_acls_patch_execute(
 
 pub fn managedkafka_projects_locations_clusters_acls_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Acl,
+    args: &ManagedkafkaProjectsLocationsClustersAclsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Acl>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_clusters_acls_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     managedkafka_projects_locations_clusters_acls_patch_execute(builder)
 }
@@ -1771,6 +1919,15 @@ pub fn managedkafka_projects_locations_clusters_acls_remove_acl_entry_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_acls_remove_acl_entry`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersAclsRemoveAclEntryArgs {
+    /// Path parameter: acl
+    pub acl: String,
+    /// Request body.
+    pub body: AclEntry,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/acls/{aclsId}:removeAclEntry
 /// Incremental update: Removes an acl entry from an acl. Deletes the acl if its acl entries become empty (i.e. if the removed entry was the last one in the acl).
 ///
@@ -1783,16 +1940,16 @@ pub fn managedkafka_projects_locations_clusters_acls_remove_acl_entry_execute(
 
 pub fn managedkafka_projects_locations_clusters_acls_remove_acl_entry(
     client: &SimpleHttpClient,
-    acl: &str,
-    body: &AclEntry,
+    args: &ManagedkafkaProjectsLocationsClustersAclsRemoveAclEntryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemoveAclEntryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        managedkafka_projects_locations_clusters_acls_remove_acl_entry_builder(client, acl, body)?;
+    let builder = managedkafka_projects_locations_clusters_acls_remove_acl_entry_builder(
+        client, &args.acl, &args.body,
+    )?;
     managedkafka_projects_locations_clusters_acls_remove_acl_entry_execute(builder)
 }
 
@@ -1886,6 +2043,13 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_consumer_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersConsumerGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
 /// Deletes a single consumer group.
 ///
@@ -1898,13 +2062,14 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_delete_execute(
 
 pub fn managedkafka_projects_locations_clusters_consumer_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsClustersConsumerGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        managedkafka_projects_locations_clusters_consumer_groups_delete_builder(client, name)?;
+    let builder = managedkafka_projects_locations_clusters_consumer_groups_delete_builder(
+        client, &args.name,
+    )?;
     managedkafka_projects_locations_clusters_consumer_groups_delete_execute(builder)
 }
 
@@ -2000,6 +2165,13 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_consumer_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersConsumerGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
 /// Returns the properties of a single consumer group.
 ///
@@ -2012,7 +2184,7 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_get_execute(
 
 pub fn managedkafka_projects_locations_clusters_consumer_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsClustersConsumerGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConsumerGroup>, ApiError>, P = ApiPending>
         + Send
@@ -2020,7 +2192,7 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_get(
     ApiError,
 > {
     let builder =
-        managedkafka_projects_locations_clusters_consumer_groups_get_builder(client, name)?;
+        managedkafka_projects_locations_clusters_consumer_groups_get_builder(client, &args.name)?;
     managedkafka_projects_locations_clusters_consumer_groups_get_execute(builder)
 }
 
@@ -2142,6 +2314,21 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_consumer_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersConsumerGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups
 /// Lists the consumer groups in a given cluster.
 ///
@@ -2154,11 +2341,7 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_list_execute(
 
 pub fn managedkafka_projects_locations_clusters_consumer_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsClustersConsumerGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListConsumerGroupsResponse>, ApiError>,
@@ -2168,7 +2351,12 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_list(
     ApiError,
 > {
     let builder = managedkafka_projects_locations_clusters_consumer_groups_list_builder(
-        client, parent, filter, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     managedkafka_projects_locations_clusters_consumer_groups_list_execute(builder)
 }
@@ -2280,6 +2468,17 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_consumer_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersConsumerGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ConsumerGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/consumerGroups/{consumerGroupsId}
 /// Updates the properties of a single consumer group.
 ///
@@ -2292,9 +2491,7 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_patch_execute(
 
 pub fn managedkafka_projects_locations_clusters_consumer_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ConsumerGroup,
+    args: &ManagedkafkaProjectsLocationsClustersConsumerGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConsumerGroup>, ApiError>, P = ApiPending>
         + Send
@@ -2302,7 +2499,10 @@ pub fn managedkafka_projects_locations_clusters_consumer_groups_patch(
     ApiError,
 > {
     let builder = managedkafka_projects_locations_clusters_consumer_groups_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     managedkafka_projects_locations_clusters_consumer_groups_patch_execute(builder)
 }
@@ -2412,6 +2612,17 @@ pub fn managedkafka_projects_locations_clusters_topics_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_topics_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersTopicsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: topicId
+    pub topicId: Option<String>,
+    /// Request body.
+    pub body: Topic,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics
 /// Creates a new topic in a given project and location.
 ///
@@ -2424,15 +2635,16 @@ pub fn managedkafka_projects_locations_clusters_topics_create_execute(
 
 pub fn managedkafka_projects_locations_clusters_topics_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    topicId: Option<&str>,
-    body: &Topic,
+    args: &ManagedkafkaProjectsLocationsClustersTopicsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_clusters_topics_create_builder(
-        client, parent, topicId, body,
+        client,
+        &args.parent,
+        args.topicId.as_deref(),
+        &args.body,
     )?;
     managedkafka_projects_locations_clusters_topics_create_execute(builder)
 }
@@ -2527,6 +2739,13 @@ pub fn managedkafka_projects_locations_clusters_topics_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_topics_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersTopicsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
 /// Deletes a single topic.
 ///
@@ -2539,12 +2758,13 @@ pub fn managedkafka_projects_locations_clusters_topics_delete_execute(
 
 pub fn managedkafka_projects_locations_clusters_topics_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsClustersTopicsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_clusters_topics_delete_builder(client, name)?;
+    let builder =
+        managedkafka_projects_locations_clusters_topics_delete_builder(client, &args.name)?;
     managedkafka_projects_locations_clusters_topics_delete_execute(builder)
 }
 
@@ -2638,6 +2858,13 @@ pub fn managedkafka_projects_locations_clusters_topics_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_topics_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersTopicsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
 /// Returns the properties of a single topic.
 ///
@@ -2650,12 +2877,12 @@ pub fn managedkafka_projects_locations_clusters_topics_get_execute(
 
 pub fn managedkafka_projects_locations_clusters_topics_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsClustersTopicsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_clusters_topics_get_builder(client, name)?;
+    let builder = managedkafka_projects_locations_clusters_topics_get_builder(client, &args.name)?;
     managedkafka_projects_locations_clusters_topics_get_execute(builder)
 }
 
@@ -2767,6 +2994,17 @@ pub fn managedkafka_projects_locations_clusters_topics_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_topics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersTopicsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics
 /// Lists the topics in a given cluster.
 ///
@@ -2779,9 +3017,7 @@ pub fn managedkafka_projects_locations_clusters_topics_list_execute(
 
 pub fn managedkafka_projects_locations_clusters_topics_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsClustersTopicsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTopicsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2789,7 +3025,10 @@ pub fn managedkafka_projects_locations_clusters_topics_list(
     ApiError,
 > {
     let builder = managedkafka_projects_locations_clusters_topics_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     managedkafka_projects_locations_clusters_topics_list_execute(builder)
 }
@@ -2899,6 +3138,17 @@ pub fn managedkafka_projects_locations_clusters_topics_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_clusters_topics_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsClustersTopicsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Topic,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/clusters/{clustersId}/topics/{topicsId}
 /// Updates the properties of a single topic.
 ///
@@ -2911,15 +3161,16 @@ pub fn managedkafka_projects_locations_clusters_topics_patch_execute(
 
 pub fn managedkafka_projects_locations_clusters_topics_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Topic,
+    args: &ManagedkafkaProjectsLocationsClustersTopicsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_clusters_topics_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     managedkafka_projects_locations_clusters_topics_patch_execute(builder)
 }
@@ -3033,6 +3284,19 @@ pub fn managedkafka_projects_locations_connect_clusters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: connectClusterId
+    pub connectClusterId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: ConnectCluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters
 /// Creates a new Kafka Connect cluster in a given project and location.
 ///
@@ -3045,20 +3309,17 @@ pub fn managedkafka_projects_locations_connect_clusters_create_execute(
 
 pub fn managedkafka_projects_locations_connect_clusters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    connectClusterId: Option<&str>,
-    requestId: Option<&str>,
-    body: &ConnectCluster,
+    args: &ManagedkafkaProjectsLocationsConnectClustersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_connect_clusters_create_builder(
         client,
-        parent,
-        connectClusterId,
-        requestId,
-        body,
+        &args.parent,
+        args.connectClusterId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     managedkafka_projects_locations_connect_clusters_create_execute(builder)
 }
@@ -3165,6 +3426,15 @@ pub fn managedkafka_projects_locations_connect_clusters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
 /// Deletes a single Connect cluster.
 ///
@@ -3177,14 +3447,16 @@ pub fn managedkafka_projects_locations_connect_clusters_delete_execute(
 
 pub fn managedkafka_projects_locations_connect_clusters_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsConnectClustersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        managedkafka_projects_locations_connect_clusters_delete_builder(client, name, requestId)?;
+    let builder = managedkafka_projects_locations_connect_clusters_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     managedkafka_projects_locations_connect_clusters_delete_execute(builder)
 }
 
@@ -3280,6 +3552,13 @@ pub fn managedkafka_projects_locations_connect_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
 /// Returns the properties of a single Kafka Connect cluster.
 ///
@@ -3292,14 +3571,14 @@ pub fn managedkafka_projects_locations_connect_clusters_get_execute(
 
 pub fn managedkafka_projects_locations_connect_clusters_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsConnectClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConnectCluster>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_connect_clusters_get_builder(client, name)?;
+    let builder = managedkafka_projects_locations_connect_clusters_get_builder(client, &args.name)?;
     managedkafka_projects_locations_connect_clusters_get_execute(builder)
 }
 
@@ -3421,6 +3700,21 @@ pub fn managedkafka_projects_locations_connect_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters
 /// Lists the Kafka Connect clusters in a given project and location.
 ///
@@ -3433,11 +3727,7 @@ pub fn managedkafka_projects_locations_connect_clusters_list_execute(
 
 pub fn managedkafka_projects_locations_connect_clusters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsConnectClustersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListConnectClustersResponse>, ApiError>,
@@ -3447,7 +3737,12 @@ pub fn managedkafka_projects_locations_connect_clusters_list(
     ApiError,
 > {
     let builder = managedkafka_projects_locations_connect_clusters_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     managedkafka_projects_locations_connect_clusters_list_execute(builder)
 }
@@ -3561,6 +3856,19 @@ pub fn managedkafka_projects_locations_connect_clusters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ConnectCluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}
 /// Updates the properties of a single Kafka Connect cluster.
 ///
@@ -3573,16 +3881,17 @@ pub fn managedkafka_projects_locations_connect_clusters_patch_execute(
 
 pub fn managedkafka_projects_locations_connect_clusters_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &ConnectCluster,
+    args: &ManagedkafkaProjectsLocationsConnectClustersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_connect_clusters_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     managedkafka_projects_locations_connect_clusters_patch_execute(builder)
 }
@@ -3692,6 +4001,17 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_create_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: connectorId
+    pub connectorId: Option<String>,
+    /// Request body.
+    pub body: Connector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors
 /// Creates a new connector in a given Connect cluster.
 ///
@@ -3704,18 +4024,16 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_create_execut
 
 pub fn managedkafka_projects_locations_connect_clusters_connectors_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    connectorId: Option<&str>,
-    body: &Connector,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Connector>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_connect_clusters_connectors_create_builder(
         client,
-        parent,
-        connectorId,
-        body,
+        &args.parent,
+        args.connectorId.as_deref(),
+        &args.body,
     )?;
     managedkafka_projects_locations_connect_clusters_connectors_create_execute(builder)
 }
@@ -3810,6 +4128,13 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_delete_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
 /// Deletes a connector.
 ///
@@ -3822,13 +4147,14 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_delete_execut
 
 pub fn managedkafka_projects_locations_connect_clusters_connectors_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        managedkafka_projects_locations_connect_clusters_connectors_delete_builder(client, name)?;
+    let builder = managedkafka_projects_locations_connect_clusters_connectors_delete_builder(
+        client, &args.name,
+    )?;
     managedkafka_projects_locations_connect_clusters_connectors_delete_execute(builder)
 }
 
@@ -3922,6 +4248,13 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
 /// Returns the properties of a single connector.
 ///
@@ -3934,13 +4267,14 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_get_execute(
 
 pub fn managedkafka_projects_locations_connect_clusters_connectors_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Connector>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        managedkafka_projects_locations_connect_clusters_connectors_get_builder(client, name)?;
+    let builder = managedkafka_projects_locations_connect_clusters_connectors_get_builder(
+        client, &args.name,
+    )?;
     managedkafka_projects_locations_connect_clusters_connectors_get_execute(builder)
 }
 
@@ -4052,6 +4386,17 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors
 /// Lists the connectors in a given Connect cluster.
 ///
@@ -4064,9 +4409,7 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_list_execute(
 
 pub fn managedkafka_projects_locations_connect_clusters_connectors_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListConnectorsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4074,7 +4417,10 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_list(
     ApiError,
 > {
     let builder = managedkafka_projects_locations_connect_clusters_connectors_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     managedkafka_projects_locations_connect_clusters_connectors_list_execute(builder)
 }
@@ -4184,6 +4530,17 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_patch_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Connector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}
 /// Updates the properties of a connector.
 ///
@@ -4196,15 +4553,16 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_patch_execute
 
 pub fn managedkafka_projects_locations_connect_clusters_connectors_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Connector,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Connector>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_connect_clusters_connectors_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     managedkafka_projects_locations_connect_clusters_connectors_patch_execute(builder)
 }
@@ -4304,6 +4662,15 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_pause_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_pause`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsPauseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: PauseConnectorRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:pause
 /// Pauses the connector and its tasks.
 ///
@@ -4316,8 +4683,7 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_pause_execute
 
 pub fn managedkafka_projects_locations_connect_clusters_connectors_pause(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &PauseConnectorRequest,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsPauseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PauseConnectorResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4325,7 +4691,7 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_pause(
     ApiError,
 > {
     let builder = managedkafka_projects_locations_connect_clusters_connectors_pause_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     managedkafka_projects_locations_connect_clusters_connectors_pause_execute(builder)
 }
@@ -4425,6 +4791,15 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_restart_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_restart`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsRestartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestartConnectorRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:restart
 /// Restarts the connector.
 ///
@@ -4437,8 +4812,7 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_restart_execu
 
 pub fn managedkafka_projects_locations_connect_clusters_connectors_restart(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestartConnectorRequest,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsRestartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RestartConnectorResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4446,7 +4820,7 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_restart(
     ApiError,
 > {
     let builder = managedkafka_projects_locations_connect_clusters_connectors_restart_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     managedkafka_projects_locations_connect_clusters_connectors_restart_execute(builder)
 }
@@ -4546,6 +4920,15 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_resume_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsResumeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResumeConnectorRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:resume
 /// Resumes the connector and its tasks.
 ///
@@ -4558,8 +4941,7 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_resume_execut
 
 pub fn managedkafka_projects_locations_connect_clusters_connectors_resume(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResumeConnectorRequest,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsResumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResumeConnectorResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4567,7 +4949,7 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_resume(
     ApiError,
 > {
     let builder = managedkafka_projects_locations_connect_clusters_connectors_resume_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     managedkafka_projects_locations_connect_clusters_connectors_resume_execute(builder)
 }
@@ -4667,6 +5049,15 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_connect_clusters_connectors_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsConnectClustersConnectorsStopArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StopConnectorRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectClusters/{connectClustersId}/connectors/{connectorsId}:stop
 /// Stops the connector.
 ///
@@ -4679,8 +5070,7 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_stop_execute(
 
 pub fn managedkafka_projects_locations_connect_clusters_connectors_stop(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StopConnectorRequest,
+    args: &ManagedkafkaProjectsLocationsConnectClustersConnectorsStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StopConnectorResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4688,7 +5078,7 @@ pub fn managedkafka_projects_locations_connect_clusters_connectors_stop(
     ApiError,
 > {
     let builder = managedkafka_projects_locations_connect_clusters_connectors_stop_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     managedkafka_projects_locations_connect_clusters_connectors_stop_execute(builder)
 }
@@ -4786,6 +5176,15 @@ pub fn managedkafka_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -4798,13 +5197,13 @@ pub fn managedkafka_projects_locations_operations_cancel_execute(
 
 pub fn managedkafka_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ManagedkafkaProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        managedkafka_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     managedkafka_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -4898,6 +5297,13 @@ pub fn managedkafka_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -4910,12 +5316,12 @@ pub fn managedkafka_projects_locations_operations_delete_execute(
 
 pub fn managedkafka_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_operations_delete_builder(client, name)?;
+    let builder = managedkafka_projects_locations_operations_delete_builder(client, &args.name)?;
     managedkafka_projects_locations_operations_delete_execute(builder)
 }
 
@@ -5009,6 +5415,13 @@ pub fn managedkafka_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -5021,12 +5434,12 @@ pub fn managedkafka_projects_locations_operations_get_execute(
 
 pub fn managedkafka_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_operations_get_builder(client, name)?;
+    let builder = managedkafka_projects_locations_operations_get_builder(client, &args.name)?;
     managedkafka_projects_locations_operations_get_execute(builder)
 }
 
@@ -5146,6 +5559,21 @@ pub fn managedkafka_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -5158,11 +5586,7 @@ pub fn managedkafka_projects_locations_operations_list_execute(
 
 pub fn managedkafka_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ManagedkafkaProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5171,11 +5595,11 @@ pub fn managedkafka_projects_locations_operations_list(
 > {
     let builder = managedkafka_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     managedkafka_projects_locations_operations_list_execute(builder)
 }
@@ -5275,6 +5699,15 @@ pub fn managedkafka_projects_locations_schema_registries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateSchemaRegistryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries
 /// Create a schema registry instance.
 ///
@@ -5287,16 +5720,18 @@ pub fn managedkafka_projects_locations_schema_registries_create_execute(
 
 pub fn managedkafka_projects_locations_schema_registries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateSchemaRegistryRequest,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaRegistry>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        managedkafka_projects_locations_schema_registries_create_builder(client, parent, body)?;
+    let builder = managedkafka_projects_locations_schema_registries_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     managedkafka_projects_locations_schema_registries_create_execute(builder)
 }
 
@@ -5390,6 +5825,13 @@ pub fn managedkafka_projects_locations_schema_registries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}
 /// Delete a schema registry instance.
 ///
@@ -5402,12 +5844,13 @@ pub fn managedkafka_projects_locations_schema_registries_delete_execute(
 
 pub fn managedkafka_projects_locations_schema_registries_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_schema_registries_delete_builder(client, name)?;
+    let builder =
+        managedkafka_projects_locations_schema_registries_delete_builder(client, &args.name)?;
     managedkafka_projects_locations_schema_registries_delete_execute(builder)
 }
 
@@ -5503,6 +5946,13 @@ pub fn managedkafka_projects_locations_schema_registries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}
 /// Get the schema registry instance.
 ///
@@ -5515,14 +5965,15 @@ pub fn managedkafka_projects_locations_schema_registries_get_execute(
 
 pub fn managedkafka_projects_locations_schema_registries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaRegistry>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_schema_registries_get_builder(client, name)?;
+    let builder =
+        managedkafka_projects_locations_schema_registries_get_builder(client, &args.name)?;
     managedkafka_projects_locations_schema_registries_get_execute(builder)
 }
 
@@ -5632,6 +6083,15 @@ pub fn managedkafka_projects_locations_schema_registries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries
 /// List schema registries.
 ///
@@ -5644,8 +6104,7 @@ pub fn managedkafka_projects_locations_schema_registries_list_execute(
 
 pub fn managedkafka_projects_locations_schema_registries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    view: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSchemaRegistriesResponse>, ApiError>,
@@ -5654,8 +6113,11 @@ pub fn managedkafka_projects_locations_schema_registries_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        managedkafka_projects_locations_schema_registries_list_builder(client, parent, view)?;
+    let builder = managedkafka_projects_locations_schema_registries_list_builder(
+        client,
+        &args.parent,
+        args.view.as_deref(),
+    )?;
     managedkafka_projects_locations_schema_registries_list_execute(builder)
 }
 
@@ -5756,6 +6218,15 @@ pub fn managedkafka_projects_locations_schema_registries_compatibility_check_com
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_compatibility_check_compatibility`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesCompatibilityCheckCompatibilityArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CheckCompatibilityRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/compatibility/{compatibilityId}
 /// Check compatibility of a schema with all versions or a specific version of a subject.
 ///
@@ -5768,8 +6239,7 @@ pub fn managedkafka_projects_locations_schema_registries_compatibility_check_com
 
 pub fn managedkafka_projects_locations_schema_registries_compatibility_check_compatibility(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CheckCompatibilityRequest,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesCompatibilityCheckCompatibilityArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CheckCompatibilityResponse>, ApiError>,
@@ -5778,7 +6248,7 @@ pub fn managedkafka_projects_locations_schema_registries_compatibility_check_com
         + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_builder(client, name, body)?;
+    let builder = managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_builder(client, &args.name, &args.body)?;
     managedkafka_projects_locations_schema_registries_compatibility_check_compatibility_execute(
         builder,
     )
@@ -5876,6 +6346,13 @@ pub fn managedkafka_projects_locations_schema_registries_config_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_config_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesConfigDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
 /// Delete schema config for a subject.
 ///
@@ -5888,15 +6365,16 @@ pub fn managedkafka_projects_locations_schema_registries_config_delete_execute(
 
 pub fn managedkafka_projects_locations_schema_registries_config_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesConfigDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        managedkafka_projects_locations_schema_registries_config_delete_builder(client, name)?;
+    let builder = managedkafka_projects_locations_schema_registries_config_delete_builder(
+        client, &args.name,
+    )?;
     managedkafka_projects_locations_schema_registries_config_delete_execute(builder)
 }
 
@@ -6004,6 +6482,15 @@ pub fn managedkafka_projects_locations_schema_registries_config_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_config_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesConfigGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: defaultToGlobal
+    pub defaultToGlobal: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
 /// Get schema config at global level or for a subject.
 ///
@@ -6016,8 +6503,7 @@ pub fn managedkafka_projects_locations_schema_registries_config_get_execute(
 
 pub fn managedkafka_projects_locations_schema_registries_config_get(
     client: &SimpleHttpClient,
-    name: &str,
-    defaultToGlobal: Option<bool>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesConfigGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
         + Send
@@ -6026,8 +6512,8 @@ pub fn managedkafka_projects_locations_schema_registries_config_get(
 > {
     let builder = managedkafka_projects_locations_schema_registries_config_get_builder(
         client,
-        name,
-        defaultToGlobal,
+        &args.name,
+        args.defaultToGlobal,
     )?;
     managedkafka_projects_locations_schema_registries_config_get_execute(builder)
 }
@@ -6127,6 +6613,15 @@ pub fn managedkafka_projects_locations_schema_registries_config_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_config_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesConfigUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpdateSchemaConfigRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/config/{configId}
 /// Update config at global level or for a subject. Creates a SchemaSubject-level SchemaConfig if it does not exist.
 ///
@@ -6139,8 +6634,7 @@ pub fn managedkafka_projects_locations_schema_registries_config_update_execute(
 
 pub fn managedkafka_projects_locations_schema_registries_config_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateSchemaConfigRequest,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesConfigUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
         + Send
@@ -6148,7 +6642,7 @@ pub fn managedkafka_projects_locations_schema_registries_config_update(
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_config_update_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     managedkafka_projects_locations_schema_registries_config_update_execute(builder)
 }
@@ -6243,6 +6737,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}
 /// Get the context.
 ///
@@ -6255,13 +6756,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_get_execute(
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Context>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        managedkafka_projects_locations_schema_registries_contexts_get_builder(client, name)?;
+        managedkafka_projects_locations_schema_registries_contexts_get_builder(client, &args.name)?;
     managedkafka_projects_locations_schema_registries_contexts_get_execute(builder)
 }
 
@@ -6355,6 +6856,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts
 /// List contexts for a schema registry.
 ///
@@ -6367,13 +6875,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_list_execute(
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        managedkafka_projects_locations_schema_registries_contexts_list_builder(client, parent)?;
+    let builder = managedkafka_projects_locations_schema_registries_contexts_list_builder(
+        client,
+        &args.parent,
+    )?;
     managedkafka_projects_locations_schema_registries_contexts_list_execute(builder)
 }
 
@@ -6474,6 +6984,16 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_compatibility_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsCompatibilityCheckCompatibilityArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CheckCompatibilityRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/compatibility/{compatibilityId}
 /// Check compatibility of a schema with all versions or a specific version of a subject.
 ///
@@ -6486,8 +7006,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_compatibility_
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CheckCompatibilityRequest,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsCompatibilityCheckCompatibilityArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CheckCompatibilityResponse>, ApiError>,
@@ -6496,7 +7015,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_compatibility_
         + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_builder(client, name, body)?;
+    let builder = managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_builder(client, &args.name, &args.body)?;
     managedkafka_projects_locations_schema_registries_contexts_compatibility_check_compatibility_execute(builder)
 }
 
@@ -6592,6 +7111,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_config_delete_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_config_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
 /// Delete schema config for a subject.
 ///
@@ -6604,7 +7130,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_config_delete_
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_config_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
         + Send
@@ -6612,7 +7138,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_config_delete(
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_contexts_config_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     managedkafka_projects_locations_schema_registries_contexts_config_delete_execute(builder)
 }
@@ -6721,6 +7247,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_config_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_config_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: defaultToGlobal
+    pub defaultToGlobal: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
 /// Get schema config at global level or for a subject.
 ///
@@ -6733,8 +7268,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_config_get_exe
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_config_get(
     client: &SimpleHttpClient,
-    name: &str,
-    defaultToGlobal: Option<bool>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
         + Send
@@ -6743,8 +7277,8 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_config_get(
 > {
     let builder = managedkafka_projects_locations_schema_registries_contexts_config_get_builder(
         client,
-        name,
-        defaultToGlobal,
+        &args.name,
+        args.defaultToGlobal,
     )?;
     managedkafka_projects_locations_schema_registries_contexts_config_get_execute(builder)
 }
@@ -6844,6 +7378,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_config_update_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_config_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpdateSchemaConfigRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/config/{configId}
 /// Update config at global level or for a subject. Creates a SchemaSubject-level SchemaConfig if it does not exist.
 ///
@@ -6856,8 +7399,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_config_update_
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_config_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateSchemaConfigRequest,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsConfigUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaConfig>, ApiError>, P = ApiPending>
         + Send
@@ -6865,7 +7407,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_config_update(
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_contexts_config_update_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     managedkafka_projects_locations_schema_registries_contexts_config_update_execute(builder)
 }
@@ -6960,6 +7502,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_mode_delete_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_mode_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}
 /// Delete schema mode for a subject.
 ///
@@ -6972,13 +7521,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_mode_delete_ex
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_mode_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_contexts_mode_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     managedkafka_projects_locations_schema_registries_contexts_mode_delete_execute(builder)
 }
@@ -7073,6 +7622,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_mode_get_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_mode_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}
 /// Get mode at global level or for a subject.
 ///
@@ -7085,13 +7641,14 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_mode_get_execu
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_mode_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        managedkafka_projects_locations_schema_registries_contexts_mode_get_builder(client, name)?;
+    let builder = managedkafka_projects_locations_schema_registries_contexts_mode_get_builder(
+        client, &args.name,
+    )?;
     managedkafka_projects_locations_schema_registries_contexts_mode_get_execute(builder)
 }
 
@@ -7188,6 +7745,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_mode_update_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_mode_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpdateSchemaModeRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/mode/{modeId}
 /// Update mode at global level or for a subject.
 ///
@@ -7200,14 +7766,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_mode_update_ex
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_mode_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateSchemaModeRequest,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_contexts_mode_update_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     managedkafka_projects_locations_schema_registries_contexts_mode_update_execute(builder)
 }
@@ -7314,6 +7879,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_schemas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: subject
+    pub subject: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}
 /// Get the schema for the given schema id.
 ///
@@ -7326,14 +7900,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_ex
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get(
     client: &SimpleHttpClient,
-    name: &str,
-    subject: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Schema>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_contexts_schemas_get_builder(
-        client, name, subject,
+        client,
+        &args.name,
+        args.subject.as_deref(),
     )?;
     managedkafka_projects_locations_schema_registries_contexts_schemas_get_execute(builder)
 }
@@ -7440,6 +8015,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_sc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetSchemaArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: subject
+    pub subject: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/schema
 /// Get the schema string for the given schema id. The response will be the schema string.
 ///
@@ -7452,15 +8036,16 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_sc
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema(
     client: &SimpleHttpClient,
-    name: &str,
-    subject: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetSchemaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_builder(
-            client, name, subject,
+            client,
+            &args.name,
+            args.subject.as_deref(),
         )?;
     managedkafka_projects_locations_schema_registries_contexts_schemas_get_schema_execute(builder)
 }
@@ -7571,6 +8156,17 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_subjec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasSubjectsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<bool>,
+    /// Query parameter: subject
+    pub subject: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/subjects
 /// List subjects which reference a particular schema id. The response will be an array of subject names.
 ///
@@ -7583,16 +8179,17 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_subjec
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    deleted: Option<bool>,
-    subject: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasSubjectsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_builder(
-            client, parent, deleted, subject,
+            client,
+            &args.parent,
+            args.deleted,
+            args.subject.as_deref(),
         )?;
     managedkafka_projects_locations_schema_registries_contexts_schemas_subjects_list_execute(
         builder,
@@ -7689,6 +8286,13 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_types_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_schemas_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/types
 /// List the supported schema types. The response will be an array of schema types.
 ///
@@ -7701,14 +8305,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_types_
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasTypesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_builder(
-            client, parent,
+            client,
+            &args.parent,
         )?;
     managedkafka_projects_locations_schema_registries_contexts_schemas_types_list_execute(builder)
 }
@@ -7819,6 +8424,17 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_versio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<bool>,
+    /// Query parameter: subject
+    pub subject: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/schemas/{schemasId}/versions
 /// List the schema versions for the given schema id. The response will be an array of subject-version pairs as: [{"subject":"subject1", "version":1}, {"subject":"subject2", "version":2}].
 ///
@@ -7831,16 +8447,17 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_versio
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    deleted: Option<bool>,
-    subject: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasVersionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_builder(
-            client, parent, deleted, subject,
+            client,
+            &args.parent,
+            args.deleted,
+            args.subject.as_deref(),
         )?;
     managedkafka_projects_locations_schema_registries_contexts_schemas_versions_list_execute(
         builder,
@@ -7949,6 +8566,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_delet
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: permanent
+    pub permanent: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}
 /// Delete a subject. The response will be an array of versions of the deleted subject.
 ///
@@ -7961,15 +8587,16 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_delet
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    permanent: Option<bool>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         managedkafka_projects_locations_schema_registries_contexts_subjects_delete_builder(
-            client, name, permanent,
+            client,
+            &args.name,
+            args.permanent,
         )?;
     managedkafka_projects_locations_schema_registries_contexts_subjects_delete_execute(builder)
 }
@@ -8080,6 +8707,17 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_list_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<bool>,
+    /// Query parameter: subjectPrefix
+    pub subjectPrefix: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects
 /// List subjects in the schema registry. The response will be an array of subject names.
 ///
@@ -8092,18 +8730,16 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_list_
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    deleted: Option<bool>,
-    subjectPrefix: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_contexts_subjects_list_builder(
         client,
-        parent,
-        deleted,
-        subjectPrefix,
+        &args.parent,
+        args.deleted,
+        args.subjectPrefix.as_deref(),
     )?;
     managedkafka_projects_locations_schema_registries_contexts_subjects_list_execute(builder)
 }
@@ -8203,6 +8839,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_looku
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsLookupVersionArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: LookupVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}
 /// Lookup a schema under the specified subject.
 ///
@@ -8215,8 +8860,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_looku
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &LookupVersionRequest,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsLookupVersionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaVersion>, ApiError>, P = ApiPending>
         + Send
@@ -8225,7 +8869,9 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_looku
 > {
     let builder =
         managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     managedkafka_projects_locations_schema_registries_contexts_subjects_lookup_version_execute(
         builder,
@@ -8327,6 +8973,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions
 /// Register a new version under a given subject with the given schema.
 ///
@@ -8339,15 +8994,14 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateVersionRequest,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreateVersionResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_builder(client, parent, body)?;
+    let builder = managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_builder(client, &args.parent, &args.body)?;
     managedkafka_projects_locations_schema_registries_contexts_subjects_versions_create_execute(
         builder,
     )
@@ -8455,6 +9109,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: permanent
+    pub permanent: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}
 /// Delete a version of a subject. The response will be the deleted version id.
 ///
@@ -8467,13 +9130,12 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    permanent: Option<bool>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_builder(client, name, permanent)?;
+    let builder = managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_builder(client, &args.name, args.permanent)?;
     managedkafka_projects_locations_schema_registries_contexts_subjects_versions_delete_execute(
         builder,
     )
@@ -8583,6 +9245,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: deleted
+    pub deleted: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}
 /// Get a versioned schema (schema with `subject/version`) of a subject.
 ///
@@ -8595,8 +9266,7 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
-    deleted: Option<bool>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaVersion>, ApiError>, P = ApiPending>
         + Send
@@ -8605,7 +9275,9 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 > {
     let builder =
         managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_builder(
-            client, name, deleted,
+            client,
+            &args.name,
+            args.deleted,
         )?;
     managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_execute(
         builder,
@@ -8714,6 +9386,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsGetSchemaArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: deleted
+    pub deleted: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}/schema
 /// Get the schema string only for a version of a subject. The response will be the schema string.
 ///
@@ -8726,13 +9407,12 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema(
     client: &SimpleHttpClient,
-    name: &str,
-    deleted: Option<bool>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsGetSchemaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_builder(client, name, deleted)?;
+    let builder = managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_builder(client, &args.name, args.deleted)?;
     managedkafka_projects_locations_schema_registries_contexts_subjects_versions_get_schema_execute(
         builder,
     )
@@ -8840,6 +9520,15 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions
 /// Get all versions of a subject. The response will be an array of versions of the subject.
 ///
@@ -8852,15 +9541,16 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    deleted: Option<bool>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_builder(
-            client, parent, deleted,
+            client,
+            &args.parent,
+            args.deleted,
         )?;
     managedkafka_projects_locations_schema_registries_contexts_subjects_versions_list_execute(
         builder,
@@ -8957,6 +9647,14 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsReferencedbyListArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/contexts/{contextsId}/subjects/{subjectsId}/versions/{versionsId}/referencedby
 /// Get a list of IDs of schemas that reference the schema with the given subject and version.
 ///
@@ -8969,12 +9667,12 @@ pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versi
 
 pub fn managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsReferencedbyListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_builder(client, parent)?;
+    let builder = managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_builder(client, &args.parent)?;
     managedkafka_projects_locations_schema_registries_contexts_subjects_versions_referencedby_list_execute(builder)
 }
 
@@ -9068,6 +9766,13 @@ pub fn managedkafka_projects_locations_schema_registries_mode_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_mode_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesModeDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}
 /// Delete schema mode for a subject.
 ///
@@ -9080,13 +9785,13 @@ pub fn managedkafka_projects_locations_schema_registries_mode_delete_execute(
 
 pub fn managedkafka_projects_locations_schema_registries_mode_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesModeDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        managedkafka_projects_locations_schema_registries_mode_delete_builder(client, name)?;
+        managedkafka_projects_locations_schema_registries_mode_delete_builder(client, &args.name)?;
     managedkafka_projects_locations_schema_registries_mode_delete_execute(builder)
 }
 
@@ -9180,6 +9885,13 @@ pub fn managedkafka_projects_locations_schema_registries_mode_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_mode_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesModeGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}
 /// Get mode at global level or for a subject.
 ///
@@ -9192,12 +9904,13 @@ pub fn managedkafka_projects_locations_schema_registries_mode_get_execute(
 
 pub fn managedkafka_projects_locations_schema_registries_mode_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesModeGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_schema_registries_mode_get_builder(client, name)?;
+    let builder =
+        managedkafka_projects_locations_schema_registries_mode_get_builder(client, &args.name)?;
     managedkafka_projects_locations_schema_registries_mode_get_execute(builder)
 }
 
@@ -9294,6 +10007,15 @@ pub fn managedkafka_projects_locations_schema_registries_mode_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_mode_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesModeUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpdateSchemaModeRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/mode/{modeId}
 /// Update mode at global level or for a subject.
 ///
@@ -9306,14 +10028,14 @@ pub fn managedkafka_projects_locations_schema_registries_mode_update_execute(
 
 pub fn managedkafka_projects_locations_schema_registries_mode_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateSchemaModeRequest,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesModeUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaMode>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        managedkafka_projects_locations_schema_registries_mode_update_builder(client, name, body)?;
+    let builder = managedkafka_projects_locations_schema_registries_mode_update_builder(
+        client, &args.name, &args.body,
+    )?;
     managedkafka_projects_locations_schema_registries_mode_update_execute(builder)
 }
 
@@ -9419,6 +10141,15 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_schemas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: subject
+    pub subject: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}
 /// Get the schema for the given schema id.
 ///
@@ -9431,14 +10162,15 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_get_execute(
 
 pub fn managedkafka_projects_locations_schema_registries_schemas_get(
     client: &SimpleHttpClient,
-    name: &str,
-    subject: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Schema>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_schemas_get_builder(
-        client, name, subject,
+        client,
+        &args.name,
+        args.subject.as_deref(),
     )?;
     managedkafka_projects_locations_schema_registries_schemas_get_execute(builder)
 }
@@ -9545,6 +10277,15 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_get_schema_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_schemas_get_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetSchemaArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: subject
+    pub subject: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/schema
 /// Get the schema string for the given schema id. The response will be the schema string.
 ///
@@ -9557,14 +10298,15 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_get_schema_exec
 
 pub fn managedkafka_projects_locations_schema_registries_schemas_get_schema(
     client: &SimpleHttpClient,
-    name: &str,
-    subject: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSchemasGetSchemaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_schemas_get_schema_builder(
-        client, name, subject,
+        client,
+        &args.name,
+        args.subject.as_deref(),
     )?;
     managedkafka_projects_locations_schema_registries_schemas_get_schema_execute(builder)
 }
@@ -9675,6 +10417,17 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_subjects_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_schemas_subjects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSchemasSubjectsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<bool>,
+    /// Query parameter: subject
+    pub subject: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/subjects
 /// List subjects which reference a particular schema id. The response will be an array of subject names.
 ///
@@ -9687,15 +10440,16 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_subjects_list_e
 
 pub fn managedkafka_projects_locations_schema_registries_schemas_subjects_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    deleted: Option<bool>,
-    subject: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSchemasSubjectsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_schemas_subjects_list_builder(
-        client, parent, deleted, subject,
+        client,
+        &args.parent,
+        args.deleted,
+        args.subject.as_deref(),
     )?;
     managedkafka_projects_locations_schema_registries_schemas_subjects_list_execute(builder)
 }
@@ -9790,6 +10544,13 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_types_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_schemas_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSchemasTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/types
 /// List the supported schema types. The response will be an array of schema types.
 ///
@@ -9802,13 +10563,14 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_types_list_exec
 
 pub fn managedkafka_projects_locations_schema_registries_schemas_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSchemasTypesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_schemas_types_list_builder(
-        client, parent,
+        client,
+        &args.parent,
     )?;
     managedkafka_projects_locations_schema_registries_schemas_types_list_execute(builder)
 }
@@ -9919,6 +10681,17 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_versions_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_schemas_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSchemasVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<bool>,
+    /// Query parameter: subject
+    pub subject: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/schemas/{schemasId}/versions
 /// List the schema versions for the given schema id. The response will be an array of subject-version pairs as: [{"subject":"subject1", "version":1}, {"subject":"subject2", "version":2}].
 ///
@@ -9931,15 +10704,16 @@ pub fn managedkafka_projects_locations_schema_registries_schemas_versions_list_e
 
 pub fn managedkafka_projects_locations_schema_registries_schemas_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    deleted: Option<bool>,
-    subject: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSchemasVersionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_schemas_versions_list_builder(
-        client, parent, deleted, subject,
+        client,
+        &args.parent,
+        args.deleted,
+        args.subject.as_deref(),
     )?;
     managedkafka_projects_locations_schema_registries_schemas_versions_list_execute(builder)
 }
@@ -10046,6 +10820,15 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: permanent
+    pub permanent: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}
 /// Delete a subject. The response will be an array of versions of the deleted subject.
 ///
@@ -10058,14 +10841,15 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_delete_execute
 
 pub fn managedkafka_projects_locations_schema_registries_subjects_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    permanent: Option<bool>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_subjects_delete_builder(
-        client, name, permanent,
+        client,
+        &args.name,
+        args.permanent,
     )?;
     managedkafka_projects_locations_schema_registries_subjects_delete_execute(builder)
 }
@@ -10176,6 +10960,17 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<bool>,
+    /// Query parameter: subjectPrefix
+    pub subjectPrefix: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects
 /// List subjects in the schema registry. The response will be an array of subject names.
 ///
@@ -10188,18 +10983,16 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_list_execute(
 
 pub fn managedkafka_projects_locations_schema_registries_subjects_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    deleted: Option<bool>,
-    subjectPrefix: Option<&str>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_subjects_list_builder(
         client,
-        parent,
-        deleted,
-        subjectPrefix,
+        &args.parent,
+        args.deleted,
+        args.subjectPrefix.as_deref(),
     )?;
     managedkafka_projects_locations_schema_registries_subjects_list_execute(builder)
 }
@@ -10299,6 +11092,15 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_lookup_version
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_lookup_version`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsLookupVersionArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: LookupVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}
 /// Lookup a schema under the specified subject.
 ///
@@ -10311,8 +11113,7 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_lookup_version
 
 pub fn managedkafka_projects_locations_schema_registries_subjects_lookup_version(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &LookupVersionRequest,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsLookupVersionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaVersion>, ApiError>, P = ApiPending>
         + Send
@@ -10321,7 +11122,9 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_lookup_version
 > {
     let builder =
         managedkafka_projects_locations_schema_registries_subjects_lookup_version_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     managedkafka_projects_locations_schema_registries_subjects_lookup_version_execute(builder)
 }
@@ -10421,6 +11224,15 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_creat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions
 /// Register a new version under a given subject with the given schema.
 ///
@@ -10433,8 +11245,7 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_creat
 
 pub fn managedkafka_projects_locations_schema_registries_subjects_versions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateVersionRequest,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreateVersionResponse>, ApiError>, P = ApiPending>
         + Send
@@ -10443,7 +11254,9 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_creat
 > {
     let builder =
         managedkafka_projects_locations_schema_registries_subjects_versions_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     managedkafka_projects_locations_schema_registries_subjects_versions_create_execute(builder)
 }
@@ -10550,6 +11363,15 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_delet
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: permanent
+    pub permanent: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}
 /// Delete a version of a subject. The response will be the deleted version id.
 ///
@@ -10562,15 +11384,16 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_delet
 
 pub fn managedkafka_projects_locations_schema_registries_subjects_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    permanent: Option<bool>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         managedkafka_projects_locations_schema_registries_subjects_versions_delete_builder(
-            client, name, permanent,
+            client,
+            &args.name,
+            args.permanent,
         )?;
     managedkafka_projects_locations_schema_registries_subjects_versions_delete_execute(builder)
 }
@@ -10679,6 +11502,15 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: deleted
+    pub deleted: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}
 /// Get a versioned schema (schema with `subject/version`) of a subject.
 ///
@@ -10691,8 +11523,7 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_e
 
 pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
-    deleted: Option<bool>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SchemaVersion>, ApiError>, P = ApiPending>
         + Send
@@ -10700,7 +11531,9 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get(
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_subjects_versions_get_builder(
-        client, name, deleted,
+        client,
+        &args.name,
+        args.deleted,
     )?;
     managedkafka_projects_locations_schema_registries_subjects_versions_get_execute(builder)
 }
@@ -10807,6 +11640,15 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_s
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_versions_get_schema`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetSchemaArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: deleted
+    pub deleted: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}/schema
 /// Get the schema string only for a version of a subject. The response will be the schema string.
 ///
@@ -10819,15 +11661,16 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_s
 
 pub fn managedkafka_projects_locations_schema_registries_subjects_versions_get_schema(
     client: &SimpleHttpClient,
-    name: &str,
-    deleted: Option<bool>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsGetSchemaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_builder(
-            client, name, deleted,
+            client,
+            &args.name,
+            args.deleted,
         )?;
     managedkafka_projects_locations_schema_registries_subjects_versions_get_schema_execute(builder)
 }
@@ -10934,6 +11777,15 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_list_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deleted
+    pub deleted: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions
 /// Get all versions of a subject. The response will be an array of versions of the subject.
 ///
@@ -10946,14 +11798,15 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_list_
 
 pub fn managedkafka_projects_locations_schema_registries_subjects_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    deleted: Option<bool>,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = managedkafka_projects_locations_schema_registries_subjects_versions_list_builder(
-        client, parent, deleted,
+        client,
+        &args.parent,
+        args.deleted,
     )?;
     managedkafka_projects_locations_schema_registries_subjects_versions_list_execute(builder)
 }
@@ -11048,6 +11901,13 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_refer
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsReferencedbyListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/schemaRegistries/{schemaRegistriesId}/subjects/{subjectsId}/versions/{versionsId}/referencedby
 /// Get a list of IDs of schemas that reference the schema with the given subject and version.
 ///
@@ -11060,12 +11920,12 @@ pub fn managedkafka_projects_locations_schema_registries_subjects_versions_refer
 
 pub fn managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ManagedkafkaProjectsLocationsSchemaRegistriesSubjectsVersionsReferencedbyListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_builder(client, parent)?;
+    let builder = managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_builder(client, &args.parent)?;
     managedkafka_projects_locations_schema_registries_subjects_versions_referencedby_list_execute(
         builder,
     )

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1beta1/projects/{projectsId}/annotationSpecSets
 /// Creates an annotation spec set by providing a set of labels.
@@ -114,6 +116,15 @@ pub fn datalabeling_projects_annotation_spec_sets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_annotation_spec_sets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsAnnotationSpecSetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatalabelingV1beta1CreateAnnotationSpecSetRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/annotationSpecSets
 /// Creates an annotation spec set by providing a set of labels.
 ///
@@ -126,8 +137,7 @@ pub fn datalabeling_projects_annotation_spec_sets_create_execute(
 
 pub fn datalabeling_projects_annotation_spec_sets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatalabelingV1beta1CreateAnnotationSpecSetRequest,
+    args: &DatalabelingProjectsAnnotationSpecSetsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1AnnotationSpecSet>, ApiError>,
@@ -136,7 +146,11 @@ pub fn datalabeling_projects_annotation_spec_sets_create(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_annotation_spec_sets_create_builder(client, parent, body)?;
+    let builder = datalabeling_projects_annotation_spec_sets_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     datalabeling_projects_annotation_spec_sets_create_execute(builder)
 }
 
@@ -232,6 +246,13 @@ pub fn datalabeling_projects_annotation_spec_sets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_annotation_spec_sets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsAnnotationSpecSetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/annotationSpecSets/{annotationSpecSetsId}
 /// Deletes an annotation spec set by resource name.
 ///
@@ -244,14 +265,14 @@ pub fn datalabeling_projects_annotation_spec_sets_delete_execute(
 
 pub fn datalabeling_projects_annotation_spec_sets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsAnnotationSpecSetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_annotation_spec_sets_delete_builder(client, name)?;
+    let builder = datalabeling_projects_annotation_spec_sets_delete_builder(client, &args.name)?;
     datalabeling_projects_annotation_spec_sets_delete_execute(builder)
 }
 
@@ -350,6 +371,13 @@ pub fn datalabeling_projects_annotation_spec_sets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_annotation_spec_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsAnnotationSpecSetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/annotationSpecSets/{annotationSpecSetsId}
 /// Gets an annotation spec set by resource name.
 ///
@@ -362,7 +390,7 @@ pub fn datalabeling_projects_annotation_spec_sets_get_execute(
 
 pub fn datalabeling_projects_annotation_spec_sets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsAnnotationSpecSetsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1AnnotationSpecSet>, ApiError>,
@@ -371,7 +399,7 @@ pub fn datalabeling_projects_annotation_spec_sets_get(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_annotation_spec_sets_get_builder(client, name)?;
+    let builder = datalabeling_projects_annotation_spec_sets_get_builder(client, &args.name)?;
     datalabeling_projects_annotation_spec_sets_get_execute(builder)
 }
 
@@ -493,6 +521,19 @@ pub fn datalabeling_projects_annotation_spec_sets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_annotation_spec_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsAnnotationSpecSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/annotationSpecSets
 /// Lists annotation spec sets for a project. Pagination is supported.
 ///
@@ -505,10 +546,7 @@ pub fn datalabeling_projects_annotation_spec_sets_list_execute(
 
 pub fn datalabeling_projects_annotation_spec_sets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatalabelingProjectsAnnotationSpecSetsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -521,7 +559,11 @@ pub fn datalabeling_projects_annotation_spec_sets_list(
     ApiError,
 > {
     let builder = datalabeling_projects_annotation_spec_sets_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datalabeling_projects_annotation_spec_sets_list_execute(builder)
 }
@@ -623,6 +665,15 @@ pub fn datalabeling_projects_datasets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatalabelingV1beta1CreateDatasetRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets
 /// Creates dataset. If success return a Dataset resource.
 ///
@@ -635,8 +686,7 @@ pub fn datalabeling_projects_datasets_create_execute(
 
 pub fn datalabeling_projects_datasets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatalabelingV1beta1CreateDatasetRequest,
+    args: &DatalabelingProjectsDatasetsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Dataset>, ApiError>,
@@ -645,7 +695,7 @@ pub fn datalabeling_projects_datasets_create(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_create_builder(client, parent, body)?;
+    let builder = datalabeling_projects_datasets_create_builder(client, &args.parent, &args.body)?;
     datalabeling_projects_datasets_create_execute(builder)
 }
 
@@ -741,6 +791,13 @@ pub fn datalabeling_projects_datasets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}
 /// Deletes a dataset by resource name.
 ///
@@ -753,14 +810,14 @@ pub fn datalabeling_projects_datasets_delete_execute(
 
 pub fn datalabeling_projects_datasets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsDatasetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_delete_builder(client, name)?;
+    let builder = datalabeling_projects_datasets_delete_builder(client, &args.name)?;
     datalabeling_projects_datasets_delete_execute(builder)
 }
 
@@ -861,6 +918,15 @@ pub fn datalabeling_projects_datasets_export_data_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_export_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsExportDataArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatalabelingV1beta1ExportDataRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}:exportData
 /// Exports data and annotations from dataset.
 ///
@@ -873,8 +939,7 @@ pub fn datalabeling_projects_datasets_export_data_execute(
 
 pub fn datalabeling_projects_datasets_export_data(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatalabelingV1beta1ExportDataRequest,
+    args: &DatalabelingProjectsDatasetsExportDataArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -883,7 +948,8 @@ pub fn datalabeling_projects_datasets_export_data(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_export_data_builder(client, name, body)?;
+    let builder =
+        datalabeling_projects_datasets_export_data_builder(client, &args.name, &args.body)?;
     datalabeling_projects_datasets_export_data_execute(builder)
 }
 
@@ -981,6 +1047,13 @@ pub fn datalabeling_projects_datasets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}
 /// Gets dataset by resource name.
 ///
@@ -993,7 +1066,7 @@ pub fn datalabeling_projects_datasets_get_execute(
 
 pub fn datalabeling_projects_datasets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsDatasetsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Dataset>, ApiError>,
@@ -1002,7 +1075,7 @@ pub fn datalabeling_projects_datasets_get(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_get_builder(client, name)?;
+    let builder = datalabeling_projects_datasets_get_builder(client, &args.name)?;
     datalabeling_projects_datasets_get_execute(builder)
 }
 
@@ -1103,6 +1176,15 @@ pub fn datalabeling_projects_datasets_import_data_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_import_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsImportDataArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatalabelingV1beta1ImportDataRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}:importData
 /// Imports data into dataset based on source locations defined in request. It can be called multiple times for the same dataset. Each dataset can only have one long running operation running on it. For example, no labeling task (also long running operation) can be started while importing is still ongoing. Vice versa.
 ///
@@ -1115,8 +1197,7 @@ pub fn datalabeling_projects_datasets_import_data_execute(
 
 pub fn datalabeling_projects_datasets_import_data(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatalabelingV1beta1ImportDataRequest,
+    args: &DatalabelingProjectsDatasetsImportDataArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1125,7 +1206,8 @@ pub fn datalabeling_projects_datasets_import_data(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_import_data_builder(client, name, body)?;
+    let builder =
+        datalabeling_projects_datasets_import_data_builder(client, &args.name, &args.body)?;
     datalabeling_projects_datasets_import_data_execute(builder)
 }
 
@@ -1244,6 +1326,19 @@ pub fn datalabeling_projects_datasets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets
 /// Lists datasets under a project. Pagination is supported.
 ///
@@ -1256,10 +1351,7 @@ pub fn datalabeling_projects_datasets_list_execute(
 
 pub fn datalabeling_projects_datasets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatalabelingProjectsDatasetsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1ListDatasetsResponse>, ApiError>,
@@ -1268,8 +1360,13 @@ pub fn datalabeling_projects_datasets_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datalabeling_projects_datasets_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = datalabeling_projects_datasets_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     datalabeling_projects_datasets_list_execute(builder)
 }
 
@@ -1365,6 +1462,13 @@ pub fn datalabeling_projects_datasets_annotated_datasets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}
 /// Deletes an annotated dataset by resource name.
 ///
@@ -1377,14 +1481,15 @@ pub fn datalabeling_projects_datasets_annotated_datasets_delete_execute(
 
 pub fn datalabeling_projects_datasets_annotated_datasets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_annotated_datasets_delete_builder(client, name)?;
+    let builder =
+        datalabeling_projects_datasets_annotated_datasets_delete_builder(client, &args.name)?;
     datalabeling_projects_datasets_annotated_datasets_delete_execute(builder)
 }
 
@@ -1483,6 +1588,13 @@ pub fn datalabeling_projects_datasets_annotated_datasets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}
 /// Gets an annotated dataset by resource name.
 ///
@@ -1495,7 +1607,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_get_execute(
 
 pub fn datalabeling_projects_datasets_annotated_datasets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1AnnotatedDataset>, ApiError>,
@@ -1504,7 +1616,8 @@ pub fn datalabeling_projects_datasets_annotated_datasets_get(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_annotated_datasets_get_builder(client, name)?;
+    let builder =
+        datalabeling_projects_datasets_annotated_datasets_get_builder(client, &args.name)?;
     datalabeling_projects_datasets_annotated_datasets_get_execute(builder)
 }
 
@@ -1626,6 +1739,19 @@ pub fn datalabeling_projects_datasets_annotated_datasets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets
 /// Lists annotated datasets for a dataset. Pagination is supported.
 ///
@@ -1638,10 +1764,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_list_execute(
 
 pub fn datalabeling_projects_datasets_annotated_datasets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1654,7 +1777,11 @@ pub fn datalabeling_projects_datasets_annotated_datasets_list(
     ApiError,
 > {
     let builder = datalabeling_projects_datasets_annotated_datasets_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datalabeling_projects_datasets_annotated_datasets_list_execute(builder)
 }
@@ -1753,6 +1880,13 @@ pub fn datalabeling_projects_datasets_annotated_datasets_data_items_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_data_items_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/dataItems/{dataItemsId}
 /// Gets a data item in a dataset by resource name. This API can be called after data are imported into dataset.
 ///
@@ -1765,7 +1899,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_data_items_get_execute(
 
 pub fn datalabeling_projects_datasets_annotated_datasets_data_items_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1DataItem>, ApiError>,
@@ -1774,8 +1908,9 @@ pub fn datalabeling_projects_datasets_annotated_datasets_data_items_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datalabeling_projects_datasets_annotated_datasets_data_items_get_builder(client, name)?;
+    let builder = datalabeling_projects_datasets_annotated_datasets_data_items_get_builder(
+        client, &args.name,
+    )?;
     datalabeling_projects_datasets_annotated_datasets_data_items_get_execute(builder)
 }
 
@@ -1894,6 +2029,19 @@ pub fn datalabeling_projects_datasets_annotated_datasets_data_items_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_data_items_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/dataItems
 /// Lists data items in a dataset. This API can be called after data are imported into dataset. Pagination is supported.
 ///
@@ -1906,10 +2054,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_data_items_list_execute
 
 pub fn datalabeling_projects_datasets_annotated_datasets_data_items_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsDataItemsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1ListDataItemsResponse>, ApiError>,
@@ -1919,7 +2064,11 @@ pub fn datalabeling_projects_datasets_annotated_datasets_data_items_list(
     ApiError,
 > {
     let builder = datalabeling_projects_datasets_annotated_datasets_data_items_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datalabeling_projects_datasets_annotated_datasets_data_items_list_execute(builder)
 }
@@ -2030,6 +2179,15 @@ pub fn datalabeling_projects_datasets_annotated_datasets_examples_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_examples_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/examples/{examplesId}
 /// Gets an example by resource name, including both data and annotation.
 ///
@@ -2042,8 +2200,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_examples_get_execute(
 
 pub fn datalabeling_projects_datasets_annotated_datasets_examples_get(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Example>, ApiError>,
@@ -2053,7 +2210,9 @@ pub fn datalabeling_projects_datasets_annotated_datasets_examples_get(
     ApiError,
 > {
     let builder = datalabeling_projects_datasets_annotated_datasets_examples_get_builder(
-        client, name, filter,
+        client,
+        &args.name,
+        args.filter.as_deref(),
     )?;
     datalabeling_projects_datasets_annotated_datasets_examples_get_execute(builder)
 }
@@ -2173,6 +2332,19 @@ pub fn datalabeling_projects_datasets_annotated_datasets_examples_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_examples_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/examples
 /// Lists examples in an annotated dataset. Pagination is supported.
 ///
@@ -2185,10 +2357,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_examples_list_execute(
 
 pub fn datalabeling_projects_datasets_annotated_datasets_examples_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsExamplesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1ListExamplesResponse>, ApiError>,
@@ -2198,7 +2367,11 @@ pub fn datalabeling_projects_datasets_annotated_datasets_examples_list(
     ApiError,
 > {
     let builder = datalabeling_projects_datasets_annotated_datasets_examples_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datalabeling_projects_datasets_annotated_datasets_examples_list_execute(builder)
 }
@@ -2295,6 +2468,13 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}
 /// Delete a FeedbackThread.
 ///
@@ -2307,7 +2487,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete
 
 pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -2316,7 +2496,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete
 > {
     let builder =
         datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     datalabeling_projects_datasets_annotated_datasets_feedback_threads_delete_execute(builder)
 }
@@ -2416,6 +2596,13 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_feedback_threads_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}
 /// Get a FeedbackThread object.
 ///
@@ -2428,7 +2615,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_ex
 
 pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1FeedbackThread>, ApiError>,
@@ -2438,7 +2625,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_get(
     ApiError,
 > {
     let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     datalabeling_projects_datasets_annotated_datasets_feedback_threads_get_execute(builder)
 }
@@ -2557,6 +2744,17 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_feedback_threads_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads
 /// List FeedbackThreads with pagination.
 ///
@@ -2569,9 +2767,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_e
 
 pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2584,7 +2780,10 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_list(
     ApiError,
 > {
     let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datalabeling_projects_datasets_annotated_datasets_feedback_threads_list_execute(builder)
 }
@@ -2686,6 +2885,15 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedba
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatalabelingV1beta1FeedbackMessage,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages
 /// Create a FeedbackMessage object.
 ///
@@ -2698,8 +2906,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedba
 
 pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatalabelingV1beta1FeedbackMessage,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2708,7 +2915,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedba
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_builder(client, parent, body)?;
+    let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_builder(client, &args.parent, &args.body)?;
     datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_create_execute(builder)
 }
 
@@ -2804,6 +3011,13 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedba
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages/{feedbackMessagesId}
 /// Delete a FeedbackMessage.
 ///
@@ -2816,14 +3030,14 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedba
 
 pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_builder(client, name)?;
+    let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_builder(client, &args.name)?;
     datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_delete_execute(builder)
 }
 
@@ -2922,6 +3136,13 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedba
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages/{feedbackMessagesId}
 /// Get a FeedbackMessage object.
 ///
@@ -2934,7 +3155,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedba
 
 pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1FeedbackMessage>, ApiError>,
@@ -2943,7 +3164,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedba
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_builder(client, name)?;
+    let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_builder(client, &args.name)?;
     datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_get_execute(
         builder,
     )
@@ -3063,6 +3284,17 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedba
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/annotatedDatasets/{annotatedDatasetsId}/feedbackThreads/{feedbackThreadsId}/feedbackMessages
 /// List FeedbackMessages with pagination.
 ///
@@ -3075,9 +3307,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedba
 
 pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatalabelingProjectsDatasetsAnnotatedDatasetsFeedbackThreadsFeedbackMessagesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3089,7 +3319,7 @@ pub fn datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedba
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     datalabeling_projects_datasets_annotated_datasets_feedback_threads_feedback_messages_list_execute(builder)
 }
 
@@ -3187,6 +3417,13 @@ pub fn datalabeling_projects_datasets_data_items_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_data_items_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsDataItemsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/dataItems/{dataItemsId}
 /// Gets a data item in a dataset by resource name. This API can be called after data are imported into dataset.
 ///
@@ -3199,7 +3436,7 @@ pub fn datalabeling_projects_datasets_data_items_get_execute(
 
 pub fn datalabeling_projects_datasets_data_items_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsDatasetsDataItemsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1DataItem>, ApiError>,
@@ -3208,7 +3445,7 @@ pub fn datalabeling_projects_datasets_data_items_get(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_data_items_get_builder(client, name)?;
+    let builder = datalabeling_projects_datasets_data_items_get_builder(client, &args.name)?;
     datalabeling_projects_datasets_data_items_get_execute(builder)
 }
 
@@ -3327,6 +3564,19 @@ pub fn datalabeling_projects_datasets_data_items_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_data_items_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsDataItemsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/dataItems
 /// Lists data items in a dataset. This API can be called after data are imported into dataset. Pagination is supported.
 ///
@@ -3339,10 +3589,7 @@ pub fn datalabeling_projects_datasets_data_items_list_execute(
 
 pub fn datalabeling_projects_datasets_data_items_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatalabelingProjectsDatasetsDataItemsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1ListDataItemsResponse>, ApiError>,
@@ -3352,7 +3599,11 @@ pub fn datalabeling_projects_datasets_data_items_list(
     ApiError,
 > {
     let builder = datalabeling_projects_datasets_data_items_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datalabeling_projects_datasets_data_items_list_execute(builder)
 }
@@ -3451,6 +3702,13 @@ pub fn datalabeling_projects_datasets_evaluations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_evaluations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsEvaluationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/evaluations/{evaluationsId}
 /// Gets an evaluation by resource name (to search, use projects.evaluations.search).
 ///
@@ -3463,7 +3721,7 @@ pub fn datalabeling_projects_datasets_evaluations_get_execute(
 
 pub fn datalabeling_projects_datasets_evaluations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsDatasetsEvaluationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Evaluation>, ApiError>,
@@ -3472,7 +3730,7 @@ pub fn datalabeling_projects_datasets_evaluations_get(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_evaluations_get_builder(client, name)?;
+    let builder = datalabeling_projects_datasets_evaluations_get_builder(client, &args.name)?;
     datalabeling_projects_datasets_evaluations_get_execute(builder)
 }
 
@@ -3577,6 +3835,15 @@ pub fn datalabeling_projects_datasets_evaluations_example_comparisons_search_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_evaluations_example_comparisons_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsEvaluationsExampleComparisonsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatalabelingV1beta1SearchExampleComparisonsRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/evaluations/{evaluationsId}/exampleComparisons:search
 /// Searches example comparisons from an evaluation. The return format is a list of example comparisons that show ground truth and prediction(s) for a single input. Search by providing an evaluation ID.
 ///
@@ -3589,8 +3856,7 @@ pub fn datalabeling_projects_datasets_evaluations_example_comparisons_search_exe
 
 pub fn datalabeling_projects_datasets_evaluations_example_comparisons_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatalabelingV1beta1SearchExampleComparisonsRequest,
+    args: &DatalabelingProjectsDatasetsEvaluationsExampleComparisonsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3603,7 +3869,9 @@ pub fn datalabeling_projects_datasets_evaluations_example_comparisons_search(
     ApiError,
 > {
     let builder = datalabeling_projects_datasets_evaluations_example_comparisons_search_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     datalabeling_projects_datasets_evaluations_example_comparisons_search_execute(builder)
 }
@@ -3705,6 +3973,15 @@ pub fn datalabeling_projects_datasets_image_label_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_image_label`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsImageLabelArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatalabelingV1beta1LabelImageRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/image:label
 /// Starts a labeling task for image. The type of image labeling task is configured by feature in the request.
 ///
@@ -3717,8 +3994,7 @@ pub fn datalabeling_projects_datasets_image_label_execute(
 
 pub fn datalabeling_projects_datasets_image_label(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatalabelingV1beta1LabelImageRequest,
+    args: &DatalabelingProjectsDatasetsImageLabelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3727,7 +4003,8 @@ pub fn datalabeling_projects_datasets_image_label(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_image_label_builder(client, parent, body)?;
+    let builder =
+        datalabeling_projects_datasets_image_label_builder(client, &args.parent, &args.body)?;
     datalabeling_projects_datasets_image_label_execute(builder)
 }
 
@@ -3828,6 +4105,15 @@ pub fn datalabeling_projects_datasets_text_label_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_text_label`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsTextLabelArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatalabelingV1beta1LabelTextRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/text:label
 /// Starts a labeling task for text. The type of text labeling task is configured by feature in the request.
 ///
@@ -3840,8 +4126,7 @@ pub fn datalabeling_projects_datasets_text_label_execute(
 
 pub fn datalabeling_projects_datasets_text_label(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatalabelingV1beta1LabelTextRequest,
+    args: &DatalabelingProjectsDatasetsTextLabelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3850,7 +4135,8 @@ pub fn datalabeling_projects_datasets_text_label(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_text_label_builder(client, parent, body)?;
+    let builder =
+        datalabeling_projects_datasets_text_label_builder(client, &args.parent, &args.body)?;
     datalabeling_projects_datasets_text_label_execute(builder)
 }
 
@@ -3951,6 +4237,15 @@ pub fn datalabeling_projects_datasets_video_label_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_datasets_video_label`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsDatasetsVideoLabelArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatalabelingV1beta1LabelVideoRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/datasets/{datasetsId}/video:label
 /// Starts a labeling task for video. The type of video labeling task is configured by feature in the request.
 ///
@@ -3963,8 +4258,7 @@ pub fn datalabeling_projects_datasets_video_label_execute(
 
 pub fn datalabeling_projects_datasets_video_label(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatalabelingV1beta1LabelVideoRequest,
+    args: &DatalabelingProjectsDatasetsVideoLabelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3973,7 +4267,8 @@ pub fn datalabeling_projects_datasets_video_label(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_datasets_video_label_builder(client, parent, body)?;
+    let builder =
+        datalabeling_projects_datasets_video_label_builder(client, &args.parent, &args.body)?;
     datalabeling_projects_datasets_video_label_execute(builder)
 }
 
@@ -4075,6 +4370,15 @@ pub fn datalabeling_projects_evaluation_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_evaluation_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsEvaluationJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatalabelingV1beta1CreateEvaluationJobRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/evaluationJobs
 /// Creates an evaluation job.
 ///
@@ -4087,8 +4391,7 @@ pub fn datalabeling_projects_evaluation_jobs_create_execute(
 
 pub fn datalabeling_projects_evaluation_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatalabelingV1beta1CreateEvaluationJobRequest,
+    args: &DatalabelingProjectsEvaluationJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1EvaluationJob>, ApiError>,
@@ -4097,7 +4400,8 @@ pub fn datalabeling_projects_evaluation_jobs_create(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_evaluation_jobs_create_builder(client, parent, body)?;
+    let builder =
+        datalabeling_projects_evaluation_jobs_create_builder(client, &args.parent, &args.body)?;
     datalabeling_projects_evaluation_jobs_create_execute(builder)
 }
 
@@ -4193,6 +4497,13 @@ pub fn datalabeling_projects_evaluation_jobs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_evaluation_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsEvaluationJobsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
 /// Stops and deletes an evaluation job.
 ///
@@ -4205,14 +4516,14 @@ pub fn datalabeling_projects_evaluation_jobs_delete_execute(
 
 pub fn datalabeling_projects_evaluation_jobs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsEvaluationJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_evaluation_jobs_delete_builder(client, name)?;
+    let builder = datalabeling_projects_evaluation_jobs_delete_builder(client, &args.name)?;
     datalabeling_projects_evaluation_jobs_delete_execute(builder)
 }
 
@@ -4311,6 +4622,13 @@ pub fn datalabeling_projects_evaluation_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_evaluation_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsEvaluationJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
 /// Gets an evaluation job by resource name.
 ///
@@ -4323,7 +4641,7 @@ pub fn datalabeling_projects_evaluation_jobs_get_execute(
 
 pub fn datalabeling_projects_evaluation_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsEvaluationJobsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1EvaluationJob>, ApiError>,
@@ -4332,7 +4650,7 @@ pub fn datalabeling_projects_evaluation_jobs_get(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_evaluation_jobs_get_builder(client, name)?;
+    let builder = datalabeling_projects_evaluation_jobs_get_builder(client, &args.name)?;
     datalabeling_projects_evaluation_jobs_get_execute(builder)
 }
 
@@ -4454,6 +4772,19 @@ pub fn datalabeling_projects_evaluation_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_evaluation_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsEvaluationJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/evaluationJobs
 /// Lists all evaluation jobs within a project with possible filters. Pagination is supported.
 ///
@@ -4466,10 +4797,7 @@ pub fn datalabeling_projects_evaluation_jobs_list_execute(
 
 pub fn datalabeling_projects_evaluation_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatalabelingProjectsEvaluationJobsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4482,7 +4810,11 @@ pub fn datalabeling_projects_evaluation_jobs_list(
     ApiError,
 > {
     let builder = datalabeling_projects_evaluation_jobs_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datalabeling_projects_evaluation_jobs_list_execute(builder)
 }
@@ -4597,6 +4929,17 @@ pub fn datalabeling_projects_evaluation_jobs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_evaluation_jobs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsEvaluationJobsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatalabelingV1beta1EvaluationJob,
+}
+
 /// GET v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}
 /// Updates an evaluation job. You can only update certain fields of the job's EvaluationJobConfig: `humanAnnotationConfig`.instruction, `exampleCount`, and `exampleSamplePercentage`. If you want to change any other aspect of the evaluation job, you must delete the job and create a new one.
 ///
@@ -4609,9 +4952,7 @@ pub fn datalabeling_projects_evaluation_jobs_patch_execute(
 
 pub fn datalabeling_projects_evaluation_jobs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDatalabelingV1beta1EvaluationJob,
+    args: &DatalabelingProjectsEvaluationJobsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1EvaluationJob>, ApiError>,
@@ -4620,8 +4961,12 @@ pub fn datalabeling_projects_evaluation_jobs_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datalabeling_projects_evaluation_jobs_patch_builder(client, name, updateMask, body)?;
+    let builder = datalabeling_projects_evaluation_jobs_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     datalabeling_projects_evaluation_jobs_patch_execute(builder)
 }
 
@@ -4720,6 +5065,15 @@ pub fn datalabeling_projects_evaluation_jobs_pause_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_evaluation_jobs_pause`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsEvaluationJobsPauseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatalabelingV1beta1PauseEvaluationJobRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}:pause
 /// Pauses an evaluation job. Pausing an evaluation job that is already in a PAUSED state is a no-op.
 ///
@@ -4732,15 +5086,15 @@ pub fn datalabeling_projects_evaluation_jobs_pause_execute(
 
 pub fn datalabeling_projects_evaluation_jobs_pause(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatalabelingV1beta1PauseEvaluationJobRequest,
+    args: &DatalabelingProjectsEvaluationJobsPauseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_evaluation_jobs_pause_builder(client, name, body)?;
+    let builder =
+        datalabeling_projects_evaluation_jobs_pause_builder(client, &args.name, &args.body)?;
     datalabeling_projects_evaluation_jobs_pause_execute(builder)
 }
 
@@ -4839,6 +5193,15 @@ pub fn datalabeling_projects_evaluation_jobs_resume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_evaluation_jobs_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsEvaluationJobsResumeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatalabelingV1beta1ResumeEvaluationJobRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/evaluationJobs/{evaluationJobsId}:resume
 /// Resumes a paused evaluation job. A deleted evaluation job can't be resumed. Resuming a running or scheduled evaluation job is a no-op.
 ///
@@ -4851,15 +5214,15 @@ pub fn datalabeling_projects_evaluation_jobs_resume_execute(
 
 pub fn datalabeling_projects_evaluation_jobs_resume(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatalabelingV1beta1ResumeEvaluationJobRequest,
+    args: &DatalabelingProjectsEvaluationJobsResumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_evaluation_jobs_resume_builder(client, name, body)?;
+    let builder =
+        datalabeling_projects_evaluation_jobs_resume_builder(client, &args.name, &args.body)?;
     datalabeling_projects_evaluation_jobs_resume_execute(builder)
 }
 
@@ -4981,6 +5344,19 @@ pub fn datalabeling_projects_evaluations_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_evaluations_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsEvaluationsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/evaluations:search
 /// Searches evaluations within a project.
 ///
@@ -4993,10 +5369,7 @@ pub fn datalabeling_projects_evaluations_search_execute(
 
 pub fn datalabeling_projects_evaluations_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatalabelingProjectsEvaluationsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5009,7 +5382,11 @@ pub fn datalabeling_projects_evaluations_search(
     ApiError,
 > {
     let builder = datalabeling_projects_evaluations_search_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datalabeling_projects_evaluations_search_execute(builder)
 }
@@ -5111,6 +5488,15 @@ pub fn datalabeling_projects_instructions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_instructions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsInstructionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatalabelingV1beta1CreateInstructionRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/instructions
 /// Creates an instruction for how data should be labeled.
 ///
@@ -5123,8 +5509,7 @@ pub fn datalabeling_projects_instructions_create_execute(
 
 pub fn datalabeling_projects_instructions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatalabelingV1beta1CreateInstructionRequest,
+    args: &DatalabelingProjectsInstructionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5133,7 +5518,8 @@ pub fn datalabeling_projects_instructions_create(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_instructions_create_builder(client, parent, body)?;
+    let builder =
+        datalabeling_projects_instructions_create_builder(client, &args.parent, &args.body)?;
     datalabeling_projects_instructions_create_execute(builder)
 }
 
@@ -5229,6 +5615,13 @@ pub fn datalabeling_projects_instructions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_instructions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsInstructionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/instructions/{instructionsId}
 /// Deletes an instruction object by resource name.
 ///
@@ -5241,14 +5634,14 @@ pub fn datalabeling_projects_instructions_delete_execute(
 
 pub fn datalabeling_projects_instructions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsInstructionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_instructions_delete_builder(client, name)?;
+    let builder = datalabeling_projects_instructions_delete_builder(client, &args.name)?;
     datalabeling_projects_instructions_delete_execute(builder)
 }
 
@@ -5346,6 +5739,13 @@ pub fn datalabeling_projects_instructions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_instructions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsInstructionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/instructions/{instructionsId}
 /// Gets an instruction by resource name.
 ///
@@ -5358,7 +5758,7 @@ pub fn datalabeling_projects_instructions_get_execute(
 
 pub fn datalabeling_projects_instructions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsInstructionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatalabelingV1beta1Instruction>, ApiError>,
@@ -5367,7 +5767,7 @@ pub fn datalabeling_projects_instructions_get(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_instructions_get_builder(client, name)?;
+    let builder = datalabeling_projects_instructions_get_builder(client, &args.name)?;
     datalabeling_projects_instructions_get_execute(builder)
 }
 
@@ -5489,6 +5889,19 @@ pub fn datalabeling_projects_instructions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_instructions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsInstructionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/instructions
 /// Lists instructions for a project. Pagination is supported.
 ///
@@ -5501,10 +5914,7 @@ pub fn datalabeling_projects_instructions_list_execute(
 
 pub fn datalabeling_projects_instructions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatalabelingProjectsInstructionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5517,7 +5927,11 @@ pub fn datalabeling_projects_instructions_list(
     ApiError,
 > {
     let builder = datalabeling_projects_instructions_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datalabeling_projects_instructions_list_execute(builder)
 }
@@ -5614,6 +6028,13 @@ pub fn datalabeling_projects_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -5626,14 +6047,14 @@ pub fn datalabeling_projects_operations_cancel_execute(
 
 pub fn datalabeling_projects_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_operations_cancel_builder(client, name)?;
+    let builder = datalabeling_projects_operations_cancel_builder(client, &args.name)?;
     datalabeling_projects_operations_cancel_execute(builder)
 }
 
@@ -5729,6 +6150,13 @@ pub fn datalabeling_projects_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -5741,14 +6169,14 @@ pub fn datalabeling_projects_operations_delete_execute(
 
 pub fn datalabeling_projects_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_operations_delete_builder(client, name)?;
+    let builder = datalabeling_projects_operations_delete_builder(client, &args.name)?;
     datalabeling_projects_operations_delete_execute(builder)
 }
 
@@ -5846,6 +6274,13 @@ pub fn datalabeling_projects_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -5858,7 +6293,7 @@ pub fn datalabeling_projects_operations_get_execute(
 
 pub fn datalabeling_projects_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalabelingProjectsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5867,7 +6302,7 @@ pub fn datalabeling_projects_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = datalabeling_projects_operations_get_builder(client, name)?;
+    let builder = datalabeling_projects_operations_get_builder(client, &args.name)?;
     datalabeling_projects_operations_get_execute(builder)
 }
 
@@ -5990,6 +6425,21 @@ pub fn datalabeling_projects_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalabeling_projects_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalabelingProjectsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1beta1/projects/{projectsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -6002,11 +6452,7 @@ pub fn datalabeling_projects_operations_list_execute(
 
 pub fn datalabeling_projects_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DatalabelingProjectsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -6017,11 +6463,11 @@ pub fn datalabeling_projects_operations_list(
 > {
     let builder = datalabeling_projects_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     datalabeling_projects_operations_list_execute(builder)
 }

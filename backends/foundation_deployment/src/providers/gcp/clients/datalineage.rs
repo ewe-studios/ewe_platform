@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/folders/{foldersId}/locations/{locationsId}/config
 /// Get the Config for a given resource.
@@ -114,6 +116,13 @@ pub fn datalineage_folders_locations_config_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_folders_locations_config_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageFoldersLocationsConfigGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/config
 /// Get the Config for a given resource.
 ///
@@ -126,7 +135,7 @@ pub fn datalineage_folders_locations_config_get_execute(
 
 pub fn datalineage_folders_locations_config_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalineageFoldersLocationsConfigGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -138,7 +147,7 @@ pub fn datalineage_folders_locations_config_get(
         + 'static,
     ApiError,
 > {
-    let builder = datalineage_folders_locations_config_get_builder(client, name)?;
+    let builder = datalineage_folders_locations_config_get_builder(client, &args.name)?;
     datalineage_folders_locations_config_get_execute(builder)
 }
 
@@ -243,6 +252,15 @@ pub fn datalineage_folders_locations_config_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_folders_locations_config_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageFoldersLocationsConfigPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogLineageConfigmanagementV1Config,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/config
 /// Update the Config for a given resource.
 ///
@@ -255,8 +273,7 @@ pub fn datalineage_folders_locations_config_patch_execute(
 
 pub fn datalineage_folders_locations_config_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatacatalogLineageConfigmanagementV1Config,
+    args: &DatalineageFoldersLocationsConfigPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -268,7 +285,8 @@ pub fn datalineage_folders_locations_config_patch(
         + 'static,
     ApiError,
 > {
-    let builder = datalineage_folders_locations_config_patch_builder(client, name, body)?;
+    let builder =
+        datalineage_folders_locations_config_patch_builder(client, &args.name, &args.body)?;
     datalineage_folders_locations_config_patch_execute(builder)
 }
 
@@ -370,6 +388,13 @@ pub fn datalineage_organizations_locations_config_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_organizations_locations_config_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageOrganizationsLocationsConfigGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/config
 /// Get the Config for a given resource.
 ///
@@ -382,7 +407,7 @@ pub fn datalineage_organizations_locations_config_get_execute(
 
 pub fn datalineage_organizations_locations_config_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalineageOrganizationsLocationsConfigGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -394,7 +419,7 @@ pub fn datalineage_organizations_locations_config_get(
         + 'static,
     ApiError,
 > {
-    let builder = datalineage_organizations_locations_config_get_builder(client, name)?;
+    let builder = datalineage_organizations_locations_config_get_builder(client, &args.name)?;
     datalineage_organizations_locations_config_get_execute(builder)
 }
 
@@ -499,6 +524,15 @@ pub fn datalineage_organizations_locations_config_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_organizations_locations_config_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageOrganizationsLocationsConfigPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogLineageConfigmanagementV1Config,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/config
 /// Update the Config for a given resource.
 ///
@@ -511,8 +545,7 @@ pub fn datalineage_organizations_locations_config_patch_execute(
 
 pub fn datalineage_organizations_locations_config_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatacatalogLineageConfigmanagementV1Config,
+    args: &DatalineageOrganizationsLocationsConfigPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -524,7 +557,8 @@ pub fn datalineage_organizations_locations_config_patch(
         + 'static,
     ApiError,
 > {
-    let builder = datalineage_organizations_locations_config_patch_builder(client, name, body)?;
+    let builder =
+        datalineage_organizations_locations_config_patch_builder(client, &args.name, &args.body)?;
     datalineage_organizations_locations_config_patch_execute(builder)
 }
 
@@ -629,6 +663,15 @@ pub fn datalineage_projects_locations_batch_search_link_processes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_batch_search_link_processes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsBatchSearchLinkProcessesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:batchSearchLinkProcesses
 /// Retrieve information about LineageProcesses associated with specific links. LineageProcesses are transformation pipelines that result in data flowing from **source** to **target** assets. Links between assets represent this operation. If you have specific link names, you can use this method to verify which LineageProcesses contribute to creating those links. See the SearchLinks method for more information on how to retrieve link name. You can retrieve the LineageProcess information in every project where you have the datalineage.events.get permission. The project provided in the URL is used for Billing and Quota.
 ///
@@ -641,8 +684,7 @@ pub fn datalineage_projects_locations_batch_search_link_processes_execute(
 
 pub fn datalineage_projects_locations_batch_search_link_processes(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesRequest,
+    args: &DatalineageProjectsLocationsBatchSearchLinkProcessesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -654,8 +696,11 @@ pub fn datalineage_projects_locations_batch_search_link_processes(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datalineage_projects_locations_batch_search_link_processes_builder(client, parent, body)?;
+    let builder = datalineage_projects_locations_batch_search_link_processes_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     datalineage_projects_locations_batch_search_link_processes_execute(builder)
 }
 
@@ -769,6 +814,15 @@ pub fn datalineage_projects_locations_process_open_lineage_run_event_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_process_open_lineage_run_event`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsProcessOpenLineageRunEventArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:processOpenLineageRunEvent
 /// Creates new lineage events together with their parents: process and run. Updates the process and run if they already exist. Mapped from Open Lineage specification: <https://github.`com/OpenLineage/OpenLineage/blob/main/spec/OpenLineage`.json.>
 ///
@@ -781,8 +835,7 @@ pub fn datalineage_projects_locations_process_open_lineage_run_event_execute(
 
 pub fn datalineage_projects_locations_process_open_lineage_run_event(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
+    args: &DatalineageProjectsLocationsProcessOpenLineageRunEventArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -795,7 +848,9 @@ pub fn datalineage_projects_locations_process_open_lineage_run_event(
     ApiError,
 > {
     let builder = datalineage_projects_locations_process_open_lineage_run_event_builder(
-        client, parent, requestId,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
     )?;
     datalineage_projects_locations_process_open_lineage_run_event_execute(builder)
 }
@@ -898,6 +953,15 @@ pub fn datalineage_projects_locations_search_links_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_search_links`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsSearchLinksArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogLineageV1SearchLinksRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:searchLinks
 /// Retrieve a list of links connected to a specific asset. Links represent the data flow between **source** (upstream) and **target** (downstream) assets in transformation pipelines. Links are stored in the same project as the Lineage Events that create them. You can retrieve links in every project where you have the datalineage.events.get permission. The project provided in the URL is used for Billing and Quota.
 ///
@@ -910,8 +974,7 @@ pub fn datalineage_projects_locations_search_links_execute(
 
 pub fn datalineage_projects_locations_search_links(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDatacatalogLineageV1SearchLinksRequest,
+    args: &DatalineageProjectsLocationsSearchLinksArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogLineageV1SearchLinksResponse>, ApiError>,
@@ -920,7 +983,8 @@ pub fn datalineage_projects_locations_search_links(
         + 'static,
     ApiError,
 > {
-    let builder = datalineage_projects_locations_search_links_builder(client, parent, body)?;
+    let builder =
+        datalineage_projects_locations_search_links_builder(client, &args.parent, &args.body)?;
     datalineage_projects_locations_search_links_execute(builder)
 }
 
@@ -1022,6 +1086,13 @@ pub fn datalineage_projects_locations_config_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_config_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsConfigGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/config
 /// Get the Config for a given resource.
 ///
@@ -1034,7 +1105,7 @@ pub fn datalineage_projects_locations_config_get_execute(
 
 pub fn datalineage_projects_locations_config_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalineageProjectsLocationsConfigGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1046,7 +1117,7 @@ pub fn datalineage_projects_locations_config_get(
         + 'static,
     ApiError,
 > {
-    let builder = datalineage_projects_locations_config_get_builder(client, name)?;
+    let builder = datalineage_projects_locations_config_get_builder(client, &args.name)?;
     datalineage_projects_locations_config_get_execute(builder)
 }
 
@@ -1151,6 +1222,15 @@ pub fn datalineage_projects_locations_config_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_config_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsConfigPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogLineageConfigmanagementV1Config,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/config
 /// Update the Config for a given resource.
 ///
@@ -1163,8 +1243,7 @@ pub fn datalineage_projects_locations_config_patch_execute(
 
 pub fn datalineage_projects_locations_config_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDatacatalogLineageConfigmanagementV1Config,
+    args: &DatalineageProjectsLocationsConfigPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1176,7 +1255,8 @@ pub fn datalineage_projects_locations_config_patch(
         + 'static,
     ApiError,
 > {
-    let builder = datalineage_projects_locations_config_patch_builder(client, name, body)?;
+    let builder =
+        datalineage_projects_locations_config_patch_builder(client, &args.name, &args.body)?;
     datalineage_projects_locations_config_patch_execute(builder)
 }
 
@@ -1275,6 +1355,15 @@ pub fn datalineage_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1287,15 +1376,15 @@ pub fn datalineage_projects_locations_operations_cancel_execute(
 
 pub fn datalineage_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &DatalineageProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datalineage_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        datalineage_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     datalineage_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1391,6 +1480,13 @@ pub fn datalineage_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1403,14 +1499,14 @@ pub fn datalineage_projects_locations_operations_delete_execute(
 
 pub fn datalineage_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalineageProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datalineage_projects_locations_operations_delete_builder(client, name)?;
+    let builder = datalineage_projects_locations_operations_delete_builder(client, &args.name)?;
     datalineage_projects_locations_operations_delete_execute(builder)
 }
 
@@ -1508,6 +1604,13 @@ pub fn datalineage_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1520,7 +1623,7 @@ pub fn datalineage_projects_locations_operations_get_execute(
 
 pub fn datalineage_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalineageProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1529,7 +1632,7 @@ pub fn datalineage_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = datalineage_projects_locations_operations_get_builder(client, name)?;
+    let builder = datalineage_projects_locations_operations_get_builder(client, &args.name)?;
     datalineage_projects_locations_operations_get_execute(builder)
 }
 
@@ -1652,6 +1755,21 @@ pub fn datalineage_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1664,11 +1782,7 @@ pub fn datalineage_projects_locations_operations_list_execute(
 
 pub fn datalineage_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DatalineageProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -1679,11 +1793,11 @@ pub fn datalineage_projects_locations_operations_list(
 > {
     let builder = datalineage_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     datalineage_projects_locations_operations_list_execute(builder)
 }
@@ -1797,6 +1911,17 @@ pub fn datalineage_projects_locations_processes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_processes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsProcessesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogLineageV1Process,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processes
 /// Creates a new process.
 ///
@@ -1809,9 +1934,7 @@ pub fn datalineage_projects_locations_processes_create_execute(
 
 pub fn datalineage_projects_locations_processes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    body: &GoogleCloudDatacatalogLineageV1Process,
+    args: &DatalineageProjectsLocationsProcessesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogLineageV1Process>, ApiError>,
@@ -1820,8 +1943,12 @@ pub fn datalineage_projects_locations_processes_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datalineage_projects_locations_processes_create_builder(client, parent, requestId, body)?;
+    let builder = datalineage_projects_locations_processes_create_builder(
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
+        &args.body,
+    )?;
     datalineage_projects_locations_processes_create_execute(builder)
 }
 
@@ -1931,6 +2058,15 @@ pub fn datalineage_projects_locations_processes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_processes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsProcessesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processes/{processesId}
 /// Deletes the process with the specified name.
 ///
@@ -1943,8 +2079,7 @@ pub fn datalineage_projects_locations_processes_delete_execute(
 
 pub fn datalineage_projects_locations_processes_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
+    args: &DatalineageProjectsLocationsProcessesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1953,8 +2088,11 @@ pub fn datalineage_projects_locations_processes_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datalineage_projects_locations_processes_delete_builder(client, name, allowMissing)?;
+    let builder = datalineage_projects_locations_processes_delete_builder(
+        client,
+        &args.name,
+        args.allowMissing,
+    )?;
     datalineage_projects_locations_processes_delete_execute(builder)
 }
 
@@ -2052,6 +2190,13 @@ pub fn datalineage_projects_locations_processes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_processes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsProcessesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processes/{processesId}
 /// Gets the details of the specified process.
 ///
@@ -2064,7 +2209,7 @@ pub fn datalineage_projects_locations_processes_get_execute(
 
 pub fn datalineage_projects_locations_processes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalineageProjectsLocationsProcessesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogLineageV1Process>, ApiError>,
@@ -2073,7 +2218,7 @@ pub fn datalineage_projects_locations_processes_get(
         + 'static,
     ApiError,
 > {
-    let builder = datalineage_projects_locations_processes_get_builder(client, name)?;
+    let builder = datalineage_projects_locations_processes_get_builder(client, &args.name)?;
     datalineage_projects_locations_processes_get_execute(builder)
 }
 
@@ -2188,6 +2333,17 @@ pub fn datalineage_projects_locations_processes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_processes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsProcessesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processes
 /// List processes in the given project and location. List order is descending by insertion time.
 ///
@@ -2200,9 +2356,7 @@ pub fn datalineage_projects_locations_processes_list_execute(
 
 pub fn datalineage_projects_locations_processes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatalineageProjectsLocationsProcessesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogLineageV1ListProcessesResponse>, ApiError>,
@@ -2211,8 +2365,12 @@ pub fn datalineage_projects_locations_processes_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datalineage_projects_locations_processes_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = datalineage_projects_locations_processes_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     datalineage_projects_locations_processes_list_execute(builder)
 }
 
@@ -2333,6 +2491,21 @@ pub fn datalineage_projects_locations_processes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_processes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsProcessesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogLineageV1Process,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processes/{processesId}
 /// Updates a process.
 ///
@@ -2345,11 +2518,7 @@ pub fn datalineage_projects_locations_processes_patch_execute(
 
 pub fn datalineage_projects_locations_processes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDatacatalogLineageV1Process,
+    args: &DatalineageProjectsLocationsProcessesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogLineageV1Process>, ApiError>,
@@ -2360,11 +2529,11 @@ pub fn datalineage_projects_locations_processes_patch(
 > {
     let builder = datalineage_projects_locations_processes_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     datalineage_projects_locations_processes_patch_execute(builder)
 }
@@ -2478,6 +2647,17 @@ pub fn datalineage_projects_locations_processes_runs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_processes_runs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsProcessesRunsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogLineageV1Run,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processes/{processesId}/runs
 /// Creates a new run.
 ///
@@ -2490,9 +2670,7 @@ pub fn datalineage_projects_locations_processes_runs_create_execute(
 
 pub fn datalineage_projects_locations_processes_runs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    body: &GoogleCloudDatacatalogLineageV1Run,
+    args: &DatalineageProjectsLocationsProcessesRunsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogLineageV1Run>, ApiError>,
@@ -2502,7 +2680,10 @@ pub fn datalineage_projects_locations_processes_runs_create(
     ApiError,
 > {
     let builder = datalineage_projects_locations_processes_runs_create_builder(
-        client, parent, requestId, body,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     datalineage_projects_locations_processes_runs_create_execute(builder)
 }
@@ -2613,6 +2794,15 @@ pub fn datalineage_projects_locations_processes_runs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_processes_runs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsProcessesRunsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processes/{processesId}/runs/{runsId}
 /// Deletes the run with the specified name.
 ///
@@ -2625,8 +2815,7 @@ pub fn datalineage_projects_locations_processes_runs_delete_execute(
 
 pub fn datalineage_projects_locations_processes_runs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
+    args: &DatalineageProjectsLocationsProcessesRunsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2635,8 +2824,11 @@ pub fn datalineage_projects_locations_processes_runs_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datalineage_projects_locations_processes_runs_delete_builder(client, name, allowMissing)?;
+    let builder = datalineage_projects_locations_processes_runs_delete_builder(
+        client,
+        &args.name,
+        args.allowMissing,
+    )?;
     datalineage_projects_locations_processes_runs_delete_execute(builder)
 }
 
@@ -2734,6 +2926,13 @@ pub fn datalineage_projects_locations_processes_runs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_processes_runs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsProcessesRunsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processes/{processesId}/runs/{runsId}
 /// Gets the details of the specified run.
 ///
@@ -2746,7 +2945,7 @@ pub fn datalineage_projects_locations_processes_runs_get_execute(
 
 pub fn datalineage_projects_locations_processes_runs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalineageProjectsLocationsProcessesRunsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogLineageV1Run>, ApiError>,
@@ -2755,7 +2954,7 @@ pub fn datalineage_projects_locations_processes_runs_get(
         + 'static,
     ApiError,
 > {
-    let builder = datalineage_projects_locations_processes_runs_get_builder(client, name)?;
+    let builder = datalineage_projects_locations_processes_runs_get_builder(client, &args.name)?;
     datalineage_projects_locations_processes_runs_get_execute(builder)
 }
 
@@ -2870,6 +3069,17 @@ pub fn datalineage_projects_locations_processes_runs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_processes_runs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsProcessesRunsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processes/{processesId}/runs
 /// Lists runs in the given project and location. List order is descending by start_time.
 ///
@@ -2882,9 +3092,7 @@ pub fn datalineage_projects_locations_processes_runs_list_execute(
 
 pub fn datalineage_projects_locations_processes_runs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatalineageProjectsLocationsProcessesRunsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogLineageV1ListRunsResponse>, ApiError>,
@@ -2894,7 +3102,10 @@ pub fn datalineage_projects_locations_processes_runs_list(
     ApiError,
 > {
     let builder = datalineage_projects_locations_processes_runs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datalineage_projects_locations_processes_runs_list_execute(builder)
 }
@@ -3012,6 +3223,19 @@ pub fn datalineage_projects_locations_processes_runs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_processes_runs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsProcessesRunsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogLineageV1Run,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processes/{processesId}/runs/{runsId}
 /// Updates a run.
 ///
@@ -3024,10 +3248,7 @@ pub fn datalineage_projects_locations_processes_runs_patch_execute(
 
 pub fn datalineage_projects_locations_processes_runs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDatacatalogLineageV1Run,
+    args: &DatalineageProjectsLocationsProcessesRunsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogLineageV1Run>, ApiError>,
@@ -3038,10 +3259,10 @@ pub fn datalineage_projects_locations_processes_runs_patch(
 > {
     let builder = datalineage_projects_locations_processes_runs_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     datalineage_projects_locations_processes_runs_patch_execute(builder)
 }
@@ -3156,6 +3377,17 @@ pub fn datalineage_projects_locations_processes_runs_lineage_events_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_processes_runs_lineage_events_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsProcessesRunsLineageEventsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDatacatalogLineageV1LineageEvent,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processes/{processesId}/runs/{runsId}/lineageEvents
 /// Creates a new lineage event.
 ///
@@ -3168,9 +3400,7 @@ pub fn datalineage_projects_locations_processes_runs_lineage_events_create_execu
 
 pub fn datalineage_projects_locations_processes_runs_lineage_events_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    body: &GoogleCloudDatacatalogLineageV1LineageEvent,
+    args: &DatalineageProjectsLocationsProcessesRunsLineageEventsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogLineageV1LineageEvent>, ApiError>,
@@ -3180,7 +3410,10 @@ pub fn datalineage_projects_locations_processes_runs_lineage_events_create(
     ApiError,
 > {
     let builder = datalineage_projects_locations_processes_runs_lineage_events_create_builder(
-        client, parent, requestId, body,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     datalineage_projects_locations_processes_runs_lineage_events_create_execute(builder)
 }
@@ -3289,6 +3522,15 @@ pub fn datalineage_projects_locations_processes_runs_lineage_events_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_processes_runs_lineage_events_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsProcessesRunsLineageEventsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processes/{processesId}/runs/{runsId}/lineageEvents/{lineageEventsId}
 /// Deletes the lineage event with the specified name.
 ///
@@ -3301,8 +3543,7 @@ pub fn datalineage_projects_locations_processes_runs_lineage_events_delete_execu
 
 pub fn datalineage_projects_locations_processes_runs_lineage_events_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
+    args: &DatalineageProjectsLocationsProcessesRunsLineageEventsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -3311,8 +3552,8 @@ pub fn datalineage_projects_locations_processes_runs_lineage_events_delete(
 > {
     let builder = datalineage_projects_locations_processes_runs_lineage_events_delete_builder(
         client,
-        name,
-        allowMissing,
+        &args.name,
+        args.allowMissing,
     )?;
     datalineage_projects_locations_processes_runs_lineage_events_delete_execute(builder)
 }
@@ -3412,6 +3653,13 @@ pub fn datalineage_projects_locations_processes_runs_lineage_events_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_processes_runs_lineage_events_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsProcessesRunsLineageEventsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processes/{processesId}/runs/{runsId}/lineageEvents/{lineageEventsId}
 /// Gets details of a specified lineage event.
 ///
@@ -3424,7 +3672,7 @@ pub fn datalineage_projects_locations_processes_runs_lineage_events_get_execute(
 
 pub fn datalineage_projects_locations_processes_runs_lineage_events_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatalineageProjectsLocationsProcessesRunsLineageEventsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDatacatalogLineageV1LineageEvent>, ApiError>,
@@ -3433,8 +3681,9 @@ pub fn datalineage_projects_locations_processes_runs_lineage_events_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datalineage_projects_locations_processes_runs_lineage_events_get_builder(client, name)?;
+    let builder = datalineage_projects_locations_processes_runs_lineage_events_get_builder(
+        client, &args.name,
+    )?;
     datalineage_projects_locations_processes_runs_lineage_events_get_execute(builder)
 }
 
@@ -3552,6 +3801,17 @@ pub fn datalineage_projects_locations_processes_runs_lineage_events_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datalineage_projects_locations_processes_runs_lineage_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatalineageProjectsLocationsProcessesRunsLineageEventsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/processes/{processesId}/runs/{runsId}/lineageEvents
 /// Lists lineage events in the given project and location. The list order is not defined.
 ///
@@ -3564,9 +3824,7 @@ pub fn datalineage_projects_locations_processes_runs_lineage_events_list_execute
 
 pub fn datalineage_projects_locations_processes_runs_lineage_events_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatalineageProjectsLocationsProcessesRunsLineageEventsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3579,7 +3837,10 @@ pub fn datalineage_projects_locations_processes_runs_lineage_events_list(
     ApiError,
 > {
     let builder = datalineage_projects_locations_processes_runs_lineage_events_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datalineage_projects_locations_processes_runs_lineage_events_list_execute(builder)
 }

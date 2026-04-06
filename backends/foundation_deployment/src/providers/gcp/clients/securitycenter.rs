@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/folders/{foldersId}/assets:group
 /// Filters an organization's assets and groups them by their specified properties.
@@ -111,6 +113,15 @@ pub fn securitycenter_folders_assets_group_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_assets_group`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersAssetsGroupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GroupAssetsRequest,
+}
+
 /// GET v1/folders/{foldersId}/assets:group
 /// Filters an organization's assets and groups them by their specified properties.
 ///
@@ -123,15 +134,14 @@ pub fn securitycenter_folders_assets_group_execute(
 
 pub fn securitycenter_folders_assets_group(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GroupAssetsRequest,
+    args: &SecuritycenterFoldersAssetsGroupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GroupAssetsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_assets_group_builder(client, parent, body)?;
+    let builder = securitycenter_folders_assets_group_builder(client, &args.parent, &args.body)?;
     securitycenter_folders_assets_group_execute(builder)
 }
 
@@ -263,6 +273,27 @@ pub fn securitycenter_folders_assets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_assets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersAssetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: compareDuration
+    pub compareDuration: Option<String>,
+    /// Query parameter: fieldMask
+    pub fieldMask: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readTime
+    pub readTime: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/assets
 /// Lists an organization's assets.
 ///
@@ -275,14 +306,7 @@ pub fn securitycenter_folders_assets_list_execute(
 
 pub fn securitycenter_folders_assets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    compareDuration: Option<&str>,
-    fieldMask: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readTime: Option<&str>,
+    args: &SecuritycenterFoldersAssetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAssetsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -291,14 +315,14 @@ pub fn securitycenter_folders_assets_list(
 > {
     let builder = securitycenter_folders_assets_list_builder(
         client,
-        parent,
-        compareDuration,
-        fieldMask,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        readTime,
+        &args.parent,
+        args.compareDuration.as_deref(),
+        args.fieldMask.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readTime.as_deref(),
     )?;
     securitycenter_folders_assets_list_execute(builder)
 }
@@ -414,6 +438,19 @@ pub fn securitycenter_folders_assets_update_security_marks_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_assets_update_security_marks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersAssetsUpdateSecurityMarksArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: startTime
+    pub startTime: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SecurityMarks,
+}
+
 /// GET v1/folders/{foldersId}/assets/{assetsId}/securityMarks
 /// Updates security marks.
 ///
@@ -426,10 +463,7 @@ pub fn securitycenter_folders_assets_update_security_marks_execute(
 
 pub fn securitycenter_folders_assets_update_security_marks(
     client: &SimpleHttpClient,
-    name: &str,
-    startTime: Option<&str>,
-    updateMask: Option<&str>,
-    body: &SecurityMarks,
+    args: &SecuritycenterFoldersAssetsUpdateSecurityMarksArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecurityMarks>, ApiError>, P = ApiPending>
         + Send
@@ -437,7 +471,11 @@ pub fn securitycenter_folders_assets_update_security_marks(
     ApiError,
 > {
     let builder = securitycenter_folders_assets_update_security_marks_builder(
-        client, name, startTime, updateMask, body,
+        client,
+        &args.name,
+        args.startTime.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_folders_assets_update_security_marks_execute(builder)
 }
@@ -551,6 +589,17 @@ pub fn securitycenter_folders_big_query_exports_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_big_query_exports_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersBigQueryExportsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: bigQueryExportId
+    pub bigQueryExportId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1BigQueryExport,
+}
+
 /// GET v1/folders/{foldersId}/bigQueryExports
 /// Creates a BigQuery export.
 ///
@@ -563,9 +612,7 @@ pub fn securitycenter_folders_big_query_exports_create_execute(
 
 pub fn securitycenter_folders_big_query_exports_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    bigQueryExportId: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1BigQueryExport,
+    args: &SecuritycenterFoldersBigQueryExportsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1BigQueryExport>, ApiError>,
@@ -576,9 +623,9 @@ pub fn securitycenter_folders_big_query_exports_create(
 > {
     let builder = securitycenter_folders_big_query_exports_create_builder(
         client,
-        parent,
-        bigQueryExportId,
-        body,
+        &args.parent,
+        args.bigQueryExportId.as_deref(),
+        &args.body,
     )?;
     securitycenter_folders_big_query_exports_create_execute(builder)
 }
@@ -673,6 +720,13 @@ pub fn securitycenter_folders_big_query_exports_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_big_query_exports_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersBigQueryExportsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/bigQueryExports/{bigQueryExportsId}
 /// Deletes an existing BigQuery export.
 ///
@@ -685,12 +739,12 @@ pub fn securitycenter_folders_big_query_exports_delete_execute(
 
 pub fn securitycenter_folders_big_query_exports_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterFoldersBigQueryExportsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_big_query_exports_delete_builder(client, name)?;
+    let builder = securitycenter_folders_big_query_exports_delete_builder(client, &args.name)?;
     securitycenter_folders_big_query_exports_delete_execute(builder)
 }
 
@@ -788,6 +842,13 @@ pub fn securitycenter_folders_big_query_exports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_big_query_exports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersBigQueryExportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/bigQueryExports/{bigQueryExportsId}
 /// Gets a BigQuery export.
 ///
@@ -800,7 +861,7 @@ pub fn securitycenter_folders_big_query_exports_get_execute(
 
 pub fn securitycenter_folders_big_query_exports_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterFoldersBigQueryExportsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1BigQueryExport>, ApiError>,
@@ -809,7 +870,7 @@ pub fn securitycenter_folders_big_query_exports_get(
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_big_query_exports_get_builder(client, name)?;
+    let builder = securitycenter_folders_big_query_exports_get_builder(client, &args.name)?;
     securitycenter_folders_big_query_exports_get_execute(builder)
 }
 
@@ -923,6 +984,17 @@ pub fn securitycenter_folders_big_query_exports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_big_query_exports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersBigQueryExportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/bigQueryExports
 /// Lists BigQuery exports. Note that when requesting BigQuery exports at a given level all exports under that level are also returned e.g. if requesting BigQuery exports under a folder, then all BigQuery exports immediately under the folder plus the ones created under the projects within the folder are returned.
 ///
@@ -935,9 +1007,7 @@ pub fn securitycenter_folders_big_query_exports_list_execute(
 
 pub fn securitycenter_folders_big_query_exports_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterFoldersBigQueryExportsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBigQueryExportsResponse>, ApiError>,
@@ -946,8 +1016,12 @@ pub fn securitycenter_folders_big_query_exports_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_folders_big_query_exports_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_folders_big_query_exports_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     securitycenter_folders_big_query_exports_list_execute(builder)
 }
 
@@ -1060,6 +1134,17 @@ pub fn securitycenter_folders_big_query_exports_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_big_query_exports_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersBigQueryExportsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1BigQueryExport,
+}
+
 /// GET v1/folders/{foldersId}/bigQueryExports/{bigQueryExportsId}
 /// Updates a BigQuery export.
 ///
@@ -1072,9 +1157,7 @@ pub fn securitycenter_folders_big_query_exports_patch_execute(
 
 pub fn securitycenter_folders_big_query_exports_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1BigQueryExport,
+    args: &SecuritycenterFoldersBigQueryExportsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1BigQueryExport>, ApiError>,
@@ -1083,8 +1166,12 @@ pub fn securitycenter_folders_big_query_exports_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_folders_big_query_exports_patch_builder(client, name, updateMask, body)?;
+    let builder = securitycenter_folders_big_query_exports_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     securitycenter_folders_big_query_exports_patch_execute(builder)
 }
 
@@ -1186,6 +1273,15 @@ pub fn securitycenter_folders_event_threat_detection_settings_validate_custom_mo
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_event_threat_detection_settings_validate_custom_module`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersEventThreatDetectionSettingsValidateCustomModuleArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ValidateEventThreatDetectionCustomModuleRequest,
+}
+
 /// GET v1/folders/{foldersId}/eventThreatDetectionSettings:validateCustomModule
 /// Validates the given Event Threat Detection custom module.
 ///
@@ -1198,8 +1294,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_validate_custom_mo
 
 pub fn securitycenter_folders_event_threat_detection_settings_validate_custom_module(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ValidateEventThreatDetectionCustomModuleRequest,
+    args: &SecuritycenterFoldersEventThreatDetectionSettingsValidateCustomModuleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ValidateEventThreatDetectionCustomModuleResponse>, ApiError>,
@@ -1210,7 +1305,9 @@ pub fn securitycenter_folders_event_threat_detection_settings_validate_custom_mo
 > {
     let builder =
         securitycenter_folders_event_threat_detection_settings_validate_custom_module_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     securitycenter_folders_event_threat_detection_settings_validate_custom_module_execute(builder)
 }
@@ -1312,6 +1409,15 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_cre
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_event_threat_detection_settings_custom_modules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersEventThreatDetectionSettingsCustomModulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: EventThreatDetectionCustomModule,
+}
+
 /// GET v1/folders/{foldersId}/eventThreatDetectionSettings/customModules
 /// Creates a resident Event Threat Detection custom module at the scope of the given Resource Manager parent, and also creates inherited custom modules for all descendants of the given parent. These modules are enabled by default.
 ///
@@ -1324,8 +1430,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_cre
 
 pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &EventThreatDetectionCustomModule,
+    args: &SecuritycenterFoldersEventThreatDetectionSettingsCustomModulesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EventThreatDetectionCustomModule>, ApiError>,
@@ -1336,7 +1441,9 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_cre
 > {
     let builder =
         securitycenter_folders_event_threat_detection_settings_custom_modules_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     securitycenter_folders_event_threat_detection_settings_custom_modules_create_execute(builder)
 }
@@ -1431,6 +1538,13 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_del
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_event_threat_detection_settings_custom_modules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersEventThreatDetectionSettingsCustomModulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/eventThreatDetectionSettings/customModules/{customModulesId}
 /// Deletes the specified Event Threat Detection custom module and all of its descendants in the Resource Manager hierarchy. This method is only supported for resident custom modules.
 ///
@@ -1443,14 +1557,14 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_del
 
 pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterFoldersEventThreatDetectionSettingsCustomModulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         securitycenter_folders_event_threat_detection_settings_custom_modules_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     securitycenter_folders_event_threat_detection_settings_custom_modules_delete_execute(builder)
 }
@@ -1549,6 +1663,13 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_get
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_event_threat_detection_settings_custom_modules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersEventThreatDetectionSettingsCustomModulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/eventThreatDetectionSettings/customModules/{customModulesId}
 /// Gets an Event Threat Detection custom module.
 ///
@@ -1561,7 +1682,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_get
 
 pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterFoldersEventThreatDetectionSettingsCustomModulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EventThreatDetectionCustomModule>, ApiError>,
@@ -1572,7 +1693,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_get
 > {
     let builder =
         securitycenter_folders_event_threat_detection_settings_custom_modules_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     securitycenter_folders_event_threat_detection_settings_custom_modules_get_execute(builder)
 }
@@ -1688,6 +1809,17 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_lis
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_event_threat_detection_settings_custom_modules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersEventThreatDetectionSettingsCustomModulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/eventThreatDetectionSettings/customModules
 /// Lists all Event Threat Detection custom modules for the given Resource Manager parent. This includes resident modules defined at the scope of the parent along with modules inherited from ancestors.
 ///
@@ -1700,9 +1832,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_lis
 
 pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterFoldersEventThreatDetectionSettingsCustomModulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListEventThreatDetectionCustomModulesResponse>, ApiError>,
@@ -1713,7 +1843,10 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_lis
 > {
     let builder =
         securitycenter_folders_event_threat_detection_settings_custom_modules_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     securitycenter_folders_event_threat_detection_settings_custom_modules_list_execute(builder)
 }
@@ -1832,6 +1965,17 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_lis
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_event_threat_detection_settings_custom_modules_list_descendant`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersEventThreatDetectionSettingsCustomModulesListDescendantArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/eventThreatDetectionSettings/customModules:listDescendant
 /// Lists all resident Event Threat Detection custom modules under the given Resource Manager parent and its descendants.
 ///
@@ -1844,9 +1988,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_lis
 
 pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_list_descendant(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterFoldersEventThreatDetectionSettingsCustomModulesListDescendantArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1858,7 +2000,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_lis
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_event_threat_detection_settings_custom_modules_list_descendant_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_folders_event_threat_detection_settings_custom_modules_list_descendant_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     securitycenter_folders_event_threat_detection_settings_custom_modules_list_descendant_execute(
         builder,
     )
@@ -1973,6 +2115,17 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_pat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_event_threat_detection_settings_custom_modules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersEventThreatDetectionSettingsCustomModulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: EventThreatDetectionCustomModule,
+}
+
 /// GET v1/folders/{foldersId}/eventThreatDetectionSettings/customModules/{customModulesId}
 /// Updates the Event Threat Detection custom module with the given name based on the given update mask. Updating the enablement state is supported for both resident and inherited modules (though resident modules cannot have an enablement state of "inherited"). Updating the display name or configuration of a module is supported for resident modules only. The type of a module cannot be changed.
 ///
@@ -1985,9 +2138,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_pat
 
 pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &EventThreatDetectionCustomModule,
+    args: &SecuritycenterFoldersEventThreatDetectionSettingsCustomModulesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EventThreatDetectionCustomModule>, ApiError>,
@@ -1998,7 +2149,10 @@ pub fn securitycenter_folders_event_threat_detection_settings_custom_modules_pat
 > {
     let builder =
         securitycenter_folders_event_threat_detection_settings_custom_modules_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     securitycenter_folders_event_threat_detection_settings_custom_modules_patch_execute(builder)
 }
@@ -2097,6 +2251,13 @@ pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_m
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_event_threat_detection_settings_effective_custom_modules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersEventThreatDetectionSettingsEffectiveCustomModulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/eventThreatDetectionSettings/effectiveCustomModules/{effectiveCustomModulesId}
 /// Gets an effective Event Threat Detection custom module at the given level.
 ///
@@ -2109,7 +2270,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_m
 
 pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_modules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterFoldersEventThreatDetectionSettingsEffectiveCustomModulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EffectiveEventThreatDetectionCustomModule>, ApiError>,
@@ -2118,7 +2279,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_m
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_event_threat_detection_settings_effective_custom_modules_get_builder(client, name)?;
+    let builder = securitycenter_folders_event_threat_detection_settings_effective_custom_modules_get_builder(client, &args.name)?;
     securitycenter_folders_event_threat_detection_settings_effective_custom_modules_get_execute(
         builder,
     )
@@ -2238,6 +2399,17 @@ pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_m
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_event_threat_detection_settings_effective_custom_modules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersEventThreatDetectionSettingsEffectiveCustomModulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/eventThreatDetectionSettings/effectiveCustomModules
 /// Lists all effective Event Threat Detection custom modules for the given parent. This includes resident modules defined at the scope of the parent along with modules inherited from its ancestors.
 ///
@@ -2250,9 +2422,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_m
 
 pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_modules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterFoldersEventThreatDetectionSettingsEffectiveCustomModulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2264,7 +2434,7 @@ pub fn securitycenter_folders_event_threat_detection_settings_effective_custom_m
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_event_threat_detection_settings_effective_custom_modules_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_folders_event_threat_detection_settings_effective_custom_modules_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     securitycenter_folders_event_threat_detection_settings_effective_custom_modules_list_execute(
         builder,
     )
@@ -2363,6 +2533,15 @@ pub fn securitycenter_folders_findings_bulk_mute_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_findings_bulk_mute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersFindingsBulkMuteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BulkMuteFindingsRequest,
+}
+
 /// GET v1/folders/{foldersId}/findings:bulkMute
 /// Kicks off an LRO to bulk mute findings for a parent based on a filter. The parent can be either an organization, folder or project. The findings matched by the filter will be muted after the LRO is done.
 ///
@@ -2375,13 +2554,13 @@ pub fn securitycenter_folders_findings_bulk_mute_execute(
 
 pub fn securitycenter_folders_findings_bulk_mute(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BulkMuteFindingsRequest,
+    args: &SecuritycenterFoldersFindingsBulkMuteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_findings_bulk_mute_builder(client, parent, body)?;
+    let builder =
+        securitycenter_folders_findings_bulk_mute_builder(client, &args.parent, &args.body)?;
     securitycenter_folders_findings_bulk_mute_execute(builder)
 }
 
@@ -2475,6 +2654,13 @@ pub fn securitycenter_folders_locations_mute_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_locations_mute_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersLocationsMuteConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/muteConfigs/{muteConfigsId}
 /// Deletes an existing mute config.
 ///
@@ -2487,12 +2673,12 @@ pub fn securitycenter_folders_locations_mute_configs_delete_execute(
 
 pub fn securitycenter_folders_locations_mute_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterFoldersLocationsMuteConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_locations_mute_configs_delete_builder(client, name)?;
+    let builder = securitycenter_folders_locations_mute_configs_delete_builder(client, &args.name)?;
     securitycenter_folders_locations_mute_configs_delete_execute(builder)
 }
 
@@ -2590,6 +2776,13 @@ pub fn securitycenter_folders_locations_mute_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_locations_mute_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersLocationsMuteConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/muteConfigs/{muteConfigsId}
 /// Gets a mute config.
 ///
@@ -2602,7 +2795,7 @@ pub fn securitycenter_folders_locations_mute_configs_get_execute(
 
 pub fn securitycenter_folders_locations_mute_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterFoldersLocationsMuteConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1MuteConfig>, ApiError>,
@@ -2611,7 +2804,7 @@ pub fn securitycenter_folders_locations_mute_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_locations_mute_configs_get_builder(client, name)?;
+    let builder = securitycenter_folders_locations_mute_configs_get_builder(client, &args.name)?;
     securitycenter_folders_locations_mute_configs_get_execute(builder)
 }
 
@@ -2724,6 +2917,17 @@ pub fn securitycenter_folders_locations_mute_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_locations_mute_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersLocationsMuteConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1MuteConfig,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/muteConfigs/{muteConfigsId}
 /// Updates a mute config.
 ///
@@ -2736,9 +2940,7 @@ pub fn securitycenter_folders_locations_mute_configs_patch_execute(
 
 pub fn securitycenter_folders_locations_mute_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1MuteConfig,
+    args: &SecuritycenterFoldersLocationsMuteConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1MuteConfig>, ApiError>,
@@ -2748,7 +2950,10 @@ pub fn securitycenter_folders_locations_mute_configs_patch(
     ApiError,
 > {
     let builder = securitycenter_folders_locations_mute_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_folders_locations_mute_configs_patch_execute(builder)
 }
@@ -2862,6 +3067,17 @@ pub fn securitycenter_folders_mute_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_mute_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersMuteConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: muteConfigId
+    pub muteConfigId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1MuteConfig,
+}
+
 /// GET v1/folders/{foldersId}/muteConfigs
 /// Creates a mute config.
 ///
@@ -2874,9 +3090,7 @@ pub fn securitycenter_folders_mute_configs_create_execute(
 
 pub fn securitycenter_folders_mute_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    muteConfigId: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1MuteConfig,
+    args: &SecuritycenterFoldersMuteConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1MuteConfig>, ApiError>,
@@ -2885,8 +3099,12 @@ pub fn securitycenter_folders_mute_configs_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_folders_mute_configs_create_builder(client, parent, muteConfigId, body)?;
+    let builder = securitycenter_folders_mute_configs_create_builder(
+        client,
+        &args.parent,
+        args.muteConfigId.as_deref(),
+        &args.body,
+    )?;
     securitycenter_folders_mute_configs_create_execute(builder)
 }
 
@@ -2980,6 +3198,13 @@ pub fn securitycenter_folders_mute_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_mute_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersMuteConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/muteConfigs/{muteConfigsId}
 /// Deletes an existing mute config.
 ///
@@ -2992,12 +3217,12 @@ pub fn securitycenter_folders_mute_configs_delete_execute(
 
 pub fn securitycenter_folders_mute_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterFoldersMuteConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_mute_configs_delete_builder(client, name)?;
+    let builder = securitycenter_folders_mute_configs_delete_builder(client, &args.name)?;
     securitycenter_folders_mute_configs_delete_execute(builder)
 }
 
@@ -3095,6 +3320,13 @@ pub fn securitycenter_folders_mute_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_mute_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersMuteConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/muteConfigs/{muteConfigsId}
 /// Gets a mute config.
 ///
@@ -3107,7 +3339,7 @@ pub fn securitycenter_folders_mute_configs_get_execute(
 
 pub fn securitycenter_folders_mute_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterFoldersMuteConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1MuteConfig>, ApiError>,
@@ -3116,7 +3348,7 @@ pub fn securitycenter_folders_mute_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_mute_configs_get_builder(client, name)?;
+    let builder = securitycenter_folders_mute_configs_get_builder(client, &args.name)?;
     securitycenter_folders_mute_configs_get_execute(builder)
 }
 
@@ -3228,6 +3460,17 @@ pub fn securitycenter_folders_mute_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_mute_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersMuteConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/muteConfigs
 /// Lists mute configs.
 ///
@@ -3240,17 +3483,19 @@ pub fn securitycenter_folders_mute_configs_list_execute(
 
 pub fn securitycenter_folders_mute_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterFoldersMuteConfigsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListMuteConfigsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_folders_mute_configs_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_folders_mute_configs_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     securitycenter_folders_mute_configs_list_execute(builder)
 }
 
@@ -3363,6 +3608,17 @@ pub fn securitycenter_folders_mute_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_mute_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersMuteConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1MuteConfig,
+}
+
 /// GET v1/folders/{foldersId}/muteConfigs/{muteConfigsId}
 /// Updates a mute config.
 ///
@@ -3375,9 +3631,7 @@ pub fn securitycenter_folders_mute_configs_patch_execute(
 
 pub fn securitycenter_folders_mute_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1MuteConfig,
+    args: &SecuritycenterFoldersMuteConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1MuteConfig>, ApiError>,
@@ -3386,8 +3640,12 @@ pub fn securitycenter_folders_mute_configs_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_folders_mute_configs_patch_builder(client, name, updateMask, body)?;
+    let builder = securitycenter_folders_mute_configs_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     securitycenter_folders_mute_configs_patch_execute(builder)
 }
 
@@ -3498,6 +3756,17 @@ pub fn securitycenter_folders_notification_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_notification_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersNotificationConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: configId
+    pub configId: Option<String>,
+    /// Request body.
+    pub body: NotificationConfig,
+}
+
 /// GET v1/folders/{foldersId}/notificationConfigs
 /// Creates a notification config.
 ///
@@ -3510,17 +3779,19 @@ pub fn securitycenter_folders_notification_configs_create_execute(
 
 pub fn securitycenter_folders_notification_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    configId: Option<&str>,
-    body: &NotificationConfig,
+    args: &SecuritycenterFoldersNotificationConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_folders_notification_configs_create_builder(client, parent, configId, body)?;
+    let builder = securitycenter_folders_notification_configs_create_builder(
+        client,
+        &args.parent,
+        args.configId.as_deref(),
+        &args.body,
+    )?;
     securitycenter_folders_notification_configs_create_execute(builder)
 }
 
@@ -3614,6 +3885,13 @@ pub fn securitycenter_folders_notification_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_notification_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersNotificationConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/notificationConfigs/{notificationConfigsId}
 /// Deletes a notification config.
 ///
@@ -3626,12 +3904,12 @@ pub fn securitycenter_folders_notification_configs_delete_execute(
 
 pub fn securitycenter_folders_notification_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterFoldersNotificationConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_notification_configs_delete_builder(client, name)?;
+    let builder = securitycenter_folders_notification_configs_delete_builder(client, &args.name)?;
     securitycenter_folders_notification_configs_delete_execute(builder)
 }
 
@@ -3727,6 +4005,13 @@ pub fn securitycenter_folders_notification_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_notification_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersNotificationConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/notificationConfigs/{notificationConfigsId}
 /// Gets a notification config.
 ///
@@ -3739,14 +4024,14 @@ pub fn securitycenter_folders_notification_configs_get_execute(
 
 pub fn securitycenter_folders_notification_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterFoldersNotificationConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_notification_configs_get_builder(client, name)?;
+    let builder = securitycenter_folders_notification_configs_get_builder(client, &args.name)?;
     securitycenter_folders_notification_configs_get_execute(builder)
 }
 
@@ -3860,6 +4145,17 @@ pub fn securitycenter_folders_notification_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_notification_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersNotificationConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/notificationConfigs
 /// Lists notification configs.
 ///
@@ -3872,9 +4168,7 @@ pub fn securitycenter_folders_notification_configs_list_execute(
 
 pub fn securitycenter_folders_notification_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterFoldersNotificationConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNotificationConfigsResponse>, ApiError>,
@@ -3884,7 +4178,10 @@ pub fn securitycenter_folders_notification_configs_list(
     ApiError,
 > {
     let builder = securitycenter_folders_notification_configs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securitycenter_folders_notification_configs_list_execute(builder)
 }
@@ -3996,6 +4293,17 @@ pub fn securitycenter_folders_notification_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_notification_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersNotificationConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: NotificationConfig,
+}
+
 /// GET v1/folders/{foldersId}/notificationConfigs/{notificationConfigsId}
 /// Updates a notification config. The following update fields are allowed: description, pubsub_topic, streaming_config.filter
 ///
@@ -4008,17 +4316,19 @@ pub fn securitycenter_folders_notification_configs_patch_execute(
 
 pub fn securitycenter_folders_notification_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &NotificationConfig,
+    args: &SecuritycenterFoldersNotificationConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_folders_notification_configs_patch_builder(client, name, updateMask, body)?;
+    let builder = securitycenter_folders_notification_configs_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     securitycenter_folders_notification_configs_patch_execute(builder)
 }
 
@@ -4123,6 +4433,15 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_security_health_analytics_settings_custom_modules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule,
+}
+
 /// GET v1/folders/{foldersId}/securityHealthAnalyticsSettings/customModules
 /// Creates a resident SecurityHealthAnalyticsCustomModule at the scope of the given CRM parent, and also creates inherited SecurityHealthAnalyticsCustomModules for all CRM descendants of the given parent. These modules are enabled by default.
 ///
@@ -4135,8 +4454,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 
 pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule,
+    args: &SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4150,7 +4468,9 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 > {
     let builder =
         securitycenter_folders_security_health_analytics_settings_custom_modules_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     securitycenter_folders_security_health_analytics_settings_custom_modules_create_execute(builder)
 }
@@ -4245,6 +4565,13 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_security_health_analytics_settings_custom_modules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/securityHealthAnalyticsSettings/customModules/{customModulesId}
 /// Deletes the specified SecurityHealthAnalyticsCustomModule and all of its descendants in the CRM hierarchy. This method is only supported for resident custom modules.
 ///
@@ -4257,14 +4584,14 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 
 pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         securitycenter_folders_security_health_analytics_settings_custom_modules_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     securitycenter_folders_security_health_analytics_settings_custom_modules_delete_execute(builder)
 }
@@ -4367,6 +4694,13 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_security_health_analytics_settings_custom_modules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/securityHealthAnalyticsSettings/customModules/{customModulesId}
 /// Retrieves a SecurityHealthAnalyticsCustomModule.
 ///
@@ -4379,7 +4713,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 
 pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4393,7 +4727,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 > {
     let builder =
         securitycenter_folders_security_health_analytics_settings_custom_modules_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     securitycenter_folders_security_health_analytics_settings_custom_modules_get_execute(builder)
 }
@@ -4509,6 +4843,17 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_security_health_analytics_settings_custom_modules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/securityHealthAnalyticsSettings/customModules
 /// Returns a list of all SecurityHealthAnalyticsCustomModules for the given parent. This includes resident modules defined at the scope of the parent, and inherited modules, inherited from CRM ancestors.
 ///
@@ -4521,9 +4866,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 
 pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSecurityHealthAnalyticsCustomModulesResponse>, ApiError>,
@@ -4534,7 +4877,10 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 > {
     let builder =
         securitycenter_folders_security_health_analytics_settings_custom_modules_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     securitycenter_folders_security_health_analytics_settings_custom_modules_list_execute(builder)
 }
@@ -4653,6 +4999,17 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_security_health_analytics_settings_custom_modules_list_descendant`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesListDescendantArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/securityHealthAnalyticsSettings/customModules:listDescendant
 /// Returns a list of all resident SecurityHealthAnalyticsCustomModules under the given CRM parent and all of the parent’s CRM descendants.
 ///
@@ -4665,9 +5022,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 
 pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_list_descendant(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesListDescendantArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4679,7 +5034,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_security_health_analytics_settings_custom_modules_list_descendant_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_folders_security_health_analytics_settings_custom_modules_list_descendant_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     securitycenter_folders_security_health_analytics_settings_custom_modules_list_descendant_execute(
         builder,
     )
@@ -4798,6 +5153,17 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_security_health_analytics_settings_custom_modules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule,
+}
+
 /// GET v1/folders/{foldersId}/securityHealthAnalyticsSettings/customModules/{customModulesId}
 /// Updates the SecurityHealthAnalyticsCustomModule under the given name based on the given update mask. Updating the enablement state is supported on both resident and inherited modules (though resident modules cannot have an enablement state of "inherited"). Updating the display name and custom config of a module is supported on resident modules only.
 ///
@@ -4810,9 +5176,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 
 pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule,
+    args: &SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4826,7 +5190,10 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 > {
     let builder =
         securitycenter_folders_security_health_analytics_settings_custom_modules_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     securitycenter_folders_security_health_analytics_settings_custom_modules_patch_execute(builder)
 }
@@ -4929,6 +5296,15 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_security_health_analytics_settings_custom_modules_simulate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesSimulateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SimulateSecurityHealthAnalyticsCustomModuleRequest,
+}
+
 /// GET v1/folders/{foldersId}/securityHealthAnalyticsSettings/customModules:simulate
 /// Simulates a given SecurityHealthAnalyticsCustomModule and Resource.
 ///
@@ -4941,8 +5317,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 
 pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_simulate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SimulateSecurityHealthAnalyticsCustomModuleRequest,
+    args: &SecuritycenterFoldersSecurityHealthAnalyticsSettingsCustomModulesSimulateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SimulateSecurityHealthAnalyticsCustomModuleResponse>, ApiError>,
@@ -4953,7 +5328,9 @@ pub fn securitycenter_folders_security_health_analytics_settings_custom_modules_
 > {
     let builder =
         securitycenter_folders_security_health_analytics_settings_custom_modules_simulate_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     securitycenter_folders_security_health_analytics_settings_custom_modules_simulate_execute(
         builder,
@@ -5054,6 +5431,13 @@ pub fn securitycenter_folders_security_health_analytics_settings_effective_custo
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_security_health_analytics_settings_effective_custom_modules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSecurityHealthAnalyticsSettingsEffectiveCustomModulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/securityHealthAnalyticsSettings/effectiveCustomModules/{effectiveCustomModulesId}
 /// Retrieves an EffectiveSecurityHealthAnalyticsCustomModule.
 ///
@@ -5066,7 +5450,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_effective_custo
 
 pub fn securitycenter_folders_security_health_analytics_settings_effective_custom_modules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterFoldersSecurityHealthAnalyticsSettingsEffectiveCustomModulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5080,7 +5464,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_effective_custo
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_security_health_analytics_settings_effective_custom_modules_get_builder(client, name)?;
+    let builder = securitycenter_folders_security_health_analytics_settings_effective_custom_modules_get_builder(client, &args.name)?;
     securitycenter_folders_security_health_analytics_settings_effective_custom_modules_get_execute(
         builder,
     )
@@ -5200,6 +5584,17 @@ pub fn securitycenter_folders_security_health_analytics_settings_effective_custo
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_security_health_analytics_settings_effective_custom_modules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSecurityHealthAnalyticsSettingsEffectiveCustomModulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/securityHealthAnalyticsSettings/effectiveCustomModules
 /// Returns a list of all EffectiveSecurityHealthAnalyticsCustomModules for the given parent. This includes resident modules defined at the scope of the parent, and inherited modules, inherited from CRM ancestors.
 ///
@@ -5212,9 +5607,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_effective_custo
 
 pub fn securitycenter_folders_security_health_analytics_settings_effective_custom_modules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterFoldersSecurityHealthAnalyticsSettingsEffectiveCustomModulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5226,7 +5619,7 @@ pub fn securitycenter_folders_security_health_analytics_settings_effective_custo
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_security_health_analytics_settings_effective_custom_modules_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_folders_security_health_analytics_settings_effective_custom_modules_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     securitycenter_folders_security_health_analytics_settings_effective_custom_modules_list_execute(
         builder,
     )
@@ -5340,6 +5733,17 @@ pub fn securitycenter_folders_sources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/sources
 /// Lists all sources belonging to an organization.
 ///
@@ -5352,16 +5756,19 @@ pub fn securitycenter_folders_sources_list_execute(
 
 pub fn securitycenter_folders_sources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterFoldersSourcesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSourcesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_sources_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_folders_sources_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     securitycenter_folders_sources_list_execute(builder)
 }
 
@@ -5460,6 +5867,15 @@ pub fn securitycenter_folders_sources_findings_group_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_sources_findings_group`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSourcesFindingsGroupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GroupFindingsRequest,
+}
+
 /// GET v1/folders/{foldersId}/sources/{sourcesId}/findings:group
 /// Filters an organization or source's findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
 ///
@@ -5472,15 +5888,15 @@ pub fn securitycenter_folders_sources_findings_group_execute(
 
 pub fn securitycenter_folders_sources_findings_group(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GroupFindingsRequest,
+    args: &SecuritycenterFoldersSourcesFindingsGroupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GroupFindingsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_sources_findings_group_builder(client, parent, body)?;
+    let builder =
+        securitycenter_folders_sources_findings_group_builder(client, &args.parent, &args.body)?;
     securitycenter_folders_sources_findings_group_execute(builder)
 }
 
@@ -5612,6 +6028,27 @@ pub fn securitycenter_folders_sources_findings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_sources_findings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSourcesFindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: compareDuration
+    pub compareDuration: Option<String>,
+    /// Query parameter: fieldMask
+    pub fieldMask: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readTime
+    pub readTime: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/sources/{sourcesId}/findings
 /// Lists an organization or source's findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
 ///
@@ -5624,14 +6061,7 @@ pub fn securitycenter_folders_sources_findings_list_execute(
 
 pub fn securitycenter_folders_sources_findings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    compareDuration: Option<&str>,
-    fieldMask: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readTime: Option<&str>,
+    args: &SecuritycenterFoldersSourcesFindingsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFindingsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5640,14 +6070,14 @@ pub fn securitycenter_folders_sources_findings_list(
 > {
     let builder = securitycenter_folders_sources_findings_list_builder(
         client,
-        parent,
-        compareDuration,
-        fieldMask,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        readTime,
+        &args.parent,
+        args.compareDuration.as_deref(),
+        args.fieldMask.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readTime.as_deref(),
     )?;
     securitycenter_folders_sources_findings_list_execute(builder)
 }
@@ -5757,6 +6187,17 @@ pub fn securitycenter_folders_sources_findings_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_sources_findings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSourcesFindingsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Finding,
+}
+
 /// GET v1/folders/{foldersId}/sources/{sourcesId}/findings/{findingsId}
 /// Creates or updates a finding. The corresponding source must exist for a finding creation to succeed.
 ///
@@ -5769,15 +6210,17 @@ pub fn securitycenter_folders_sources_findings_patch_execute(
 
 pub fn securitycenter_folders_sources_findings_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Finding,
+    args: &SecuritycenterFoldersSourcesFindingsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_folders_sources_findings_patch_builder(client, name, updateMask, body)?;
+    let builder = securitycenter_folders_sources_findings_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     securitycenter_folders_sources_findings_patch_execute(builder)
 }
 
@@ -5874,6 +6317,15 @@ pub fn securitycenter_folders_sources_findings_set_mute_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_sources_findings_set_mute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSourcesFindingsSetMuteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SetMuteRequest,
+}
+
 /// GET v1/folders/{foldersId}/sources/{sourcesId}/findings/{findingsId}:setMute
 /// Updates the mute state of a finding.
 ///
@@ -5886,13 +6338,13 @@ pub fn securitycenter_folders_sources_findings_set_mute_execute(
 
 pub fn securitycenter_folders_sources_findings_set_mute(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SetMuteRequest,
+    args: &SecuritycenterFoldersSourcesFindingsSetMuteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_sources_findings_set_mute_builder(client, name, body)?;
+    let builder =
+        securitycenter_folders_sources_findings_set_mute_builder(client, &args.name, &args.body)?;
     securitycenter_folders_sources_findings_set_mute_execute(builder)
 }
 
@@ -5989,6 +6441,15 @@ pub fn securitycenter_folders_sources_findings_set_state_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_sources_findings_set_state`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSourcesFindingsSetStateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SetFindingStateRequest,
+}
+
 /// GET v1/folders/{foldersId}/sources/{sourcesId}/findings/{findingsId}:setState
 /// Updates the state of a finding.
 ///
@@ -6001,13 +6462,13 @@ pub fn securitycenter_folders_sources_findings_set_state_execute(
 
 pub fn securitycenter_folders_sources_findings_set_state(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SetFindingStateRequest,
+    args: &SecuritycenterFoldersSourcesFindingsSetStateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_folders_sources_findings_set_state_builder(client, name, body)?;
+    let builder =
+        securitycenter_folders_sources_findings_set_state_builder(client, &args.name, &args.body)?;
     securitycenter_folders_sources_findings_set_state_execute(builder)
 }
 
@@ -6122,6 +6583,19 @@ pub fn securitycenter_folders_sources_findings_update_security_marks_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_sources_findings_update_security_marks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSourcesFindingsUpdateSecurityMarksArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: startTime
+    pub startTime: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SecurityMarks,
+}
+
 /// GET v1/folders/{foldersId}/sources/{sourcesId}/findings/{findingsId}/securityMarks
 /// Updates security marks.
 ///
@@ -6134,10 +6608,7 @@ pub fn securitycenter_folders_sources_findings_update_security_marks_execute(
 
 pub fn securitycenter_folders_sources_findings_update_security_marks(
     client: &SimpleHttpClient,
-    name: &str,
-    startTime: Option<&str>,
-    updateMask: Option<&str>,
-    body: &SecurityMarks,
+    args: &SecuritycenterFoldersSourcesFindingsUpdateSecurityMarksArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecurityMarks>, ApiError>, P = ApiPending>
         + Send
@@ -6145,7 +6616,11 @@ pub fn securitycenter_folders_sources_findings_update_security_marks(
     ApiError,
 > {
     let builder = securitycenter_folders_sources_findings_update_security_marks_builder(
-        client, name, startTime, updateMask, body,
+        client,
+        &args.name,
+        args.startTime.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_folders_sources_findings_update_security_marks_execute(builder)
 }
@@ -6259,6 +6734,17 @@ pub fn securitycenter_folders_sources_findings_external_systems_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_folders_sources_findings_external_systems_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterFoldersSourcesFindingsExternalSystemsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1ExternalSystem,
+}
+
 /// GET v1/folders/{foldersId}/sources/{sourcesId}/findings/{findingsId}/externalSystems/{externalSystemsId}
 /// Updates external system. This is for a given finding.
 ///
@@ -6271,9 +6757,7 @@ pub fn securitycenter_folders_sources_findings_external_systems_patch_execute(
 
 pub fn securitycenter_folders_sources_findings_external_systems_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1ExternalSystem,
+    args: &SecuritycenterFoldersSourcesFindingsExternalSystemsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1ExternalSystem>, ApiError>,
@@ -6283,7 +6767,10 @@ pub fn securitycenter_folders_sources_findings_external_systems_patch(
     ApiError,
 > {
     let builder = securitycenter_folders_sources_findings_external_systems_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_folders_sources_findings_external_systems_patch_execute(builder)
 }
@@ -6380,6 +6867,13 @@ pub fn securitycenter_organizations_get_organization_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_get_organization_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsGetOrganizationSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/organizationSettings
 /// Gets the settings for an organization.
 ///
@@ -6392,14 +6886,15 @@ pub fn securitycenter_organizations_get_organization_settings_execute(
 
 pub fn securitycenter_organizations_get_organization_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsGetOrganizationSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OrganizationSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_get_organization_settings_builder(client, name)?;
+    let builder =
+        securitycenter_organizations_get_organization_settings_builder(client, &args.name)?;
     securitycenter_organizations_get_organization_settings_execute(builder)
 }
 
@@ -6510,6 +7005,17 @@ pub fn securitycenter_organizations_update_organization_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_update_organization_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsUpdateOrganizationSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: OrganizationSettings,
+}
+
 /// GET v1/organizations/{organizationsId}/organizationSettings
 /// Updates an organization's settings.
 ///
@@ -6522,9 +7028,7 @@ pub fn securitycenter_organizations_update_organization_settings_execute(
 
 pub fn securitycenter_organizations_update_organization_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &OrganizationSettings,
+    args: &SecuritycenterOrganizationsUpdateOrganizationSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OrganizationSettings>, ApiError>, P = ApiPending>
         + Send
@@ -6532,7 +7036,10 @@ pub fn securitycenter_organizations_update_organization_settings(
     ApiError,
 > {
     let builder = securitycenter_organizations_update_organization_settings_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_organizations_update_organization_settings_execute(builder)
 }
@@ -6632,6 +7139,15 @@ pub fn securitycenter_organizations_assets_group_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_assets_group`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsAssetsGroupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GroupAssetsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/assets:group
 /// Filters an organization's assets and groups them by their specified properties.
 ///
@@ -6644,15 +7160,15 @@ pub fn securitycenter_organizations_assets_group_execute(
 
 pub fn securitycenter_organizations_assets_group(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GroupAssetsRequest,
+    args: &SecuritycenterOrganizationsAssetsGroupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GroupAssetsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_assets_group_builder(client, parent, body)?;
+    let builder =
+        securitycenter_organizations_assets_group_builder(client, &args.parent, &args.body)?;
     securitycenter_organizations_assets_group_execute(builder)
 }
 
@@ -6784,6 +7300,27 @@ pub fn securitycenter_organizations_assets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_assets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsAssetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: compareDuration
+    pub compareDuration: Option<String>,
+    /// Query parameter: fieldMask
+    pub fieldMask: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readTime
+    pub readTime: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/assets
 /// Lists an organization's assets.
 ///
@@ -6796,14 +7333,7 @@ pub fn securitycenter_organizations_assets_list_execute(
 
 pub fn securitycenter_organizations_assets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    compareDuration: Option<&str>,
-    fieldMask: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readTime: Option<&str>,
+    args: &SecuritycenterOrganizationsAssetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAssetsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6812,14 +7342,14 @@ pub fn securitycenter_organizations_assets_list(
 > {
     let builder = securitycenter_organizations_assets_list_builder(
         client,
-        parent,
-        compareDuration,
-        fieldMask,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        readTime,
+        &args.parent,
+        args.compareDuration.as_deref(),
+        args.fieldMask.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readTime.as_deref(),
     )?;
     securitycenter_organizations_assets_list_execute(builder)
 }
@@ -6917,6 +7447,15 @@ pub fn securitycenter_organizations_assets_run_discovery_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_assets_run_discovery`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsAssetsRunDiscoveryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: RunAssetDiscoveryRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/assets:runDiscovery
 /// Runs asset discovery. The discovery is tracked with a long-running operation. This API can only be called with limited frequency for an organization. If it is called too frequently the caller will receive a TOO_MANY_REQUESTS error.
 ///
@@ -6929,13 +7468,16 @@ pub fn securitycenter_organizations_assets_run_discovery_execute(
 
 pub fn securitycenter_organizations_assets_run_discovery(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &RunAssetDiscoveryRequest,
+    args: &SecuritycenterOrganizationsAssetsRunDiscoveryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_assets_run_discovery_builder(client, parent, body)?;
+    let builder = securitycenter_organizations_assets_run_discovery_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     securitycenter_organizations_assets_run_discovery_execute(builder)
 }
 
@@ -7050,6 +7592,19 @@ pub fn securitycenter_organizations_assets_update_security_marks_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_assets_update_security_marks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsAssetsUpdateSecurityMarksArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: startTime
+    pub startTime: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SecurityMarks,
+}
+
 /// GET v1/organizations/{organizationsId}/assets/{assetsId}/securityMarks
 /// Updates security marks.
 ///
@@ -7062,10 +7617,7 @@ pub fn securitycenter_organizations_assets_update_security_marks_execute(
 
 pub fn securitycenter_organizations_assets_update_security_marks(
     client: &SimpleHttpClient,
-    name: &str,
-    startTime: Option<&str>,
-    updateMask: Option<&str>,
-    body: &SecurityMarks,
+    args: &SecuritycenterOrganizationsAssetsUpdateSecurityMarksArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecurityMarks>, ApiError>, P = ApiPending>
         + Send
@@ -7073,7 +7625,11 @@ pub fn securitycenter_organizations_assets_update_security_marks(
     ApiError,
 > {
     let builder = securitycenter_organizations_assets_update_security_marks_builder(
-        client, name, startTime, updateMask, body,
+        client,
+        &args.name,
+        args.startTime.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_organizations_assets_update_security_marks_execute(builder)
 }
@@ -7190,6 +7746,19 @@ pub fn securitycenter_organizations_attack_paths_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_attack_paths_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsAttackPathsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/attackPaths
 /// Lists the attack paths for a set of simulation results or valued resources and filter.
 ///
@@ -7202,10 +7771,7 @@ pub fn securitycenter_organizations_attack_paths_list_execute(
 
 pub fn securitycenter_organizations_attack_paths_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsAttackPathsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAttackPathsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7213,7 +7779,11 @@ pub fn securitycenter_organizations_attack_paths_list(
     ApiError,
 > {
     let builder = securitycenter_organizations_attack_paths_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securitycenter_organizations_attack_paths_list_execute(builder)
 }
@@ -7327,6 +7897,17 @@ pub fn securitycenter_organizations_big_query_exports_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_big_query_exports_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsBigQueryExportsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: bigQueryExportId
+    pub bigQueryExportId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1BigQueryExport,
+}
+
 /// GET v1/organizations/{organizationsId}/bigQueryExports
 /// Creates a BigQuery export.
 ///
@@ -7339,9 +7920,7 @@ pub fn securitycenter_organizations_big_query_exports_create_execute(
 
 pub fn securitycenter_organizations_big_query_exports_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    bigQueryExportId: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1BigQueryExport,
+    args: &SecuritycenterOrganizationsBigQueryExportsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1BigQueryExport>, ApiError>,
@@ -7352,9 +7931,9 @@ pub fn securitycenter_organizations_big_query_exports_create(
 > {
     let builder = securitycenter_organizations_big_query_exports_create_builder(
         client,
-        parent,
-        bigQueryExportId,
-        body,
+        &args.parent,
+        args.bigQueryExportId.as_deref(),
+        &args.body,
     )?;
     securitycenter_organizations_big_query_exports_create_execute(builder)
 }
@@ -7449,6 +8028,13 @@ pub fn securitycenter_organizations_big_query_exports_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_big_query_exports_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsBigQueryExportsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/bigQueryExports/{bigQueryExportsId}
 /// Deletes an existing BigQuery export.
 ///
@@ -7461,12 +8047,13 @@ pub fn securitycenter_organizations_big_query_exports_delete_execute(
 
 pub fn securitycenter_organizations_big_query_exports_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsBigQueryExportsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_big_query_exports_delete_builder(client, name)?;
+    let builder =
+        securitycenter_organizations_big_query_exports_delete_builder(client, &args.name)?;
     securitycenter_organizations_big_query_exports_delete_execute(builder)
 }
 
@@ -7564,6 +8151,13 @@ pub fn securitycenter_organizations_big_query_exports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_big_query_exports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsBigQueryExportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/bigQueryExports/{bigQueryExportsId}
 /// Gets a BigQuery export.
 ///
@@ -7576,7 +8170,7 @@ pub fn securitycenter_organizations_big_query_exports_get_execute(
 
 pub fn securitycenter_organizations_big_query_exports_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsBigQueryExportsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1BigQueryExport>, ApiError>,
@@ -7585,7 +8179,7 @@ pub fn securitycenter_organizations_big_query_exports_get(
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_big_query_exports_get_builder(client, name)?;
+    let builder = securitycenter_organizations_big_query_exports_get_builder(client, &args.name)?;
     securitycenter_organizations_big_query_exports_get_execute(builder)
 }
 
@@ -7699,6 +8293,17 @@ pub fn securitycenter_organizations_big_query_exports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_big_query_exports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsBigQueryExportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/bigQueryExports
 /// Lists BigQuery exports. Note that when requesting BigQuery exports at a given level all exports under that level are also returned e.g. if requesting BigQuery exports under a folder, then all BigQuery exports immediately under the folder plus the ones created under the projects within the folder are returned.
 ///
@@ -7711,9 +8316,7 @@ pub fn securitycenter_organizations_big_query_exports_list_execute(
 
 pub fn securitycenter_organizations_big_query_exports_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsBigQueryExportsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBigQueryExportsResponse>, ApiError>,
@@ -7723,7 +8326,10 @@ pub fn securitycenter_organizations_big_query_exports_list(
     ApiError,
 > {
     let builder = securitycenter_organizations_big_query_exports_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securitycenter_organizations_big_query_exports_list_execute(builder)
 }
@@ -7837,6 +8443,17 @@ pub fn securitycenter_organizations_big_query_exports_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_big_query_exports_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsBigQueryExportsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1BigQueryExport,
+}
+
 /// GET v1/organizations/{organizationsId}/bigQueryExports/{bigQueryExportsId}
 /// Updates a BigQuery export.
 ///
@@ -7849,9 +8466,7 @@ pub fn securitycenter_organizations_big_query_exports_patch_execute(
 
 pub fn securitycenter_organizations_big_query_exports_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1BigQueryExport,
+    args: &SecuritycenterOrganizationsBigQueryExportsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1BigQueryExport>, ApiError>,
@@ -7861,7 +8476,10 @@ pub fn securitycenter_organizations_big_query_exports_patch(
     ApiError,
 > {
     let builder = securitycenter_organizations_big_query_exports_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_organizations_big_query_exports_patch_execute(builder)
 }
@@ -7964,6 +8582,15 @@ pub fn securitycenter_organizations_event_threat_detection_settings_validate_cus
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_event_threat_detection_settings_validate_custom_module`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsEventThreatDetectionSettingsValidateCustomModuleArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ValidateEventThreatDetectionCustomModuleRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/eventThreatDetectionSettings:validateCustomModule
 /// Validates the given Event Threat Detection custom module.
 ///
@@ -7976,8 +8603,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_validate_cus
 
 pub fn securitycenter_organizations_event_threat_detection_settings_validate_custom_module(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ValidateEventThreatDetectionCustomModuleRequest,
+    args: &SecuritycenterOrganizationsEventThreatDetectionSettingsValidateCustomModuleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ValidateEventThreatDetectionCustomModuleResponse>, ApiError>,
@@ -7986,7 +8612,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_validate_cus
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_event_threat_detection_settings_validate_custom_module_builder(client, parent, body)?;
+    let builder = securitycenter_organizations_event_threat_detection_settings_validate_custom_module_builder(client, &args.parent, &args.body)?;
     securitycenter_organizations_event_threat_detection_settings_validate_custom_module_execute(
         builder,
     )
@@ -8089,6 +8715,15 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_event_threat_detection_settings_custom_modules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsEventThreatDetectionSettingsCustomModulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: EventThreatDetectionCustomModule,
+}
+
 /// GET v1/organizations/{organizationsId}/eventThreatDetectionSettings/customModules
 /// Creates a resident Event Threat Detection custom module at the scope of the given Resource Manager parent, and also creates inherited custom modules for all descendants of the given parent. These modules are enabled by default.
 ///
@@ -8101,8 +8736,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 
 pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &EventThreatDetectionCustomModule,
+    args: &SecuritycenterOrganizationsEventThreatDetectionSettingsCustomModulesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EventThreatDetectionCustomModule>, ApiError>,
@@ -8113,7 +8747,9 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 > {
     let builder =
         securitycenter_organizations_event_threat_detection_settings_custom_modules_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     securitycenter_organizations_event_threat_detection_settings_custom_modules_create_execute(
         builder,
@@ -8210,6 +8846,13 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_event_threat_detection_settings_custom_modules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsEventThreatDetectionSettingsCustomModulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/eventThreatDetectionSettings/customModules/{customModulesId}
 /// Deletes the specified Event Threat Detection custom module and all of its descendants in the Resource Manager hierarchy. This method is only supported for resident custom modules.
 ///
@@ -8222,14 +8865,14 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 
 pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsEventThreatDetectionSettingsCustomModulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         securitycenter_organizations_event_threat_detection_settings_custom_modules_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     securitycenter_organizations_event_threat_detection_settings_custom_modules_delete_execute(
         builder,
@@ -8330,6 +8973,13 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_event_threat_detection_settings_custom_modules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsEventThreatDetectionSettingsCustomModulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/eventThreatDetectionSettings/customModules/{customModulesId}
 /// Gets an Event Threat Detection custom module.
 ///
@@ -8342,7 +8992,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 
 pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsEventThreatDetectionSettingsCustomModulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EventThreatDetectionCustomModule>, ApiError>,
@@ -8353,7 +9003,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 > {
     let builder =
         securitycenter_organizations_event_threat_detection_settings_custom_modules_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     securitycenter_organizations_event_threat_detection_settings_custom_modules_get_execute(builder)
 }
@@ -8469,6 +9119,17 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_event_threat_detection_settings_custom_modules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsEventThreatDetectionSettingsCustomModulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/eventThreatDetectionSettings/customModules
 /// Lists all Event Threat Detection custom modules for the given Resource Manager parent. This includes resident modules defined at the scope of the parent along with modules inherited from ancestors.
 ///
@@ -8481,9 +9142,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 
 pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsEventThreatDetectionSettingsCustomModulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListEventThreatDetectionCustomModulesResponse>, ApiError>,
@@ -8494,7 +9153,10 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 > {
     let builder =
         securitycenter_organizations_event_threat_detection_settings_custom_modules_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     securitycenter_organizations_event_threat_detection_settings_custom_modules_list_execute(
         builder,
@@ -8615,6 +9277,17 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_event_threat_detection_settings_custom_modules_list_descendant`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsEventThreatDetectionSettingsCustomModulesListDescendantArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/eventThreatDetectionSettings/customModules:listDescendant
 /// Lists all resident Event Threat Detection custom modules under the given Resource Manager parent and its descendants.
 ///
@@ -8627,9 +9300,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 
 pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_list_descendant(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsEventThreatDetectionSettingsCustomModulesListDescendantArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -8641,7 +9312,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_event_threat_detection_settings_custom_modules_list_descendant_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_organizations_event_threat_detection_settings_custom_modules_list_descendant_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     securitycenter_organizations_event_threat_detection_settings_custom_modules_list_descendant_execute(builder)
 }
 
@@ -8754,6 +9425,17 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_event_threat_detection_settings_custom_modules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsEventThreatDetectionSettingsCustomModulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: EventThreatDetectionCustomModule,
+}
+
 /// GET v1/organizations/{organizationsId}/eventThreatDetectionSettings/customModules/{customModulesId}
 /// Updates the Event Threat Detection custom module with the given name based on the given update mask. Updating the enablement state is supported for both resident and inherited modules (though resident modules cannot have an enablement state of "inherited"). Updating the display name or configuration of a module is supported for resident modules only. The type of a module cannot be changed.
 ///
@@ -8766,9 +9448,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 
 pub fn securitycenter_organizations_event_threat_detection_settings_custom_modules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &EventThreatDetectionCustomModule,
+    args: &SecuritycenterOrganizationsEventThreatDetectionSettingsCustomModulesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EventThreatDetectionCustomModule>, ApiError>,
@@ -8779,7 +9459,10 @@ pub fn securitycenter_organizations_event_threat_detection_settings_custom_modul
 > {
     let builder =
         securitycenter_organizations_event_threat_detection_settings_custom_modules_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     securitycenter_organizations_event_threat_detection_settings_custom_modules_patch_execute(
         builder,
@@ -8880,6 +9563,13 @@ pub fn securitycenter_organizations_event_threat_detection_settings_effective_cu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsEventThreatDetectionSettingsEffectiveCustomModulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/eventThreatDetectionSettings/effectiveCustomModules/{effectiveCustomModulesId}
 /// Gets an effective Event Threat Detection custom module at the given level.
 ///
@@ -8892,7 +9582,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_effective_cu
 
 pub fn securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsEventThreatDetectionSettingsEffectiveCustomModulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EffectiveEventThreatDetectionCustomModule>, ApiError>,
@@ -8901,7 +9591,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_effective_cu
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_get_builder(client, name)?;
+    let builder = securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_get_builder(client, &args.name)?;
     securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_get_execute(builder)
 }
 
@@ -9019,6 +9709,17 @@ pub fn securitycenter_organizations_event_threat_detection_settings_effective_cu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsEventThreatDetectionSettingsEffectiveCustomModulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/eventThreatDetectionSettings/effectiveCustomModules
 /// Lists all effective Event Threat Detection custom modules for the given parent. This includes resident modules defined at the scope of the parent along with modules inherited from its ancestors.
 ///
@@ -9031,9 +9732,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_effective_cu
 
 pub fn securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsEventThreatDetectionSettingsEffectiveCustomModulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -9045,7 +9744,7 @@ pub fn securitycenter_organizations_event_threat_detection_settings_effective_cu
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     securitycenter_organizations_event_threat_detection_settings_effective_custom_modules_list_execute(builder)
 }
 
@@ -9142,6 +9841,15 @@ pub fn securitycenter_organizations_findings_bulk_mute_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_findings_bulk_mute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsFindingsBulkMuteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BulkMuteFindingsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/findings:bulkMute
 /// Kicks off an LRO to bulk mute findings for a parent based on a filter. The parent can be either an organization, folder or project. The findings matched by the filter will be muted after the LRO is done.
 ///
@@ -9154,13 +9862,13 @@ pub fn securitycenter_organizations_findings_bulk_mute_execute(
 
 pub fn securitycenter_organizations_findings_bulk_mute(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BulkMuteFindingsRequest,
+    args: &SecuritycenterOrganizationsFindingsBulkMuteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_findings_bulk_mute_builder(client, parent, body)?;
+    let builder =
+        securitycenter_organizations_findings_bulk_mute_builder(client, &args.parent, &args.body)?;
     securitycenter_organizations_findings_bulk_mute_execute(builder)
 }
 
@@ -9254,6 +9962,13 @@ pub fn securitycenter_organizations_locations_mute_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_locations_mute_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsLocationsMuteConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/muteConfigs/{muteConfigsId}
 /// Deletes an existing mute config.
 ///
@@ -9266,12 +9981,13 @@ pub fn securitycenter_organizations_locations_mute_configs_delete_execute(
 
 pub fn securitycenter_organizations_locations_mute_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsLocationsMuteConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_locations_mute_configs_delete_builder(client, name)?;
+    let builder =
+        securitycenter_organizations_locations_mute_configs_delete_builder(client, &args.name)?;
     securitycenter_organizations_locations_mute_configs_delete_execute(builder)
 }
 
@@ -9369,6 +10085,13 @@ pub fn securitycenter_organizations_locations_mute_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_locations_mute_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsLocationsMuteConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/muteConfigs/{muteConfigsId}
 /// Gets a mute config.
 ///
@@ -9381,7 +10104,7 @@ pub fn securitycenter_organizations_locations_mute_configs_get_execute(
 
 pub fn securitycenter_organizations_locations_mute_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsLocationsMuteConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1MuteConfig>, ApiError>,
@@ -9390,7 +10113,8 @@ pub fn securitycenter_organizations_locations_mute_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_locations_mute_configs_get_builder(client, name)?;
+    let builder =
+        securitycenter_organizations_locations_mute_configs_get_builder(client, &args.name)?;
     securitycenter_organizations_locations_mute_configs_get_execute(builder)
 }
 
@@ -9503,6 +10227,17 @@ pub fn securitycenter_organizations_locations_mute_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_locations_mute_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsLocationsMuteConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1MuteConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/muteConfigs/{muteConfigsId}
 /// Updates a mute config.
 ///
@@ -9515,9 +10250,7 @@ pub fn securitycenter_organizations_locations_mute_configs_patch_execute(
 
 pub fn securitycenter_organizations_locations_mute_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1MuteConfig,
+    args: &SecuritycenterOrganizationsLocationsMuteConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1MuteConfig>, ApiError>,
@@ -9527,7 +10260,10 @@ pub fn securitycenter_organizations_locations_mute_configs_patch(
     ApiError,
 > {
     let builder = securitycenter_organizations_locations_mute_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_organizations_locations_mute_configs_patch_execute(builder)
 }
@@ -9641,6 +10377,17 @@ pub fn securitycenter_organizations_mute_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_mute_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsMuteConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: muteConfigId
+    pub muteConfigId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1MuteConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/muteConfigs
 /// Creates a mute config.
 ///
@@ -9653,9 +10400,7 @@ pub fn securitycenter_organizations_mute_configs_create_execute(
 
 pub fn securitycenter_organizations_mute_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    muteConfigId: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1MuteConfig,
+    args: &SecuritycenterOrganizationsMuteConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1MuteConfig>, ApiError>,
@@ -9666,9 +10411,9 @@ pub fn securitycenter_organizations_mute_configs_create(
 > {
     let builder = securitycenter_organizations_mute_configs_create_builder(
         client,
-        parent,
-        muteConfigId,
-        body,
+        &args.parent,
+        args.muteConfigId.as_deref(),
+        &args.body,
     )?;
     securitycenter_organizations_mute_configs_create_execute(builder)
 }
@@ -9763,6 +10508,13 @@ pub fn securitycenter_organizations_mute_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_mute_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsMuteConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/muteConfigs/{muteConfigsId}
 /// Deletes an existing mute config.
 ///
@@ -9775,12 +10527,12 @@ pub fn securitycenter_organizations_mute_configs_delete_execute(
 
 pub fn securitycenter_organizations_mute_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsMuteConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_mute_configs_delete_builder(client, name)?;
+    let builder = securitycenter_organizations_mute_configs_delete_builder(client, &args.name)?;
     securitycenter_organizations_mute_configs_delete_execute(builder)
 }
 
@@ -9878,6 +10630,13 @@ pub fn securitycenter_organizations_mute_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_mute_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsMuteConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/muteConfigs/{muteConfigsId}
 /// Gets a mute config.
 ///
@@ -9890,7 +10649,7 @@ pub fn securitycenter_organizations_mute_configs_get_execute(
 
 pub fn securitycenter_organizations_mute_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsMuteConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1MuteConfig>, ApiError>,
@@ -9899,7 +10658,7 @@ pub fn securitycenter_organizations_mute_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_mute_configs_get_builder(client, name)?;
+    let builder = securitycenter_organizations_mute_configs_get_builder(client, &args.name)?;
     securitycenter_organizations_mute_configs_get_execute(builder)
 }
 
@@ -10011,6 +10770,17 @@ pub fn securitycenter_organizations_mute_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_mute_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsMuteConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/muteConfigs
 /// Lists mute configs.
 ///
@@ -10023,9 +10793,7 @@ pub fn securitycenter_organizations_mute_configs_list_execute(
 
 pub fn securitycenter_organizations_mute_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsMuteConfigsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListMuteConfigsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -10033,7 +10801,10 @@ pub fn securitycenter_organizations_mute_configs_list(
     ApiError,
 > {
     let builder = securitycenter_organizations_mute_configs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securitycenter_organizations_mute_configs_list_execute(builder)
 }
@@ -10147,6 +10918,17 @@ pub fn securitycenter_organizations_mute_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_mute_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsMuteConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1MuteConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/muteConfigs/{muteConfigsId}
 /// Updates a mute config.
 ///
@@ -10159,9 +10941,7 @@ pub fn securitycenter_organizations_mute_configs_patch_execute(
 
 pub fn securitycenter_organizations_mute_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1MuteConfig,
+    args: &SecuritycenterOrganizationsMuteConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1MuteConfig>, ApiError>,
@@ -10170,8 +10950,12 @@ pub fn securitycenter_organizations_mute_configs_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_organizations_mute_configs_patch_builder(client, name, updateMask, body)?;
+    let builder = securitycenter_organizations_mute_configs_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     securitycenter_organizations_mute_configs_patch_execute(builder)
 }
 
@@ -10282,6 +11066,17 @@ pub fn securitycenter_organizations_notification_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_notification_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsNotificationConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: configId
+    pub configId: Option<String>,
+    /// Request body.
+    pub body: NotificationConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/notificationConfigs
 /// Creates a notification config.
 ///
@@ -10294,9 +11089,7 @@ pub fn securitycenter_organizations_notification_configs_create_execute(
 
 pub fn securitycenter_organizations_notification_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    configId: Option<&str>,
-    body: &NotificationConfig,
+    args: &SecuritycenterOrganizationsNotificationConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationConfig>, ApiError>, P = ApiPending>
         + Send
@@ -10304,7 +11097,10 @@ pub fn securitycenter_organizations_notification_configs_create(
     ApiError,
 > {
     let builder = securitycenter_organizations_notification_configs_create_builder(
-        client, parent, configId, body,
+        client,
+        &args.parent,
+        args.configId.as_deref(),
+        &args.body,
     )?;
     securitycenter_organizations_notification_configs_create_execute(builder)
 }
@@ -10399,6 +11195,13 @@ pub fn securitycenter_organizations_notification_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_notification_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsNotificationConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/notificationConfigs/{notificationConfigsId}
 /// Deletes a notification config.
 ///
@@ -10411,12 +11214,13 @@ pub fn securitycenter_organizations_notification_configs_delete_execute(
 
 pub fn securitycenter_organizations_notification_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsNotificationConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_notification_configs_delete_builder(client, name)?;
+    let builder =
+        securitycenter_organizations_notification_configs_delete_builder(client, &args.name)?;
     securitycenter_organizations_notification_configs_delete_execute(builder)
 }
 
@@ -10512,6 +11316,13 @@ pub fn securitycenter_organizations_notification_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_notification_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsNotificationConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/notificationConfigs/{notificationConfigsId}
 /// Gets a notification config.
 ///
@@ -10524,14 +11335,15 @@ pub fn securitycenter_organizations_notification_configs_get_execute(
 
 pub fn securitycenter_organizations_notification_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsNotificationConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_notification_configs_get_builder(client, name)?;
+    let builder =
+        securitycenter_organizations_notification_configs_get_builder(client, &args.name)?;
     securitycenter_organizations_notification_configs_get_execute(builder)
 }
 
@@ -10645,6 +11457,17 @@ pub fn securitycenter_organizations_notification_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_notification_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsNotificationConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/notificationConfigs
 /// Lists notification configs.
 ///
@@ -10657,9 +11480,7 @@ pub fn securitycenter_organizations_notification_configs_list_execute(
 
 pub fn securitycenter_organizations_notification_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsNotificationConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNotificationConfigsResponse>, ApiError>,
@@ -10669,7 +11490,10 @@ pub fn securitycenter_organizations_notification_configs_list(
     ApiError,
 > {
     let builder = securitycenter_organizations_notification_configs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securitycenter_organizations_notification_configs_list_execute(builder)
 }
@@ -10781,6 +11605,17 @@ pub fn securitycenter_organizations_notification_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_notification_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsNotificationConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: NotificationConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/notificationConfigs/{notificationConfigsId}
 /// Updates a notification config. The following update fields are allowed: description, pubsub_topic, streaming_config.filter
 ///
@@ -10793,9 +11628,7 @@ pub fn securitycenter_organizations_notification_configs_patch_execute(
 
 pub fn securitycenter_organizations_notification_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &NotificationConfig,
+    args: &SecuritycenterOrganizationsNotificationConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationConfig>, ApiError>, P = ApiPending>
         + Send
@@ -10803,7 +11636,10 @@ pub fn securitycenter_organizations_notification_configs_patch(
     ApiError,
 > {
     let builder = securitycenter_organizations_notification_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_organizations_notification_configs_patch_execute(builder)
 }
@@ -10898,6 +11734,13 @@ pub fn securitycenter_organizations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -10910,12 +11753,12 @@ pub fn securitycenter_organizations_operations_cancel_execute(
 
 pub fn securitycenter_organizations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_operations_cancel_builder(client, name)?;
+    let builder = securitycenter_organizations_operations_cancel_builder(client, &args.name)?;
     securitycenter_organizations_operations_cancel_execute(builder)
 }
 
@@ -11009,6 +11852,13 @@ pub fn securitycenter_organizations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -11021,12 +11871,12 @@ pub fn securitycenter_organizations_operations_delete_execute(
 
 pub fn securitycenter_organizations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_operations_delete_builder(client, name)?;
+    let builder = securitycenter_organizations_operations_delete_builder(client, &args.name)?;
     securitycenter_organizations_operations_delete_execute(builder)
 }
 
@@ -11120,6 +11970,13 @@ pub fn securitycenter_organizations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -11132,12 +11989,12 @@ pub fn securitycenter_organizations_operations_get_execute(
 
 pub fn securitycenter_organizations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_operations_get_builder(client, name)?;
+    let builder = securitycenter_organizations_operations_get_builder(client, &args.name)?;
     securitycenter_organizations_operations_get_execute(builder)
 }
 
@@ -11257,6 +12114,21 @@ pub fn securitycenter_organizations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -11269,11 +12141,7 @@ pub fn securitycenter_organizations_operations_list_execute(
 
 pub fn securitycenter_organizations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &SecuritycenterOrganizationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -11282,11 +12150,11 @@ pub fn securitycenter_organizations_operations_list(
 > {
     let builder = securitycenter_organizations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     securitycenter_organizations_operations_list_execute(builder)
 }
@@ -11389,6 +12257,15 @@ pub fn securitycenter_organizations_resource_value_configs_batch_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_resource_value_configs_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsResourceValueConfigsBatchCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchCreateResourceValueConfigsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/resourceValueConfigs:batchCreate
 /// Creates a ResourceValueConfig for an organization. Maps user's tags to difference resource values for use by the attack path simulation.
 ///
@@ -11401,8 +12278,7 @@ pub fn securitycenter_organizations_resource_value_configs_batch_create_execute(
 
 pub fn securitycenter_organizations_resource_value_configs_batch_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchCreateResourceValueConfigsRequest,
+    args: &SecuritycenterOrganizationsResourceValueConfigsBatchCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchCreateResourceValueConfigsResponse>, ApiError>,
@@ -11412,7 +12288,9 @@ pub fn securitycenter_organizations_resource_value_configs_batch_create(
     ApiError,
 > {
     let builder = securitycenter_organizations_resource_value_configs_batch_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     securitycenter_organizations_resource_value_configs_batch_create_execute(builder)
 }
@@ -11507,6 +12385,13 @@ pub fn securitycenter_organizations_resource_value_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_resource_value_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsResourceValueConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/resourceValueConfigs/{resourceValueConfigsId}
 /// Deletes a ResourceValueConfig.
 ///
@@ -11519,12 +12404,13 @@ pub fn securitycenter_organizations_resource_value_configs_delete_execute(
 
 pub fn securitycenter_organizations_resource_value_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsResourceValueConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_resource_value_configs_delete_builder(client, name)?;
+    let builder =
+        securitycenter_organizations_resource_value_configs_delete_builder(client, &args.name)?;
     securitycenter_organizations_resource_value_configs_delete_execute(builder)
 }
 
@@ -11623,6 +12509,13 @@ pub fn securitycenter_organizations_resource_value_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_resource_value_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsResourceValueConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/resourceValueConfigs/{resourceValueConfigsId}
 /// Gets a ResourceValueConfig.
 ///
@@ -11635,7 +12528,7 @@ pub fn securitycenter_organizations_resource_value_configs_get_execute(
 
 pub fn securitycenter_organizations_resource_value_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsResourceValueConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1ResourceValueConfig>, ApiError>,
@@ -11644,7 +12537,8 @@ pub fn securitycenter_organizations_resource_value_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_resource_value_configs_get_builder(client, name)?;
+    let builder =
+        securitycenter_organizations_resource_value_configs_get_builder(client, &args.name)?;
     securitycenter_organizations_resource_value_configs_get_execute(builder)
 }
 
@@ -11758,6 +12652,17 @@ pub fn securitycenter_organizations_resource_value_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_resource_value_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsResourceValueConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/resourceValueConfigs
 /// Lists all ResourceValueConfigs.
 ///
@@ -11770,9 +12675,7 @@ pub fn securitycenter_organizations_resource_value_configs_list_execute(
 
 pub fn securitycenter_organizations_resource_value_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsResourceValueConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListResourceValueConfigsResponse>, ApiError>,
@@ -11782,7 +12685,10 @@ pub fn securitycenter_organizations_resource_value_configs_list(
     ApiError,
 > {
     let builder = securitycenter_organizations_resource_value_configs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securitycenter_organizations_resource_value_configs_list_execute(builder)
 }
@@ -11897,6 +12803,17 @@ pub fn securitycenter_organizations_resource_value_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_resource_value_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsResourceValueConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1ResourceValueConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/resourceValueConfigs/{resourceValueConfigsId}
 /// Updates an existing ResourceValueConfigs with new rules.
 ///
@@ -11909,9 +12826,7 @@ pub fn securitycenter_organizations_resource_value_configs_patch_execute(
 
 pub fn securitycenter_organizations_resource_value_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1ResourceValueConfig,
+    args: &SecuritycenterOrganizationsResourceValueConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1ResourceValueConfig>, ApiError>,
@@ -11921,7 +12836,10 @@ pub fn securitycenter_organizations_resource_value_configs_patch(
     ApiError,
 > {
     let builder = securitycenter_organizations_resource_value_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_organizations_resource_value_configs_patch_execute(builder)
 }
@@ -12027,6 +12945,15 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_security_health_analytics_settings_custom_modules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule,
+}
+
 /// GET v1/organizations/{organizationsId}/securityHealthAnalyticsSettings/customModules
 /// Creates a resident SecurityHealthAnalyticsCustomModule at the scope of the given CRM parent, and also creates inherited SecurityHealthAnalyticsCustomModules for all CRM descendants of the given parent. These modules are enabled by default.
 ///
@@ -12039,8 +12966,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 
 pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule,
+    args: &SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModulesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -12052,7 +12978,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_create_builder(client, parent, body)?;
+    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_create_builder(client, &args.parent, &args.body)?;
     securitycenter_organizations_security_health_analytics_settings_custom_modules_create_execute(
         builder,
     )
@@ -12148,6 +13074,13 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_security_health_analytics_settings_custom_modules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/securityHealthAnalyticsSettings/customModules/{customModulesId}
 /// Deletes the specified SecurityHealthAnalyticsCustomModule and all of its descendants in the CRM hierarchy. This method is only supported for resident custom modules.
 ///
@@ -12160,12 +13093,12 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 
 pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_delete_builder(client, name)?;
+    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_delete_builder(client, &args.name)?;
     securitycenter_organizations_security_health_analytics_settings_custom_modules_delete_execute(
         builder,
     )
@@ -12269,6 +13202,13 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_security_health_analytics_settings_custom_modules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/securityHealthAnalyticsSettings/customModules/{customModulesId}
 /// Retrieves a SecurityHealthAnalyticsCustomModule.
 ///
@@ -12281,7 +13221,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 
 pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -12295,7 +13235,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 > {
     let builder =
         securitycenter_organizations_security_health_analytics_settings_custom_modules_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     securitycenter_organizations_security_health_analytics_settings_custom_modules_get_execute(
         builder,
@@ -12413,6 +13353,17 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_security_health_analytics_settings_custom_modules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/securityHealthAnalyticsSettings/customModules
 /// Returns a list of all SecurityHealthAnalyticsCustomModules for the given parent. This includes resident modules defined at the scope of the parent, and inherited modules, inherited from CRM ancestors.
 ///
@@ -12425,9 +13376,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 
 pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSecurityHealthAnalyticsCustomModulesResponse>, ApiError>,
@@ -12436,7 +13385,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     securitycenter_organizations_security_health_analytics_settings_custom_modules_list_execute(
         builder,
     )
@@ -12556,6 +13505,18 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_security_health_analytics_settings_custom_modules_list_descendant`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModulesListDescendantArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/securityHealthAnalyticsSettings/customModules:listDescendant
 /// Returns a list of all resident SecurityHealthAnalyticsCustomModules under the given CRM parent and all of the parent’s CRM descendants.
 ///
@@ -12568,9 +13529,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 
 pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_list_descendant(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModulesListDescendantArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -12582,7 +13541,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_list_descendant_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_list_descendant_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     securitycenter_organizations_security_health_analytics_settings_custom_modules_list_descendant_execute(builder)
 }
 
@@ -12699,6 +13658,17 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_security_health_analytics_settings_custom_modules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule,
+}
+
 /// GET v1/organizations/{organizationsId}/securityHealthAnalyticsSettings/customModules/{customModulesId}
 /// Updates the SecurityHealthAnalyticsCustomModule under the given name based on the given update mask. Updating the enablement state is supported on both resident and inherited modules (though resident modules cannot have an enablement state of "inherited"). Updating the display name and custom config of a module is supported on resident modules only.
 ///
@@ -12711,9 +13681,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 
 pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule,
+    args: &SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModulesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -12725,7 +13693,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_patch_builder(client, name, updateMask, body)?;
+    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_patch_builder(client, &args.name, args.updateMask.as_deref(), &args.body)?;
     securitycenter_organizations_security_health_analytics_settings_custom_modules_patch_execute(
         builder,
     )
@@ -12829,6 +13797,15 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_security_health_analytics_settings_custom_modules_simulate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModulesSimulateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SimulateSecurityHealthAnalyticsCustomModuleRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/securityHealthAnalyticsSettings/customModules:simulate
 /// Simulates a given SecurityHealthAnalyticsCustomModule and Resource.
 ///
@@ -12841,8 +13818,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
 
 pub fn securitycenter_organizations_security_health_analytics_settings_custom_modules_simulate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SimulateSecurityHealthAnalyticsCustomModuleRequest,
+    args: &SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsCustomModulesSimulateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SimulateSecurityHealthAnalyticsCustomModuleResponse>, ApiError>,
@@ -12851,7 +13827,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_custom_mo
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_simulate_builder(client, parent, body)?;
+    let builder = securitycenter_organizations_security_health_analytics_settings_custom_modules_simulate_builder(client, &args.parent, &args.body)?;
     securitycenter_organizations_security_health_analytics_settings_custom_modules_simulate_execute(
         builder,
     )
@@ -12951,6 +13927,13 @@ pub fn securitycenter_organizations_security_health_analytics_settings_effective
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsEffectiveCustomModulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/securityHealthAnalyticsSettings/effectiveCustomModules/{effectiveCustomModulesId}
 /// Retrieves an EffectiveSecurityHealthAnalyticsCustomModule.
 ///
@@ -12963,7 +13946,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_effective
 
 pub fn securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsEffectiveCustomModulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -12977,7 +13960,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_effective
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_get_builder(client, name)?;
+    let builder = securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_get_builder(client, &args.name)?;
     securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_get_execute(builder)
 }
 
@@ -13095,6 +14078,18 @@ pub fn securitycenter_organizations_security_health_analytics_settings_effective
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsEffectiveCustomModulesListArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/securityHealthAnalyticsSettings/effectiveCustomModules
 /// Returns a list of all EffectiveSecurityHealthAnalyticsCustomModules for the given parent. This includes resident modules defined at the scope of the parent, and inherited modules, inherited from CRM ancestors.
 ///
@@ -13107,9 +14102,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_effective
 
 pub fn securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsSecurityHealthAnalyticsSettingsEffectiveCustomModulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -13121,7 +14114,7 @@ pub fn securitycenter_organizations_security_health_analytics_settings_effective
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     securitycenter_organizations_security_health_analytics_settings_effective_custom_modules_list_execute(builder)
 }
 
@@ -13215,6 +14208,13 @@ pub fn securitycenter_organizations_simulations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_simulations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSimulationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/simulations/{simulationsId}
 /// Get the simulation by name or the latest simulation for the given organization.
 ///
@@ -13227,12 +14227,12 @@ pub fn securitycenter_organizations_simulations_get_execute(
 
 pub fn securitycenter_organizations_simulations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsSimulationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Simulation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_simulations_get_builder(client, name)?;
+    let builder = securitycenter_organizations_simulations_get_builder(client, &args.name)?;
     securitycenter_organizations_simulations_get_execute(builder)
 }
 
@@ -13348,6 +14348,19 @@ pub fn securitycenter_organizations_simulations_attack_exposure_results_attack_p
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_simulations_attack_exposure_results_attack_paths_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSimulationsAttackExposureResultsAttackPathsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/simulations/{simulationsId}/attackExposureResults/{attackExposureResultsId}/attackPaths
 /// Lists the attack paths for a set of simulation results or valued resources and filter.
 ///
@@ -13360,10 +14373,7 @@ pub fn securitycenter_organizations_simulations_attack_exposure_results_attack_p
 
 pub fn securitycenter_organizations_simulations_attack_exposure_results_attack_paths_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsSimulationsAttackExposureResultsAttackPathsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAttackPathsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -13372,7 +14382,11 @@ pub fn securitycenter_organizations_simulations_attack_exposure_results_attack_p
 > {
     let builder =
         securitycenter_organizations_simulations_attack_exposure_results_attack_paths_list_builder(
-            client, parent, filter, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     securitycenter_organizations_simulations_attack_exposure_results_attack_paths_list_execute(
         builder,
@@ -13497,6 +14511,21 @@ pub fn securitycenter_organizations_simulations_attack_exposure_results_valued_r
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_simulations_attack_exposure_results_valued_resources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSimulationsAttackExposureResultsValuedResourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/simulations/{simulationsId}/attackExposureResults/{attackExposureResultsId}/valuedResources
 /// Lists the valued resources for a set of simulation results and filter.
 ///
@@ -13509,11 +14538,7 @@ pub fn securitycenter_organizations_simulations_attack_exposure_results_valued_r
 
 pub fn securitycenter_organizations_simulations_attack_exposure_results_valued_resources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsSimulationsAttackExposureResultsValuedResourcesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListValuedResourcesResponse>, ApiError>,
@@ -13522,7 +14547,7 @@ pub fn securitycenter_organizations_simulations_attack_exposure_results_valued_r
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_simulations_attack_exposure_results_valued_resources_list_builder(client, parent, filter, orderBy, pageSize, pageToken)?;
+    let builder = securitycenter_organizations_simulations_attack_exposure_results_valued_resources_list_builder(client, &args.parent, args.filter.as_deref(), args.orderBy.as_deref(), args.pageSize, args.pageToken.as_deref())?;
     securitycenter_organizations_simulations_attack_exposure_results_valued_resources_list_execute(
         builder,
     )
@@ -13640,6 +14665,19 @@ pub fn securitycenter_organizations_simulations_attack_paths_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_simulations_attack_paths_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSimulationsAttackPathsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/simulations/{simulationsId}/attackPaths
 /// Lists the attack paths for a set of simulation results or valued resources and filter.
 ///
@@ -13652,10 +14690,7 @@ pub fn securitycenter_organizations_simulations_attack_paths_list_execute(
 
 pub fn securitycenter_organizations_simulations_attack_paths_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsSimulationsAttackPathsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAttackPathsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -13663,7 +14698,11 @@ pub fn securitycenter_organizations_simulations_attack_paths_list(
     ApiError,
 > {
     let builder = securitycenter_organizations_simulations_attack_paths_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securitycenter_organizations_simulations_attack_paths_list_execute(builder)
 }
@@ -13760,6 +14799,13 @@ pub fn securitycenter_organizations_simulations_valued_resources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_simulations_valued_resources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSimulationsValuedResourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/simulations/{simulationsId}/valuedResources/{valuedResourcesId}
 /// Get the valued resource by name
 ///
@@ -13772,7 +14818,7 @@ pub fn securitycenter_organizations_simulations_valued_resources_get_execute(
 
 pub fn securitycenter_organizations_simulations_valued_resources_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsSimulationsValuedResourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ValuedResource>, ApiError>, P = ApiPending>
         + Send
@@ -13780,7 +14826,7 @@ pub fn securitycenter_organizations_simulations_valued_resources_get(
     ApiError,
 > {
     let builder =
-        securitycenter_organizations_simulations_valued_resources_get_builder(client, name)?;
+        securitycenter_organizations_simulations_valued_resources_get_builder(client, &args.name)?;
     securitycenter_organizations_simulations_valued_resources_get_execute(builder)
 }
 
@@ -13902,6 +14948,21 @@ pub fn securitycenter_organizations_simulations_valued_resources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_simulations_valued_resources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSimulationsValuedResourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/simulations/{simulationsId}/valuedResources
 /// Lists the valued resources for a set of simulation results and filter.
 ///
@@ -13914,11 +14975,7 @@ pub fn securitycenter_organizations_simulations_valued_resources_list_execute(
 
 pub fn securitycenter_organizations_simulations_valued_resources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsSimulationsValuedResourcesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListValuedResourcesResponse>, ApiError>,
@@ -13928,7 +14985,12 @@ pub fn securitycenter_organizations_simulations_valued_resources_list(
     ApiError,
 > {
     let builder = securitycenter_organizations_simulations_valued_resources_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securitycenter_organizations_simulations_valued_resources_list_execute(builder)
 }
@@ -14045,6 +15107,19 @@ pub fn securitycenter_organizations_simulations_valued_resources_attack_paths_li
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_simulations_valued_resources_attack_paths_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSimulationsValuedResourcesAttackPathsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/simulations/{simulationsId}/valuedResources/{valuedResourcesId}/attackPaths
 /// Lists the attack paths for a set of simulation results or valued resources and filter.
 ///
@@ -14057,10 +15132,7 @@ pub fn securitycenter_organizations_simulations_valued_resources_attack_paths_li
 
 pub fn securitycenter_organizations_simulations_valued_resources_attack_paths_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsSimulationsValuedResourcesAttackPathsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAttackPathsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -14069,7 +15141,11 @@ pub fn securitycenter_organizations_simulations_valued_resources_attack_paths_li
 > {
     let builder =
         securitycenter_organizations_simulations_valued_resources_attack_paths_list_builder(
-            client, parent, filter, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     securitycenter_organizations_simulations_valued_resources_attack_paths_list_execute(builder)
 }
@@ -14167,6 +15243,15 @@ pub fn securitycenter_organizations_sources_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_sources_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSourcesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Source,
+}
+
 /// GET v1/organizations/{organizationsId}/sources
 /// Creates a source.
 ///
@@ -14179,13 +15264,13 @@ pub fn securitycenter_organizations_sources_create_execute(
 
 pub fn securitycenter_organizations_sources_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Source,
+    args: &SecuritycenterOrganizationsSourcesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Source>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_sources_create_builder(client, parent, body)?;
+    let builder =
+        securitycenter_organizations_sources_create_builder(client, &args.parent, &args.body)?;
     securitycenter_organizations_sources_create_execute(builder)
 }
 
@@ -14279,6 +15364,13 @@ pub fn securitycenter_organizations_sources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_sources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}
 /// Gets a source.
 ///
@@ -14291,12 +15383,12 @@ pub fn securitycenter_organizations_sources_get_execute(
 
 pub fn securitycenter_organizations_sources_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterOrganizationsSourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Source>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_organizations_sources_get_builder(client, name)?;
+    let builder = securitycenter_organizations_sources_get_builder(client, &args.name)?;
     securitycenter_organizations_sources_get_execute(builder)
 }
 
@@ -14393,6 +15485,15 @@ pub fn securitycenter_organizations_sources_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_sources_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSourcesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}:getIamPolicy
 /// Gets the access control policy on the specified Source.
 ///
@@ -14405,14 +15506,16 @@ pub fn securitycenter_organizations_sources_get_iam_policy_execute(
 
 pub fn securitycenter_organizations_sources_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &SecuritycenterOrganizationsSourcesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_organizations_sources_get_iam_policy_builder(client, resource, body)?;
+    let builder = securitycenter_organizations_sources_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     securitycenter_organizations_sources_get_iam_policy_execute(builder)
 }
 
@@ -14524,6 +15627,17 @@ pub fn securitycenter_organizations_sources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/sources
 /// Lists all sources belonging to an organization.
 ///
@@ -14536,17 +15650,19 @@ pub fn securitycenter_organizations_sources_list_execute(
 
 pub fn securitycenter_organizations_sources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsSourcesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSourcesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_organizations_sources_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_organizations_sources_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     securitycenter_organizations_sources_list_execute(builder)
 }
 
@@ -14655,6 +15771,17 @@ pub fn securitycenter_organizations_sources_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_sources_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSourcesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Source,
+}
+
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}
 /// Updates a source.
 ///
@@ -14667,15 +15794,17 @@ pub fn securitycenter_organizations_sources_patch_execute(
 
 pub fn securitycenter_organizations_sources_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Source,
+    args: &SecuritycenterOrganizationsSourcesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Source>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_organizations_sources_patch_builder(client, name, updateMask, body)?;
+    let builder = securitycenter_organizations_sources_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     securitycenter_organizations_sources_patch_execute(builder)
 }
 
@@ -14772,6 +15901,15 @@ pub fn securitycenter_organizations_sources_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_sources_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSourcesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}:setIamPolicy
 /// Sets the access control policy on the specified Source.
 ///
@@ -14784,14 +15922,16 @@ pub fn securitycenter_organizations_sources_set_iam_policy_execute(
 
 pub fn securitycenter_organizations_sources_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &SecuritycenterOrganizationsSourcesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_organizations_sources_set_iam_policy_builder(client, resource, body)?;
+    let builder = securitycenter_organizations_sources_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     securitycenter_organizations_sources_set_iam_policy_execute(builder)
 }
 
@@ -14892,6 +16032,15 @@ pub fn securitycenter_organizations_sources_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_sources_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSourcesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}:testIamPermissions
 /// Returns the permissions that a caller has on the specified source.
 ///
@@ -14904,8 +16053,7 @@ pub fn securitycenter_organizations_sources_test_iam_permissions_execute(
 
 pub fn securitycenter_organizations_sources_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &SecuritycenterOrganizationsSourcesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -14914,8 +16062,11 @@ pub fn securitycenter_organizations_sources_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_organizations_sources_test_iam_permissions_builder(client, resource, body)?;
+    let builder = securitycenter_organizations_sources_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     securitycenter_organizations_sources_test_iam_permissions_execute(builder)
 }
 
@@ -15024,6 +16175,17 @@ pub fn securitycenter_organizations_sources_findings_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_sources_findings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSourcesFindingsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: findingId
+    pub findingId: Option<String>,
+    /// Request body.
+    pub body: Finding,
+}
+
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}/findings
 /// Creates a finding. The corresponding source must exist for finding creation to succeed.
 ///
@@ -15036,15 +16198,16 @@ pub fn securitycenter_organizations_sources_findings_create_execute(
 
 pub fn securitycenter_organizations_sources_findings_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    findingId: Option<&str>,
-    body: &Finding,
+    args: &SecuritycenterOrganizationsSourcesFindingsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securitycenter_organizations_sources_findings_create_builder(
-        client, parent, findingId, body,
+        client,
+        &args.parent,
+        args.findingId.as_deref(),
+        &args.body,
     )?;
     securitycenter_organizations_sources_findings_create_execute(builder)
 }
@@ -15144,6 +16307,15 @@ pub fn securitycenter_organizations_sources_findings_group_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_sources_findings_group`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSourcesFindingsGroupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GroupFindingsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}/findings:group
 /// Filters an organization or source's findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
 ///
@@ -15156,16 +16328,18 @@ pub fn securitycenter_organizations_sources_findings_group_execute(
 
 pub fn securitycenter_organizations_sources_findings_group(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GroupFindingsRequest,
+    args: &SecuritycenterOrganizationsSourcesFindingsGroupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GroupFindingsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_organizations_sources_findings_group_builder(client, parent, body)?;
+    let builder = securitycenter_organizations_sources_findings_group_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     securitycenter_organizations_sources_findings_group_execute(builder)
 }
 
@@ -15297,6 +16471,27 @@ pub fn securitycenter_organizations_sources_findings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_sources_findings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSourcesFindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: compareDuration
+    pub compareDuration: Option<String>,
+    /// Query parameter: fieldMask
+    pub fieldMask: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readTime
+    pub readTime: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}/findings
 /// Lists an organization or source's findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
 ///
@@ -15309,14 +16504,7 @@ pub fn securitycenter_organizations_sources_findings_list_execute(
 
 pub fn securitycenter_organizations_sources_findings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    compareDuration: Option<&str>,
-    fieldMask: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readTime: Option<&str>,
+    args: &SecuritycenterOrganizationsSourcesFindingsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFindingsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -15325,14 +16513,14 @@ pub fn securitycenter_organizations_sources_findings_list(
 > {
     let builder = securitycenter_organizations_sources_findings_list_builder(
         client,
-        parent,
-        compareDuration,
-        fieldMask,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        readTime,
+        &args.parent,
+        args.compareDuration.as_deref(),
+        args.fieldMask.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readTime.as_deref(),
     )?;
     securitycenter_organizations_sources_findings_list_execute(builder)
 }
@@ -15442,6 +16630,17 @@ pub fn securitycenter_organizations_sources_findings_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_sources_findings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSourcesFindingsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Finding,
+}
+
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}/findings/{findingsId}
 /// Creates or updates a finding. The corresponding source must exist for a finding creation to succeed.
 ///
@@ -15454,15 +16653,16 @@ pub fn securitycenter_organizations_sources_findings_patch_execute(
 
 pub fn securitycenter_organizations_sources_findings_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Finding,
+    args: &SecuritycenterOrganizationsSourcesFindingsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securitycenter_organizations_sources_findings_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_organizations_sources_findings_patch_execute(builder)
 }
@@ -15560,6 +16760,15 @@ pub fn securitycenter_organizations_sources_findings_set_mute_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_sources_findings_set_mute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSourcesFindingsSetMuteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SetMuteRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}/findings/{findingsId}:setMute
 /// Updates the mute state of a finding.
 ///
@@ -15572,14 +16781,14 @@ pub fn securitycenter_organizations_sources_findings_set_mute_execute(
 
 pub fn securitycenter_organizations_sources_findings_set_mute(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SetMuteRequest,
+    args: &SecuritycenterOrganizationsSourcesFindingsSetMuteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_organizations_sources_findings_set_mute_builder(client, name, body)?;
+    let builder = securitycenter_organizations_sources_findings_set_mute_builder(
+        client, &args.name, &args.body,
+    )?;
     securitycenter_organizations_sources_findings_set_mute_execute(builder)
 }
 
@@ -15676,6 +16885,15 @@ pub fn securitycenter_organizations_sources_findings_set_state_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_sources_findings_set_state`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSourcesFindingsSetStateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SetFindingStateRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}/findings/{findingsId}:setState
 /// Updates the state of a finding.
 ///
@@ -15688,14 +16906,14 @@ pub fn securitycenter_organizations_sources_findings_set_state_execute(
 
 pub fn securitycenter_organizations_sources_findings_set_state(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SetFindingStateRequest,
+    args: &SecuritycenterOrganizationsSourcesFindingsSetStateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_organizations_sources_findings_set_state_builder(client, name, body)?;
+    let builder = securitycenter_organizations_sources_findings_set_state_builder(
+        client, &args.name, &args.body,
+    )?;
     securitycenter_organizations_sources_findings_set_state_execute(builder)
 }
 
@@ -15810,6 +17028,19 @@ pub fn securitycenter_organizations_sources_findings_update_security_marks_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_sources_findings_update_security_marks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSourcesFindingsUpdateSecurityMarksArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: startTime
+    pub startTime: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SecurityMarks,
+}
+
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}/findings/{findingsId}/securityMarks
 /// Updates security marks.
 ///
@@ -15822,10 +17053,7 @@ pub fn securitycenter_organizations_sources_findings_update_security_marks_execu
 
 pub fn securitycenter_organizations_sources_findings_update_security_marks(
     client: &SimpleHttpClient,
-    name: &str,
-    startTime: Option<&str>,
-    updateMask: Option<&str>,
-    body: &SecurityMarks,
+    args: &SecuritycenterOrganizationsSourcesFindingsUpdateSecurityMarksArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecurityMarks>, ApiError>, P = ApiPending>
         + Send
@@ -15833,7 +17061,11 @@ pub fn securitycenter_organizations_sources_findings_update_security_marks(
     ApiError,
 > {
     let builder = securitycenter_organizations_sources_findings_update_security_marks_builder(
-        client, name, startTime, updateMask, body,
+        client,
+        &args.name,
+        args.startTime.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_organizations_sources_findings_update_security_marks_execute(builder)
 }
@@ -15947,6 +17179,17 @@ pub fn securitycenter_organizations_sources_findings_external_systems_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_sources_findings_external_systems_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsSourcesFindingsExternalSystemsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1ExternalSystem,
+}
+
 /// GET v1/organizations/{organizationsId}/sources/{sourcesId}/findings/{findingsId}/externalSystems/{externalSystemsId}
 /// Updates external system. This is for a given finding.
 ///
@@ -15959,9 +17202,7 @@ pub fn securitycenter_organizations_sources_findings_external_systems_patch_exec
 
 pub fn securitycenter_organizations_sources_findings_external_systems_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1ExternalSystem,
+    args: &SecuritycenterOrganizationsSourcesFindingsExternalSystemsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1ExternalSystem>, ApiError>,
@@ -15971,7 +17212,10 @@ pub fn securitycenter_organizations_sources_findings_external_systems_patch(
     ApiError,
 > {
     let builder = securitycenter_organizations_sources_findings_external_systems_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_organizations_sources_findings_external_systems_patch_execute(builder)
 }
@@ -16094,6 +17338,21 @@ pub fn securitycenter_organizations_valued_resources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_organizations_valued_resources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterOrganizationsValuedResourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/valuedResources
 /// Lists the valued resources for a set of simulation results and filter.
 ///
@@ -16106,11 +17365,7 @@ pub fn securitycenter_organizations_valued_resources_list_execute(
 
 pub fn securitycenter_organizations_valued_resources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterOrganizationsValuedResourcesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListValuedResourcesResponse>, ApiError>,
@@ -16120,7 +17375,12 @@ pub fn securitycenter_organizations_valued_resources_list(
     ApiError,
 > {
     let builder = securitycenter_organizations_valued_resources_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securitycenter_organizations_valued_resources_list_execute(builder)
 }
@@ -16220,6 +17480,15 @@ pub fn securitycenter_projects_assets_group_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_assets_group`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsAssetsGroupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GroupAssetsRequest,
+}
+
 /// GET v1/projects/{projectsId}/assets:group
 /// Filters an organization's assets and groups them by their specified properties.
 ///
@@ -16232,15 +17501,14 @@ pub fn securitycenter_projects_assets_group_execute(
 
 pub fn securitycenter_projects_assets_group(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GroupAssetsRequest,
+    args: &SecuritycenterProjectsAssetsGroupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GroupAssetsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_assets_group_builder(client, parent, body)?;
+    let builder = securitycenter_projects_assets_group_builder(client, &args.parent, &args.body)?;
     securitycenter_projects_assets_group_execute(builder)
 }
 
@@ -16372,6 +17640,27 @@ pub fn securitycenter_projects_assets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_assets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsAssetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: compareDuration
+    pub compareDuration: Option<String>,
+    /// Query parameter: fieldMask
+    pub fieldMask: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readTime
+    pub readTime: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/assets
 /// Lists an organization's assets.
 ///
@@ -16384,14 +17673,7 @@ pub fn securitycenter_projects_assets_list_execute(
 
 pub fn securitycenter_projects_assets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    compareDuration: Option<&str>,
-    fieldMask: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readTime: Option<&str>,
+    args: &SecuritycenterProjectsAssetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAssetsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -16400,14 +17682,14 @@ pub fn securitycenter_projects_assets_list(
 > {
     let builder = securitycenter_projects_assets_list_builder(
         client,
-        parent,
-        compareDuration,
-        fieldMask,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        readTime,
+        &args.parent,
+        args.compareDuration.as_deref(),
+        args.fieldMask.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readTime.as_deref(),
     )?;
     securitycenter_projects_assets_list_execute(builder)
 }
@@ -16523,6 +17805,19 @@ pub fn securitycenter_projects_assets_update_security_marks_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_assets_update_security_marks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsAssetsUpdateSecurityMarksArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: startTime
+    pub startTime: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SecurityMarks,
+}
+
 /// GET v1/projects/{projectsId}/assets/{assetsId}/securityMarks
 /// Updates security marks.
 ///
@@ -16535,10 +17830,7 @@ pub fn securitycenter_projects_assets_update_security_marks_execute(
 
 pub fn securitycenter_projects_assets_update_security_marks(
     client: &SimpleHttpClient,
-    name: &str,
-    startTime: Option<&str>,
-    updateMask: Option<&str>,
-    body: &SecurityMarks,
+    args: &SecuritycenterProjectsAssetsUpdateSecurityMarksArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecurityMarks>, ApiError>, P = ApiPending>
         + Send
@@ -16546,7 +17838,11 @@ pub fn securitycenter_projects_assets_update_security_marks(
     ApiError,
 > {
     let builder = securitycenter_projects_assets_update_security_marks_builder(
-        client, name, startTime, updateMask, body,
+        client,
+        &args.name,
+        args.startTime.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_projects_assets_update_security_marks_execute(builder)
 }
@@ -16660,6 +17956,17 @@ pub fn securitycenter_projects_big_query_exports_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_big_query_exports_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsBigQueryExportsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: bigQueryExportId
+    pub bigQueryExportId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1BigQueryExport,
+}
+
 /// GET v1/projects/{projectsId}/bigQueryExports
 /// Creates a BigQuery export.
 ///
@@ -16672,9 +17979,7 @@ pub fn securitycenter_projects_big_query_exports_create_execute(
 
 pub fn securitycenter_projects_big_query_exports_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    bigQueryExportId: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1BigQueryExport,
+    args: &SecuritycenterProjectsBigQueryExportsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1BigQueryExport>, ApiError>,
@@ -16685,9 +17990,9 @@ pub fn securitycenter_projects_big_query_exports_create(
 > {
     let builder = securitycenter_projects_big_query_exports_create_builder(
         client,
-        parent,
-        bigQueryExportId,
-        body,
+        &args.parent,
+        args.bigQueryExportId.as_deref(),
+        &args.body,
     )?;
     securitycenter_projects_big_query_exports_create_execute(builder)
 }
@@ -16782,6 +18087,13 @@ pub fn securitycenter_projects_big_query_exports_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_big_query_exports_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsBigQueryExportsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/bigQueryExports/{bigQueryExportsId}
 /// Deletes an existing BigQuery export.
 ///
@@ -16794,12 +18106,12 @@ pub fn securitycenter_projects_big_query_exports_delete_execute(
 
 pub fn securitycenter_projects_big_query_exports_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterProjectsBigQueryExportsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_big_query_exports_delete_builder(client, name)?;
+    let builder = securitycenter_projects_big_query_exports_delete_builder(client, &args.name)?;
     securitycenter_projects_big_query_exports_delete_execute(builder)
 }
 
@@ -16897,6 +18209,13 @@ pub fn securitycenter_projects_big_query_exports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_big_query_exports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsBigQueryExportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/bigQueryExports/{bigQueryExportsId}
 /// Gets a BigQuery export.
 ///
@@ -16909,7 +18228,7 @@ pub fn securitycenter_projects_big_query_exports_get_execute(
 
 pub fn securitycenter_projects_big_query_exports_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterProjectsBigQueryExportsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1BigQueryExport>, ApiError>,
@@ -16918,7 +18237,7 @@ pub fn securitycenter_projects_big_query_exports_get(
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_big_query_exports_get_builder(client, name)?;
+    let builder = securitycenter_projects_big_query_exports_get_builder(client, &args.name)?;
     securitycenter_projects_big_query_exports_get_execute(builder)
 }
 
@@ -17032,6 +18351,17 @@ pub fn securitycenter_projects_big_query_exports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_big_query_exports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsBigQueryExportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/bigQueryExports
 /// Lists BigQuery exports. Note that when requesting BigQuery exports at a given level all exports under that level are also returned e.g. if requesting BigQuery exports under a folder, then all BigQuery exports immediately under the folder plus the ones created under the projects within the folder are returned.
 ///
@@ -17044,9 +18374,7 @@ pub fn securitycenter_projects_big_query_exports_list_execute(
 
 pub fn securitycenter_projects_big_query_exports_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterProjectsBigQueryExportsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBigQueryExportsResponse>, ApiError>,
@@ -17056,7 +18384,10 @@ pub fn securitycenter_projects_big_query_exports_list(
     ApiError,
 > {
     let builder = securitycenter_projects_big_query_exports_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securitycenter_projects_big_query_exports_list_execute(builder)
 }
@@ -17170,6 +18501,17 @@ pub fn securitycenter_projects_big_query_exports_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_big_query_exports_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsBigQueryExportsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1BigQueryExport,
+}
+
 /// GET v1/projects/{projectsId}/bigQueryExports/{bigQueryExportsId}
 /// Updates a BigQuery export.
 ///
@@ -17182,9 +18524,7 @@ pub fn securitycenter_projects_big_query_exports_patch_execute(
 
 pub fn securitycenter_projects_big_query_exports_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1BigQueryExport,
+    args: &SecuritycenterProjectsBigQueryExportsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1BigQueryExport>, ApiError>,
@@ -17193,8 +18533,12 @@ pub fn securitycenter_projects_big_query_exports_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_projects_big_query_exports_patch_builder(client, name, updateMask, body)?;
+    let builder = securitycenter_projects_big_query_exports_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     securitycenter_projects_big_query_exports_patch_execute(builder)
 }
 
@@ -17296,6 +18640,15 @@ pub fn securitycenter_projects_event_threat_detection_settings_validate_custom_m
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_event_threat_detection_settings_validate_custom_module`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsEventThreatDetectionSettingsValidateCustomModuleArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ValidateEventThreatDetectionCustomModuleRequest,
+}
+
 /// GET v1/projects/{projectsId}/eventThreatDetectionSettings:validateCustomModule
 /// Validates the given Event Threat Detection custom module.
 ///
@@ -17308,8 +18661,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_validate_custom_m
 
 pub fn securitycenter_projects_event_threat_detection_settings_validate_custom_module(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ValidateEventThreatDetectionCustomModuleRequest,
+    args: &SecuritycenterProjectsEventThreatDetectionSettingsValidateCustomModuleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ValidateEventThreatDetectionCustomModuleResponse>, ApiError>,
@@ -17320,7 +18672,9 @@ pub fn securitycenter_projects_event_threat_detection_settings_validate_custom_m
 > {
     let builder =
         securitycenter_projects_event_threat_detection_settings_validate_custom_module_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     securitycenter_projects_event_threat_detection_settings_validate_custom_module_execute(builder)
 }
@@ -17422,6 +18776,15 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_cr
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_event_threat_detection_settings_custom_modules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsEventThreatDetectionSettingsCustomModulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: EventThreatDetectionCustomModule,
+}
+
 /// GET v1/projects/{projectsId}/eventThreatDetectionSettings/customModules
 /// Creates a resident Event Threat Detection custom module at the scope of the given Resource Manager parent, and also creates inherited custom modules for all descendants of the given parent. These modules are enabled by default.
 ///
@@ -17434,8 +18797,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_cr
 
 pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &EventThreatDetectionCustomModule,
+    args: &SecuritycenterProjectsEventThreatDetectionSettingsCustomModulesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EventThreatDetectionCustomModule>, ApiError>,
@@ -17446,7 +18808,9 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_cr
 > {
     let builder =
         securitycenter_projects_event_threat_detection_settings_custom_modules_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     securitycenter_projects_event_threat_detection_settings_custom_modules_create_execute(builder)
 }
@@ -17541,6 +18905,13 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_de
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_event_threat_detection_settings_custom_modules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsEventThreatDetectionSettingsCustomModulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/eventThreatDetectionSettings/customModules/{customModulesId}
 /// Deletes the specified Event Threat Detection custom module and all of its descendants in the Resource Manager hierarchy. This method is only supported for resident custom modules.
 ///
@@ -17553,14 +18924,14 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_de
 
 pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterProjectsEventThreatDetectionSettingsCustomModulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         securitycenter_projects_event_threat_detection_settings_custom_modules_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     securitycenter_projects_event_threat_detection_settings_custom_modules_delete_execute(builder)
 }
@@ -17659,6 +19030,13 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_ge
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_event_threat_detection_settings_custom_modules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsEventThreatDetectionSettingsCustomModulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/eventThreatDetectionSettings/customModules/{customModulesId}
 /// Gets an Event Threat Detection custom module.
 ///
@@ -17671,7 +19049,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_ge
 
 pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterProjectsEventThreatDetectionSettingsCustomModulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EventThreatDetectionCustomModule>, ApiError>,
@@ -17682,7 +19060,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_ge
 > {
     let builder =
         securitycenter_projects_event_threat_detection_settings_custom_modules_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     securitycenter_projects_event_threat_detection_settings_custom_modules_get_execute(builder)
 }
@@ -17798,6 +19176,17 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_li
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_event_threat_detection_settings_custom_modules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsEventThreatDetectionSettingsCustomModulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/eventThreatDetectionSettings/customModules
 /// Lists all Event Threat Detection custom modules for the given Resource Manager parent. This includes resident modules defined at the scope of the parent along with modules inherited from ancestors.
 ///
@@ -17810,9 +19199,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_li
 
 pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterProjectsEventThreatDetectionSettingsCustomModulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListEventThreatDetectionCustomModulesResponse>, ApiError>,
@@ -17823,7 +19210,10 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_li
 > {
     let builder =
         securitycenter_projects_event_threat_detection_settings_custom_modules_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     securitycenter_projects_event_threat_detection_settings_custom_modules_list_execute(builder)
 }
@@ -17942,6 +19332,17 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_li
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_event_threat_detection_settings_custom_modules_list_descendant`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsEventThreatDetectionSettingsCustomModulesListDescendantArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/eventThreatDetectionSettings/customModules:listDescendant
 /// Lists all resident Event Threat Detection custom modules under the given Resource Manager parent and its descendants.
 ///
@@ -17954,9 +19355,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_li
 
 pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_list_descendant(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterProjectsEventThreatDetectionSettingsCustomModulesListDescendantArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -17968,7 +19367,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_li
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_event_threat_detection_settings_custom_modules_list_descendant_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_projects_event_threat_detection_settings_custom_modules_list_descendant_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     securitycenter_projects_event_threat_detection_settings_custom_modules_list_descendant_execute(
         builder,
     )
@@ -18083,6 +19482,17 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_pa
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_event_threat_detection_settings_custom_modules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsEventThreatDetectionSettingsCustomModulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: EventThreatDetectionCustomModule,
+}
+
 /// GET v1/projects/{projectsId}/eventThreatDetectionSettings/customModules/{customModulesId}
 /// Updates the Event Threat Detection custom module with the given name based on the given update mask. Updating the enablement state is supported for both resident and inherited modules (though resident modules cannot have an enablement state of "inherited"). Updating the display name or configuration of a module is supported for resident modules only. The type of a module cannot be changed.
 ///
@@ -18095,9 +19505,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_pa
 
 pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &EventThreatDetectionCustomModule,
+    args: &SecuritycenterProjectsEventThreatDetectionSettingsCustomModulesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EventThreatDetectionCustomModule>, ApiError>,
@@ -18108,7 +19516,10 @@ pub fn securitycenter_projects_event_threat_detection_settings_custom_modules_pa
 > {
     let builder =
         securitycenter_projects_event_threat_detection_settings_custom_modules_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     securitycenter_projects_event_threat_detection_settings_custom_modules_patch_execute(builder)
 }
@@ -18207,6 +19618,13 @@ pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_event_threat_detection_settings_effective_custom_modules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsEventThreatDetectionSettingsEffectiveCustomModulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/eventThreatDetectionSettings/effectiveCustomModules/{effectiveCustomModulesId}
 /// Gets an effective Event Threat Detection custom module at the given level.
 ///
@@ -18219,7 +19637,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_
 
 pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_modules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterProjectsEventThreatDetectionSettingsEffectiveCustomModulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EffectiveEventThreatDetectionCustomModule>, ApiError>,
@@ -18228,7 +19646,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_event_threat_detection_settings_effective_custom_modules_get_builder(client, name)?;
+    let builder = securitycenter_projects_event_threat_detection_settings_effective_custom_modules_get_builder(client, &args.name)?;
     securitycenter_projects_event_threat_detection_settings_effective_custom_modules_get_execute(
         builder,
     )
@@ -18348,6 +19766,17 @@ pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_event_threat_detection_settings_effective_custom_modules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsEventThreatDetectionSettingsEffectiveCustomModulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/eventThreatDetectionSettings/effectiveCustomModules
 /// Lists all effective Event Threat Detection custom modules for the given parent. This includes resident modules defined at the scope of the parent along with modules inherited from its ancestors.
 ///
@@ -18360,9 +19789,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_
 
 pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_modules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterProjectsEventThreatDetectionSettingsEffectiveCustomModulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -18374,7 +19801,7 @@ pub fn securitycenter_projects_event_threat_detection_settings_effective_custom_
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_event_threat_detection_settings_effective_custom_modules_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_projects_event_threat_detection_settings_effective_custom_modules_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     securitycenter_projects_event_threat_detection_settings_effective_custom_modules_list_execute(
         builder,
     )
@@ -18473,6 +19900,15 @@ pub fn securitycenter_projects_findings_bulk_mute_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_findings_bulk_mute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsFindingsBulkMuteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BulkMuteFindingsRequest,
+}
+
 /// GET v1/projects/{projectsId}/findings:bulkMute
 /// Kicks off an LRO to bulk mute findings for a parent based on a filter. The parent can be either an organization, folder or project. The findings matched by the filter will be muted after the LRO is done.
 ///
@@ -18485,13 +19921,13 @@ pub fn securitycenter_projects_findings_bulk_mute_execute(
 
 pub fn securitycenter_projects_findings_bulk_mute(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BulkMuteFindingsRequest,
+    args: &SecuritycenterProjectsFindingsBulkMuteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_findings_bulk_mute_builder(client, parent, body)?;
+    let builder =
+        securitycenter_projects_findings_bulk_mute_builder(client, &args.parent, &args.body)?;
     securitycenter_projects_findings_bulk_mute_execute(builder)
 }
 
@@ -18585,6 +20021,13 @@ pub fn securitycenter_projects_locations_mute_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_locations_mute_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsLocationsMuteConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/muteConfigs/{muteConfigsId}
 /// Deletes an existing mute config.
 ///
@@ -18597,12 +20040,13 @@ pub fn securitycenter_projects_locations_mute_configs_delete_execute(
 
 pub fn securitycenter_projects_locations_mute_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterProjectsLocationsMuteConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_locations_mute_configs_delete_builder(client, name)?;
+    let builder =
+        securitycenter_projects_locations_mute_configs_delete_builder(client, &args.name)?;
     securitycenter_projects_locations_mute_configs_delete_execute(builder)
 }
 
@@ -18700,6 +20144,13 @@ pub fn securitycenter_projects_locations_mute_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_locations_mute_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsLocationsMuteConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/muteConfigs/{muteConfigsId}
 /// Gets a mute config.
 ///
@@ -18712,7 +20163,7 @@ pub fn securitycenter_projects_locations_mute_configs_get_execute(
 
 pub fn securitycenter_projects_locations_mute_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterProjectsLocationsMuteConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1MuteConfig>, ApiError>,
@@ -18721,7 +20172,7 @@ pub fn securitycenter_projects_locations_mute_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_locations_mute_configs_get_builder(client, name)?;
+    let builder = securitycenter_projects_locations_mute_configs_get_builder(client, &args.name)?;
     securitycenter_projects_locations_mute_configs_get_execute(builder)
 }
 
@@ -18834,6 +20285,17 @@ pub fn securitycenter_projects_locations_mute_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_locations_mute_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsLocationsMuteConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1MuteConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/muteConfigs/{muteConfigsId}
 /// Updates a mute config.
 ///
@@ -18846,9 +20308,7 @@ pub fn securitycenter_projects_locations_mute_configs_patch_execute(
 
 pub fn securitycenter_projects_locations_mute_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1MuteConfig,
+    args: &SecuritycenterProjectsLocationsMuteConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1MuteConfig>, ApiError>,
@@ -18858,7 +20318,10 @@ pub fn securitycenter_projects_locations_mute_configs_patch(
     ApiError,
 > {
     let builder = securitycenter_projects_locations_mute_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_projects_locations_mute_configs_patch_execute(builder)
 }
@@ -18972,6 +20435,17 @@ pub fn securitycenter_projects_mute_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_mute_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsMuteConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: muteConfigId
+    pub muteConfigId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1MuteConfig,
+}
+
 /// GET v1/projects/{projectsId}/muteConfigs
 /// Creates a mute config.
 ///
@@ -18984,9 +20458,7 @@ pub fn securitycenter_projects_mute_configs_create_execute(
 
 pub fn securitycenter_projects_mute_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    muteConfigId: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1MuteConfig,
+    args: &SecuritycenterProjectsMuteConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1MuteConfig>, ApiError>,
@@ -18995,8 +20467,12 @@ pub fn securitycenter_projects_mute_configs_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_projects_mute_configs_create_builder(client, parent, muteConfigId, body)?;
+    let builder = securitycenter_projects_mute_configs_create_builder(
+        client,
+        &args.parent,
+        args.muteConfigId.as_deref(),
+        &args.body,
+    )?;
     securitycenter_projects_mute_configs_create_execute(builder)
 }
 
@@ -19090,6 +20566,13 @@ pub fn securitycenter_projects_mute_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_mute_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsMuteConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/muteConfigs/{muteConfigsId}
 /// Deletes an existing mute config.
 ///
@@ -19102,12 +20585,12 @@ pub fn securitycenter_projects_mute_configs_delete_execute(
 
 pub fn securitycenter_projects_mute_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterProjectsMuteConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_mute_configs_delete_builder(client, name)?;
+    let builder = securitycenter_projects_mute_configs_delete_builder(client, &args.name)?;
     securitycenter_projects_mute_configs_delete_execute(builder)
 }
 
@@ -19205,6 +20688,13 @@ pub fn securitycenter_projects_mute_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_mute_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsMuteConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/muteConfigs/{muteConfigsId}
 /// Gets a mute config.
 ///
@@ -19217,7 +20707,7 @@ pub fn securitycenter_projects_mute_configs_get_execute(
 
 pub fn securitycenter_projects_mute_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterProjectsMuteConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1MuteConfig>, ApiError>,
@@ -19226,7 +20716,7 @@ pub fn securitycenter_projects_mute_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_mute_configs_get_builder(client, name)?;
+    let builder = securitycenter_projects_mute_configs_get_builder(client, &args.name)?;
     securitycenter_projects_mute_configs_get_execute(builder)
 }
 
@@ -19338,6 +20828,17 @@ pub fn securitycenter_projects_mute_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_mute_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsMuteConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/muteConfigs
 /// Lists mute configs.
 ///
@@ -19350,17 +20851,19 @@ pub fn securitycenter_projects_mute_configs_list_execute(
 
 pub fn securitycenter_projects_mute_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterProjectsMuteConfigsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListMuteConfigsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_projects_mute_configs_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_projects_mute_configs_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     securitycenter_projects_mute_configs_list_execute(builder)
 }
 
@@ -19473,6 +20976,17 @@ pub fn securitycenter_projects_mute_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_mute_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsMuteConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1MuteConfig,
+}
+
 /// GET v1/projects/{projectsId}/muteConfigs/{muteConfigsId}
 /// Updates a mute config.
 ///
@@ -19485,9 +20999,7 @@ pub fn securitycenter_projects_mute_configs_patch_execute(
 
 pub fn securitycenter_projects_mute_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1MuteConfig,
+    args: &SecuritycenterProjectsMuteConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1MuteConfig>, ApiError>,
@@ -19496,8 +21008,12 @@ pub fn securitycenter_projects_mute_configs_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_projects_mute_configs_patch_builder(client, name, updateMask, body)?;
+    let builder = securitycenter_projects_mute_configs_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     securitycenter_projects_mute_configs_patch_execute(builder)
 }
 
@@ -19608,6 +21124,17 @@ pub fn securitycenter_projects_notification_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_notification_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsNotificationConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: configId
+    pub configId: Option<String>,
+    /// Request body.
+    pub body: NotificationConfig,
+}
+
 /// GET v1/projects/{projectsId}/notificationConfigs
 /// Creates a notification config.
 ///
@@ -19620,9 +21147,7 @@ pub fn securitycenter_projects_notification_configs_create_execute(
 
 pub fn securitycenter_projects_notification_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    configId: Option<&str>,
-    body: &NotificationConfig,
+    args: &SecuritycenterProjectsNotificationConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationConfig>, ApiError>, P = ApiPending>
         + Send
@@ -19630,7 +21155,10 @@ pub fn securitycenter_projects_notification_configs_create(
     ApiError,
 > {
     let builder = securitycenter_projects_notification_configs_create_builder(
-        client, parent, configId, body,
+        client,
+        &args.parent,
+        args.configId.as_deref(),
+        &args.body,
     )?;
     securitycenter_projects_notification_configs_create_execute(builder)
 }
@@ -19725,6 +21253,13 @@ pub fn securitycenter_projects_notification_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_notification_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsNotificationConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/notificationConfigs/{notificationConfigsId}
 /// Deletes a notification config.
 ///
@@ -19737,12 +21272,12 @@ pub fn securitycenter_projects_notification_configs_delete_execute(
 
 pub fn securitycenter_projects_notification_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterProjectsNotificationConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_notification_configs_delete_builder(client, name)?;
+    let builder = securitycenter_projects_notification_configs_delete_builder(client, &args.name)?;
     securitycenter_projects_notification_configs_delete_execute(builder)
 }
 
@@ -19838,6 +21373,13 @@ pub fn securitycenter_projects_notification_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_notification_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsNotificationConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/notificationConfigs/{notificationConfigsId}
 /// Gets a notification config.
 ///
@@ -19850,14 +21392,14 @@ pub fn securitycenter_projects_notification_configs_get_execute(
 
 pub fn securitycenter_projects_notification_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterProjectsNotificationConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_notification_configs_get_builder(client, name)?;
+    let builder = securitycenter_projects_notification_configs_get_builder(client, &args.name)?;
     securitycenter_projects_notification_configs_get_execute(builder)
 }
 
@@ -19971,6 +21513,17 @@ pub fn securitycenter_projects_notification_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_notification_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsNotificationConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/notificationConfigs
 /// Lists notification configs.
 ///
@@ -19983,9 +21536,7 @@ pub fn securitycenter_projects_notification_configs_list_execute(
 
 pub fn securitycenter_projects_notification_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterProjectsNotificationConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNotificationConfigsResponse>, ApiError>,
@@ -19995,7 +21546,10 @@ pub fn securitycenter_projects_notification_configs_list(
     ApiError,
 > {
     let builder = securitycenter_projects_notification_configs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securitycenter_projects_notification_configs_list_execute(builder)
 }
@@ -20107,6 +21661,17 @@ pub fn securitycenter_projects_notification_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_notification_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsNotificationConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: NotificationConfig,
+}
+
 /// GET v1/projects/{projectsId}/notificationConfigs/{notificationConfigsId}
 /// Updates a notification config. The following update fields are allowed: description, pubsub_topic, streaming_config.filter
 ///
@@ -20119,17 +21684,19 @@ pub fn securitycenter_projects_notification_configs_patch_execute(
 
 pub fn securitycenter_projects_notification_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &NotificationConfig,
+    args: &SecuritycenterProjectsNotificationConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_projects_notification_configs_patch_builder(client, name, updateMask, body)?;
+    let builder = securitycenter_projects_notification_configs_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     securitycenter_projects_notification_configs_patch_execute(builder)
 }
 
@@ -20234,6 +21801,15 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_security_health_analytics_settings_custom_modules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule,
+}
+
 /// GET v1/projects/{projectsId}/securityHealthAnalyticsSettings/customModules
 /// Creates a resident SecurityHealthAnalyticsCustomModule at the scope of the given CRM parent, and also creates inherited SecurityHealthAnalyticsCustomModules for all CRM descendants of the given parent. These modules are enabled by default.
 ///
@@ -20246,8 +21822,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 
 pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule,
+    args: &SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -20261,7 +21836,9 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 > {
     let builder =
         securitycenter_projects_security_health_analytics_settings_custom_modules_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     securitycenter_projects_security_health_analytics_settings_custom_modules_create_execute(
         builder,
@@ -20358,6 +21935,13 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_security_health_analytics_settings_custom_modules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/securityHealthAnalyticsSettings/customModules/{customModulesId}
 /// Deletes the specified SecurityHealthAnalyticsCustomModule and all of its descendants in the CRM hierarchy. This method is only supported for resident custom modules.
 ///
@@ -20370,14 +21954,14 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 
 pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         securitycenter_projects_security_health_analytics_settings_custom_modules_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     securitycenter_projects_security_health_analytics_settings_custom_modules_delete_execute(
         builder,
@@ -20482,6 +22066,13 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_security_health_analytics_settings_custom_modules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/securityHealthAnalyticsSettings/customModules/{customModulesId}
 /// Retrieves a SecurityHealthAnalyticsCustomModule.
 ///
@@ -20494,7 +22085,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 
 pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -20508,7 +22099,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 > {
     let builder =
         securitycenter_projects_security_health_analytics_settings_custom_modules_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     securitycenter_projects_security_health_analytics_settings_custom_modules_get_execute(builder)
 }
@@ -20624,6 +22215,17 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_security_health_analytics_settings_custom_modules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/securityHealthAnalyticsSettings/customModules
 /// Returns a list of all SecurityHealthAnalyticsCustomModules for the given parent. This includes resident modules defined at the scope of the parent, and inherited modules, inherited from CRM ancestors.
 ///
@@ -20636,9 +22238,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 
 pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSecurityHealthAnalyticsCustomModulesResponse>, ApiError>,
@@ -20649,7 +22249,10 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 > {
     let builder =
         securitycenter_projects_security_health_analytics_settings_custom_modules_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     securitycenter_projects_security_health_analytics_settings_custom_modules_list_execute(builder)
 }
@@ -20768,6 +22371,17 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_security_health_analytics_settings_custom_modules_list_descendant`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesListDescendantArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/securityHealthAnalyticsSettings/customModules:listDescendant
 /// Returns a list of all resident SecurityHealthAnalyticsCustomModules under the given CRM parent and all of the parent’s CRM descendants.
 ///
@@ -20780,9 +22394,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 
 pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_list_descendant(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesListDescendantArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -20794,7 +22406,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_security_health_analytics_settings_custom_modules_list_descendant_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_projects_security_health_analytics_settings_custom_modules_list_descendant_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     securitycenter_projects_security_health_analytics_settings_custom_modules_list_descendant_execute(builder)
 }
 
@@ -20911,6 +22523,17 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_security_health_analytics_settings_custom_modules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule,
+}
+
 /// GET v1/projects/{projectsId}/securityHealthAnalyticsSettings/customModules/{customModulesId}
 /// Updates the SecurityHealthAnalyticsCustomModule under the given name based on the given update mask. Updating the enablement state is supported on both resident and inherited modules (though resident modules cannot have an enablement state of "inherited"). Updating the display name and custom config of a module is supported on resident modules only.
 ///
@@ -20923,9 +22546,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 
 pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule,
+    args: &SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -20939,7 +22560,10 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 > {
     let builder =
         securitycenter_projects_security_health_analytics_settings_custom_modules_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     securitycenter_projects_security_health_analytics_settings_custom_modules_patch_execute(builder)
 }
@@ -21042,6 +22666,15 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_security_health_analytics_settings_custom_modules_simulate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesSimulateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SimulateSecurityHealthAnalyticsCustomModuleRequest,
+}
+
 /// GET v1/projects/{projectsId}/securityHealthAnalyticsSettings/customModules:simulate
 /// Simulates a given SecurityHealthAnalyticsCustomModule and Resource.
 ///
@@ -21054,8 +22687,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 
 pub fn securitycenter_projects_security_health_analytics_settings_custom_modules_simulate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SimulateSecurityHealthAnalyticsCustomModuleRequest,
+    args: &SecuritycenterProjectsSecurityHealthAnalyticsSettingsCustomModulesSimulateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SimulateSecurityHealthAnalyticsCustomModuleResponse>, ApiError>,
@@ -21066,7 +22698,9 @@ pub fn securitycenter_projects_security_health_analytics_settings_custom_modules
 > {
     let builder =
         securitycenter_projects_security_health_analytics_settings_custom_modules_simulate_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     securitycenter_projects_security_health_analytics_settings_custom_modules_simulate_execute(
         builder,
@@ -21167,6 +22801,13 @@ pub fn securitycenter_projects_security_health_analytics_settings_effective_cust
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_security_health_analytics_settings_effective_custom_modules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSecurityHealthAnalyticsSettingsEffectiveCustomModulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/securityHealthAnalyticsSettings/effectiveCustomModules/{effectiveCustomModulesId}
 /// Retrieves an EffectiveSecurityHealthAnalyticsCustomModule.
 ///
@@ -21179,7 +22820,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_effective_cust
 
 pub fn securitycenter_projects_security_health_analytics_settings_effective_custom_modules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritycenterProjectsSecurityHealthAnalyticsSettingsEffectiveCustomModulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -21193,7 +22834,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_effective_cust
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_security_health_analytics_settings_effective_custom_modules_get_builder(client, name)?;
+    let builder = securitycenter_projects_security_health_analytics_settings_effective_custom_modules_get_builder(client, &args.name)?;
     securitycenter_projects_security_health_analytics_settings_effective_custom_modules_get_execute(
         builder,
     )
@@ -21313,6 +22954,17 @@ pub fn securitycenter_projects_security_health_analytics_settings_effective_cust
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_security_health_analytics_settings_effective_custom_modules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSecurityHealthAnalyticsSettingsEffectiveCustomModulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/securityHealthAnalyticsSettings/effectiveCustomModules
 /// Returns a list of all EffectiveSecurityHealthAnalyticsCustomModules for the given parent. This includes resident modules defined at the scope of the parent, and inherited modules, inherited from CRM ancestors.
 ///
@@ -21325,9 +22977,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_effective_cust
 
 pub fn securitycenter_projects_security_health_analytics_settings_effective_custom_modules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterProjectsSecurityHealthAnalyticsSettingsEffectiveCustomModulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -21339,7 +22989,7 @@ pub fn securitycenter_projects_security_health_analytics_settings_effective_cust
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_security_health_analytics_settings_effective_custom_modules_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_projects_security_health_analytics_settings_effective_custom_modules_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     securitycenter_projects_security_health_analytics_settings_effective_custom_modules_list_execute(
         builder,
     )
@@ -21453,6 +23103,17 @@ pub fn securitycenter_projects_sources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/sources
 /// Lists all sources belonging to an organization.
 ///
@@ -21465,17 +23126,19 @@ pub fn securitycenter_projects_sources_list_execute(
 
 pub fn securitycenter_projects_sources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritycenterProjectsSourcesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSourcesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_projects_sources_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = securitycenter_projects_sources_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     securitycenter_projects_sources_list_execute(builder)
 }
 
@@ -21574,6 +23237,15 @@ pub fn securitycenter_projects_sources_findings_group_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_sources_findings_group`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSourcesFindingsGroupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GroupFindingsRequest,
+}
+
 /// GET v1/projects/{projectsId}/sources/{sourcesId}/findings:group
 /// Filters an organization or source's findings and groups them by their specified properties. To group across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`, /v1/`folders/{folder_id}/sources/-/findings`, /v1/`projects/{project_id}/sources/-/findings`
 ///
@@ -21586,15 +23258,15 @@ pub fn securitycenter_projects_sources_findings_group_execute(
 
 pub fn securitycenter_projects_sources_findings_group(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GroupFindingsRequest,
+    args: &SecuritycenterProjectsSourcesFindingsGroupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GroupFindingsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_sources_findings_group_builder(client, parent, body)?;
+    let builder =
+        securitycenter_projects_sources_findings_group_builder(client, &args.parent, &args.body)?;
     securitycenter_projects_sources_findings_group_execute(builder)
 }
 
@@ -21726,6 +23398,27 @@ pub fn securitycenter_projects_sources_findings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_sources_findings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSourcesFindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: compareDuration
+    pub compareDuration: Option<String>,
+    /// Query parameter: fieldMask
+    pub fieldMask: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readTime
+    pub readTime: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/sources/{sourcesId}/findings
 /// Lists an organization or source's findings. To list across all sources provide a - as the source id. Example: /v1/`organizations/{organization_id}/sources/-/findings`
 ///
@@ -21738,14 +23431,7 @@ pub fn securitycenter_projects_sources_findings_list_execute(
 
 pub fn securitycenter_projects_sources_findings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    compareDuration: Option<&str>,
-    fieldMask: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readTime: Option<&str>,
+    args: &SecuritycenterProjectsSourcesFindingsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFindingsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -21754,14 +23440,14 @@ pub fn securitycenter_projects_sources_findings_list(
 > {
     let builder = securitycenter_projects_sources_findings_list_builder(
         client,
-        parent,
-        compareDuration,
-        fieldMask,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        readTime,
+        &args.parent,
+        args.compareDuration.as_deref(),
+        args.fieldMask.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readTime.as_deref(),
     )?;
     securitycenter_projects_sources_findings_list_execute(builder)
 }
@@ -21871,6 +23557,17 @@ pub fn securitycenter_projects_sources_findings_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_sources_findings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSourcesFindingsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Finding,
+}
+
 /// GET v1/projects/{projectsId}/sources/{sourcesId}/findings/{findingsId}
 /// Creates or updates a finding. The corresponding source must exist for a finding creation to succeed.
 ///
@@ -21883,15 +23580,17 @@ pub fn securitycenter_projects_sources_findings_patch_execute(
 
 pub fn securitycenter_projects_sources_findings_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Finding,
+    args: &SecuritycenterProjectsSourcesFindingsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        securitycenter_projects_sources_findings_patch_builder(client, name, updateMask, body)?;
+    let builder = securitycenter_projects_sources_findings_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     securitycenter_projects_sources_findings_patch_execute(builder)
 }
 
@@ -21988,6 +23687,15 @@ pub fn securitycenter_projects_sources_findings_set_mute_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_sources_findings_set_mute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSourcesFindingsSetMuteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SetMuteRequest,
+}
+
 /// GET v1/projects/{projectsId}/sources/{sourcesId}/findings/{findingsId}:setMute
 /// Updates the mute state of a finding.
 ///
@@ -22000,13 +23708,13 @@ pub fn securitycenter_projects_sources_findings_set_mute_execute(
 
 pub fn securitycenter_projects_sources_findings_set_mute(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SetMuteRequest,
+    args: &SecuritycenterProjectsSourcesFindingsSetMuteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_sources_findings_set_mute_builder(client, name, body)?;
+    let builder =
+        securitycenter_projects_sources_findings_set_mute_builder(client, &args.name, &args.body)?;
     securitycenter_projects_sources_findings_set_mute_execute(builder)
 }
 
@@ -22103,6 +23811,15 @@ pub fn securitycenter_projects_sources_findings_set_state_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_sources_findings_set_state`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSourcesFindingsSetStateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SetFindingStateRequest,
+}
+
 /// GET v1/projects/{projectsId}/sources/{sourcesId}/findings/{findingsId}:setState
 /// Updates the state of a finding.
 ///
@@ -22115,13 +23832,13 @@ pub fn securitycenter_projects_sources_findings_set_state_execute(
 
 pub fn securitycenter_projects_sources_findings_set_state(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SetFindingStateRequest,
+    args: &SecuritycenterProjectsSourcesFindingsSetStateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securitycenter_projects_sources_findings_set_state_builder(client, name, body)?;
+    let builder =
+        securitycenter_projects_sources_findings_set_state_builder(client, &args.name, &args.body)?;
     securitycenter_projects_sources_findings_set_state_execute(builder)
 }
 
@@ -22236,6 +23953,19 @@ pub fn securitycenter_projects_sources_findings_update_security_marks_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_sources_findings_update_security_marks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSourcesFindingsUpdateSecurityMarksArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: startTime
+    pub startTime: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SecurityMarks,
+}
+
 /// GET v1/projects/{projectsId}/sources/{sourcesId}/findings/{findingsId}/securityMarks
 /// Updates security marks.
 ///
@@ -22248,10 +23978,7 @@ pub fn securitycenter_projects_sources_findings_update_security_marks_execute(
 
 pub fn securitycenter_projects_sources_findings_update_security_marks(
     client: &SimpleHttpClient,
-    name: &str,
-    startTime: Option<&str>,
-    updateMask: Option<&str>,
-    body: &SecurityMarks,
+    args: &SecuritycenterProjectsSourcesFindingsUpdateSecurityMarksArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SecurityMarks>, ApiError>, P = ApiPending>
         + Send
@@ -22259,7 +23986,11 @@ pub fn securitycenter_projects_sources_findings_update_security_marks(
     ApiError,
 > {
     let builder = securitycenter_projects_sources_findings_update_security_marks_builder(
-        client, name, startTime, updateMask, body,
+        client,
+        &args.name,
+        args.startTime.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_projects_sources_findings_update_security_marks_execute(builder)
 }
@@ -22373,6 +24104,17 @@ pub fn securitycenter_projects_sources_findings_external_systems_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securitycenter_projects_sources_findings_external_systems_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritycenterProjectsSourcesFindingsExternalSystemsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudSecuritycenterV1ExternalSystem,
+}
+
 /// GET v1/projects/{projectsId}/sources/{sourcesId}/findings/{findingsId}/externalSystems/{externalSystemsId}
 /// Updates external system. This is for a given finding.
 ///
@@ -22385,9 +24127,7 @@ pub fn securitycenter_projects_sources_findings_external_systems_patch_execute(
 
 pub fn securitycenter_projects_sources_findings_external_systems_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudSecuritycenterV1ExternalSystem,
+    args: &SecuritycenterProjectsSourcesFindingsExternalSystemsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudSecuritycenterV1ExternalSystem>, ApiError>,
@@ -22397,7 +24137,10 @@ pub fn securitycenter_projects_sources_findings_external_systems_patch(
     ApiError,
 > {
     let builder = securitycenter_projects_sources_findings_external_systems_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securitycenter_projects_sources_findings_external_systems_patch_execute(builder)
 }

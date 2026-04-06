@@ -8,24 +8,25 @@
 #![cfg(feature = "fly_io")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// AppSecrets resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppSecrets {
     #[serde(default)]
     pub secrets: ::core::option::Option<::std::vec::Vec<AppSecret>>,
 }
 
 /// AppSecretsUpdateRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppSecretsUpdateRequest {
     #[serde(default)]
     pub values: ::core::option::Option<serde_json::Value>,
 }
 
 /// AppSecretsUpdateResp resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppSecretsUpdateResp {
     /// DEPRECATED
     #[serde(default, rename = "Version")]
@@ -35,7 +36,7 @@ pub struct AppSecretsUpdateResp {
 }
 
 /// CertificateCheckResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateCheckResponse {
     #[serde(default)]
     pub acme_requested: ::core::option::Option<bool>,
@@ -62,7 +63,7 @@ pub struct CertificateCheckResponse {
 }
 
 /// CertificateDetail resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateDetail {
     #[serde(default)]
     pub acme_requested: ::core::option::Option<bool>,
@@ -87,14 +88,14 @@ pub struct CertificateDetail {
 }
 
 /// CreateAppDeployTokenRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateAppDeployTokenRequest {
     #[serde(default)]
     pub expiry: ::core::option::Option<String>,
 }
 
 /// CreateAppRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateAppRequest {
     #[serde(default)]
     pub enable_subdomains: ::core::option::Option<bool>,
@@ -107,14 +108,14 @@ pub struct CreateAppRequest {
 }
 
 /// CreateAppResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateAppResponse {
     #[serde(default)]
     pub token: ::core::option::Option<String>,
 }
 
 /// CreateLeaseRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateLeaseRequest {
     #[serde(default)]
     pub description: ::core::option::Option<String>,
@@ -124,7 +125,7 @@ pub struct CreateLeaseRequest {
 }
 
 /// CreateMachineRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateMachineRequest {
     /// An object defining the Machine configuration
     #[serde(default)]
@@ -150,7 +151,7 @@ pub struct CreateMachineRequest {
 }
 
 /// Optional parameters
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateOIDCTokenRequest {
     #[serde(default)]
     pub aud: ::core::option::Option<String>,
@@ -159,7 +160,7 @@ pub struct CreateOIDCTokenRequest {
 }
 
 /// CreateVolumeRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateVolumeRequest {
     /// enable scheduled automatic snapshots. Defaults to true
     #[serde(default)]
@@ -193,14 +194,14 @@ pub struct CreateVolumeRequest {
 }
 
 /// CurrentTokenResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CurrentTokenResponse {
     #[serde(default)]
     pub tokens: ::core::option::Option<::std::vec::Vec<MainTokenInfo>>,
 }
 
 /// DecryptSecretkeyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DecryptSecretkeyRequest {
     #[serde(default)]
     pub associated_data: ::core::option::Option<::std::vec::Vec<i64>>,
@@ -209,14 +210,14 @@ pub struct DecryptSecretkeyRequest {
 }
 
 /// DecryptSecretkeyResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DecryptSecretkeyResponse {
     #[serde(default)]
     pub plaintext: ::core::option::Option<::std::vec::Vec<i64>>,
 }
 
 /// DeleteAppSecretResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteAppSecretResponse {
     /// DEPRECATED
     #[serde(default, rename = "Version")]
@@ -224,7 +225,7 @@ pub struct DeleteAppSecretResponse {
 }
 
 /// DeleteSecretkeyResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteSecretkeyResponse {
     /// DEPRECATED
     #[serde(default, rename = "Version")]
@@ -232,7 +233,7 @@ pub struct DeleteSecretkeyResponse {
 }
 
 /// EncryptSecretkeyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptSecretkeyRequest {
     #[serde(default)]
     pub associated_data: ::core::option::Option<::std::vec::Vec<i64>>,
@@ -241,14 +242,14 @@ pub struct EncryptSecretkeyRequest {
 }
 
 /// EncryptSecretkeyResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptSecretkeyResponse {
     #[serde(default)]
     pub ciphertext: ::core::option::Option<::std::vec::Vec<i64>>,
 }
 
 /// ErrorResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorResponse {
     /// Deprecated
     #[serde(default)]
@@ -260,14 +261,14 @@ pub struct ErrorResponse {
 }
 
 /// ExtendVolumeRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtendVolumeRequest {
     #[serde(default)]
     pub size_gb: ::core::option::Option<i64>,
 }
 
 /// ExtendVolumeResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtendVolumeResponse {
     #[serde(default)]
     pub needs_restart: ::core::option::Option<bool>,
@@ -276,7 +277,7 @@ pub struct ExtendVolumeResponse {
 }
 
 /// Lease resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Lease {
     /// Description or reason for the Lease.
     #[serde(default)]
@@ -296,7 +297,7 @@ pub struct Lease {
 }
 
 /// ListAppsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAppsResponse {
     #[serde(default)]
     pub apps: ::core::option::Option<::std::vec::Vec<App>>,
@@ -305,7 +306,7 @@ pub struct ListAppsResponse {
 }
 
 /// Machine resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Machine {
     #[serde(default)]
     pub checks: ::core::option::Option<::std::vec::Vec<CheckStatus>>,
@@ -344,7 +345,7 @@ pub struct Machine {
 }
 
 /// MachineExecRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineExecRequest {
     /// Deprecated: use Command instead
     #[serde(default)]
@@ -360,7 +361,7 @@ pub struct MachineExecRequest {
 }
 
 /// MachineVersion resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineVersion {
     #[serde(default)]
     pub user_config: ::core::option::Option<FlyMachineConfig>,
@@ -369,7 +370,7 @@ pub struct MachineVersion {
 }
 
 /// OrgMachinesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrgMachinesResponse {
     #[serde(default)]
     pub last_machine_id: ::core::option::Option<String>,
@@ -382,7 +383,7 @@ pub struct OrgMachinesResponse {
 }
 
 /// OrgVolumesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrgVolumesResponse {
     #[serde(default)]
     pub last_updated_at: ::core::option::Option<String>,
@@ -395,7 +396,7 @@ pub struct OrgVolumesResponse {
 }
 
 /// ProcessStat resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProcessStat {
     #[serde(default)]
     pub command: ::core::option::Option<String>,
@@ -416,21 +417,21 @@ pub struct ProcessStat {
 }
 
 /// SecretKeys resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretKeys {
     #[serde(default)]
     pub secret_keys: ::core::option::Option<::std::vec::Vec<SecretKey>>,
 }
 
 /// SetAppSecretRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetAppSecretRequest {
     #[serde(default)]
     pub value: ::core::option::Option<String>,
 }
 
 /// SetAppSecretResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetAppSecretResponse {
     /// DEPRECATED
     #[serde(default, rename = "Version")]
@@ -448,7 +449,7 @@ pub struct SetAppSecretResponse {
 }
 
 /// SetSecretkeyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetSecretkeyRequest {
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
@@ -457,7 +458,7 @@ pub struct SetSecretkeyRequest {
 }
 
 /// SetSecretkeyResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetSecretkeyResponse {
     /// DEPRECATED
     #[serde(default, rename = "Version")]
@@ -475,21 +476,21 @@ pub struct SetSecretkeyResponse {
 }
 
 /// SignSecretkeyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignSecretkeyRequest {
     #[serde(default)]
     pub plaintext: ::core::option::Option<::std::vec::Vec<i64>>,
 }
 
 /// SignSecretkeyResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignSecretkeyResponse {
     #[serde(default)]
     pub signature: ::core::option::Option<::std::vec::Vec<i64>>,
 }
 
 /// SignalRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignalRequest {
     /// TODO: enum values: ["SIGABRT", "SIGALRM", "SIGFPE", "SIGHUP", "SIGILL", "SIGINT", "SIGKILL", "SIGPIPE", "SIGQUIT", "SIGSEGV", "SIGTERM", "SIGTRAP", "SIGUSR1"]
     #[serde(default)]
@@ -497,7 +498,7 @@ pub struct SignalRequest {
 }
 
 /// StopRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopRequest {
     #[serde(default)]
     pub signal: ::core::option::Option<String>,
@@ -506,7 +507,7 @@ pub struct StopRequest {
 }
 
 /// UpdateMachineRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateMachineRequest {
     /// An object defining the Machine configuration
     #[serde(default)]
@@ -534,7 +535,7 @@ pub struct UpdateMachineRequest {
 }
 
 /// UpdateVolumeRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateVolumeRequest {
     #[serde(default)]
     pub auto_backup_enabled: ::core::option::Option<bool>,
@@ -543,7 +544,7 @@ pub struct UpdateVolumeRequest {
 }
 
 /// VerifySecretkeyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifySecretkeyRequest {
     #[serde(default)]
     pub plaintext: ::core::option::Option<::std::vec::Vec<i64>>,
@@ -552,7 +553,7 @@ pub struct VerifySecretkeyRequest {
 }
 
 /// VolumeSnapshot resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VolumeSnapshot {
     #[serde(default)]
     pub created_at: ::core::option::Option<String>,
@@ -571,7 +572,7 @@ pub struct VolumeSnapshot {
 }
 
 /// WaitMachineResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitMachineResponse {
     #[serde(default)]
     pub event_id: ::core::option::Option<String>,
@@ -584,7 +585,7 @@ pub struct WaitMachineResponse {
 }
 
 /// AssignIPRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssignIPRequest {
     #[serde(default)]
     pub network: ::core::option::Option<String>,
@@ -599,14 +600,14 @@ pub struct AssignIPRequest {
 }
 
 /// CreateAcmeCertificateRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateAcmeCertificateRequest {
     #[serde(default)]
     pub hostname: ::core::option::Option<String>,
 }
 
 /// CreateCustomCertificateRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateCustomCertificateRequest {
     #[serde(default)]
     pub fullchain: ::core::option::Option<String>,
@@ -617,7 +618,7 @@ pub struct CreateCustomCertificateRequest {
 }
 
 /// DestroyCustomCertificateResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestroyCustomCertificateResponse {
     #[serde(default)]
     pub acme_requested: ::core::option::Option<bool>,
@@ -644,7 +645,7 @@ pub struct DestroyCustomCertificateResponse {
 }
 
 /// FlyMachineCheck resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineCheck {
     /// The time to wait after a VM starts before checking its health
     #[serde(default)]
@@ -684,7 +685,7 @@ pub struct FlyMachineCheck {
 }
 
 /// Flydv1ExecResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Flydv1ExecResponse {
     #[serde(default)]
     pub exit_code: ::core::option::Option<i64>,
@@ -697,7 +698,7 @@ pub struct Flydv1ExecResponse {
 }
 
 /// ListCertificatesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCertificatesResponse {
     #[serde(default)]
     pub certificates: ::core::option::Option<::std::vec::Vec<CertificateSummary>>,
@@ -708,14 +709,14 @@ pub struct ListCertificatesResponse {
 }
 
 /// ListIPAssignmentsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListIPAssignmentsResponse {
     #[serde(default)]
     pub ips: ::core::option::Option<::std::vec::Vec<IPAssignment>>,
 }
 
 /// MainGetPlacementsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MainGetPlacementsRequest {
     /// Resource requirements for the Machine to simulate. Defaults to a performance-1x machine
     #[serde(default)]
@@ -737,14 +738,14 @@ pub struct MainGetPlacementsRequest {
 }
 
 /// MainGetPlacementsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MainGetPlacementsResponse {
     #[serde(default)]
     pub regions: ::core::option::Option<::std::vec::Vec<PlacementRegionPlacement>>,
 }
 
 /// MainMemoryResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MainMemoryResponse {
     #[serde(default)]
     pub available_mb: ::core::option::Option<i64>,
@@ -753,21 +754,21 @@ pub struct MainMemoryResponse {
 }
 
 /// MainReclaimMemoryRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MainReclaimMemoryRequest {
     #[serde(default)]
     pub amount_mb: ::core::option::Option<i64>,
 }
 
 /// MainReclaimMemoryResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MainReclaimMemoryResponse {
     #[serde(default)]
     pub actual_mb: ::core::option::Option<i64>,
 }
 
 /// MainRegionResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MainRegionResponse {
     #[serde(default)]
     pub nearest: ::core::option::Option<String>,
@@ -776,25 +777,25 @@ pub struct MainRegionResponse {
 }
 
 /// MainSetMemoryLimitRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MainSetMemoryLimitRequest {
     #[serde(default)]
     pub limit_mb: ::core::option::Option<i64>,
 }
 
 /// MetadataValueResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetadataValueResponse {
     #[serde(default)]
     pub value: ::core::option::Option<String>,
 }
 
 /// PlacementWeights resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementWeights {}
 
 /// UpdateMetadataRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateMetadataRequest {
     #[serde(default)]
     pub machine_version: ::core::option::Option<String>,
@@ -805,7 +806,7 @@ pub struct UpdateMetadataRequest {
 }
 
 /// UpsertMetadataKeyRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpsertMetadataKeyRequest {
     #[serde(default)]
     pub updated_at: ::core::option::Option<String>,
@@ -814,7 +815,7 @@ pub struct UpsertMetadataKeyRequest {
 }
 
 /// AppSecret resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppSecret {
     #[serde(default)]
     pub created_at: ::core::option::Option<String>,
@@ -829,7 +830,7 @@ pub struct AppSecret {
 }
 
 /// DNSRecords resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DNSRecords {
     #[serde(default)]
     pub a: ::core::option::Option<::std::vec::Vec<String>>,
@@ -848,7 +849,7 @@ pub struct DNSRecords {
 }
 
 /// MainTokenInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MainTokenInfo {
     #[serde(default)]
     pub apps: ::core::option::Option<::std::vec::Vec<String>>,
@@ -870,7 +871,7 @@ pub struct MainTokenInfo {
 }
 
 /// Volume resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Volume {
     #[serde(default)]
     pub attached_alloc_id: ::core::option::Option<String>,
@@ -919,7 +920,7 @@ pub struct Volume {
 }
 
 /// App resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct App {
     #[serde(default)]
     pub id: ::core::option::Option<String>,
@@ -940,7 +941,7 @@ pub struct App {
 }
 
 /// CheckStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckStatus {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -953,7 +954,7 @@ pub struct CheckStatus {
 }
 
 /// MachineEvent resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineEvent {
     #[serde(default)]
     pub id: ::core::option::Option<String>,
@@ -970,7 +971,7 @@ pub struct MachineEvent {
 }
 
 /// ImageRef resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageRef {
     #[serde(default)]
     pub digest: ::core::option::Option<String>,
@@ -985,7 +986,7 @@ pub struct ImageRef {
 }
 
 /// FlyMachineConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineConfig {
     /// Optional boolean telling the Machine to destroy itself once it’s complete (default false)
     #[serde(default)]
@@ -1042,7 +1043,7 @@ pub struct FlyMachineConfig {
 }
 
 /// OrgMachine resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrgMachine {
     #[serde(default)]
     pub app_name: ::core::option::Option<String>,
@@ -1070,7 +1071,7 @@ pub struct OrgMachine {
 }
 
 /// OrgVolume resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrgVolume {
     #[serde(default)]
     pub app_name: ::core::option::Option<String>,
@@ -1123,7 +1124,7 @@ pub struct OrgVolume {
 }
 
 /// ListenSocket resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListenSocket {
     #[serde(default)]
     pub address: ::core::option::Option<String>,
@@ -1132,7 +1133,7 @@ pub struct ListenSocket {
 }
 
 /// SecretKey resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretKey {
     #[serde(default)]
     pub created_at: ::core::option::Option<String>,
@@ -1147,7 +1148,7 @@ pub struct SecretKey {
 }
 
 /// CertificateEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateEntry {
     #[serde(default)]
     pub created_at: ::core::option::Option<String>,
@@ -1166,7 +1167,7 @@ pub struct CertificateEntry {
 }
 
 /// DNSRequirements resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DNSRequirements {
     #[serde(default)]
     pub a: ::core::option::Option<::std::vec::Vec<String>>,
@@ -1181,7 +1182,7 @@ pub struct DNSRequirements {
 }
 
 /// CertificateValidation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateValidation {
     #[serde(default)]
     pub alpn_configured: ::core::option::Option<bool>,
@@ -1194,7 +1195,7 @@ pub struct CertificateValidation {
 }
 
 /// CertificateValidationError resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateValidationError {
     #[serde(default)]
     pub code: ::core::option::Option<String>,
@@ -1207,7 +1208,7 @@ pub struct CertificateValidationError {
 }
 
 /// CertificateSummary resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateSummary {
     #[serde(default)]
     pub acme_alpn_configured: ::core::option::Option<bool>,
@@ -1238,7 +1239,7 @@ pub struct CertificateSummary {
 }
 
 /// IPAssignment resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IPAssignment {
     #[serde(default)]
     pub created_at: ::core::option::Option<String>,
@@ -1253,7 +1254,7 @@ pub struct IPAssignment {
 }
 
 /// PlacementRegionPlacement resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementRegionPlacement {
     #[serde(default)]
     pub concurrency: ::core::option::Option<i64>,
@@ -1264,7 +1265,7 @@ pub struct PlacementRegionPlacement {
 }
 
 /// MainRegionRow resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MainRegionRow {
     #[serde(default)]
     pub code: ::core::option::Option<String>,
@@ -1285,7 +1286,7 @@ pub struct MainRegionRow {
 }
 
 /// AppOrganizationInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppOrganizationInfo {
     #[serde(default)]
     pub internal_numeric_id: ::core::option::Option<i64>,
@@ -1296,7 +1297,7 @@ pub struct AppOrganizationInfo {
 }
 
 /// FlyContainerConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyContainerConfig {
     /// CmdOverride is used to override the default command of the image.
     #[serde(default)]
@@ -1343,7 +1344,7 @@ pub struct FlyContainerConfig {
 }
 
 /// FlyDNSConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyDNSConfig {
     #[serde(default)]
     pub dns_forward_rules: ::core::option::Option<::std::vec::Vec<FlyDnsForwardRule>>,
@@ -1362,7 +1363,7 @@ pub struct FlyDNSConfig {
 }
 
 /// FlyMachineInit resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineInit {
     #[serde(default)]
     pub cmd: ::core::option::Option<::std::vec::Vec<String>>,
@@ -1379,7 +1380,7 @@ pub struct FlyMachineInit {
 }
 
 /// FlyMachineMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineMetrics {
     #[serde(default)]
     pub https: ::core::option::Option<bool>,
@@ -1390,7 +1391,7 @@ pub struct FlyMachineMetrics {
 }
 
 /// FlyMachineMount resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineMount {
     #[serde(default)]
     pub add_size_gb: ::core::option::Option<i64>,
@@ -1411,7 +1412,7 @@ pub struct FlyMachineMount {
 }
 
 /// FlyMachineProcess resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineProcess {
     #[serde(default)]
     pub cmd: ::core::option::Option<::std::vec::Vec<String>>,
@@ -1435,7 +1436,7 @@ pub struct FlyMachineProcess {
 }
 
 /// The Machine restart policy defines whether and how flyd restarts a Machine after its main process exits. See https://fly.io/docs/machines/guides-examples/machine-restart-policy/.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineRestart {
     /// GPU bid price for spot Machines.
     #[serde(default)]
@@ -1449,7 +1450,7 @@ pub struct FlyMachineRestart {
 }
 
 /// FlyMachineRootfs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineRootfs {
     #[serde(default)]
     pub fs_size_gb: ::core::option::Option<i64>,
@@ -1461,7 +1462,7 @@ pub struct FlyMachineRootfs {
 }
 
 /// FlyMachineService resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineService {
     #[serde(default)]
     pub autostart: ::core::option::Option<bool>,
@@ -1488,7 +1489,7 @@ pub struct FlyMachineService {
 }
 
 /// FlyStatic resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyStatic {
     pub guest_path: String,
     #[serde(default)]
@@ -1499,7 +1500,7 @@ pub struct FlyStatic {
 }
 
 /// FlyStopConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyStopConfig {
     #[serde(default)]
     pub signal: ::core::option::Option<String>,
@@ -1508,7 +1509,7 @@ pub struct FlyStopConfig {
 }
 
 /// MachineOverviewConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineOverviewConfig {
     #[serde(default)]
     pub guest: ::core::option::Option<FlyMachineGuest>,
@@ -1519,7 +1520,7 @@ pub struct MachineOverviewConfig {
 }
 
 /// IssuedCertificate resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuedCertificate {
     #[serde(default)]
     pub certificate_authority: ::core::option::Option<String>,
@@ -1531,7 +1532,7 @@ pub struct IssuedCertificate {
 }
 
 /// AcmeChallenge resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcmeChallenge {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -1540,7 +1541,7 @@ pub struct AcmeChallenge {
 }
 
 /// OwnershipVerification resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OwnershipVerification {
     #[serde(default)]
     pub app_value: ::core::option::Option<String>,
@@ -1551,7 +1552,7 @@ pub struct OwnershipVerification {
 }
 
 /// FlyContainerDependency resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyContainerDependency {
     #[serde(default)]
     pub condition: ::core::option::Option<serde_json::Value>,
@@ -1560,7 +1561,7 @@ pub struct FlyContainerDependency {
 }
 
 /// A file that will be written to the Machine. One of RawValue or SecretName must be set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyFile {
     /// GuestPath is the path on the machine where the file will be written and must be an absolute path.
     #[serde(default)]
@@ -1580,7 +1581,7 @@ pub struct FlyFile {
 }
 
 /// FlyContainerHealthcheck resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyContainerHealthcheck {
     #[serde(default)]
     pub exec: ::core::option::Option<FlyExecHealthcheck>,
@@ -1615,7 +1616,7 @@ pub struct FlyContainerHealthcheck {
 }
 
 /// FlyDnsForwardRule resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyDnsForwardRule {
     #[serde(default)]
     pub addr: ::core::option::Option<String>,
@@ -1624,7 +1625,7 @@ pub struct FlyDnsForwardRule {
 }
 
 /// FlyDnsOption resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyDnsOption {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -1633,7 +1634,7 @@ pub struct FlyDnsOption {
 }
 
 /// EnvVar defines an environment variable to be populated from a machine field, env_var
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyEnvFrom {
     /// EnvVar is required and is the name of the environment variable that will be set from the
     #[serde(default)]
@@ -1644,7 +1645,7 @@ pub struct FlyEnvFrom {
 }
 
 /// A Secret needing to be set in the environment of the Machine. env_var is required
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineSecret {
     /// EnvVar is required and is the name of the environment variable that will be set from the
     #[serde(default)]
@@ -1655,7 +1656,7 @@ pub struct FlyMachineSecret {
 }
 
 /// FlyMachineServiceCheck resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineServiceCheck {
     /// The time to wait after a VM starts before checking its health
     #[serde(default)]
@@ -1692,7 +1693,7 @@ pub struct FlyMachineServiceCheck {
 }
 
 /// FlyMachineServiceConcurrency resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineServiceConcurrency {
     #[serde(default)]
     pub hard_limit: ::core::option::Option<i64>,
@@ -1703,7 +1704,7 @@ pub struct FlyMachineServiceConcurrency {
 }
 
 /// FlyMachinePort resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachinePort {
     #[serde(default)]
     pub end_port: ::core::option::Option<i64>,
@@ -1724,14 +1725,14 @@ pub struct FlyMachinePort {
 }
 
 /// FlyDuration resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyDuration {
     #[serde(default, rename = "time.Duration")]
     pub time_duration: ::core::option::Option<i64>,
 }
 
 /// FlyMachineGuest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineGuest {
     #[serde(default)]
     pub cpu_kind: ::core::option::Option<String>,
@@ -1755,7 +1756,7 @@ pub struct FlyMachineGuest {
 }
 
 /// FlyExecHealthcheck resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyExecHealthcheck {
     /// The command to run to check the health of the container (e.g. ["cat", "/tmp/healthy"])
     #[serde(default)]
@@ -1763,7 +1764,7 @@ pub struct FlyExecHealthcheck {
 }
 
 /// FlyHTTPHealthcheck resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyHTTPHealthcheck {
     /// Additional headers to send with the request
     #[serde(default)]
@@ -1789,7 +1790,7 @@ pub struct FlyHTTPHealthcheck {
 }
 
 /// FlyTCPHealthcheck resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyTCPHealthcheck {
     /// The port to connect to, often the same as internal_port
     #[serde(default)]
@@ -1797,7 +1798,7 @@ pub struct FlyTCPHealthcheck {
 }
 
 /// FlyHTTPOptions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyHTTPOptions {
     #[serde(default)]
     pub compress: ::core::option::Option<bool>,
@@ -1814,14 +1815,14 @@ pub struct FlyHTTPOptions {
 }
 
 /// FlyProxyProtoOptions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyProxyProtoOptions {
     #[serde(default)]
     pub version: ::core::option::Option<String>,
 }
 
 /// FlyTLSOptions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyTLSOptions {
     #[serde(default)]
     pub alpn: ::core::option::Option<::std::vec::Vec<String>>,
@@ -1832,7 +1833,7 @@ pub struct FlyTLSOptions {
 }
 
 /// For http checks, an array of objects with string field Name and array of strings field Values. The key/value pairs specify header and header values that will get passed with the check call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyMachineHTTPHeader {
     /// The header name
     #[serde(default)]
@@ -1843,7 +1844,7 @@ pub struct FlyMachineHTTPHeader {
 }
 
 /// FlyReplayCache resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyReplayCache {
     #[serde(default)]
     pub allow_bypass: ::core::option::Option<bool>,
@@ -1860,7 +1861,7 @@ pub struct FlyReplayCache {
 }
 
 /// FlyHTTPResponseOptions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlyHTTPResponseOptions {
     #[serde(default)]
     pub headers: ::core::option::Option<serde_json::Value>,

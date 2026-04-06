@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs
 /// Lists all the catalog configurations associated with the project.
@@ -130,6 +132,17 @@ pub fn recommendationengine_projects_locations_catalogs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs
 /// Lists all the catalog configurations associated with the project.
 ///
@@ -142,9 +155,7 @@ pub fn recommendationengine_projects_locations_catalogs_list_execute(
 
 pub fn recommendationengine_projects_locations_catalogs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecommendationengineProjectsLocationsCatalogsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -157,7 +168,10 @@ pub fn recommendationengine_projects_locations_catalogs_list(
     ApiError,
 > {
     let builder = recommendationengine_projects_locations_catalogs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     recommendationengine_projects_locations_catalogs_list_execute(builder)
 }
@@ -272,6 +286,17 @@ pub fn recommendationengine_projects_locations_catalogs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRecommendationengineV1beta1Catalog,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}
 /// Updates the catalog configuration.
 ///
@@ -284,9 +309,7 @@ pub fn recommendationengine_projects_locations_catalogs_patch_execute(
 
 pub fn recommendationengine_projects_locations_catalogs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudRecommendationengineV1beta1Catalog,
+    args: &RecommendationengineProjectsLocationsCatalogsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommendationengineV1beta1Catalog>, ApiError>,
@@ -296,7 +319,10 @@ pub fn recommendationengine_projects_locations_catalogs_patch(
     ApiError,
 > {
     let builder = recommendationengine_projects_locations_catalogs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     recommendationengine_projects_locations_catalogs_patch_execute(builder)
 }
@@ -399,6 +425,15 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_create_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_catalog_items_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsCatalogItemsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRecommendationengineV1beta1CatalogItem,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/catalogItems
 /// Creates a catalog item.
 ///
@@ -411,8 +446,7 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_create_exe
 
 pub fn recommendationengine_projects_locations_catalogs_catalog_items_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRecommendationengineV1beta1CatalogItem,
+    args: &RecommendationengineProjectsLocationsCatalogsCatalogItemsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommendationengineV1beta1CatalogItem>, ApiError>,
@@ -422,7 +456,9 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_create(
     ApiError,
 > {
     let builder = recommendationengine_projects_locations_catalogs_catalog_items_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     recommendationengine_projects_locations_catalogs_catalog_items_create_execute(builder)
 }
@@ -519,6 +555,13 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_delete_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_catalog_items_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsCatalogItemsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/catalogItems/{catalogItemsId}
 /// Deletes a catalog item.
 ///
@@ -531,7 +574,7 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_delete_exe
 
 pub fn recommendationengine_projects_locations_catalogs_catalog_items_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommendationengineProjectsLocationsCatalogsCatalogItemsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -539,7 +582,7 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_delete(
     ApiError,
 > {
     let builder = recommendationengine_projects_locations_catalogs_catalog_items_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     recommendationengine_projects_locations_catalogs_catalog_items_delete_execute(builder)
 }
@@ -639,6 +682,13 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_catalog_items_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsCatalogItemsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/catalogItems/{catalogItemsId}
 /// Gets a specific catalog item.
 ///
@@ -651,7 +701,7 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_get_execut
 
 pub fn recommendationengine_projects_locations_catalogs_catalog_items_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommendationengineProjectsLocationsCatalogsCatalogItemsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommendationengineV1beta1CatalogItem>, ApiError>,
@@ -660,8 +710,9 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        recommendationengine_projects_locations_catalogs_catalog_items_get_builder(client, name)?;
+    let builder = recommendationengine_projects_locations_catalogs_catalog_items_get_builder(
+        client, &args.name,
+    )?;
     recommendationengine_projects_locations_catalogs_catalog_items_get_execute(builder)
 }
 
@@ -762,6 +813,15 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_import_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_catalog_items_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsCatalogItemsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRecommendationengineV1beta1ImportCatalogItemsRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/catalogItems:import
 /// Bulk import of multiple catalog items. Request processing may be synchronous. No partial updating supported. Non-existing items will be created. Operation.response is of type ImportResponse. Note that it is possible for a subset of the items to be successfully updated.
 ///
@@ -774,8 +834,7 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_import_exe
 
 pub fn recommendationengine_projects_locations_catalogs_catalog_items_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRecommendationengineV1beta1ImportCatalogItemsRequest,
+    args: &RecommendationengineProjectsLocationsCatalogsCatalogItemsImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -785,7 +844,9 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_import(
     ApiError,
 > {
     let builder = recommendationengine_projects_locations_catalogs_catalog_items_import_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     recommendationengine_projects_locations_catalogs_catalog_items_import_execute(builder)
 }
@@ -908,6 +969,19 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_catalog_items_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsCatalogItemsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/catalogItems
 /// Gets a list of catalog items.
 ///
@@ -920,10 +994,7 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_list_execu
 
 pub fn recommendationengine_projects_locations_catalogs_catalog_items_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecommendationengineProjectsLocationsCatalogsCatalogItemsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -936,7 +1007,11 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_list(
     ApiError,
 > {
     let builder = recommendationengine_projects_locations_catalogs_catalog_items_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     recommendationengine_projects_locations_catalogs_catalog_items_list_execute(builder)
 }
@@ -1051,6 +1126,17 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_catalog_items_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsCatalogItemsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRecommendationengineV1beta1CatalogItem,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/catalogItems/{catalogItemsId}
 /// Updates a catalog item. Partial updating is supported. Non-existing items will be created.
 ///
@@ -1063,9 +1149,7 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_patch_exec
 
 pub fn recommendationengine_projects_locations_catalogs_catalog_items_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudRecommendationengineV1beta1CatalogItem,
+    args: &RecommendationengineProjectsLocationsCatalogsCatalogItemsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommendationengineV1beta1CatalogItem>, ApiError>,
@@ -1075,7 +1159,10 @@ pub fn recommendationengine_projects_locations_catalogs_catalog_items_patch(
     ApiError,
 > {
     let builder = recommendationengine_projects_locations_catalogs_catalog_items_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     recommendationengine_projects_locations_catalogs_catalog_items_patch_execute(builder)
 }
@@ -1174,6 +1261,13 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_event_stores_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsEventStoresOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1186,7 +1280,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_
 
 pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommendationengineProjectsLocationsCatalogsEventStoresOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1197,7 +1291,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_
 > {
     let builder =
         recommendationengine_projects_locations_catalogs_event_stores_operations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     recommendationengine_projects_locations_catalogs_event_stores_operations_get_execute(builder)
 }
@@ -1321,6 +1415,21 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_event_stores_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsEventStoresOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1333,11 +1442,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_
 
 pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &RecommendationengineProjectsLocationsCatalogsEventStoresOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -1349,11 +1454,11 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_operations_
     let builder =
         recommendationengine_projects_locations_catalogs_event_stores_operations_list_builder(
             client,
-            name,
-            filter,
-            pageSize,
-            pageToken,
-            returnPartialSuccess,
+            &args.name,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.returnPartialSuccess,
         )?;
     recommendationengine_projects_locations_catalogs_event_stores_operations_list_execute(builder)
 }
@@ -1459,6 +1564,15 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_placements_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_event_stores_placements_predict`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsEventStoresPlacementsPredictArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommendationengineV1beta1PredictRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/placements/{placementsId}:predict
 /// Makes a recommendation prediction. If using API Key based authentication, the API Key must be registered using the PredictionApiKeyRegistry service. [Learn more](<https://cloud.google.`com/recommendations-ai/docs/setting-up`#register-key>).
 ///
@@ -1471,8 +1585,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_placements_
 
 pub fn recommendationengine_projects_locations_catalogs_event_stores_placements_predict(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommendationengineV1beta1PredictRequest,
+    args: &RecommendationengineProjectsLocationsCatalogsEventStoresPlacementsPredictArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1486,7 +1599,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_placements_
 > {
     let builder =
         recommendationengine_projects_locations_catalogs_event_stores_placements_predict_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     recommendationengine_projects_locations_catalogs_event_stores_placements_predict_execute(
         builder,
@@ -1594,6 +1707,16 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsEventStoresPredictionApiKeyRegistrationsCreateArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRecommendationengineV1beta1CreatePredictionApiKeyRegistrationRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/predictionApiKeyRegistrations
 /// Register an API key for use with predict method.
 ///
@@ -1606,8 +1729,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_
 
 pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRecommendationengineV1beta1CreatePredictionApiKeyRegistrationRequest,
+    args: &RecommendationengineProjectsLocationsCatalogsEventStoresPredictionApiKeyRegistrationsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1619,7 +1741,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_
         + 'static,
     ApiError,
 > {
-    let builder = recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_create_builder(client, parent, body)?;
+    let builder = recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_create_builder(client, &args.parent, &args.body)?;
     recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_create_execute(builder)
 }
 
@@ -1715,6 +1837,14 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsEventStoresPredictionApiKeyRegistrationsDeleteArgs
+{
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/predictionApiKeyRegistrations/{predictionApiKeyRegistrationsId}
 /// Unregister an `apiKey` from using for predict method.
 ///
@@ -1727,14 +1857,14 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_
 
 pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommendationengineProjectsLocationsCatalogsEventStoresPredictionApiKeyRegistrationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_delete_builder(client, name)?;
+    let builder = recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_delete_builder(client, &args.name)?;
     recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_delete_execute(builder)
 }
 
@@ -1848,6 +1978,18 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsEventStoresPredictionApiKeyRegistrationsListArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/predictionApiKeyRegistrations
 /// List the registered `apiKeys` for use with predict method.
 ///
@@ -1860,9 +2002,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_
 
 pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecommendationengineProjectsLocationsCatalogsEventStoresPredictionApiKeyRegistrationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1876,7 +2016,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_prediction_
         + 'static,
     ApiError,
 > {
-    let builder = recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     recommendationengine_projects_locations_catalogs_event_stores_prediction_api_key_registrations_list_execute(builder)
 }
 
@@ -1992,6 +2132,19 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_event_stores_user_events_collect`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsCollectArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: ets
+    pub ets: Option<String>,
+    /// Query parameter: uri
+    pub uri: Option<String>,
+    /// Query parameter: userEvent
+    pub userEvent: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents:collect
 /// Writes a single user event from the browser. This uses a GET request to due to browser restriction of POST-ing to a 3rd party domain. This method is used only by the Recommendations AI JavaScript pixel. Users should not call this method directly.
 ///
@@ -2004,10 +2157,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 
 pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_collect(
     client: &SimpleHttpClient,
-    parent: &str,
-    ets: Option<&str>,
-    uri: Option<&str>,
-    userEvent: Option<&str>,
+    args: &RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsCollectArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApiHttpBody>, ApiError>, P = ApiPending>
         + Send
@@ -2016,7 +2166,11 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 > {
     let builder =
         recommendationengine_projects_locations_catalogs_event_stores_user_events_collect_builder(
-            client, parent, ets, uri, userEvent,
+            client,
+            &args.parent,
+            args.ets.as_deref(),
+            args.uri.as_deref(),
+            args.userEvent.as_deref(),
         )?;
     recommendationengine_projects_locations_catalogs_event_stores_user_events_collect_execute(
         builder,
@@ -2120,6 +2274,15 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_event_stores_user_events_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRecommendationengineV1beta1ImportUserEventsRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents:import
 /// Bulk import of User events. Request processing might be synchronous. Events that already exist are skipped. Use this method for backfilling historical user events. Operation.response is of type ImportResponse. Note that it is possible for a subset of the items to be successfully inserted. Operation.metadata is of type ImportMetadata.
 ///
@@ -2132,8 +2295,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 
 pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRecommendationengineV1beta1ImportUserEventsRequest,
+    args: &RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2144,7 +2306,9 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 > {
     let builder =
         recommendationengine_projects_locations_catalogs_event_stores_user_events_import_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     recommendationengine_projects_locations_catalogs_event_stores_user_events_import_execute(
         builder,
@@ -2269,6 +2433,19 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_event_stores_user_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents
 /// Gets a list of user events within a time range, with potential filtering. The method does not list unjoined user events. Unjoined user event definition: when a user event is ingested from Recommendations AI User Event APIs, the catalog item included in the user event is connected with the current catalog. If a catalog item of the ingested event is not in the current catalog, it could lead to degraded model quality. This is called an unjoined event.
 ///
@@ -2281,10 +2458,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 
 pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2298,7 +2472,11 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 > {
     let builder =
         recommendationengine_projects_locations_catalogs_event_stores_user_events_list_builder(
-            client, parent, filter, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     recommendationengine_projects_locations_catalogs_event_stores_user_events_list_execute(builder)
 }
@@ -2400,6 +2578,15 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_event_stores_user_events_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsPurgeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRecommendationengineV1beta1PurgeUserEventsRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents:purge
 /// Deletes permanently all user events specified by the filter provided. Depending on the number of events specified by the filter, this operation could take hours or days to complete. To test a filter, use the list command first.
 ///
@@ -2412,8 +2599,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 
 pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_purge(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRecommendationengineV1beta1PurgeUserEventsRequest,
+    args: &RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsPurgeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2424,7 +2610,9 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 > {
     let builder =
         recommendationengine_projects_locations_catalogs_event_stores_user_events_purge_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     recommendationengine_projects_locations_catalogs_event_stores_user_events_purge_execute(builder)
 }
@@ -2526,6 +2714,15 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_event_stores_user_events_rejoin`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsRejoinArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRecommendationengineV1beta1RejoinUserEventsRequest,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents:rejoin
 /// Triggers a user event rejoin operation with latest catalog data. Events will not be annotated with detailed catalog information if catalog item is missing at the time the user event is ingested, and these events are stored as unjoined events with a limited usage on training and serving. This API can be used to trigger a 'join' operation on specified events with latest version of catalog items. It can also be used to correct events joined with wrong catalog items.
 ///
@@ -2538,8 +2735,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 
 pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_rejoin(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRecommendationengineV1beta1RejoinUserEventsRequest,
+    args: &RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsRejoinArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2550,7 +2746,9 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 > {
     let builder =
         recommendationengine_projects_locations_catalogs_event_stores_user_events_rejoin_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     recommendationengine_projects_locations_catalogs_event_stores_user_events_rejoin_execute(
         builder,
@@ -2655,6 +2853,15 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_event_stores_user_events_write`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsWriteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRecommendationengineV1beta1UserEvent,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/eventStores/{eventStoresId}/userEvents:write
 /// Writes a single user event.
 ///
@@ -2667,8 +2874,7 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 
 pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events_write(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRecommendationengineV1beta1UserEvent,
+    args: &RecommendationengineProjectsLocationsCatalogsEventStoresUserEventsWriteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommendationengineV1beta1UserEvent>, ApiError>,
@@ -2679,7 +2885,9 @@ pub fn recommendationengine_projects_locations_catalogs_event_stores_user_events
 > {
     let builder =
         recommendationengine_projects_locations_catalogs_event_stores_user_events_write_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     recommendationengine_projects_locations_catalogs_event_stores_user_events_write_execute(builder)
 }
@@ -2778,6 +2986,13 @@ pub fn recommendationengine_projects_locations_catalogs_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2790,7 +3005,7 @@ pub fn recommendationengine_projects_locations_catalogs_operations_get_execute(
 
 pub fn recommendationengine_projects_locations_catalogs_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommendationengineProjectsLocationsCatalogsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2799,8 +3014,9 @@ pub fn recommendationengine_projects_locations_catalogs_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        recommendationengine_projects_locations_catalogs_operations_get_builder(client, name)?;
+    let builder = recommendationengine_projects_locations_catalogs_operations_get_builder(
+        client, &args.name,
+    )?;
     recommendationengine_projects_locations_catalogs_operations_get_execute(builder)
 }
 
@@ -2923,6 +3139,21 @@ pub fn recommendationengine_projects_locations_catalogs_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommendationengine_projects_locations_catalogs_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommendationengineProjectsLocationsCatalogsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1beta1/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -2935,11 +3166,7 @@ pub fn recommendationengine_projects_locations_catalogs_operations_list_execute(
 
 pub fn recommendationengine_projects_locations_catalogs_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &RecommendationengineProjectsLocationsCatalogsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -2950,11 +3177,11 @@ pub fn recommendationengine_projects_locations_catalogs_operations_list(
 > {
     let builder = recommendationengine_projects_locations_catalogs_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     recommendationengine_projects_locations_catalogs_operations_list_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn config_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn config_projects_locations_get_execute(
 
 pub fn config_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConfigProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_get_builder(client, name)?;
+    let builder = config_projects_locations_get_builder(client, &args.name)?;
     config_projects_locations_get_execute(builder)
 }
 
@@ -219,6 +228,13 @@ pub fn config_projects_locations_get_auto_migration_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_get_auto_migration_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsGetAutoMigrationConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoMigrationConfig
 /// Get the AutoMigrationConfig for a given project and location.
 ///
@@ -231,14 +247,14 @@ pub fn config_projects_locations_get_auto_migration_config_execute(
 
 pub fn config_projects_locations_get_auto_migration_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConfigProjectsLocationsGetAutoMigrationConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutoMigrationConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_get_auto_migration_config_builder(client, name)?;
+    let builder = config_projects_locations_get_auto_migration_config_builder(client, &args.name)?;
     config_projects_locations_get_auto_migration_config_execute(builder)
 }
 
@@ -358,6 +374,21 @@ pub fn config_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -370,11 +401,7 @@ pub fn config_projects_locations_list_execute(
 
 pub fn config_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ConfigProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -383,11 +410,11 @@ pub fn config_projects_locations_list(
 > {
     let builder = config_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     config_projects_locations_list_execute(builder)
 }
@@ -497,6 +524,17 @@ pub fn config_projects_locations_update_auto_migration_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_update_auto_migration_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsUpdateAutoMigrationConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AutoMigrationConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoMigrationConfig
 /// Updates the AutoMigrationConfig for a given project and location.
 ///
@@ -509,15 +547,16 @@ pub fn config_projects_locations_update_auto_migration_config_execute(
 
 pub fn config_projects_locations_update_auto_migration_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AutoMigrationConfig,
+    args: &ConfigProjectsLocationsUpdateAutoMigrationConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = config_projects_locations_update_auto_migration_config_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     config_projects_locations_update_auto_migration_config_execute(builder)
 }
@@ -631,6 +670,19 @@ pub fn config_projects_locations_deployment_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployment_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deploymentGroupId
+    pub deploymentGroupId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: DeploymentGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deploymentGroups
 /// Creates a DeploymentGroup The newly created DeploymentGroup will be in the CREATING state and can be retrieved via Get and List calls.
 ///
@@ -643,20 +695,17 @@ pub fn config_projects_locations_deployment_groups_create_execute(
 
 pub fn config_projects_locations_deployment_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    deploymentGroupId: Option<&str>,
-    requestId: Option<&str>,
-    body: &DeploymentGroup,
+    args: &ConfigProjectsLocationsDeploymentGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = config_projects_locations_deployment_groups_create_builder(
         client,
-        parent,
-        deploymentGroupId,
-        requestId,
-        body,
+        &args.parent,
+        args.deploymentGroupId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     config_projects_locations_deployment_groups_create_execute(builder)
 }
@@ -771,6 +820,19 @@ pub fn config_projects_locations_deployment_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployment_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: deploymentReferencePolicy
+    pub deploymentReferencePolicy: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deploymentGroups/{deploymentGroupsId}
 /// Deletes a DeploymentGroup
 ///
@@ -783,20 +845,17 @@ pub fn config_projects_locations_deployment_groups_delete_execute(
 
 pub fn config_projects_locations_deployment_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    deploymentReferencePolicy: Option<&str>,
-    force: Option<bool>,
-    requestId: Option<&str>,
+    args: &ConfigProjectsLocationsDeploymentGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = config_projects_locations_deployment_groups_delete_builder(
         client,
-        name,
-        deploymentReferencePolicy,
-        force,
-        requestId,
+        &args.name,
+        args.deploymentReferencePolicy.as_deref(),
+        args.force,
+        args.requestId.as_deref(),
     )?;
     config_projects_locations_deployment_groups_delete_execute(builder)
 }
@@ -894,6 +953,15 @@ pub fn config_projects_locations_deployment_groups_deprovision_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployment_groups_deprovision`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentGroupsDeprovisionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DeprovisionDeploymentGroupRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deploymentGroups/{deploymentGroupsId}:deprovision
 /// Deprovisions a deployment group. NOTE: As a first step of this operation, Infra Manager will automatically delete any Deployments that were part of the *last successful* DeploymentGroupRevision but are *no longer* included in the *current* DeploymentGroup definition (e.g., following an UpdateDeploymentGroup call), along with their actuated resources.
 ///
@@ -906,14 +974,14 @@ pub fn config_projects_locations_deployment_groups_deprovision_execute(
 
 pub fn config_projects_locations_deployment_groups_deprovision(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DeprovisionDeploymentGroupRequest,
+    args: &ConfigProjectsLocationsDeploymentGroupsDeprovisionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        config_projects_locations_deployment_groups_deprovision_builder(client, name, body)?;
+    let builder = config_projects_locations_deployment_groups_deprovision_builder(
+        client, &args.name, &args.body,
+    )?;
     config_projects_locations_deployment_groups_deprovision_execute(builder)
 }
 
@@ -1009,6 +1077,13 @@ pub fn config_projects_locations_deployment_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployment_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deploymentGroups/{deploymentGroupsId}
 /// Get a DeploymentGroup for a given project and location.
 ///
@@ -1021,14 +1096,14 @@ pub fn config_projects_locations_deployment_groups_get_execute(
 
 pub fn config_projects_locations_deployment_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConfigProjectsLocationsDeploymentGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeploymentGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_deployment_groups_get_builder(client, name)?;
+    let builder = config_projects_locations_deployment_groups_get_builder(client, &args.name)?;
     config_projects_locations_deployment_groups_get_execute(builder)
 }
 
@@ -1150,6 +1225,21 @@ pub fn config_projects_locations_deployment_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployment_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deploymentGroups
 /// List DeploymentGroups for a given project and location.
 ///
@@ -1162,11 +1252,7 @@ pub fn config_projects_locations_deployment_groups_list_execute(
 
 pub fn config_projects_locations_deployment_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ConfigProjectsLocationsDeploymentGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDeploymentGroupsResponse>, ApiError>,
@@ -1176,7 +1262,12 @@ pub fn config_projects_locations_deployment_groups_list(
     ApiError,
 > {
     let builder = config_projects_locations_deployment_groups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     config_projects_locations_deployment_groups_list_execute(builder)
 }
@@ -1290,6 +1381,19 @@ pub fn config_projects_locations_deployment_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployment_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: DeploymentGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deploymentGroups/{deploymentGroupsId}
 /// Updates a DeploymentGroup
 ///
@@ -1302,16 +1406,17 @@ pub fn config_projects_locations_deployment_groups_patch_execute(
 
 pub fn config_projects_locations_deployment_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &DeploymentGroup,
+    args: &ConfigProjectsLocationsDeploymentGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = config_projects_locations_deployment_groups_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     config_projects_locations_deployment_groups_patch_execute(builder)
 }
@@ -1409,6 +1514,15 @@ pub fn config_projects_locations_deployment_groups_provision_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployment_groups_provision`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentGroupsProvisionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ProvisionDeploymentGroupRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deploymentGroups/{deploymentGroupsId}:provision
 /// Provisions a deployment group. NOTE: As a first step of this operation, Infra Manager will automatically delete any Deployments that were part of the *last successful* DeploymentGroupRevision but are *no longer* included in the *current* DeploymentGroup definition (e.g., following an UpdateDeploymentGroup call), along with their actuated resources.
 ///
@@ -1421,14 +1535,14 @@ pub fn config_projects_locations_deployment_groups_provision_execute(
 
 pub fn config_projects_locations_deployment_groups_provision(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ProvisionDeploymentGroupRequest,
+    args: &ConfigProjectsLocationsDeploymentGroupsProvisionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        config_projects_locations_deployment_groups_provision_builder(client, name, body)?;
+    let builder = config_projects_locations_deployment_groups_provision_builder(
+        client, &args.name, &args.body,
+    )?;
     config_projects_locations_deployment_groups_provision_execute(builder)
 }
 
@@ -1524,6 +1638,13 @@ pub fn config_projects_locations_deployment_groups_revisions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployment_groups_revisions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentGroupsRevisionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deploymentGroups/{deploymentGroupsId}/revisions/{revisionsId}
 /// Gets details about a DeploymentGroupRevision.
 ///
@@ -1536,14 +1657,15 @@ pub fn config_projects_locations_deployment_groups_revisions_get_execute(
 
 pub fn config_projects_locations_deployment_groups_revisions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConfigProjectsLocationsDeploymentGroupsRevisionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeploymentGroupRevision>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_deployment_groups_revisions_get_builder(client, name)?;
+    let builder =
+        config_projects_locations_deployment_groups_revisions_get_builder(client, &args.name)?;
     config_projects_locations_deployment_groups_revisions_get_execute(builder)
 }
 
@@ -1657,6 +1779,17 @@ pub fn config_projects_locations_deployment_groups_revisions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployment_groups_revisions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentGroupsRevisionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deploymentGroups/{deploymentGroupsId}/revisions
 /// Lists DeploymentGroupRevisions in a given DeploymentGroup.
 ///
@@ -1669,9 +1802,7 @@ pub fn config_projects_locations_deployment_groups_revisions_list_execute(
 
 pub fn config_projects_locations_deployment_groups_revisions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ConfigProjectsLocationsDeploymentGroupsRevisionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDeploymentGroupRevisionsResponse>, ApiError>,
@@ -1681,7 +1812,10 @@ pub fn config_projects_locations_deployment_groups_revisions_list(
     ApiError,
 > {
     let builder = config_projects_locations_deployment_groups_revisions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     config_projects_locations_deployment_groups_revisions_list_execute(builder)
 }
@@ -1795,6 +1929,19 @@ pub fn config_projects_locations_deployments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deploymentId
+    pub deploymentId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Deployment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments
 /// Creates a Deployment.
 ///
@@ -1807,20 +1954,17 @@ pub fn config_projects_locations_deployments_create_execute(
 
 pub fn config_projects_locations_deployments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    deploymentId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Deployment,
+    args: &ConfigProjectsLocationsDeploymentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = config_projects_locations_deployments_create_builder(
         client,
-        parent,
-        deploymentId,
-        requestId,
-        body,
+        &args.parent,
+        args.deploymentId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     config_projects_locations_deployments_create_execute(builder)
 }
@@ -1935,6 +2079,19 @@ pub fn config_projects_locations_deployments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: deletePolicy
+    pub deletePolicy: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
 /// Deletes a Deployment.
 ///
@@ -1947,20 +2104,17 @@ pub fn config_projects_locations_deployments_delete_execute(
 
 pub fn config_projects_locations_deployments_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    deletePolicy: Option<&str>,
-    force: Option<bool>,
-    requestId: Option<&str>,
+    args: &ConfigProjectsLocationsDeploymentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = config_projects_locations_deployments_delete_builder(
         client,
-        name,
-        deletePolicy,
-        force,
-        requestId,
+        &args.name,
+        args.deletePolicy.as_deref(),
+        args.force,
+        args.requestId.as_deref(),
     )?;
     config_projects_locations_deployments_delete_execute(builder)
 }
@@ -2058,6 +2212,15 @@ pub fn config_projects_locations_deployments_delete_state_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_delete_state`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsDeleteStateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DeleteStatefileRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}:deleteState
 /// Deletes Terraform state file in a given deployment.
 ///
@@ -2070,13 +2233,13 @@ pub fn config_projects_locations_deployments_delete_state_execute(
 
 pub fn config_projects_locations_deployments_delete_state(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DeleteStatefileRequest,
+    args: &ConfigProjectsLocationsDeploymentsDeleteStateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_deployments_delete_state_builder(client, name, body)?;
+    let builder =
+        config_projects_locations_deployments_delete_state_builder(client, &args.name, &args.body)?;
     config_projects_locations_deployments_delete_state_execute(builder)
 }
 
@@ -2170,6 +2333,13 @@ pub fn config_projects_locations_deployments_export_lock_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_export_lock`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsExportLockArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}:exportLock
 /// Exports the lock info on a locked deployment.
 ///
@@ -2182,12 +2352,12 @@ pub fn config_projects_locations_deployments_export_lock_execute(
 
 pub fn config_projects_locations_deployments_export_lock(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConfigProjectsLocationsDeploymentsExportLockArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LockInfo>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_deployments_export_lock_builder(client, name)?;
+    let builder = config_projects_locations_deployments_export_lock_builder(client, &args.name)?;
     config_projects_locations_deployments_export_lock_execute(builder)
 }
 
@@ -2284,6 +2454,15 @@ pub fn config_projects_locations_deployments_export_state_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_export_state`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsExportStateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ExportDeploymentStatefileRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}:exportState
 /// Exports Terraform state file from a given deployment.
 ///
@@ -2296,13 +2475,16 @@ pub fn config_projects_locations_deployments_export_state_execute(
 
 pub fn config_projects_locations_deployments_export_state(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ExportDeploymentStatefileRequest,
+    args: &ConfigProjectsLocationsDeploymentsExportStateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Statefile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_deployments_export_state_builder(client, parent, body)?;
+    let builder = config_projects_locations_deployments_export_state_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     config_projects_locations_deployments_export_state_execute(builder)
 }
 
@@ -2396,6 +2578,13 @@ pub fn config_projects_locations_deployments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
 /// Gets details about a Deployment.
 ///
@@ -2408,12 +2597,12 @@ pub fn config_projects_locations_deployments_get_execute(
 
 pub fn config_projects_locations_deployments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConfigProjectsLocationsDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_deployments_get_builder(client, name)?;
+    let builder = config_projects_locations_deployments_get_builder(client, &args.name)?;
     config_projects_locations_deployments_get_execute(builder)
 }
 
@@ -2519,6 +2708,15 @@ pub fn config_projects_locations_deployments_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2531,16 +2729,15 @@ pub fn config_projects_locations_deployments_get_iam_policy_execute(
 
 pub fn config_projects_locations_deployments_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ConfigProjectsLocationsDeploymentsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = config_projects_locations_deployments_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     config_projects_locations_deployments_get_iam_policy_execute(builder)
 }
@@ -2638,6 +2835,15 @@ pub fn config_projects_locations_deployments_import_state_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_import_state`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsImportStateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ImportStatefileRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}:importState
 /// Imports Terraform state file in a given deployment. The state file does not take effect until the Deployment has been unlocked.
 ///
@@ -2650,13 +2856,16 @@ pub fn config_projects_locations_deployments_import_state_execute(
 
 pub fn config_projects_locations_deployments_import_state(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ImportStatefileRequest,
+    args: &ConfigProjectsLocationsDeploymentsImportStateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Statefile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_deployments_import_state_builder(client, parent, body)?;
+    let builder = config_projects_locations_deployments_import_state_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     config_projects_locations_deployments_import_state_execute(builder)
 }
 
@@ -2776,6 +2985,21 @@ pub fn config_projects_locations_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments
 /// Lists Deployments in a given project and location.
 ///
@@ -2788,11 +3012,7 @@ pub fn config_projects_locations_deployments_list_execute(
 
 pub fn config_projects_locations_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ConfigProjectsLocationsDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDeploymentsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2800,7 +3020,12 @@ pub fn config_projects_locations_deployments_list(
     ApiError,
 > {
     let builder = config_projects_locations_deployments_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     config_projects_locations_deployments_list_execute(builder)
 }
@@ -2898,6 +3123,15 @@ pub fn config_projects_locations_deployments_lock_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_lock`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsLockArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: LockDeploymentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}:lock
 /// Locks a deployment.
 ///
@@ -2910,13 +3144,13 @@ pub fn config_projects_locations_deployments_lock_execute(
 
 pub fn config_projects_locations_deployments_lock(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &LockDeploymentRequest,
+    args: &ConfigProjectsLocationsDeploymentsLockArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_deployments_lock_builder(client, name, body)?;
+    let builder =
+        config_projects_locations_deployments_lock_builder(client, &args.name, &args.body)?;
     config_projects_locations_deployments_lock_execute(builder)
 }
 
@@ -3029,6 +3263,19 @@ pub fn config_projects_locations_deployments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Deployment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
 /// Updates a Deployment.
 ///
@@ -3041,16 +3288,17 @@ pub fn config_projects_locations_deployments_patch_execute(
 
 pub fn config_projects_locations_deployments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Deployment,
+    args: &ConfigProjectsLocationsDeploymentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = config_projects_locations_deployments_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     config_projects_locations_deployments_patch_execute(builder)
 }
@@ -3148,6 +3396,15 @@ pub fn config_projects_locations_deployments_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3160,14 +3417,16 @@ pub fn config_projects_locations_deployments_set_iam_policy_execute(
 
 pub fn config_projects_locations_deployments_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ConfigProjectsLocationsDeploymentsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        config_projects_locations_deployments_set_iam_policy_builder(client, resource, body)?;
+    let builder = config_projects_locations_deployments_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     config_projects_locations_deployments_set_iam_policy_execute(builder)
 }
 
@@ -3268,6 +3527,15 @@ pub fn config_projects_locations_deployments_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3280,8 +3548,7 @@ pub fn config_projects_locations_deployments_test_iam_permissions_execute(
 
 pub fn config_projects_locations_deployments_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ConfigProjectsLocationsDeploymentsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3290,8 +3557,11 @@ pub fn config_projects_locations_deployments_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        config_projects_locations_deployments_test_iam_permissions_builder(client, resource, body)?;
+    let builder = config_projects_locations_deployments_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     config_projects_locations_deployments_test_iam_permissions_execute(builder)
 }
 
@@ -3388,6 +3658,15 @@ pub fn config_projects_locations_deployments_unlock_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_unlock`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsUnlockArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UnlockDeploymentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}:unlock
 /// Unlocks a locked deployment.
 ///
@@ -3400,13 +3679,13 @@ pub fn config_projects_locations_deployments_unlock_execute(
 
 pub fn config_projects_locations_deployments_unlock(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UnlockDeploymentRequest,
+    args: &ConfigProjectsLocationsDeploymentsUnlockArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_deployments_unlock_builder(client, name, body)?;
+    let builder =
+        config_projects_locations_deployments_unlock_builder(client, &args.name, &args.body)?;
     config_projects_locations_deployments_unlock_execute(builder)
 }
 
@@ -3503,6 +3782,15 @@ pub fn config_projects_locations_deployments_revisions_export_state_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_revisions_export_state`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsRevisionsExportStateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ExportRevisionStatefileRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/revisions/{revisionsId}:exportState
 /// Exports Terraform state file from a given revision.
 ///
@@ -3515,14 +3803,16 @@ pub fn config_projects_locations_deployments_revisions_export_state_execute(
 
 pub fn config_projects_locations_deployments_revisions_export_state(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ExportRevisionStatefileRequest,
+    args: &ConfigProjectsLocationsDeploymentsRevisionsExportStateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Statefile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        config_projects_locations_deployments_revisions_export_state_builder(client, parent, body)?;
+    let builder = config_projects_locations_deployments_revisions_export_state_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     config_projects_locations_deployments_revisions_export_state_execute(builder)
 }
 
@@ -3616,6 +3906,13 @@ pub fn config_projects_locations_deployments_revisions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_revisions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsRevisionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/revisions/{revisionsId}
 /// Gets details about a Revision.
 ///
@@ -3628,12 +3925,12 @@ pub fn config_projects_locations_deployments_revisions_get_execute(
 
 pub fn config_projects_locations_deployments_revisions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConfigProjectsLocationsDeploymentsRevisionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Revision>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_deployments_revisions_get_builder(client, name)?;
+    let builder = config_projects_locations_deployments_revisions_get_builder(client, &args.name)?;
     config_projects_locations_deployments_revisions_get_execute(builder)
 }
 
@@ -3753,6 +4050,21 @@ pub fn config_projects_locations_deployments_revisions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_revisions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsRevisionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/revisions
 /// Lists Revisions of a deployment.
 ///
@@ -3765,11 +4077,7 @@ pub fn config_projects_locations_deployments_revisions_list_execute(
 
 pub fn config_projects_locations_deployments_revisions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ConfigProjectsLocationsDeploymentsRevisionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRevisionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3777,7 +4085,12 @@ pub fn config_projects_locations_deployments_revisions_list(
     ApiError,
 > {
     let builder = config_projects_locations_deployments_revisions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     config_projects_locations_deployments_revisions_list_execute(builder)
 }
@@ -3872,6 +4185,13 @@ pub fn config_projects_locations_deployments_revisions_resources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_revisions_resources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsRevisionsResourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/revisions/{revisionsId}/resources/{resourcesId}
 /// Gets details about a Resource deployed by Infra Manager.
 ///
@@ -3884,13 +4204,13 @@ pub fn config_projects_locations_deployments_revisions_resources_get_execute(
 
 pub fn config_projects_locations_deployments_revisions_resources_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConfigProjectsLocationsDeploymentsRevisionsResourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Resource>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        config_projects_locations_deployments_revisions_resources_get_builder(client, name)?;
+        config_projects_locations_deployments_revisions_resources_get_builder(client, &args.name)?;
     config_projects_locations_deployments_revisions_resources_get_execute(builder)
 }
 
@@ -4010,6 +4330,21 @@ pub fn config_projects_locations_deployments_revisions_resources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_deployments_revisions_resources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsDeploymentsRevisionsResourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/revisions/{revisionsId}/resources
 /// Lists Resources in a given revision.
 ///
@@ -4022,11 +4357,7 @@ pub fn config_projects_locations_deployments_revisions_resources_list_execute(
 
 pub fn config_projects_locations_deployments_revisions_resources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ConfigProjectsLocationsDeploymentsRevisionsResourcesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListResourcesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4034,7 +4365,12 @@ pub fn config_projects_locations_deployments_revisions_resources_list(
     ApiError,
 > {
     let builder = config_projects_locations_deployments_revisions_resources_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     config_projects_locations_deployments_revisions_resources_list_execute(builder)
 }
@@ -4132,6 +4468,15 @@ pub fn config_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -4144,13 +4489,13 @@ pub fn config_projects_locations_operations_cancel_execute(
 
 pub fn config_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ConfigProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        config_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     config_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -4244,6 +4589,13 @@ pub fn config_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -4256,12 +4608,12 @@ pub fn config_projects_locations_operations_delete_execute(
 
 pub fn config_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConfigProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_operations_delete_builder(client, name)?;
+    let builder = config_projects_locations_operations_delete_builder(client, &args.name)?;
     config_projects_locations_operations_delete_execute(builder)
 }
 
@@ -4355,6 +4707,13 @@ pub fn config_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -4367,12 +4726,12 @@ pub fn config_projects_locations_operations_get_execute(
 
 pub fn config_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConfigProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_operations_get_builder(client, name)?;
+    let builder = config_projects_locations_operations_get_builder(client, &args.name)?;
     config_projects_locations_operations_get_execute(builder)
 }
 
@@ -4492,6 +4851,21 @@ pub fn config_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -4504,11 +4878,7 @@ pub fn config_projects_locations_operations_list_execute(
 
 pub fn config_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ConfigProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4517,11 +4887,11 @@ pub fn config_projects_locations_operations_list(
 > {
     let builder = config_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     config_projects_locations_operations_list_execute(builder)
 }
@@ -4635,6 +5005,19 @@ pub fn config_projects_locations_previews_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_previews_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsPreviewsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: previewId
+    pub previewId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Preview,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/previews
 /// Creates a Preview.
 ///
@@ -4647,16 +5030,17 @@ pub fn config_projects_locations_previews_create_execute(
 
 pub fn config_projects_locations_previews_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    previewId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Preview,
+    args: &ConfigProjectsLocationsPreviewsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = config_projects_locations_previews_create_builder(
-        client, parent, previewId, requestId, body,
+        client,
+        &args.parent,
+        args.previewId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     config_projects_locations_previews_create_execute(builder)
 }
@@ -4763,6 +5147,15 @@ pub fn config_projects_locations_previews_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_previews_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsPreviewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/previews/{previewsId}
 /// Deletes a Preview.
 ///
@@ -4775,13 +5168,16 @@ pub fn config_projects_locations_previews_delete_execute(
 
 pub fn config_projects_locations_previews_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &ConfigProjectsLocationsPreviewsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_previews_delete_builder(client, name, requestId)?;
+    let builder = config_projects_locations_previews_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     config_projects_locations_previews_delete_execute(builder)
 }
 
@@ -4882,6 +5278,15 @@ pub fn config_projects_locations_previews_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_previews_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsPreviewsExportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ExportPreviewResultRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/previews/{previewsId}:export
 /// Export Preview results.
 ///
@@ -4894,8 +5299,7 @@ pub fn config_projects_locations_previews_export_execute(
 
 pub fn config_projects_locations_previews_export(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ExportPreviewResultRequest,
+    args: &ConfigProjectsLocationsPreviewsExportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ExportPreviewResultResponse>, ApiError>,
@@ -4904,7 +5308,8 @@ pub fn config_projects_locations_previews_export(
         + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_previews_export_builder(client, parent, body)?;
+    let builder =
+        config_projects_locations_previews_export_builder(client, &args.parent, &args.body)?;
     config_projects_locations_previews_export_execute(builder)
 }
 
@@ -4998,6 +5403,13 @@ pub fn config_projects_locations_previews_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_previews_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsPreviewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/previews/{previewsId}
 /// Gets details about a Preview.
 ///
@@ -5010,12 +5422,12 @@ pub fn config_projects_locations_previews_get_execute(
 
 pub fn config_projects_locations_previews_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConfigProjectsLocationsPreviewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Preview>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_previews_get_builder(client, name)?;
+    let builder = config_projects_locations_previews_get_builder(client, &args.name)?;
     config_projects_locations_previews_get_execute(builder)
 }
 
@@ -5135,6 +5547,21 @@ pub fn config_projects_locations_previews_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_previews_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsPreviewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/previews
 /// Lists Previews in a given project and location.
 ///
@@ -5147,11 +5574,7 @@ pub fn config_projects_locations_previews_list_execute(
 
 pub fn config_projects_locations_previews_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ConfigProjectsLocationsPreviewsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPreviewsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5159,7 +5582,12 @@ pub fn config_projects_locations_previews_list(
     ApiError,
 > {
     let builder = config_projects_locations_previews_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     config_projects_locations_previews_list_execute(builder)
 }
@@ -5256,6 +5684,13 @@ pub fn config_projects_locations_previews_resource_changes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_previews_resource_changes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsPreviewsResourceChangesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/previews/{previewsId}/resourceChanges/{resourceChangesId}
 /// Get a ResourceChange for a given preview.
 ///
@@ -5268,14 +5703,15 @@ pub fn config_projects_locations_previews_resource_changes_get_execute(
 
 pub fn config_projects_locations_previews_resource_changes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConfigProjectsLocationsPreviewsResourceChangesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResourceChange>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_previews_resource_changes_get_builder(client, name)?;
+    let builder =
+        config_projects_locations_previews_resource_changes_get_builder(client, &args.name)?;
     config_projects_locations_previews_resource_changes_get_execute(builder)
 }
 
@@ -5397,6 +5833,21 @@ pub fn config_projects_locations_previews_resource_changes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_previews_resource_changes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsPreviewsResourceChangesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/previews/{previewsId}/resourceChanges
 /// Lists ResourceChanges for a given preview.
 ///
@@ -5409,11 +5860,7 @@ pub fn config_projects_locations_previews_resource_changes_list_execute(
 
 pub fn config_projects_locations_previews_resource_changes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ConfigProjectsLocationsPreviewsResourceChangesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListResourceChangesResponse>, ApiError>,
@@ -5423,7 +5870,12 @@ pub fn config_projects_locations_previews_resource_changes_list(
     ApiError,
 > {
     let builder = config_projects_locations_previews_resource_changes_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     config_projects_locations_previews_resource_changes_list_execute(builder)
 }
@@ -5520,6 +5972,13 @@ pub fn config_projects_locations_previews_resource_drifts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_previews_resource_drifts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsPreviewsResourceDriftsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/previews/{previewsId}/resourceDrifts/{resourceDriftsId}
 /// Get a ResourceDrift for a given preview.
 ///
@@ -5532,14 +5991,15 @@ pub fn config_projects_locations_previews_resource_drifts_get_execute(
 
 pub fn config_projects_locations_previews_resource_drifts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConfigProjectsLocationsPreviewsResourceDriftsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResourceDrift>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_previews_resource_drifts_get_builder(client, name)?;
+    let builder =
+        config_projects_locations_previews_resource_drifts_get_builder(client, &args.name)?;
     config_projects_locations_previews_resource_drifts_get_execute(builder)
 }
 
@@ -5661,6 +6121,21 @@ pub fn config_projects_locations_previews_resource_drifts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_previews_resource_drifts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsPreviewsResourceDriftsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/previews/{previewsId}/resourceDrifts
 /// List ResourceDrifts for a given preview.
 ///
@@ -5673,11 +6148,7 @@ pub fn config_projects_locations_previews_resource_drifts_list_execute(
 
 pub fn config_projects_locations_previews_resource_drifts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ConfigProjectsLocationsPreviewsResourceDriftsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListResourceDriftsResponse>, ApiError>,
@@ -5687,7 +6158,12 @@ pub fn config_projects_locations_previews_resource_drifts_list(
     ApiError,
 > {
     let builder = config_projects_locations_previews_resource_drifts_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     config_projects_locations_previews_resource_drifts_list_execute(builder)
 }
@@ -5784,6 +6260,13 @@ pub fn config_projects_locations_terraform_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_terraform_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsTerraformVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/terraformVersions/{terraformVersionsId}
 /// Gets details about a TerraformVersion.
 ///
@@ -5796,14 +6279,14 @@ pub fn config_projects_locations_terraform_versions_get_execute(
 
 pub fn config_projects_locations_terraform_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConfigProjectsLocationsTerraformVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TerraformVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = config_projects_locations_terraform_versions_get_builder(client, name)?;
+    let builder = config_projects_locations_terraform_versions_get_builder(client, &args.name)?;
     config_projects_locations_terraform_versions_get_execute(builder)
 }
 
@@ -5925,6 +6408,21 @@ pub fn config_projects_locations_terraform_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`config_projects_locations_terraform_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConfigProjectsLocationsTerraformVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/terraformVersions
 /// Lists TerraformVersions in a given project and location.
 ///
@@ -5937,11 +6435,7 @@ pub fn config_projects_locations_terraform_versions_list_execute(
 
 pub fn config_projects_locations_terraform_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ConfigProjectsLocationsTerraformVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTerraformVersionsResponse>, ApiError>,
@@ -5951,7 +6445,12 @@ pub fn config_projects_locations_terraform_versions_list(
     ApiError,
 > {
     let builder = config_projects_locations_terraform_versions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     config_projects_locations_terraform_versions_list_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/keys:lookupKey
 /// Find the parent project and resource name of the API key that matches the key string in the request. If the API key has been purged, resource name will not be set. The service account must have the apikeys.keys.lookup permission on the parent project.
@@ -116,6 +118,13 @@ pub fn apikeys_keys_lookup_key_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apikeys_keys_lookup_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApikeysKeysLookupKeyArgs {
+    /// Query parameter: keyString
+    pub keyString: Option<String>,
+}
+
 /// GET v2/keys:lookupKey
 /// Find the parent project and resource name of the API key that matches the key string in the request. If the API key has been purged, resource name will not be set. The service account must have the apikeys.keys.lookup permission on the parent project.
 ///
@@ -128,14 +137,14 @@ pub fn apikeys_keys_lookup_key_execute(
 
 pub fn apikeys_keys_lookup_key(
     client: &SimpleHttpClient,
-    keyString: Option<&str>,
+    args: &ApikeysKeysLookupKeyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V2LookupKeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apikeys_keys_lookup_key_builder(client, keyString)?;
+    let builder = apikeys_keys_lookup_key_builder(client, args.keyString.as_deref())?;
     apikeys_keys_lookup_key_execute(builder)
 }
 
@@ -226,6 +235,13 @@ pub fn apikeys_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apikeys_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApikeysOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -238,12 +254,12 @@ pub fn apikeys_operations_get_execute(
 
 pub fn apikeys_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApikeysOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apikeys_operations_get_builder(client, name)?;
+    let builder = apikeys_operations_get_builder(client, &args.name)?;
     apikeys_operations_get_execute(builder)
 }
 
@@ -352,6 +368,17 @@ pub fn apikeys_projects_locations_keys_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apikeys_projects_locations_keys_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApikeysProjectsLocationsKeysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: keyId
+    pub keyId: Option<String>,
+    /// Request body.
+    pub body: V2Key,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys
 /// Creates a new API key. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
@@ -364,14 +391,17 @@ pub fn apikeys_projects_locations_keys_create_execute(
 
 pub fn apikeys_projects_locations_keys_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    keyId: Option<&str>,
-    body: &V2Key,
+    args: &ApikeysProjectsLocationsKeysCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apikeys_projects_locations_keys_create_builder(client, parent, keyId, body)?;
+    let builder = apikeys_projects_locations_keys_create_builder(
+        client,
+        &args.parent,
+        args.keyId.as_deref(),
+        &args.body,
+    )?;
     apikeys_projects_locations_keys_create_execute(builder)
 }
 
@@ -477,6 +507,15 @@ pub fn apikeys_projects_locations_keys_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apikeys_projects_locations_keys_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApikeysProjectsLocationsKeysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys/{keysId}
 /// Deletes an API key. Deleted key can be retrieved within 30 days of deletion. Afterward, key will be purged from the project. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
@@ -489,13 +528,13 @@ pub fn apikeys_projects_locations_keys_delete_execute(
 
 pub fn apikeys_projects_locations_keys_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &ApikeysProjectsLocationsKeysDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apikeys_projects_locations_keys_delete_builder(client, name, etag)?;
+    let builder =
+        apikeys_projects_locations_keys_delete_builder(client, &args.name, args.etag.as_deref())?;
     apikeys_projects_locations_keys_delete_execute(builder)
 }
 
@@ -589,6 +628,13 @@ pub fn apikeys_projects_locations_keys_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apikeys_projects_locations_keys_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApikeysProjectsLocationsKeysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys/{keysId}
 /// Gets the metadata for an API key. The key string of the API key isn't included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
@@ -601,12 +647,12 @@ pub fn apikeys_projects_locations_keys_get_execute(
 
 pub fn apikeys_projects_locations_keys_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApikeysProjectsLocationsKeysGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V2Key>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apikeys_projects_locations_keys_get_builder(client, name)?;
+    let builder = apikeys_projects_locations_keys_get_builder(client, &args.name)?;
     apikeys_projects_locations_keys_get_execute(builder)
 }
 
@@ -702,6 +748,13 @@ pub fn apikeys_projects_locations_keys_get_key_string_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apikeys_projects_locations_keys_get_key_string`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApikeysProjectsLocationsKeysGetKeyStringArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys/{keysId}/keyString
 /// Get the key string for an API key. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
@@ -714,14 +767,14 @@ pub fn apikeys_projects_locations_keys_get_key_string_execute(
 
 pub fn apikeys_projects_locations_keys_get_key_string(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApikeysProjectsLocationsKeysGetKeyStringArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V2GetKeyStringResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apikeys_projects_locations_keys_get_key_string_builder(client, name)?;
+    let builder = apikeys_projects_locations_keys_get_key_string_builder(client, &args.name)?;
     apikeys_projects_locations_keys_get_key_string_execute(builder)
 }
 
@@ -837,6 +890,19 @@ pub fn apikeys_projects_locations_keys_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apikeys_projects_locations_keys_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApikeysProjectsLocationsKeysListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys
 /// Lists the API keys owned by a project. The key string of the API key isn't included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
@@ -849,10 +915,7 @@ pub fn apikeys_projects_locations_keys_list_execute(
 
 pub fn apikeys_projects_locations_keys_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &ApikeysProjectsLocationsKeysListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V2ListKeysResponse>, ApiError>, P = ApiPending>
         + Send
@@ -861,10 +924,10 @@ pub fn apikeys_projects_locations_keys_list(
 > {
     let builder = apikeys_projects_locations_keys_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     apikeys_projects_locations_keys_list_execute(builder)
 }
@@ -974,6 +1037,17 @@ pub fn apikeys_projects_locations_keys_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apikeys_projects_locations_keys_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApikeysProjectsLocationsKeysPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: V2Key,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys/{keysId}
 /// Patches the modifiable fields of an API key. The key string of the API key isn't included in the response. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
@@ -986,14 +1060,17 @@ pub fn apikeys_projects_locations_keys_patch_execute(
 
 pub fn apikeys_projects_locations_keys_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &V2Key,
+    args: &ApikeysProjectsLocationsKeysPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apikeys_projects_locations_keys_patch_builder(client, name, updateMask, body)?;
+    let builder = apikeys_projects_locations_keys_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apikeys_projects_locations_keys_patch_execute(builder)
 }
 
@@ -1090,6 +1167,15 @@ pub fn apikeys_projects_locations_keys_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apikeys_projects_locations_keys_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApikeysProjectsLocationsKeysUndeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: V2UndeleteKeyRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/keys/{keysId}:undelete
 /// Undeletes an API key which was deleted within 30 days. NOTE: Key is a global resource; hence the only supported value for location is global.
 ///
@@ -1102,12 +1188,11 @@ pub fn apikeys_projects_locations_keys_undelete_execute(
 
 pub fn apikeys_projects_locations_keys_undelete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &V2UndeleteKeyRequest,
+    args: &ApikeysProjectsLocationsKeysUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apikeys_projects_locations_keys_undelete_builder(client, name, body)?;
+    let builder = apikeys_projects_locations_keys_undelete_builder(client, &args.name, &args.body)?;
     apikeys_projects_locations_keys_undelete_execute(builder)
 }

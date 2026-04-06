@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/accounts/{accountsId}/locations
 /// Creates a new Location that will be owned by the logged in user.
@@ -125,6 +127,19 @@ pub fn mybusinessbusinessinformation_accounts_locations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessbusinessinformation_accounts_locations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationAccountsLocationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Location,
+}
+
 /// GET v1/accounts/{accountsId}/locations
 /// Creates a new Location that will be owned by the logged in user.
 ///
@@ -137,20 +152,17 @@ pub fn mybusinessbusinessinformation_accounts_locations_create_execute(
 
 pub fn mybusinessbusinessinformation_accounts_locations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Location,
+    args: &MybusinessbusinessinformationAccountsLocationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = mybusinessbusinessinformation_accounts_locations_create_builder(
         client,
-        parent,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     mybusinessbusinessinformation_accounts_locations_create_execute(builder)
 }
@@ -275,6 +287,23 @@ pub fn mybusinessbusinessinformation_accounts_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessbusinessinformation_accounts_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationAccountsLocationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/locations
 /// Lists the locations for the specified account.
 ///
@@ -287,12 +316,7 @@ pub fn mybusinessbusinessinformation_accounts_locations_list_execute(
 
 pub fn mybusinessbusinessinformation_accounts_locations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &MybusinessbusinessinformationAccountsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -300,7 +324,13 @@ pub fn mybusinessbusinessinformation_accounts_locations_list(
     ApiError,
 > {
     let builder = mybusinessbusinessinformation_accounts_locations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, readMask,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     mybusinessbusinessinformation_accounts_locations_list_execute(builder)
 }
@@ -431,6 +461,25 @@ pub fn mybusinessbusinessinformation_attributes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessbusinessinformation_attributes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationAttributesListArgs {
+    /// Query parameter: categoryName
+    pub categoryName: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: regionCode
+    pub regionCode: Option<String>,
+    /// Query parameter: showAll
+    pub showAll: Option<bool>,
+}
+
 /// GET v1/attributes
 /// Returns the list of attributes that would be available for a location with the given primary category and country.
 ///
@@ -443,13 +492,7 @@ pub fn mybusinessbusinessinformation_attributes_list_execute(
 
 pub fn mybusinessbusinessinformation_attributes_list(
     client: &SimpleHttpClient,
-    categoryName: Option<&str>,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
-    regionCode: Option<&str>,
-    showAll: Option<bool>,
+    args: &MybusinessbusinessinformationAttributesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAttributeMetadataResponse>, ApiError>,
@@ -460,13 +503,13 @@ pub fn mybusinessbusinessinformation_attributes_list(
 > {
     let builder = mybusinessbusinessinformation_attributes_list_builder(
         client,
-        categoryName,
-        languageCode,
-        pageSize,
-        pageToken,
-        parent,
-        regionCode,
-        showAll,
+        args.categoryName.as_deref(),
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
+        args.regionCode.as_deref(),
+        args.showAll,
     )?;
     mybusinessbusinessinformation_attributes_list_execute(builder)
 }
@@ -586,6 +629,19 @@ pub fn mybusinessbusinessinformation_categories_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessbusinessinformation_categories_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationCategoriesBatchGetArgs {
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: names
+    pub names: Option<String>,
+    /// Query parameter: regionCode
+    pub regionCode: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/categories:batchGet
 /// Returns a list of business categories for the provided language and GConcept ids.
 ///
@@ -598,10 +654,7 @@ pub fn mybusinessbusinessinformation_categories_batch_get_execute(
 
 pub fn mybusinessbusinessinformation_categories_batch_get(
     client: &SimpleHttpClient,
-    languageCode: Option<&str>,
-    names: Option<&str>,
-    regionCode: Option<&str>,
-    view: Option<&str>,
+    args: &MybusinessbusinessinformationCategoriesBatchGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchGetCategoriesResponse>, ApiError>,
@@ -612,10 +665,10 @@ pub fn mybusinessbusinessinformation_categories_batch_get(
 > {
     let builder = mybusinessbusinessinformation_categories_batch_get_builder(
         client,
-        languageCode,
-        names,
-        regionCode,
-        view,
+        args.languageCode.as_deref(),
+        args.names.as_deref(),
+        args.regionCode.as_deref(),
+        args.view.as_deref(),
     )?;
     mybusinessbusinessinformation_categories_batch_get_execute(builder)
 }
@@ -740,6 +793,23 @@ pub fn mybusinessbusinessinformation_categories_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessbusinessinformation_categories_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationCategoriesListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: regionCode
+    pub regionCode: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/categories
 /// Returns a list of business categories. Search will match the category name but not the category ID. Search only matches the front of a category name (that is, 'food' may return 'Food Court' but not 'Fast Food Restaurant').
 ///
@@ -752,12 +822,7 @@ pub fn mybusinessbusinessinformation_categories_list_execute(
 
 pub fn mybusinessbusinessinformation_categories_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    regionCode: Option<&str>,
-    view: Option<&str>,
+    args: &MybusinessbusinessinformationCategoriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCategoriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -766,12 +831,12 @@ pub fn mybusinessbusinessinformation_categories_list(
 > {
     let builder = mybusinessbusinessinformation_categories_list_builder(
         client,
-        filter,
-        languageCode,
-        pageSize,
-        pageToken,
-        regionCode,
-        view,
+        args.filter.as_deref(),
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.regionCode.as_deref(),
+        args.view.as_deref(),
     )?;
     mybusinessbusinessinformation_categories_list_execute(builder)
 }
@@ -866,6 +931,13 @@ pub fn mybusinessbusinessinformation_chains_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessbusinessinformation_chains_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationChainsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/chains/{chainsId}
 /// Gets the specified chain. Returns NOT_FOUND if the chain does not exist.
 ///
@@ -878,12 +950,12 @@ pub fn mybusinessbusinessinformation_chains_get_execute(
 
 pub fn mybusinessbusinessinformation_chains_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MybusinessbusinessinformationChainsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Chain>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessbusinessinformation_chains_get_builder(client, name)?;
+    let builder = mybusinessbusinessinformation_chains_get_builder(client, &args.name)?;
     mybusinessbusinessinformation_chains_get_execute(builder)
 }
 
@@ -991,6 +1063,15 @@ pub fn mybusinessbusinessinformation_chains_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessbusinessinformation_chains_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationChainsSearchArgs {
+    /// Query parameter: chainName
+    pub chainName: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+}
+
 /// GET v1/chains:search
 /// Searches the chain based on chain name.
 ///
@@ -1003,15 +1084,18 @@ pub fn mybusinessbusinessinformation_chains_search_execute(
 
 pub fn mybusinessbusinessinformation_chains_search(
     client: &SimpleHttpClient,
-    chainName: Option<&str>,
-    pageSize: Option<i32>,
+    args: &MybusinessbusinessinformationChainsSearchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchChainsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = mybusinessbusinessinformation_chains_search_builder(client, chainName, pageSize)?;
+    let builder = mybusinessbusinessinformation_chains_search_builder(
+        client,
+        args.chainName.as_deref(),
+        args.pageSize,
+    )?;
     mybusinessbusinessinformation_chains_search_execute(builder)
 }
 
@@ -1109,6 +1193,13 @@ pub fn mybusinessbusinessinformation_google_locations_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessbusinessinformation_google_locations_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationGoogleLocationsSearchArgs {
+    /// Request body.
+    pub body: SearchGoogleLocationsRequest,
+}
+
 /// GET v1/googleLocations:search
 /// Search all of the possible locations that are a match to the specified request.
 ///
@@ -1121,7 +1212,7 @@ pub fn mybusinessbusinessinformation_google_locations_search_execute(
 
 pub fn mybusinessbusinessinformation_google_locations_search(
     client: &SimpleHttpClient,
-    body: &SearchGoogleLocationsRequest,
+    args: &MybusinessbusinessinformationGoogleLocationsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchGoogleLocationsResponse>, ApiError>,
@@ -1130,7 +1221,8 @@ pub fn mybusinessbusinessinformation_google_locations_search(
         + 'static,
     ApiError,
 > {
-    let builder = mybusinessbusinessinformation_google_locations_search_builder(client, body)?;
+    let builder =
+        mybusinessbusinessinformation_google_locations_search_builder(client, &args.body)?;
     mybusinessbusinessinformation_google_locations_search_execute(builder)
 }
 
@@ -1224,6 +1316,13 @@ pub fn mybusinessbusinessinformation_locations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessbusinessinformation_locations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationLocationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/locations/{locationsId}
 /// Deletes a location. If this location cannot be deleted using the API and it is marked so in the google.mybusiness.businessinformation.v1.LocationState, use the [Google Business Profile](<https://business.google.`com/manage/`>) website.
 ///
@@ -1236,12 +1335,12 @@ pub fn mybusinessbusinessinformation_locations_delete_execute(
 
 pub fn mybusinessbusinessinformation_locations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MybusinessbusinessinformationLocationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessbusinessinformation_locations_delete_builder(client, name)?;
+    let builder = mybusinessbusinessinformation_locations_delete_builder(client, &args.name)?;
     mybusinessbusinessinformation_locations_delete_execute(builder)
 }
 
@@ -1347,6 +1446,15 @@ pub fn mybusinessbusinessinformation_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessbusinessinformation_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/locations/{locationsId}
 /// Returns the specified location.
 ///
@@ -1359,13 +1467,16 @@ pub fn mybusinessbusinessinformation_locations_get_execute(
 
 pub fn mybusinessbusinessinformation_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
-    readMask: Option<&str>,
+    args: &MybusinessbusinessinformationLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessbusinessinformation_locations_get_builder(client, name, readMask)?;
+    let builder = mybusinessbusinessinformation_locations_get_builder(
+        client,
+        &args.name,
+        args.readMask.as_deref(),
+    )?;
     mybusinessbusinessinformation_locations_get_execute(builder)
 }
 
@@ -1459,6 +1570,13 @@ pub fn mybusinessbusinessinformation_locations_get_attributes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessbusinessinformation_locations_get_attributes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationLocationsGetAttributesArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/locations/{locationsId}/attributes
 /// Looks up all the attributes set for a given location.
 ///
@@ -1471,12 +1589,13 @@ pub fn mybusinessbusinessinformation_locations_get_attributes_execute(
 
 pub fn mybusinessbusinessinformation_locations_get_attributes(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MybusinessbusinessinformationLocationsGetAttributesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Attributes>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = mybusinessbusinessinformation_locations_get_attributes_builder(client, name)?;
+    let builder =
+        mybusinessbusinessinformation_locations_get_attributes_builder(client, &args.name)?;
     mybusinessbusinessinformation_locations_get_attributes_execute(builder)
 }
 
@@ -1584,6 +1703,15 @@ pub fn mybusinessbusinessinformation_locations_get_google_updated_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessbusinessinformation_locations_get_google_updated`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationLocationsGetGoogleUpdatedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/locations/{locationsId}:getGoogleUpdated
 /// Gets the Google-updated version of the specified location.
 ///
@@ -1596,16 +1724,18 @@ pub fn mybusinessbusinessinformation_locations_get_google_updated_execute(
 
 pub fn mybusinessbusinessinformation_locations_get_google_updated(
     client: &SimpleHttpClient,
-    name: &str,
-    readMask: Option<&str>,
+    args: &MybusinessbusinessinformationLocationsGetGoogleUpdatedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleUpdatedLocation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessbusinessinformation_locations_get_google_updated_builder(client, name, readMask)?;
+    let builder = mybusinessbusinessinformation_locations_get_google_updated_builder(
+        client,
+        &args.name,
+        args.readMask.as_deref(),
+    )?;
     mybusinessbusinessinformation_locations_get_google_updated_execute(builder)
 }
 
@@ -1718,6 +1848,19 @@ pub fn mybusinessbusinessinformation_locations_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessbusinessinformation_locations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationLocationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Location,
+}
+
 /// GET v1/locations/{locationsId}
 /// Updates the specified location.
 ///
@@ -1730,20 +1873,17 @@ pub fn mybusinessbusinessinformation_locations_patch_execute(
 
 pub fn mybusinessbusinessinformation_locations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Location,
+    args: &MybusinessbusinessinformationLocationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = mybusinessbusinessinformation_locations_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     mybusinessbusinessinformation_locations_patch_execute(builder)
 }
@@ -1853,6 +1993,17 @@ pub fn mybusinessbusinessinformation_locations_update_attributes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessbusinessinformation_locations_update_attributes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationLocationsUpdateAttributesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: attributeMask
+    pub attributeMask: Option<String>,
+    /// Request body.
+    pub body: Attributes,
+}
+
 /// GET v1/locations/{locationsId}/attributes
 /// Update attributes for a given location.
 ///
@@ -1865,18 +2016,16 @@ pub fn mybusinessbusinessinformation_locations_update_attributes_execute(
 
 pub fn mybusinessbusinessinformation_locations_update_attributes(
     client: &SimpleHttpClient,
-    name: &str,
-    attributeMask: Option<&str>,
-    body: &Attributes,
+    args: &MybusinessbusinessinformationLocationsUpdateAttributesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Attributes>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = mybusinessbusinessinformation_locations_update_attributes_builder(
         client,
-        name,
-        attributeMask,
-        body,
+        &args.name,
+        args.attributeMask.as_deref(),
+        &args.body,
     )?;
     mybusinessbusinessinformation_locations_update_attributes_execute(builder)
 }
@@ -1971,6 +2120,13 @@ pub fn mybusinessbusinessinformation_locations_attributes_get_google_updated_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessbusinessinformation_locations_attributes_get_google_updated`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessbusinessinformationLocationsAttributesGetGoogleUpdatedArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/locations/{locationsId}/attributes:getGoogleUpdated
 /// Gets the Google-updated version of the specified location.
 ///
@@ -1983,13 +2139,13 @@ pub fn mybusinessbusinessinformation_locations_attributes_get_google_updated_exe
 
 pub fn mybusinessbusinessinformation_locations_attributes_get_google_updated(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MybusinessbusinessinformationLocationsAttributesGetGoogleUpdatedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Attributes>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = mybusinessbusinessinformation_locations_attributes_get_google_updated_builder(
-        client, name,
+        client, &args.name,
     )?;
     mybusinessbusinessinformation_locations_attributes_get_google_updated_execute(builder)
 }

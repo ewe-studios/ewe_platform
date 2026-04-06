@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn parallelstore_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parallelstore_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParallelstoreProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn parallelstore_projects_locations_get_execute(
 
 pub fn parallelstore_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ParallelstoreProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = parallelstore_projects_locations_get_builder(client, name)?;
+    let builder = parallelstore_projects_locations_get_builder(client, &args.name)?;
     parallelstore_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn parallelstore_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parallelstore_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParallelstoreProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service.
 ///
@@ -255,11 +279,7 @@ pub fn parallelstore_projects_locations_list_execute(
 
 pub fn parallelstore_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ParallelstoreProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn parallelstore_projects_locations_list(
 > {
     let builder = parallelstore_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     parallelstore_projects_locations_list_execute(builder)
 }
@@ -386,6 +406,19 @@ pub fn parallelstore_projects_locations_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parallelstore_projects_locations_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParallelstoreProjectsLocationsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: instanceId
+    pub instanceId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
 /// Creates a Parallelstore instance in a given project and location.
 ///
@@ -398,16 +431,17 @@ pub fn parallelstore_projects_locations_instances_create_execute(
 
 pub fn parallelstore_projects_locations_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    instanceId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Instance,
+    args: &ParallelstoreProjectsLocationsInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = parallelstore_projects_locations_instances_create_builder(
-        client, parent, instanceId, requestId, body,
+        client,
+        &args.parent,
+        args.instanceId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     parallelstore_projects_locations_instances_create_execute(builder)
 }
@@ -514,6 +548,15 @@ pub fn parallelstore_projects_locations_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parallelstore_projects_locations_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParallelstoreProjectsLocationsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Deletes a single instance.
 ///
@@ -526,14 +569,16 @@ pub fn parallelstore_projects_locations_instances_delete_execute(
 
 pub fn parallelstore_projects_locations_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &ParallelstoreProjectsLocationsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        parallelstore_projects_locations_instances_delete_builder(client, name, requestId)?;
+    let builder = parallelstore_projects_locations_instances_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     parallelstore_projects_locations_instances_delete_execute(builder)
 }
 
@@ -630,6 +675,15 @@ pub fn parallelstore_projects_locations_instances_export_data_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parallelstore_projects_locations_instances_export_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParallelstoreProjectsLocationsInstancesExportDataArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExportDataRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:exportData
 /// Copies data from Parallelstore to Cloud Storage.
 ///
@@ -642,14 +696,14 @@ pub fn parallelstore_projects_locations_instances_export_data_execute(
 
 pub fn parallelstore_projects_locations_instances_export_data(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExportDataRequest,
+    args: &ParallelstoreProjectsLocationsInstancesExportDataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        parallelstore_projects_locations_instances_export_data_builder(client, name, body)?;
+    let builder = parallelstore_projects_locations_instances_export_data_builder(
+        client, &args.name, &args.body,
+    )?;
     parallelstore_projects_locations_instances_export_data_execute(builder)
 }
 
@@ -743,6 +797,13 @@ pub fn parallelstore_projects_locations_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parallelstore_projects_locations_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParallelstoreProjectsLocationsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Gets details of a single instance.
 ///
@@ -755,12 +816,12 @@ pub fn parallelstore_projects_locations_instances_get_execute(
 
 pub fn parallelstore_projects_locations_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ParallelstoreProjectsLocationsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = parallelstore_projects_locations_instances_get_builder(client, name)?;
+    let builder = parallelstore_projects_locations_instances_get_builder(client, &args.name)?;
     parallelstore_projects_locations_instances_get_execute(builder)
 }
 
@@ -857,6 +918,15 @@ pub fn parallelstore_projects_locations_instances_import_data_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parallelstore_projects_locations_instances_import_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParallelstoreProjectsLocationsInstancesImportDataArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ImportDataRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:importData
 /// Copies data from Cloud Storage to Parallelstore.
 ///
@@ -869,14 +939,14 @@ pub fn parallelstore_projects_locations_instances_import_data_execute(
 
 pub fn parallelstore_projects_locations_instances_import_data(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ImportDataRequest,
+    args: &ParallelstoreProjectsLocationsInstancesImportDataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        parallelstore_projects_locations_instances_import_data_builder(client, name, body)?;
+    let builder = parallelstore_projects_locations_instances_import_data_builder(
+        client, &args.name, &args.body,
+    )?;
     parallelstore_projects_locations_instances_import_data_execute(builder)
 }
 
@@ -996,6 +1066,21 @@ pub fn parallelstore_projects_locations_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parallelstore_projects_locations_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParallelstoreProjectsLocationsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
 /// Lists all instances in a given project and location.
 ///
@@ -1008,11 +1093,7 @@ pub fn parallelstore_projects_locations_instances_list_execute(
 
 pub fn parallelstore_projects_locations_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ParallelstoreProjectsLocationsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1020,7 +1101,12 @@ pub fn parallelstore_projects_locations_instances_list(
     ApiError,
 > {
     let builder = parallelstore_projects_locations_instances_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     parallelstore_projects_locations_instances_list_execute(builder)
 }
@@ -1134,6 +1220,19 @@ pub fn parallelstore_projects_locations_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parallelstore_projects_locations_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParallelstoreProjectsLocationsInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Updates the parameters of a single instance.
 ///
@@ -1146,16 +1245,17 @@ pub fn parallelstore_projects_locations_instances_patch_execute(
 
 pub fn parallelstore_projects_locations_instances_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Instance,
+    args: &ParallelstoreProjectsLocationsInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = parallelstore_projects_locations_instances_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     parallelstore_projects_locations_instances_patch_execute(builder)
 }
@@ -1255,6 +1355,15 @@ pub fn parallelstore_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parallelstore_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParallelstoreProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1267,15 +1376,15 @@ pub fn parallelstore_projects_locations_operations_cancel_execute(
 
 pub fn parallelstore_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ParallelstoreProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = parallelstore_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        parallelstore_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     parallelstore_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1371,6 +1480,13 @@ pub fn parallelstore_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parallelstore_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParallelstoreProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1383,14 +1499,14 @@ pub fn parallelstore_projects_locations_operations_delete_execute(
 
 pub fn parallelstore_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ParallelstoreProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = parallelstore_projects_locations_operations_delete_builder(client, name)?;
+    let builder = parallelstore_projects_locations_operations_delete_builder(client, &args.name)?;
     parallelstore_projects_locations_operations_delete_execute(builder)
 }
 
@@ -1484,6 +1600,13 @@ pub fn parallelstore_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parallelstore_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParallelstoreProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1496,12 +1619,12 @@ pub fn parallelstore_projects_locations_operations_get_execute(
 
 pub fn parallelstore_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ParallelstoreProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = parallelstore_projects_locations_operations_get_builder(client, name)?;
+    let builder = parallelstore_projects_locations_operations_get_builder(client, &args.name)?;
     parallelstore_projects_locations_operations_get_execute(builder)
 }
 
@@ -1621,6 +1744,21 @@ pub fn parallelstore_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parallelstore_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParallelstoreProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1633,11 +1771,7 @@ pub fn parallelstore_projects_locations_operations_list_execute(
 
 pub fn parallelstore_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ParallelstoreProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1646,11 +1780,11 @@ pub fn parallelstore_projects_locations_operations_list(
 > {
     let builder = parallelstore_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     parallelstore_projects_locations_operations_list_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/externalAccountKeys
 /// Creates a new ExternalAccountKey bound to the project.
@@ -111,6 +113,15 @@ pub fn publicca_projects_locations_external_account_keys_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`publicca_projects_locations_external_account_keys_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubliccaProjectsLocationsExternalAccountKeysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ExternalAccountKey,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/externalAccountKeys
 /// Creates a new ExternalAccountKey bound to the project.
 ///
@@ -123,15 +134,17 @@ pub fn publicca_projects_locations_external_account_keys_create_execute(
 
 pub fn publicca_projects_locations_external_account_keys_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ExternalAccountKey,
+    args: &PubliccaProjectsLocationsExternalAccountKeysCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExternalAccountKey>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        publicca_projects_locations_external_account_keys_create_builder(client, parent, body)?;
+    let builder = publicca_projects_locations_external_account_keys_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     publicca_projects_locations_external_account_keys_create_execute(builder)
 }

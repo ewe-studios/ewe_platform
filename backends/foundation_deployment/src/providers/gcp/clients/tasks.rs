@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET tasks/v1/users/@me/lists/{tasklist}
 /// Deletes the authenticated user's specified task list. If the list contains assigned tasks, both the assigned tasks and the original tasks in the assignment surface (Docs, Chat Spaces) are deleted.
@@ -103,6 +105,13 @@ pub fn tasks_tasklists_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tasks_tasklists_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TasksTasklistsDeleteArgs {
+    /// Path parameter: tasklist
+    pub tasklist: String,
+}
+
 /// GET tasks/v1/users/@me/lists/{tasklist}
 /// Deletes the authenticated user's specified task list. If the list contains assigned tasks, both the assigned tasks and the original tasks in the assignment surface (Docs, Chat Spaces) are deleted.
 ///
@@ -115,12 +124,12 @@ pub fn tasks_tasklists_delete_execute(
 
 pub fn tasks_tasklists_delete(
     client: &SimpleHttpClient,
-    tasklist: &str,
+    args: &TasksTasklistsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasklists_delete_builder(client, tasklist)?;
+    let builder = tasks_tasklists_delete_builder(client, &args.tasklist)?;
     tasks_tasklists_delete_execute(builder)
 }
 
@@ -214,6 +223,13 @@ pub fn tasks_tasklists_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tasks_tasklists_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TasksTasklistsGetArgs {
+    /// Path parameter: tasklist
+    pub tasklist: String,
+}
+
 /// GET tasks/v1/users/@me/lists/{tasklist}
 /// Returns the authenticated user's specified task list.
 ///
@@ -226,12 +242,12 @@ pub fn tasks_tasklists_get_execute(
 
 pub fn tasks_tasklists_get(
     client: &SimpleHttpClient,
-    tasklist: &str,
+    args: &TasksTasklistsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TaskList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasklists_get_builder(client, tasklist)?;
+    let builder = tasks_tasklists_get_builder(client, &args.tasklist)?;
     tasks_tasklists_get_execute(builder)
 }
 
@@ -324,6 +340,13 @@ pub fn tasks_tasklists_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tasks_tasklists_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TasksTasklistsInsertArgs {
+    /// Request body.
+    pub body: TaskList,
+}
+
 /// GET tasks/v1/users/@me/lists
 /// Creates a new task list and adds it to the authenticated user's task lists. A user can have up to 2000 lists at a time.
 ///
@@ -336,12 +359,12 @@ pub fn tasks_tasklists_insert_execute(
 
 pub fn tasks_tasklists_insert(
     client: &SimpleHttpClient,
-    body: &TaskList,
+    args: &TasksTasklistsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TaskList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasklists_insert_builder(client, body)?;
+    let builder = tasks_tasklists_insert_builder(client, &args.body)?;
     tasks_tasklists_insert_execute(builder)
 }
 
@@ -447,6 +470,15 @@ pub fn tasks_tasklists_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tasks_tasklists_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TasksTasklistsListArgs {
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tasks/v1/users/@me/lists
 /// Returns all the authenticated user's task lists. A user can have up to 2000 lists at a time.
 ///
@@ -459,13 +491,12 @@ pub fn tasks_tasklists_list_execute(
 
 pub fn tasks_tasklists_list(
     client: &SimpleHttpClient,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TasksTasklistsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TaskLists>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasklists_list_builder(client, maxResults, pageToken)?;
+    let builder = tasks_tasklists_list_builder(client, args.maxResults, args.pageToken.as_deref())?;
     tasks_tasklists_list_execute(builder)
 }
 
@@ -562,6 +593,15 @@ pub fn tasks_tasklists_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tasks_tasklists_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TasksTasklistsPatchArgs {
+    /// Path parameter: tasklist
+    pub tasklist: String,
+    /// Request body.
+    pub body: TaskList,
+}
+
 /// GET tasks/v1/users/@me/lists/{tasklist}
 /// Updates the authenticated user's specified task list. This method supports patch semantics.
 ///
@@ -574,13 +614,12 @@ pub fn tasks_tasklists_patch_execute(
 
 pub fn tasks_tasklists_patch(
     client: &SimpleHttpClient,
-    tasklist: &str,
-    body: &TaskList,
+    args: &TasksTasklistsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TaskList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasklists_patch_builder(client, tasklist, body)?;
+    let builder = tasks_tasklists_patch_builder(client, &args.tasklist, &args.body)?;
     tasks_tasklists_patch_execute(builder)
 }
 
@@ -677,6 +716,15 @@ pub fn tasks_tasklists_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tasks_tasklists_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TasksTasklistsUpdateArgs {
+    /// Path parameter: tasklist
+    pub tasklist: String,
+    /// Request body.
+    pub body: TaskList,
+}
+
 /// GET tasks/v1/users/@me/lists/{tasklist}
 /// Updates the authenticated user's specified task list.
 ///
@@ -689,13 +737,12 @@ pub fn tasks_tasklists_update_execute(
 
 pub fn tasks_tasklists_update(
     client: &SimpleHttpClient,
-    tasklist: &str,
-    body: &TaskList,
+    args: &TasksTasklistsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TaskList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasklists_update_builder(client, tasklist, body)?;
+    let builder = tasks_tasklists_update_builder(client, &args.tasklist, &args.body)?;
     tasks_tasklists_update_execute(builder)
 }
 
@@ -786,6 +833,13 @@ pub fn tasks_tasks_clear_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tasks_tasks_clear`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TasksTasksClearArgs {
+    /// Path parameter: tasklist
+    pub tasklist: String,
+}
+
 /// GET tasks/v1/lists/{tasklist}/clear
 /// Clears all completed tasks from the specified task list. The affected tasks will be marked as 'hidden' and no longer be returned by default when retrieving all tasks for a task list.
 ///
@@ -798,12 +852,12 @@ pub fn tasks_tasks_clear_execute(
 
 pub fn tasks_tasks_clear(
     client: &SimpleHttpClient,
-    tasklist: &str,
+    args: &TasksTasksClearArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasks_clear_builder(client, tasklist)?;
+    let builder = tasks_tasks_clear_builder(client, &args.tasklist)?;
     tasks_tasks_clear_execute(builder)
 }
 
@@ -895,6 +949,15 @@ pub fn tasks_tasks_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tasks_tasks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TasksTasksDeleteArgs {
+    /// Path parameter: tasklist
+    pub tasklist: String,
+    /// Path parameter: task
+    pub task: String,
+}
+
 /// GET tasks/v1/lists/{tasklist}/tasks/{task}
 /// Deletes the specified task from the task list. If the task is assigned, both the assigned task and the original task (in Docs, Chat Spaces) are deleted. To delete the assigned task only, navigate to the assignment surface and unassign the task from there.
 ///
@@ -907,13 +970,12 @@ pub fn tasks_tasks_delete_execute(
 
 pub fn tasks_tasks_delete(
     client: &SimpleHttpClient,
-    tasklist: &str,
-    task: &str,
+    args: &TasksTasksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasks_delete_builder(client, tasklist, task)?;
+    let builder = tasks_tasks_delete_builder(client, &args.tasklist, &args.task)?;
     tasks_tasks_delete_execute(builder)
 }
 
@@ -1008,6 +1070,15 @@ pub fn tasks_tasks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tasks_tasks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TasksTasksGetArgs {
+    /// Path parameter: tasklist
+    pub tasklist: String,
+    /// Path parameter: task
+    pub task: String,
+}
+
 /// GET tasks/v1/lists/{tasklist}/tasks/{task}
 /// Returns the specified task.
 ///
@@ -1020,13 +1091,12 @@ pub fn tasks_tasks_get_execute(
 
 pub fn tasks_tasks_get(
     client: &SimpleHttpClient,
-    tasklist: &str,
-    task: &str,
+    args: &TasksTasksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasks_get_builder(client, tasklist, task)?;
+    let builder = tasks_tasks_get_builder(client, &args.tasklist, &args.task)?;
     tasks_tasks_get_execute(builder)
 }
 
@@ -1139,6 +1209,19 @@ pub fn tasks_tasks_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tasks_tasks_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TasksTasksInsertArgs {
+    /// Path parameter: tasklist
+    pub tasklist: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: previous
+    pub previous: Option<String>,
+    /// Request body.
+    pub body: Task,
+}
+
 /// GET tasks/v1/lists/{tasklist}/tasks
 /// Creates a new task on the specified task list. Tasks assigned from Docs or Chat Spaces cannot be inserted from Tasks Public API; they can only be created by assigning them from Docs or Chat Spaces. A user can have up to 20,000 non-hidden tasks per list and up to 100,000 tasks in total at a time.
 ///
@@ -1151,15 +1234,18 @@ pub fn tasks_tasks_insert_execute(
 
 pub fn tasks_tasks_insert(
     client: &SimpleHttpClient,
-    tasklist: &str,
-    parent: Option<&str>,
-    previous: Option<&str>,
-    body: &Task,
+    args: &TasksTasksInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasks_insert_builder(client, tasklist, parent, previous, body)?;
+    let builder = tasks_tasks_insert_builder(
+        client,
+        &args.tasklist,
+        args.parent.as_deref(),
+        args.previous.as_deref(),
+        &args.body,
+    )?;
     tasks_tasks_insert_execute(builder)
 }
 
@@ -1305,6 +1391,35 @@ pub fn tasks_tasks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tasks_tasks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TasksTasksListArgs {
+    /// Path parameter: tasklist
+    pub tasklist: String,
+    /// Query parameter: completedMax
+    pub completedMax: Option<String>,
+    /// Query parameter: completedMin
+    pub completedMin: Option<String>,
+    /// Query parameter: dueMax
+    pub dueMax: Option<String>,
+    /// Query parameter: dueMin
+    pub dueMin: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showAssigned
+    pub showAssigned: Option<bool>,
+    /// Query parameter: showCompleted
+    pub showCompleted: Option<bool>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+    /// Query parameter: showHidden
+    pub showHidden: Option<bool>,
+    /// Query parameter: updatedMin
+    pub updatedMin: Option<String>,
+}
+
 /// GET tasks/v1/lists/{tasklist}/tasks
 /// Returns all tasks in the specified task list. Doesn't return assigned tasks by default (from Docs, Chat Spaces). A user can have up to 20,000 non-hidden tasks per list and up to 100,000 tasks in total at a time.
 ///
@@ -1317,36 +1432,25 @@ pub fn tasks_tasks_list_execute(
 
 pub fn tasks_tasks_list(
     client: &SimpleHttpClient,
-    tasklist: &str,
-    completedMax: Option<&str>,
-    completedMin: Option<&str>,
-    dueMax: Option<&str>,
-    dueMin: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    showAssigned: Option<bool>,
-    showCompleted: Option<bool>,
-    showDeleted: Option<bool>,
-    showHidden: Option<bool>,
-    updatedMin: Option<&str>,
+    args: &TasksTasksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tasks>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tasks_tasks_list_builder(
         client,
-        tasklist,
-        completedMax,
-        completedMin,
-        dueMax,
-        dueMin,
-        maxResults,
-        pageToken,
-        showAssigned,
-        showCompleted,
-        showDeleted,
-        showHidden,
-        updatedMin,
+        &args.tasklist,
+        args.completedMax.as_deref(),
+        args.completedMin.as_deref(),
+        args.dueMax.as_deref(),
+        args.dueMin.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.showAssigned,
+        args.showCompleted,
+        args.showDeleted,
+        args.showHidden,
+        args.updatedMin.as_deref(),
     )?;
     tasks_tasks_list_execute(builder)
 }
@@ -1462,6 +1566,21 @@ pub fn tasks_tasks_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tasks_tasks_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TasksTasksMoveArgs {
+    /// Path parameter: tasklist
+    pub tasklist: String,
+    /// Path parameter: task
+    pub task: String,
+    /// Query parameter: destinationTasklist
+    pub destinationTasklist: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: previous
+    pub previous: Option<String>,
+}
+
 /// GET tasks/v1/lists/{tasklist}/tasks/{task}/move
 /// Moves the specified task to another position in the destination task list. If the destination list is not specified, the task is moved within its current list. This can include putting it as a child task under a new parent `and/or` move it to a different position among its sibling tasks. A user can have up to 2,000 subtasks per task.
 ///
@@ -1474,22 +1593,18 @@ pub fn tasks_tasks_move_execute(
 
 pub fn tasks_tasks_move(
     client: &SimpleHttpClient,
-    tasklist: &str,
-    task: &str,
-    destinationTasklist: Option<&str>,
-    parent: Option<&str>,
-    previous: Option<&str>,
+    args: &TasksTasksMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tasks_tasks_move_builder(
         client,
-        tasklist,
-        task,
-        destinationTasklist,
-        parent,
-        previous,
+        &args.tasklist,
+        &args.task,
+        args.destinationTasklist.as_deref(),
+        args.parent.as_deref(),
+        args.previous.as_deref(),
     )?;
     tasks_tasks_move_execute(builder)
 }
@@ -1588,6 +1703,17 @@ pub fn tasks_tasks_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tasks_tasks_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TasksTasksPatchArgs {
+    /// Path parameter: tasklist
+    pub tasklist: String,
+    /// Path parameter: task
+    pub task: String,
+    /// Request body.
+    pub body: Task,
+}
+
 /// GET tasks/v1/lists/{tasklist}/tasks/{task}
 /// Updates the specified task. This method supports patch semantics.
 ///
@@ -1600,14 +1726,12 @@ pub fn tasks_tasks_patch_execute(
 
 pub fn tasks_tasks_patch(
     client: &SimpleHttpClient,
-    tasklist: &str,
-    task: &str,
-    body: &Task,
+    args: &TasksTasksPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasks_patch_builder(client, tasklist, task, body)?;
+    let builder = tasks_tasks_patch_builder(client, &args.tasklist, &args.task, &args.body)?;
     tasks_tasks_patch_execute(builder)
 }
 
@@ -1705,6 +1829,17 @@ pub fn tasks_tasks_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tasks_tasks_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TasksTasksUpdateArgs {
+    /// Path parameter: tasklist
+    pub tasklist: String,
+    /// Path parameter: task
+    pub task: String,
+    /// Request body.
+    pub body: Task,
+}
+
 /// GET tasks/v1/lists/{tasklist}/tasks/{task}
 /// Updates the specified task.
 ///
@@ -1717,13 +1852,11 @@ pub fn tasks_tasks_update_execute(
 
 pub fn tasks_tasks_update(
     client: &SimpleHttpClient,
-    tasklist: &str,
-    task: &str,
-    body: &Task,
+    args: &TasksTasksUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tasks_tasks_update_builder(client, tasklist, task, body)?;
+    let builder = tasks_tasks_update_builder(client, &args.tasklist, &args.task, &args.body)?;
     tasks_tasks_update_execute(builder)
 }

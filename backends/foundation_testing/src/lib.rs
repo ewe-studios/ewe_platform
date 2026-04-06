@@ -74,9 +74,17 @@ pub mod netcap;
 pub mod scenarios;
 pub mod stress;
 
+// HuggingFace model downloading (optional feature)
+#[cfg(feature = "huggingface")]
+pub mod huggingface;
+
 // Re-export commonly used items
 pub use http::TestHttpServer;
 pub use io::{SharedBuffer, SharedBufferReader, SharedBufferWriter};
 pub use metrics::{Metrics, PerformanceReport};
 pub use netcap::ResourcesHttpServer;
 pub use stress::{StressConfig, StressHarness, StressResult};
+
+// Re-export huggingface items when feature is enabled
+#[cfg(feature = "huggingface")]
+pub use huggingface::{TestHarness, DEFAULT_ARTIFACTS_DIR};

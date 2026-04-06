@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/messages:send
 /// Send a message to specified target (a registration token, topic or condition).
@@ -109,6 +111,15 @@ pub fn fcm_projects_messages_send_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`fcm_projects_messages_send`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FcmProjectsMessagesSendArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SendMessageRequest,
+}
+
 /// GET v1/projects/{projectsId}/messages:send
 /// Send a message to specified target (a registration token, topic or condition).
 ///
@@ -121,12 +132,11 @@ pub fn fcm_projects_messages_send_execute(
 
 pub fn fcm_projects_messages_send(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SendMessageRequest,
+    args: &FcmProjectsMessagesSendArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = fcm_projects_messages_send_builder(client, parent, body)?;
+    let builder = fcm_projects_messages_send_builder(client, &args.parent, &args.body)?;
     fcm_projects_messages_send_execute(builder)
 }

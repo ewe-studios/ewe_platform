@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}:provision
 /// Provisions the project resource. During the process, related systems will get prepared and initialized. Caller must read the [Terms for data use](<https://cloud.google.`com/retail/data-use-terms`>), and optionally specify in request to provide consent to that service terms.
@@ -113,6 +115,15 @@ pub fn discoveryengine_projects_provision_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_provision`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsProvisionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ProvisionProjectRequest,
+}
+
 /// GET v1/projects/{projectsId}:provision
 /// Provisions the project resource. During the process, related systems will get prepared and initialized. Caller must read the [Terms for data use](<https://cloud.google.`com/retail/data-use-terms`>), and optionally specify in request to provide consent to that service terms.
 ///
@@ -125,8 +136,7 @@ pub fn discoveryengine_projects_provision_execute(
 
 pub fn discoveryengine_projects_provision(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDiscoveryengineV1ProvisionProjectRequest,
+    args: &DiscoveryengineProjectsProvisionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -135,7 +145,7 @@ pub fn discoveryengine_projects_provision(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_provision_builder(client, name, body)?;
+    let builder = discoveryengine_projects_provision_builder(client, &args.name, &args.body)?;
     discoveryengine_projects_provision_execute(builder)
 }
 
@@ -233,6 +243,13 @@ pub fn discoveryengine_projects_locations_get_acl_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_get_acl_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsGetAclConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aclConfig
 /// Gets the AclConfig.
 ///
@@ -245,7 +262,7 @@ pub fn discoveryengine_projects_locations_get_acl_config_execute(
 
 pub fn discoveryengine_projects_locations_get_acl_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsGetAclConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1AclConfig>, ApiError>,
@@ -254,7 +271,7 @@ pub fn discoveryengine_projects_locations_get_acl_config(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_get_acl_config_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_get_acl_config_builder(client, &args.name)?;
     discoveryengine_projects_locations_get_acl_config_execute(builder)
 }
 
@@ -352,6 +369,13 @@ pub fn discoveryengine_projects_locations_get_cmek_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_get_cmek_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsGetCmekConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cmekConfig
 /// Gets the CmekConfig.
 ///
@@ -364,7 +388,7 @@ pub fn discoveryengine_projects_locations_get_cmek_config_execute(
 
 pub fn discoveryengine_projects_locations_get_cmek_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsGetCmekConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1CmekConfig>, ApiError>,
@@ -373,7 +397,7 @@ pub fn discoveryengine_projects_locations_get_cmek_config(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_get_cmek_config_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_get_cmek_config_builder(client, &args.name)?;
     discoveryengine_projects_locations_get_cmek_config_execute(builder)
 }
 
@@ -474,6 +498,15 @@ pub fn discoveryengine_projects_locations_set_up_data_connector_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_set_up_data_connector`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsSetUpDataConnectorArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1SetUpDataConnectorRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:setUpDataConnector
 /// Creates a Collection and sets up the DataConnector for it. To stop a DataConnector after setup, use the CollectionService.DeleteCollection method.
 ///
@@ -486,8 +519,7 @@ pub fn discoveryengine_projects_locations_set_up_data_connector_execute(
 
 pub fn discoveryengine_projects_locations_set_up_data_connector(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1SetUpDataConnectorRequest,
+    args: &DiscoveryengineProjectsLocationsSetUpDataConnectorArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -496,8 +528,11 @@ pub fn discoveryengine_projects_locations_set_up_data_connector(
         + 'static,
     ApiError,
 > {
-    let builder =
-        discoveryengine_projects_locations_set_up_data_connector_builder(client, parent, body)?;
+    let builder = discoveryengine_projects_locations_set_up_data_connector_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     discoveryengine_projects_locations_set_up_data_connector_execute(builder)
 }
 
@@ -614,6 +649,19 @@ pub fn discoveryengine_projects_locations_set_up_data_connector_v2_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_set_up_data_connector_v2`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsSetUpDataConnectorV2Args {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: collectionDisplayName
+    pub collectionDisplayName: Option<String>,
+    /// Query parameter: collectionId
+    pub collectionId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1DataConnector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:setUpDataConnectorV2
 /// Creates a Collection and sets up the DataConnector for it. To stop a DataConnector after setup, use the CollectionService.DeleteCollection method.
 ///
@@ -626,10 +674,7 @@ pub fn discoveryengine_projects_locations_set_up_data_connector_v2_execute(
 
 pub fn discoveryengine_projects_locations_set_up_data_connector_v2(
     client: &SimpleHttpClient,
-    parent: &str,
-    collectionDisplayName: Option<&str>,
-    collectionId: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1DataConnector,
+    args: &DiscoveryengineProjectsLocationsSetUpDataConnectorV2Args,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -640,10 +685,10 @@ pub fn discoveryengine_projects_locations_set_up_data_connector_v2(
 > {
     let builder = discoveryengine_projects_locations_set_up_data_connector_v2_builder(
         client,
-        parent,
-        collectionDisplayName,
-        collectionId,
-        body,
+        &args.parent,
+        args.collectionDisplayName.as_deref(),
+        args.collectionId.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_set_up_data_connector_v2_execute(builder)
 }
@@ -745,6 +790,15 @@ pub fn discoveryengine_projects_locations_update_acl_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_update_acl_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsUpdateAclConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1AclConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/aclConfig
 /// Default ACL configuration for use in a location of a customer's project. Updates will only reflect to new data stores. Existing data stores will still use the old value.
 ///
@@ -757,8 +811,7 @@ pub fn discoveryengine_projects_locations_update_acl_config_execute(
 
 pub fn discoveryengine_projects_locations_update_acl_config(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDiscoveryengineV1AclConfig,
+    args: &DiscoveryengineProjectsLocationsUpdateAclConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1AclConfig>, ApiError>,
@@ -767,7 +820,9 @@ pub fn discoveryengine_projects_locations_update_acl_config(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_update_acl_config_builder(client, name, body)?;
+    let builder = discoveryengine_projects_locations_update_acl_config_builder(
+        client, &args.name, &args.body,
+    )?;
     discoveryengine_projects_locations_update_acl_config_execute(builder)
 }
 
@@ -880,6 +935,17 @@ pub fn discoveryengine_projects_locations_update_cmek_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_update_cmek_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsUpdateCmekConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: setDefault
+    pub setDefault: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1CmekConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cmekConfig
 /// Provisions a CMEK key for use in a location of a customer's project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
 ///
@@ -892,9 +958,7 @@ pub fn discoveryengine_projects_locations_update_cmek_config_execute(
 
 pub fn discoveryengine_projects_locations_update_cmek_config(
     client: &SimpleHttpClient,
-    name: &str,
-    setDefault: Option<bool>,
-    body: &GoogleCloudDiscoveryengineV1CmekConfig,
+    args: &DiscoveryengineProjectsLocationsUpdateCmekConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -904,7 +968,10 @@ pub fn discoveryengine_projects_locations_update_cmek_config(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_update_cmek_config_builder(
-        client, name, setDefault, body,
+        client,
+        &args.name,
+        args.setDefault,
+        &args.body,
     )?;
     discoveryengine_projects_locations_update_cmek_config_execute(builder)
 }
@@ -1003,6 +1070,13 @@ pub fn discoveryengine_projects_locations_cmek_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_cmek_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCmekConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cmekConfigs/{cmekConfigsId}
 /// De-provisions a CmekConfig.
 ///
@@ -1015,7 +1089,7 @@ pub fn discoveryengine_projects_locations_cmek_configs_delete_execute(
 
 pub fn discoveryengine_projects_locations_cmek_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCmekConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1024,7 +1098,8 @@ pub fn discoveryengine_projects_locations_cmek_configs_delete(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_cmek_configs_delete_builder(client, name)?;
+    let builder =
+        discoveryengine_projects_locations_cmek_configs_delete_builder(client, &args.name)?;
     discoveryengine_projects_locations_cmek_configs_delete_execute(builder)
 }
 
@@ -1122,6 +1197,13 @@ pub fn discoveryengine_projects_locations_cmek_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_cmek_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCmekConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cmekConfigs/{cmekConfigsId}
 /// Gets the CmekConfig.
 ///
@@ -1134,7 +1216,7 @@ pub fn discoveryengine_projects_locations_cmek_configs_get_execute(
 
 pub fn discoveryengine_projects_locations_cmek_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCmekConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1CmekConfig>, ApiError>,
@@ -1143,7 +1225,7 @@ pub fn discoveryengine_projects_locations_cmek_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_cmek_configs_get_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_cmek_configs_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_cmek_configs_get_execute(builder)
 }
 
@@ -1242,6 +1324,13 @@ pub fn discoveryengine_projects_locations_cmek_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_cmek_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCmekConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cmekConfigs
 /// Lists all the CmekConfigs with the project.
 ///
@@ -1254,7 +1343,7 @@ pub fn discoveryengine_projects_locations_cmek_configs_list_execute(
 
 pub fn discoveryengine_projects_locations_cmek_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &DiscoveryengineProjectsLocationsCmekConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListCmekConfigsResponse>, ApiError>,
@@ -1263,7 +1352,8 @@ pub fn discoveryengine_projects_locations_cmek_configs_list(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_cmek_configs_list_builder(client, parent)?;
+    let builder =
+        discoveryengine_projects_locations_cmek_configs_list_builder(client, &args.parent)?;
     discoveryengine_projects_locations_cmek_configs_list_execute(builder)
 }
 
@@ -1376,6 +1466,17 @@ pub fn discoveryengine_projects_locations_cmek_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_cmek_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCmekConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: setDefault
+    pub setDefault: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1CmekConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cmekConfigs/{cmekConfigsId}
 /// Provisions a CMEK key for use in a location of a customer's project. This method will also conduct location validation on the provided `cmekConfig` to make sure the key is valid and can be used in the selected location.
 ///
@@ -1388,9 +1489,7 @@ pub fn discoveryengine_projects_locations_cmek_configs_patch_execute(
 
 pub fn discoveryengine_projects_locations_cmek_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    setDefault: Option<bool>,
-    body: &GoogleCloudDiscoveryengineV1CmekConfig,
+    args: &DiscoveryengineProjectsLocationsCmekConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1400,7 +1499,10 @@ pub fn discoveryengine_projects_locations_cmek_configs_patch(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_cmek_configs_patch_builder(
-        client, name, setDefault, body,
+        client,
+        &args.name,
+        args.setDefault,
+        &args.body,
     )?;
     discoveryengine_projects_locations_cmek_configs_patch_execute(builder)
 }
@@ -1499,6 +1601,13 @@ pub fn discoveryengine_projects_locations_collections_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}
 /// Deletes a Collection.
 ///
@@ -1511,7 +1620,7 @@ pub fn discoveryengine_projects_locations_collections_delete_execute(
 
 pub fn discoveryengine_projects_locations_collections_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1520,7 +1629,8 @@ pub fn discoveryengine_projects_locations_collections_delete(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_delete_builder(client, name)?;
+    let builder =
+        discoveryengine_projects_locations_collections_delete_builder(client, &args.name)?;
     discoveryengine_projects_locations_collections_delete_execute(builder)
 }
 
@@ -1618,6 +1728,13 @@ pub fn discoveryengine_projects_locations_collections_get_data_connector_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_get_data_connector`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsGetDataConnectorArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataConnector
 /// Gets the DataConnector. DataConnector is a singleton resource for each Collection.
 ///
@@ -1630,7 +1747,7 @@ pub fn discoveryengine_projects_locations_collections_get_data_connector_execute
 
 pub fn discoveryengine_projects_locations_collections_get_data_connector(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsGetDataConnectorArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1DataConnector>, ApiError>,
@@ -1639,8 +1756,9 @@ pub fn discoveryengine_projects_locations_collections_get_data_connector(
         + 'static,
     ApiError,
 > {
-    let builder =
-        discoveryengine_projects_locations_collections_get_data_connector_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_collections_get_data_connector_builder(
+        client, &args.name,
+    )?;
     discoveryengine_projects_locations_collections_get_data_connector_execute(builder)
 }
 
@@ -1753,6 +1871,17 @@ pub fn discoveryengine_projects_locations_collections_update_data_connector_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_update_data_connector`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsUpdateDataConnectorArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1DataConnector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataConnector
 /// Updates a DataConnector.
 ///
@@ -1765,9 +1894,7 @@ pub fn discoveryengine_projects_locations_collections_update_data_connector_exec
 
 pub fn discoveryengine_projects_locations_collections_update_data_connector(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1DataConnector,
+    args: &DiscoveryengineProjectsLocationsCollectionsUpdateDataConnectorArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1DataConnector>, ApiError>,
@@ -1777,7 +1904,10 @@ pub fn discoveryengine_projects_locations_collections_update_data_connector(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_update_data_connector_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_collections_update_data_connector_execute(builder)
 }
@@ -1876,6 +2006,13 @@ pub fn discoveryengine_projects_locations_collections_data_connector_operations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_connector_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataConnectorOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataConnector/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1888,7 +2025,7 @@ pub fn discoveryengine_projects_locations_collections_data_connector_operations_
 
 pub fn discoveryengine_projects_locations_collections_data_connector_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataConnectorOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1899,7 +2036,7 @@ pub fn discoveryengine_projects_locations_collections_data_connector_operations_
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_connector_operations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_data_connector_operations_get_execute(builder)
 }
@@ -2023,6 +2160,21 @@ pub fn discoveryengine_projects_locations_collections_data_connector_operations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_connector_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataConnectorOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataConnector/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -2035,11 +2187,7 @@ pub fn discoveryengine_projects_locations_collections_data_connector_operations_
 
 pub fn discoveryengine_projects_locations_collections_data_connector_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataConnectorOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -2051,11 +2199,11 @@ pub fn discoveryengine_projects_locations_collections_data_connector_operations_
     let builder =
         discoveryengine_projects_locations_collections_data_connector_operations_list_builder(
             client,
-            name,
-            filter,
-            pageSize,
-            pageToken,
-            returnPartialSuccess,
+            &args.name,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.returnPartialSuccess,
         )?;
     discoveryengine_projects_locations_collections_data_connector_operations_list_execute(builder)
 }
@@ -2179,6 +2327,21 @@ pub fn discoveryengine_projects_locations_collections_data_stores_complete_query
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_complete_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresCompleteQueryArgs {
+    /// Path parameter: dataStore
+    pub dataStore: String,
+    /// Query parameter: includeTailSuggestions
+    pub includeTailSuggestions: Option<bool>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: queryModel
+    pub queryModel: Option<String>,
+    /// Query parameter: userPseudoId
+    pub userPseudoId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}:completeQuery
 /// Completes the specified user input with keyword suggestions.
 ///
@@ -2191,11 +2354,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_complete_query
 
 pub fn discoveryengine_projects_locations_collections_data_stores_complete_query(
     client: &SimpleHttpClient,
-    dataStore: &str,
-    includeTailSuggestions: Option<bool>,
-    query: Option<&str>,
-    queryModel: Option<&str>,
-    userPseudoId: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresCompleteQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1CompleteQueryResponse>, ApiError>,
@@ -2207,11 +2366,11 @@ pub fn discoveryengine_projects_locations_collections_data_stores_complete_query
     let builder =
         discoveryengine_projects_locations_collections_data_stores_complete_query_builder(
             client,
-            dataStore,
-            includeTailSuggestions,
-            query,
-            queryModel,
-            userPseudoId,
+            &args.dataStore,
+            args.includeTailSuggestions,
+            args.query.as_deref(),
+            args.queryModel.as_deref(),
+            args.userPseudoId.as_deref(),
         )?;
     discoveryengine_projects_locations_collections_data_stores_complete_query_execute(builder)
 }
@@ -2341,6 +2500,25 @@ pub fn discoveryengine_projects_locations_collections_data_stores_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: cmekConfigName
+    pub cmekConfigName: Option<String>,
+    /// Query parameter: createAdvancedSiteSearch
+    pub createAdvancedSiteSearch: Option<bool>,
+    /// Query parameter: dataStoreId
+    pub dataStoreId: Option<String>,
+    /// Query parameter: disableCmek
+    pub disableCmek: Option<bool>,
+    /// Query parameter: skipDefaultSchemaCreation
+    pub skipDefaultSchemaCreation: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1DataStore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores
 /// Creates a DataStore. DataStore is for storing Documents. To serve these documents for Search, or Recommendation use case, an Engine needs to be created separately.
 ///
@@ -2353,13 +2531,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_create_execute
 
 pub fn discoveryengine_projects_locations_collections_data_stores_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    cmekConfigName: Option<&str>,
-    createAdvancedSiteSearch: Option<bool>,
-    dataStoreId: Option<&str>,
-    disableCmek: Option<bool>,
-    skipDefaultSchemaCreation: Option<bool>,
-    body: &GoogleCloudDiscoveryengineV1DataStore,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2370,13 +2542,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_create(
 > {
     let builder = discoveryengine_projects_locations_collections_data_stores_create_builder(
         client,
-        parent,
-        cmekConfigName,
-        createAdvancedSiteSearch,
-        dataStoreId,
-        disableCmek,
-        skipDefaultSchemaCreation,
-        body,
+        &args.parent,
+        args.cmekConfigName.as_deref(),
+        args.createAdvancedSiteSearch,
+        args.dataStoreId.as_deref(),
+        args.disableCmek,
+        args.skipDefaultSchemaCreation,
+        &args.body,
     )?;
     discoveryengine_projects_locations_collections_data_stores_create_execute(builder)
 }
@@ -2475,6 +2647,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}
 /// Deletes a DataStore.
 ///
@@ -2487,7 +2666,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_delete_execute
 
 pub fn discoveryengine_projects_locations_collections_data_stores_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2496,8 +2675,9 @@ pub fn discoveryengine_projects_locations_collections_data_stores_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        discoveryengine_projects_locations_collections_data_stores_delete_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_delete_builder(
+        client, &args.name,
+    )?;
     discoveryengine_projects_locations_collections_data_stores_delete_execute(builder)
 }
 
@@ -2595,6 +2775,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}
 /// Gets a DataStore.
 ///
@@ -2607,7 +2794,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_get_execute(
 
 pub fn discoveryengine_projects_locations_collections_data_stores_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1DataStore>, ApiError>,
@@ -2617,7 +2804,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_get(
     ApiError,
 > {
     let builder =
-        discoveryengine_projects_locations_collections_data_stores_get_builder(client, name)?;
+        discoveryengine_projects_locations_collections_data_stores_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_collections_data_stores_get_execute(builder)
 }
 
@@ -2716,6 +2903,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_get_site_searc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_get_site_search_engine`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresGetSiteSearchEngineArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine
 /// Gets the SiteSearchEngine.
 ///
@@ -2728,7 +2922,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_get_site_searc
 
 pub fn discoveryengine_projects_locations_collections_data_stores_get_site_search_engine(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresGetSiteSearchEngineArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1SiteSearchEngine>, ApiError>,
@@ -2739,7 +2933,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_get_site_searc
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_get_site_search_engine_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_data_stores_get_site_search_engine_execute(
         builder,
@@ -2861,6 +3055,19 @@ pub fn discoveryengine_projects_locations_collections_data_stores_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores
 /// Lists all the DataStores associated with the project.
 ///
@@ -2873,10 +3080,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_list_execute(
 
 pub fn discoveryengine_projects_locations_collections_data_stores_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListDataStoresResponse>, ApiError>,
@@ -2886,7 +3090,11 @@ pub fn discoveryengine_projects_locations_collections_data_stores_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_data_stores_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_collections_data_stores_list_execute(builder)
 }
@@ -3000,6 +3208,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1DataStore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}
 /// Updates a DataStore
 ///
@@ -3012,9 +3231,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_patch_execute(
 
 pub fn discoveryengine_projects_locations_collections_data_stores_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1DataStore,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1DataStore>, ApiError>,
@@ -3024,7 +3241,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_patch(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_data_stores_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_collections_data_stores_patch_execute(builder)
 }
@@ -3126,6 +3346,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_train_custom_m
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_train_custom_model`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresTrainCustomModelArgs {
+    /// Path parameter: dataStore
+    pub dataStore: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1TrainCustomModelRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}:trainCustomModel
 /// Trains a custom model.
 ///
@@ -3138,8 +3367,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_train_custom_m
 
 pub fn discoveryengine_projects_locations_collections_data_stores_train_custom_model(
     client: &SimpleHttpClient,
-    dataStore: &str,
-    body: &GoogleCloudDiscoveryengineV1TrainCustomModelRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresTrainCustomModelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3150,7 +3378,9 @@ pub fn discoveryengine_projects_locations_collections_data_stores_train_custom_m
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_train_custom_model_builder(
-            client, dataStore, body,
+            client,
+            &args.dataStore,
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_train_custom_model_execute(builder)
 }
@@ -3269,6 +3499,18 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_batch
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_branches_batch_get_documents_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesBatchGetDocumentsMetadataArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: matcher_fhirMatcher_fhirResources
+    pub matcher_fhirMatcher_fhirResources: Option<String>,
+    /// Query parameter: matcher_urisMatcher_uris
+    pub matcher_urisMatcher_uris: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/batchGetDocumentsMetadata
 /// Gets index freshness metadata for Documents. Supported for website search only.
 ///
@@ -3281,9 +3523,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_batch
 
 pub fn discoveryengine_projects_locations_collections_data_stores_branches_batch_get_documents_metadata(
     client: &SimpleHttpClient,
-    parent: &str,
-    matcher_fhirMatcher_fhirResources: Option<&str>,
-    matcher_urisMatcher_uris: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesBatchGetDocumentsMetadataArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3295,7 +3535,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_batch
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_branches_batch_get_documents_metadata_builder(client, parent, matcher_fhirMatcher_fhirResources, matcher_urisMatcher_uris)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_branches_batch_get_documents_metadata_builder(client, &args.parent, args.matcher_fhirMatcher_fhirResources.as_deref(), args.matcher_urisMatcher_uris.as_deref())?;
     discoveryengine_projects_locations_collections_data_stores_branches_batch_get_documents_metadata_execute(builder)
 }
 
@@ -3408,6 +3648,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_branches_documents_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: documentId
+    pub documentId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Document,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents
 /// Creates a Document.
 ///
@@ -3420,9 +3671,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 
 pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    documentId: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Document,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Document>, ApiError>,
@@ -3431,7 +3680,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_branches_documents_create_builder(client, parent, documentId, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_branches_documents_create_builder(client, &args.parent, args.documentId.as_deref(), &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_branches_documents_create_execute(
         builder,
     )
@@ -3529,6 +3778,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_branches_documents_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents/{documentsId}
 /// Deletes a Document.
 ///
@@ -3541,14 +3797,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 
 pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_branches_documents_delete_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_branches_documents_delete_builder(client, &args.name)?;
     discoveryengine_projects_locations_collections_data_stores_branches_documents_delete_execute(
         builder,
     )
@@ -3648,6 +3904,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_branches_documents_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents/{documentsId}
 /// Gets a Document.
 ///
@@ -3660,7 +3923,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 
 pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Document>, ApiError>,
@@ -3671,7 +3934,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_branches_documents_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_data_stores_branches_documents_get_execute(
         builder,
@@ -3775,6 +4038,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_branches_documents_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ImportDocumentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents:import
 /// Bulk import of multiple Documents. Request processing may be synchronous. Non-existing items are created. Note: It is possible for a subset of the Documents to be successfully updated.
 ///
@@ -3787,8 +4059,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 
 pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1ImportDocumentsRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3797,7 +4068,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_branches_documents_import_builder(client, parent, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_branches_documents_import_builder(client, &args.parent, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_branches_documents_import_execute(
         builder,
     )
@@ -3914,6 +4185,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_branches_documents_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents
 /// Gets a list of Documents.
 ///
@@ -3926,9 +4208,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 
 pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListDocumentsResponse>, ApiError>,
@@ -3939,7 +4219,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_branches_documents_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     discoveryengine_projects_locations_collections_data_stores_branches_documents_list_execute(
         builder,
@@ -4059,6 +4342,19 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_branches_documents_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Document,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents/{documentsId}
 /// Updates a Document.
 ///
@@ -4071,10 +4367,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 
 pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Document,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Document>, ApiError>,
@@ -4083,7 +4376,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_branches_documents_patch_builder(client, name, allowMissing, updateMask, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_branches_documents_patch_builder(client, &args.name, args.allowMissing, args.updateMask.as_deref(), &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_branches_documents_patch_execute(
         builder,
     )
@@ -4186,6 +4479,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_branches_documents_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsPurgeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1PurgeDocumentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents:purge
 /// Permanently deletes all selected Documents in a branch. This process is asynchronous. Depending on the number of Documents to be deleted, this operation can take hours to complete. Before the delete operation completes, some Documents might still be returned by DocumentService.GetDocument or DocumentService.ListDocuments. To get a list of the Documents to be deleted, set PurgeDocumentsRequest.force to `false`.
 ///
@@ -4198,8 +4500,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
 
 pub fn discoveryengine_projects_locations_collections_data_stores_branches_documents_purge(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1PurgeDocumentsRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesDocumentsPurgeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4208,7 +4509,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_docum
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_branches_documents_purge_builder(client, parent, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_branches_documents_purge_builder(client, &args.parent, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_branches_documents_purge_execute(
         builder,
     )
@@ -4309,6 +4610,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_opera
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_branches_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -4321,15 +4631,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_opera
 
 pub fn discoveryengine_projects_locations_collections_data_stores_branches_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_branches_operations_cancel_builder(client, name, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_branches_operations_cancel_builder(client, &args.name, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_branches_operations_cancel_execute(
         builder,
     )
@@ -4429,6 +4738,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_opera
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_branches_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -4441,7 +4757,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_opera
 
 pub fn discoveryengine_projects_locations_collections_data_stores_branches_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4452,7 +4768,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_opera
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_branches_operations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_data_stores_branches_operations_get_execute(
         builder,
@@ -4578,6 +4894,21 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_opera
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_branches_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -4590,11 +4921,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_opera
 
 pub fn discoveryengine_projects_locations_collections_data_stores_branches_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresBranchesOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -4603,7 +4930,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_branches_opera
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_branches_operations_list_builder(client, name, filter, pageSize, pageToken, returnPartialSuccess)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_branches_operations_list_builder(client, &args.name, args.filter.as_deref(), args.pageSize, args.pageToken.as_deref(), args.returnPartialSuccess)?;
     discoveryengine_projects_locations_collections_data_stores_branches_operations_list_execute(
         builder,
     )
@@ -4710,6 +5037,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_completion_con
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_completion_config_complete_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresCompletionConfigCompleteQueryArgs {
+    /// Path parameter: completionConfig
+    pub completionConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1AdvancedCompleteQueryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/completionConfig:completeQuery
 /// Completes the user input with advanced keyword suggestions.
 ///
@@ -4722,8 +5058,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_completion_con
 
 pub fn discoveryengine_projects_locations_collections_data_stores_completion_config_complete_query(
     client: &SimpleHttpClient,
-    completionConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1AdvancedCompleteQueryRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresCompletionConfigCompleteQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4735,7 +5070,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_completion_con
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_completion_config_complete_query_builder(client, completionConfig, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_completion_config_complete_query_builder(client, &args.completionConfig, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_completion_config_complete_query_execute(builder)
 }
 
@@ -4836,6 +5171,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_completion_sug
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_completion_suggestions_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresCompletionSuggestionsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ImportCompletionSuggestionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/completionSuggestions:import
 /// Imports CompletionSuggestions for a DataStore.
 ///
@@ -4848,8 +5192,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_completion_sug
 
 pub fn discoveryengine_projects_locations_collections_data_stores_completion_suggestions_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1ImportCompletionSuggestionsRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresCompletionSuggestionsImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4858,7 +5201,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_completion_sug
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_completion_suggestions_import_builder(client, parent, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_completion_suggestions_import_builder(client, &args.parent, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_completion_suggestions_import_execute(
         builder,
     )
@@ -4961,6 +5304,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_completion_sug
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_completion_suggestions_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresCompletionSuggestionsPurgeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1PurgeCompletionSuggestionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/completionSuggestions:purge
 /// Permanently deletes all CompletionSuggestions for a DataStore.
 ///
@@ -4973,8 +5325,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_completion_sug
 
 pub fn discoveryengine_projects_locations_collections_data_stores_completion_suggestions_purge(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1PurgeCompletionSuggestionsRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresCompletionSuggestionsPurgeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4983,7 +5334,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_completion_sug
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_completion_suggestions_purge_builder(client, parent, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_completion_suggestions_purge_builder(client, &args.parent, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_completion_suggestions_purge_execute(
         builder,
     )
@@ -5098,6 +5449,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_creat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_controls_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresControlsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: controlId
+    pub controlId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Control,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/controls
 /// Creates a Control. By default 1000 controls are allowed for a data store. A request can be submitted to adjust this limit. If the Control to create already exists, an ALREADY_EXISTS error is returned.
 ///
@@ -5110,9 +5472,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_creat
 
 pub fn discoveryengine_projects_locations_collections_data_stores_controls_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    controlId: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Control,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresControlsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Control>, ApiError>,
@@ -5123,7 +5483,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_creat
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_controls_create_builder(
-            client, parent, controlId, body,
+            client,
+            &args.parent,
+            args.controlId.as_deref(),
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_controls_create_execute(builder)
 }
@@ -5220,6 +5583,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_delet
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_controls_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresControlsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/controls/{controlsId}
 /// Deletes a Control. If the Control to delete does not exist, a NOT_FOUND error is returned.
 ///
@@ -5232,7 +5602,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_delet
 
 pub fn discoveryengine_projects_locations_collections_data_stores_controls_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresControlsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -5241,7 +5611,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_delet
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_controls_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_data_stores_controls_delete_execute(builder)
 }
@@ -5340,6 +5710,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_get_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_controls_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresControlsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/controls/{controlsId}
 /// Gets a Control.
 ///
@@ -5352,7 +5729,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_get_e
 
 pub fn discoveryengine_projects_locations_collections_data_stores_controls_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresControlsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Control>, ApiError>,
@@ -5362,7 +5739,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_get(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_data_stores_controls_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     discoveryengine_projects_locations_collections_data_stores_controls_get_execute(builder)
 }
@@ -5482,6 +5859,19 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_list_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_controls_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresControlsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/controls
 /// Lists all Controls by their parent DataStore.
 ///
@@ -5494,10 +5884,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_list_
 
 pub fn discoveryengine_projects_locations_collections_data_stores_controls_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresControlsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListControlsResponse>, ApiError>,
@@ -5507,7 +5894,11 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_data_stores_controls_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_collections_data_stores_controls_list_execute(builder)
 }
@@ -5621,6 +6012,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_patch
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_controls_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresControlsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Control,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/controls/{controlsId}
 /// Updates a Control. Control action type cannot be changed. If the Control to update does not exist, a NOT_FOUND error is returned.
 ///
@@ -5633,9 +6035,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_patch
 
 pub fn discoveryengine_projects_locations_collections_data_stores_controls_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Control,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresControlsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Control>, ApiError>,
@@ -5646,7 +6046,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_controls_patch
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_controls_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_controls_patch_execute(builder)
 }
@@ -5752,6 +6155,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_conversations_converse`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsConverseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ConverseConversationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/conversations/{conversationsId}:converse
 /// Converses a conversation.
 ///
@@ -5764,8 +6176,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 
 pub fn discoveryengine_projects_locations_collections_data_stores_conversations_converse(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDiscoveryengineV1ConverseConversationRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsConverseArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5779,7 +6190,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_conversations_converse_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_conversations_converse_execute(
         builder,
@@ -5883,6 +6294,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_conversations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Conversation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/conversations
 /// Creates a Conversation. If the Conversation to create already exists, an ALREADY_EXISTS error is returned.
 ///
@@ -5895,8 +6315,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 
 pub fn discoveryengine_projects_locations_collections_data_stores_conversations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1Conversation,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Conversation>, ApiError>,
@@ -5907,7 +6326,9 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_conversations_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_conversations_create_execute(builder)
 }
@@ -6004,6 +6425,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_conversations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/conversations/{conversationsId}
 /// Deletes a Conversation. If the Conversation to delete does not exist, a NOT_FOUND error is returned.
 ///
@@ -6016,7 +6444,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 
 pub fn discoveryengine_projects_locations_collections_data_stores_conversations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -6025,7 +6453,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_conversations_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_data_stores_conversations_delete_execute(builder)
 }
@@ -6124,6 +6552,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_conversations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/conversations/{conversationsId}
 /// Gets a Conversation.
 ///
@@ -6136,7 +6571,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 
 pub fn discoveryengine_projects_locations_collections_data_stores_conversations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Conversation>, ApiError>,
@@ -6147,7 +6582,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_conversations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_data_stores_conversations_get_execute(builder)
 }
@@ -6274,6 +6709,21 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_conversations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/conversations
 /// Lists all Conversations by their parent DataStore.
 ///
@@ -6286,11 +6736,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 
 pub fn discoveryengine_projects_locations_collections_data_stores_conversations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -6304,7 +6750,12 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_conversations_list_builder(
-            client, parent, filter, orderBy, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     discoveryengine_projects_locations_collections_data_stores_conversations_list_execute(builder)
 }
@@ -6418,6 +6869,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_conversations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Conversation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/conversations/{conversationsId}
 /// Updates a Conversation. Conversation action type cannot be changed. If the Conversation to update does not exist, a NOT_FOUND error is returned.
 ///
@@ -6430,9 +6892,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 
 pub fn discoveryengine_projects_locations_collections_data_stores_conversations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Conversation,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresConversationsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Conversation>, ApiError>,
@@ -6443,7 +6903,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_conversations_
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_conversations_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_conversations_patch_execute(builder)
 }
@@ -6543,6 +7006,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_custom_models_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_custom_models_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresCustomModelsListArgs {
+    /// Path parameter: dataStore
+    pub dataStore: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/customModels
 /// Gets a list of all the custom models.
 ///
@@ -6555,7 +7025,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_custom_models_
 
 pub fn discoveryengine_projects_locations_collections_data_stores_custom_models_list(
     client: &SimpleHttpClient,
-    dataStore: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresCustomModelsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListCustomModelsResponse>, ApiError>,
@@ -6566,7 +7036,8 @@ pub fn discoveryengine_projects_locations_collections_data_stores_custom_models_
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_custom_models_list_builder(
-            client, dataStore,
+            client,
+            &args.dataStore,
         )?;
     discoveryengine_projects_locations_collections_data_stores_custom_models_list_execute(builder)
 }
@@ -6665,6 +7136,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_models_operati
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_models_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresModelsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/models/{modelsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -6677,7 +7155,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_models_operati
 
 pub fn discoveryengine_projects_locations_collections_data_stores_models_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresModelsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6688,7 +7166,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_models_operati
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_models_operations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_data_stores_models_operations_get_execute(
         builder,
@@ -6814,6 +7292,21 @@ pub fn discoveryengine_projects_locations_collections_data_stores_models_operati
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_models_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresModelsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/models/{modelsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -6826,11 +7319,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_models_operati
 
 pub fn discoveryengine_projects_locations_collections_data_stores_models_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresModelsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -6842,11 +7331,11 @@ pub fn discoveryengine_projects_locations_collections_data_stores_models_operati
     let builder =
         discoveryengine_projects_locations_collections_data_stores_models_operations_list_builder(
             client,
-            name,
-            filter,
-            pageSize,
-            pageToken,
-            returnPartialSuccess,
+            &args.name,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.returnPartialSuccess,
         )?;
     discoveryengine_projects_locations_collections_data_stores_models_operations_list_execute(
         builder,
@@ -6947,6 +7436,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_operations_get
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -6959,7 +7455,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_operations_get
 
 pub fn discoveryengine_projects_locations_collections_data_stores_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6970,7 +7466,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_operations_get
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_operations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_data_stores_operations_get_execute(builder)
 }
@@ -7094,6 +7590,21 @@ pub fn discoveryengine_projects_locations_collections_data_stores_operations_lis
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -7106,11 +7617,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_operations_lis
 
 pub fn discoveryengine_projects_locations_collections_data_stores_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -7122,11 +7629,11 @@ pub fn discoveryengine_projects_locations_collections_data_stores_operations_lis
     let builder =
         discoveryengine_projects_locations_collections_data_stores_operations_list_builder(
             client,
-            name,
-            filter,
-            pageSize,
-            pageToken,
-            returnPartialSuccess,
+            &args.name,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.returnPartialSuccess,
         )?;
     discoveryengine_projects_locations_collections_data_stores_operations_list_execute(builder)
 }
@@ -7240,6 +7747,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_create
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_schemas_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: schemaId
+    pub schemaId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Schema,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas
 /// Creates a Schema.
 ///
@@ -7252,9 +7770,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_create
 
 pub fn discoveryengine_projects_locations_collections_data_stores_schemas_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    schemaId: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Schema,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7265,7 +7781,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_create
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_schemas_create_builder(
-            client, parent, schemaId, body,
+            client,
+            &args.parent,
+            args.schemaId.as_deref(),
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_schemas_create_execute(builder)
 }
@@ -7364,6 +7883,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_delete
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_schemas_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}
 /// Deletes a Schema.
 ///
@@ -7376,7 +7902,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_delete
 
 pub fn discoveryengine_projects_locations_collections_data_stores_schemas_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7387,7 +7913,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_delete
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_schemas_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_data_stores_schemas_delete_execute(builder)
 }
@@ -7486,6 +8012,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_get_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_schemas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}
 /// Gets a Schema.
 ///
@@ -7498,7 +8031,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_get_ex
 
 pub fn discoveryengine_projects_locations_collections_data_stores_schemas_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Schema>, ApiError>,
@@ -7508,7 +8041,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_get(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_data_stores_schemas_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     discoveryengine_projects_locations_collections_data_stores_schemas_get_execute(builder)
 }
@@ -7624,6 +8157,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_schemas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas
 /// Gets a list of Schemas.
 ///
@@ -7636,9 +8180,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_list_e
 
 pub fn discoveryengine_projects_locations_collections_data_stores_schemas_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListSchemasResponse>, ApiError>,
@@ -7648,7 +8190,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_data_stores_schemas_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_collections_data_stores_schemas_list_execute(builder)
 }
@@ -7762,6 +8307,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_patch_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_schemas_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Schema,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}
 /// Updates a Schema.
 ///
@@ -7774,9 +8330,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_patch_
 
 pub fn discoveryengine_projects_locations_collections_data_stores_schemas_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    body: &GoogleCloudDiscoveryengineV1Schema,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7787,9 +8341,9 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_patch(
 > {
     let builder = discoveryengine_projects_locations_collections_data_stores_schemas_patch_builder(
         client,
-        name,
-        allowMissing,
-        body,
+        &args.name,
+        args.allowMissing,
+        &args.body,
     )?;
     discoveryengine_projects_locations_collections_data_stores_schemas_patch_execute(builder)
 }
@@ -7888,6 +8442,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_schemas_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -7900,7 +8461,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operat
 
 pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7911,7 +8472,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operat
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_schemas_operations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_data_stores_schemas_operations_get_execute(
         builder,
@@ -8037,6 +8598,21 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_schemas_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/schemas/{schemasId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -8049,11 +8625,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operat
 
 pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSchemasOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -8065,11 +8637,11 @@ pub fn discoveryengine_projects_locations_collections_data_stores_schemas_operat
     let builder =
         discoveryengine_projects_locations_collections_data_stores_schemas_operations_list_builder(
             client,
-            name,
-            filter,
-            pageSize,
-            pageToken,
-            returnPartialSuccess,
+            &args.name,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.returnPartialSuccess,
         )?;
     discoveryengine_projects_locations_collections_data_stores_schemas_operations_list_execute(
         builder,
@@ -8174,6 +8746,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_serving_configs_answer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsAnswerArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1AnswerQueryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:answer
 /// Answer query method.
 ///
@@ -8186,8 +8767,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 
 pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_answer(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1AnswerQueryRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsAnswerArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1AnswerQueryResponse>, ApiError>,
@@ -8199,8 +8779,8 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
     let builder =
         discoveryengine_projects_locations_collections_data_stores_serving_configs_answer_builder(
             client,
-            servingConfig,
-            body,
+            &args.servingConfig,
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_serving_configs_answer_execute(
         builder,
@@ -8316,6 +8896,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_serving_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: servingConfigId
+    pub servingConfigId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ServingConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs
 /// Creates a ServingConfig. Note: The Google Cloud console works only with the default serving config. Additional ServingConfigs can be created and managed only via the API. A maximum of 100 ServingConfigs are allowed in an Engine, otherwise a RESOURCE_EXHAUSTED error is returned.
 ///
@@ -8328,9 +8919,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 
 pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    servingConfigId: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1ServingConfig,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ServingConfig>, ApiError>,
@@ -8342,9 +8931,9 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
     let builder =
         discoveryengine_projects_locations_collections_data_stores_serving_configs_create_builder(
             client,
-            parent,
-            servingConfigId,
-            body,
+            &args.parent,
+            args.servingConfigId.as_deref(),
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_serving_configs_create_execute(
         builder,
@@ -8443,6 +9032,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_serving_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}
 /// Deletes a ServingConfig. Returns a NOT_FOUND error if the ServingConfig does not exist.
 ///
@@ -8455,7 +9051,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 
 pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -8464,7 +9060,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_serving_configs_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_data_stores_serving_configs_delete_execute(
         builder,
@@ -8565,6 +9161,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_serving_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}
 /// Gets a ServingConfig. Returns a NotFound error if the ServingConfig does not exist.
 ///
@@ -8577,7 +9180,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 
 pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ServingConfig>, ApiError>,
@@ -8588,7 +9191,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_serving_configs_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_data_stores_serving_configs_get_execute(builder)
 }
@@ -8707,6 +9310,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_serving_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs
 /// Lists all ServingConfigs linked to this `dataStore`.
 ///
@@ -8719,9 +9333,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 
 pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -8735,7 +9347,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_serving_configs_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     discoveryengine_projects_locations_collections_data_stores_serving_configs_list_execute(builder)
 }
@@ -8849,6 +9464,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_serving_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ServingConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}
 /// Updates a ServingConfig. Returns a NOT_FOUND error if the ServingConfig does not exist.
 ///
@@ -8861,9 +9487,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 
 pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1ServingConfig,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ServingConfig>, ApiError>,
@@ -8874,7 +9498,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_serving_configs_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_serving_configs_patch_execute(
         builder,
@@ -8979,6 +9606,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_serving_configs_recommend`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsRecommendArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1RecommendRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:recommend
 /// Makes a recommendation, which requires a contextual user event.
 ///
@@ -8991,8 +9627,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 
 pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_recommend(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1RecommendRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsRecommendArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1RecommendResponse>, ApiError>,
@@ -9001,7 +9636,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_serving_configs_recommend_builder(client, servingConfig, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_serving_configs_recommend_builder(client, &args.servingConfig, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_serving_configs_recommend_execute(
         builder,
     )
@@ -9105,6 +9740,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_serving_configs_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsSearchArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1SearchRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:search
 /// Performs a search.
 ///
@@ -9117,8 +9761,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 
 pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_search(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1SearchRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1SearchResponse>, ApiError>,
@@ -9130,8 +9773,8 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
     let builder =
         discoveryengine_projects_locations_collections_data_stores_serving_configs_search_builder(
             client,
-            servingConfig,
-            body,
+            &args.servingConfig,
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_serving_configs_search_execute(
         builder,
@@ -9236,6 +9879,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_serving_configs_search_lite`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsSearchLiteArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1SearchRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:searchLite
 /// Performs a search. Similar to the SearchService.Search method, but a lite version that allows API key for authentication, where OAuth and IAM checks are not required. Only public website search is supported by this method. If data stores and engines not associated with public website search are specified, a FAILED_PRECONDITION error is returned. This method can be used for easy onboarding without having to implement an authentication backend. However, it is strongly recommended to use SearchService.Search instead with required OAuth and IAM checks to provide better data security.
 ///
@@ -9248,8 +9900,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 
 pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_search_lite(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1SearchRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsSearchLiteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1SearchResponse>, ApiError>,
@@ -9258,7 +9909,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_serving_configs_search_lite_builder(client, servingConfig, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_serving_configs_search_lite_builder(client, &args.servingConfig, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_serving_configs_search_lite_execute(
         builder,
     )
@@ -9362,6 +10013,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_serving_configs_stream_answer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsStreamAnswerArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1AnswerQueryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:streamAnswer
 /// Answer query method (streaming). It takes one AnswerQueryRequest and returns multiple AnswerQueryResponse messages in a stream.
 ///
@@ -9374,8 +10034,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
 
 pub fn discoveryengine_projects_locations_collections_data_stores_serving_configs_stream_answer(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1AnswerQueryRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresServingConfigsStreamAnswerArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1AnswerQueryResponse>, ApiError>,
@@ -9384,7 +10043,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_serving_config
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_serving_configs_stream_answer_builder(client, servingConfig, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_serving_configs_stream_answer_builder(client, &args.servingConfig, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_serving_configs_stream_answer_execute(
         builder,
     )
@@ -9487,6 +10146,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_creat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_sessions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Session,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions
 /// Creates a Session. If the Session to create already exists, an ALREADY_EXISTS error is returned.
 ///
@@ -9499,8 +10167,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_creat
 
 pub fn discoveryengine_projects_locations_collections_data_stores_sessions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1Session,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Session>, ApiError>,
@@ -9511,7 +10178,9 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_creat
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_sessions_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_sessions_create_execute(builder)
 }
@@ -9608,6 +10277,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_delet
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_sessions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions/{sessionsId}
 /// Deletes a Session. If the Session to delete does not exist, a NOT_FOUND error is returned.
 ///
@@ -9620,7 +10296,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_delet
 
 pub fn discoveryengine_projects_locations_collections_data_stores_sessions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -9629,7 +10305,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_delet
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_sessions_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_data_stores_sessions_delete_execute(builder)
 }
@@ -9740,6 +10416,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_get_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_sessions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: includeAnswerDetails
+    pub includeAnswerDetails: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions/{sessionsId}
 /// Gets a Session.
 ///
@@ -9752,8 +10437,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_get_e
 
 pub fn discoveryengine_projects_locations_collections_data_stores_sessions_get(
     client: &SimpleHttpClient,
-    name: &str,
-    includeAnswerDetails: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Session>, ApiError>,
@@ -9764,8 +10448,8 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_get(
 > {
     let builder = discoveryengine_projects_locations_collections_data_stores_sessions_get_builder(
         client,
-        name,
-        includeAnswerDetails,
+        &args.name,
+        args.includeAnswerDetails,
     )?;
     discoveryengine_projects_locations_collections_data_stores_sessions_get_execute(builder)
 }
@@ -9889,6 +10573,21 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_list_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_sessions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions
 /// Lists all Sessions by their parent DataStore.
 ///
@@ -9901,11 +10600,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_list_
 
 pub fn discoveryengine_projects_locations_collections_data_stores_sessions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListSessionsResponse>, ApiError>,
@@ -9915,7 +10610,12 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_data_stores_sessions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_collections_data_stores_sessions_list_execute(builder)
 }
@@ -10029,6 +10729,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_patch
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_sessions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Session,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions/{sessionsId}
 /// Updates a Session. Session action type cannot be changed. If the Session to update does not exist, a NOT_FOUND error is returned.
 ///
@@ -10041,9 +10752,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_patch
 
 pub fn discoveryengine_projects_locations_collections_data_stores_sessions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Session,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Session>, ApiError>,
@@ -10054,7 +10763,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_patch
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_sessions_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_sessions_patch_execute(builder)
 }
@@ -10153,6 +10865,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_answe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_sessions_answers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsAnswersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/sessions/{sessionsId}/answers/{answersId}
 /// Gets a Answer.
 ///
@@ -10165,7 +10884,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_answe
 
 pub fn discoveryengine_projects_locations_collections_data_stores_sessions_answers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSessionsAnswersGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Answer>, ApiError>,
@@ -10176,7 +10895,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_sessions_answe
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_sessions_answers_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_data_stores_sessions_answers_get_execute(builder)
 }
@@ -10278,6 +10997,16 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_batch_verify_target_sites`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineBatchVerifyTargetSitesArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1BatchVerifyTargetSitesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine:batchVerifyTargetSites
 /// Verify target sites' ownership and validity. This API sends all the target sites under site search engine for verification.
 ///
@@ -10290,8 +11019,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_batch_verify_target_sites(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1BatchVerifyTargetSitesRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineBatchVerifyTargetSitesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10300,7 +11028,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_batch_verify_target_sites_builder(client, parent, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_batch_verify_target_sites_builder(client, &args.parent, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_batch_verify_target_sites_execute(builder)
 }
 
@@ -10401,6 +11129,16 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_disable_advanced_site_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineDisableAdvancedSiteSearchArgs
+{
+    /// Path parameter: siteSearchEngine
+    pub siteSearchEngine: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine:disableAdvancedSiteSearch
 /// Downgrade from advanced site search to basic site search.
 ///
@@ -10413,8 +11151,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_disable_advanced_site_search(
     client: &SimpleHttpClient,
-    siteSearchEngine: &str,
-    body: &GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineDisableAdvancedSiteSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10423,7 +11160,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_disable_advanced_site_search_builder(client, siteSearchEngine, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_disable_advanced_site_search_builder(client, &args.siteSearchEngine, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_disable_advanced_site_search_execute(builder)
 }
 
@@ -10524,6 +11261,16 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_enable_advanced_site_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineEnableAdvancedSiteSearchArgs
+{
+    /// Path parameter: siteSearchEngine
+    pub siteSearchEngine: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine:enableAdvancedSiteSearch
 /// Upgrade from basic site search to advanced site search.
 ///
@@ -10536,8 +11283,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_enable_advanced_site_search(
     client: &SimpleHttpClient,
-    siteSearchEngine: &str,
-    body: &GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineEnableAdvancedSiteSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10546,7 +11292,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_enable_advanced_site_search_builder(client, siteSearchEngine, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_enable_advanced_site_search_builder(client, &args.siteSearchEngine, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_enable_advanced_site_search_execute(builder)
 }
 
@@ -10664,6 +11410,18 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_fetch_domain_verification_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineFetchDomainVerificationStatusArgs
+{
+    /// Path parameter: siteSearchEngine
+    pub siteSearchEngine: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine:fetchDomainVerificationStatus
 /// Returns list of target sites with its domain verification status. This method can only be called under data store with BASIC_SITE_SEARCH state at the moment.
 ///
@@ -10676,9 +11434,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_fetch_domain_verification_status(
     client: &SimpleHttpClient,
-    siteSearchEngine: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineFetchDomainVerificationStatusArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -10690,7 +11446,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_fetch_domain_verification_status_builder(client, siteSearchEngine, pageSize, pageToken)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_fetch_domain_verification_status_builder(client, &args.siteSearchEngine, args.pageSize, args.pageToken.as_deref())?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_fetch_domain_verification_status_execute(builder)
 }
 
@@ -10791,6 +11547,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_recrawl_uris`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineRecrawlUrisArgs {
+    /// Path parameter: siteSearchEngine
+    pub siteSearchEngine: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1RecrawlUrisRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine:recrawlUris
 /// Request on-demand recrawl for a list of URIs.
 ///
@@ -10803,8 +11568,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_recrawl_uris(
     client: &SimpleHttpClient,
-    siteSearchEngine: &str,
-    body: &GoogleCloudDiscoveryengineV1RecrawlUrisRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineRecrawlUrisArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10813,7 +11577,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_recrawl_uris_builder(client, siteSearchEngine, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_recrawl_uris_builder(client, &args.siteSearchEngine, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_recrawl_uris_execute(builder)
 }
 
@@ -10911,6 +11675,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -10923,7 +11694,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10932,7 +11703,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_get_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_get_execute(builder)
 }
 
@@ -11055,6 +11826,21 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -11067,11 +11853,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -11080,7 +11862,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_list_builder(client, name, filter, pageSize, pageToken, returnPartialSuccess)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_list_builder(client, &args.name, args.filter.as_deref(), args.pageSize, args.pageToken.as_deref(), args.returnPartialSuccess)?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_operations_list_execute(builder)
 }
 
@@ -11181,6 +11963,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineSitemapsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Sitemap,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/sitemaps
 /// Creates a Sitemap.
 ///
@@ -11193,8 +11984,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1Sitemap,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineSitemapsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11203,7 +11993,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_create_builder(client, parent, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_create_builder(client, &args.parent, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_create_execute(builder)
 }
 
@@ -11301,6 +12091,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineSitemapsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/sitemaps/{sitemapsId}
 /// Deletes a Sitemap.
 ///
@@ -11313,7 +12110,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineSitemapsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11322,7 +12119,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_delete_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_delete_builder(client, &args.name)?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_delete_execute(builder)
 }
 
@@ -11433,6 +12230,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_fetch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineSitemapsFetchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: matcher_urisMatcher_uris
+    pub matcher_urisMatcher_uris: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/sitemaps:fetch
 /// Fetch Sitemaps in a DataStore.
 ///
@@ -11445,8 +12251,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_fetch(
     client: &SimpleHttpClient,
-    parent: &str,
-    matcher_urisMatcher_uris: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineSitemapsFetchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1FetchSitemapsResponse>, ApiError>,
@@ -11455,7 +12260,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_fetch_builder(client, parent, matcher_urisMatcher_uris)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_fetch_builder(client, &args.parent, args.matcher_urisMatcher_uris.as_deref())?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_sitemaps_fetch_execute(builder)
 }
 
@@ -11556,6 +12361,16 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesBatchCreateArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1BatchCreateTargetSitesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites:batchCreate
 /// Creates TargetSite in a batch.
 ///
@@ -11568,8 +12383,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_batch_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1BatchCreateTargetSitesRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesBatchCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11578,7 +12392,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_batch_create_builder(client, parent, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_batch_create_builder(client, &args.parent, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_batch_create_execute(builder)
 }
 
@@ -11679,6 +12493,16 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesCreateArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1TargetSite,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites
 /// Creates a TargetSite.
 ///
@@ -11691,8 +12515,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1TargetSite,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11701,7 +12524,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_create_builder(client, parent, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_create_builder(client, &args.parent, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_create_execute(builder)
 }
 
@@ -11799,6 +12622,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesDeleteArgs
+{
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/{targetSitesId}
 /// Deletes a TargetSite.
 ///
@@ -11811,7 +12642,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11820,7 +12651,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_delete_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_delete_builder(client, &args.name)?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_delete_execute(builder)
 }
 
@@ -11918,6 +12749,13 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/{targetSitesId}
 /// Gets a TargetSite.
 ///
@@ -11930,7 +12768,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1TargetSite>, ApiError>,
@@ -11939,7 +12777,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_get_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_get_execute(builder)
 }
 
@@ -12054,6 +12892,18 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesListArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites
 /// Gets a list of TargetSites.
 ///
@@ -12066,9 +12916,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListTargetSitesResponse>, ApiError>,
@@ -12077,7 +12925,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_list_execute(builder)
 }
 
@@ -12178,6 +13026,16 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesPatchArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1TargetSite,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/{targetSitesId}
 /// Updates a TargetSite.
 ///
@@ -12190,8 +13048,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDiscoveryengineV1TargetSite,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -12200,7 +13057,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_patch_builder(client, name, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_patch_builder(client, &args.name, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_patch_execute(builder)
 }
 
@@ -12298,6 +13155,14 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesOperationsGetArgs
+{
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -12310,7 +13175,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -12319,7 +13184,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_get_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_get_execute(builder)
 }
 
@@ -12442,6 +13307,22 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesOperationsListArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -12454,11 +13335,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
 
 pub fn discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSiteSearchEngineTargetSitesOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -12467,7 +13344,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_site_search_en
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_list_builder(client, name, filter, pageSize, pageToken, returnPartialSuccess)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_list_builder(client, &args.name, args.filter.as_deref(), args.pageSize, args.pageToken.as_deref(), args.returnPartialSuccess)?;
     discoveryengine_projects_locations_collections_data_stores_site_search_engine_target_sites_operations_list_execute(builder)
 }
 
@@ -12568,6 +13445,16 @@ pub fn discoveryengine_projects_locations_collections_data_stores_suggestion_den
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSuggestionDenyListEntriesImportArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ImportSuggestionDenyListEntriesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/suggestionDenyListEntries:import
 /// Imports all SuggestionDenyListEntry for a DataStore.
 ///
@@ -12580,8 +13467,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_suggestion_den
 
 pub fn discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1ImportSuggestionDenyListEntriesRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSuggestionDenyListEntriesImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -12590,7 +13476,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_suggestion_den
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_import_builder(client, parent, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_import_builder(client, &args.parent, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_import_execute(builder)
 }
 
@@ -12691,6 +13577,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_suggestion_den
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresSuggestionDenyListEntriesPurgeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1PurgeSuggestionDenyListEntriesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/suggestionDenyListEntries:purge
 /// Permanently deletes all SuggestionDenyListEntry for a DataStore.
 ///
@@ -12703,8 +13598,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_suggestion_den
 
 pub fn discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_purge(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1PurgeSuggestionDenyListEntriesRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresSuggestionDenyListEntriesPurgeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -12713,7 +13607,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_suggestion_den
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_purge_builder(client, parent, body)?;
+    let builder = discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_purge_builder(client, &args.parent, &args.body)?;
     discoveryengine_projects_locations_collections_data_stores_suggestion_deny_list_entries_purge_execute(builder)
 }
 
@@ -12829,6 +13723,19 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_co
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_user_events_collect`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresUserEventsCollectArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: ets
+    pub ets: Option<String>,
+    /// Query parameter: uri
+    pub uri: Option<String>,
+    /// Query parameter: userEvent
+    pub userEvent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/userEvents:collect
 /// Writes a single user event from the browser. This uses a GET request to due to browser restriction of POST-ing to a third-party domain. This method is used only by the Discovery Engine API JavaScript pixel and Google Tag Manager. Users should not call this method directly.
 ///
@@ -12841,10 +13748,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_co
 
 pub fn discoveryengine_projects_locations_collections_data_stores_user_events_collect(
     client: &SimpleHttpClient,
-    parent: &str,
-    ets: Option<&str>,
-    uri: Option<&str>,
-    userEvent: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresUserEventsCollectArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApiHttpBody>, ApiError>, P = ApiPending>
         + Send
@@ -12853,7 +13757,11 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_co
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_user_events_collect_builder(
-            client, parent, ets, uri, userEvent,
+            client,
+            &args.parent,
+            args.ets.as_deref(),
+            args.uri.as_deref(),
+            args.userEvent.as_deref(),
         )?;
     discoveryengine_projects_locations_collections_data_stores_user_events_collect_execute(builder)
 }
@@ -12955,6 +13863,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_im
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_user_events_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresUserEventsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ImportUserEventsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/userEvents:import
 /// Bulk import of user events. Request processing might be synchronous. Events that already exist are skipped. Use this method for backfilling historical user events. Operation.response is of type ImportResponse. Note that it is possible for a subset of the items to be successfully inserted. Operation.metadata is of type ImportMetadata.
 ///
@@ -12967,8 +13884,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_im
 
 pub fn discoveryengine_projects_locations_collections_data_stores_user_events_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1ImportUserEventsRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresUserEventsImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -12979,7 +13895,9 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_im
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_user_events_import_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_user_events_import_execute(builder)
 }
@@ -13081,6 +13999,15 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_pu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_user_events_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresUserEventsPurgeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1PurgeUserEventsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/userEvents:purge
 /// Deletes permanently all user events specified by the filter provided. Depending on the number of events specified by the filter, this operation could take hours or days to complete. To test a filter, use the list command first.
 ///
@@ -13093,8 +14020,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_pu
 
 pub fn discoveryengine_projects_locations_collections_data_stores_user_events_purge(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1PurgeUserEventsRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresUserEventsPurgeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -13105,7 +14031,9 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_pu
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_user_events_purge_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_user_events_purge_execute(builder)
 }
@@ -13219,6 +14147,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_wr
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_user_events_write`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresUserEventsWriteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: writeAsync
+    pub writeAsync: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1UserEvent,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/userEvents:write
 /// Writes a single user event.
 ///
@@ -13231,9 +14170,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_wr
 
 pub fn discoveryengine_projects_locations_collections_data_stores_user_events_write(
     client: &SimpleHttpClient,
-    parent: &str,
-    writeAsync: Option<bool>,
-    body: &GoogleCloudDiscoveryengineV1UserEvent,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresUserEventsWriteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1UserEvent>, ApiError>,
@@ -13244,7 +14181,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_user_events_wr
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_user_events_write_builder(
-            client, parent, writeAsync, body,
+            client,
+            &args.parent,
+            args.writeAsync,
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_user_events_write_execute(builder)
 }
@@ -13362,6 +14302,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_widget_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresWidgetConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: acceptCache
+    pub acceptCache: Option<bool>,
+    /// Query parameter: getWidgetConfigRequestOption_turnOffCollectionComponents
+    pub getWidgetConfigRequestOption_turnOffCollectionComponents: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/widgetConfigs/{widgetConfigsId}
 /// Gets a WidgetConfig.
 ///
@@ -13374,9 +14325,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs
 
 pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
-    acceptCache: Option<bool>,
-    getWidgetConfigRequestOption_turnOffCollectionComponents: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresWidgetConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1WidgetConfig>, ApiError>,
@@ -13388,9 +14337,9 @@ pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs
     let builder =
         discoveryengine_projects_locations_collections_data_stores_widget_configs_get_builder(
             client,
-            name,
-            acceptCache,
-            getWidgetConfigRequestOption_turnOffCollectionComponents,
+            &args.name,
+            args.acceptCache,
+            args.getWidgetConfigRequestOption_turnOffCollectionComponents,
         )?;
     discoveryengine_projects_locations_collections_data_stores_widget_configs_get_execute(builder)
 }
@@ -13504,6 +14453,17 @@ pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_data_stores_widget_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsDataStoresWidgetConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1WidgetConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/dataStores/{dataStoresId}/widgetConfigs/{widgetConfigsId}
 /// Update a WidgetConfig.
 ///
@@ -13516,9 +14476,7 @@ pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs
 
 pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1WidgetConfig,
+    args: &DiscoveryengineProjectsLocationsCollectionsDataStoresWidgetConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1WidgetConfig>, ApiError>,
@@ -13529,7 +14487,10 @@ pub fn discoveryengine_projects_locations_collections_data_stores_widget_configs
 > {
     let builder =
         discoveryengine_projects_locations_collections_data_stores_widget_configs_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_data_stores_widget_configs_patch_execute(builder)
 }
@@ -13643,6 +14604,17 @@ pub fn discoveryengine_projects_locations_collections_engines_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: engineId
+    pub engineId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Engine,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines
 /// Creates an Engine.
 ///
@@ -13655,9 +14627,7 @@ pub fn discoveryengine_projects_locations_collections_engines_create_execute(
 
 pub fn discoveryengine_projects_locations_collections_engines_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    engineId: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Engine,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -13667,7 +14637,10 @@ pub fn discoveryengine_projects_locations_collections_engines_create(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_create_builder(
-        client, parent, engineId, body,
+        client,
+        &args.parent,
+        args.engineId.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_collections_engines_create_execute(builder)
 }
@@ -13766,6 +14739,13 @@ pub fn discoveryengine_projects_locations_collections_engines_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}
 /// Deletes an Engine.
 ///
@@ -13778,7 +14758,7 @@ pub fn discoveryengine_projects_locations_collections_engines_delete_execute(
 
 pub fn discoveryengine_projects_locations_collections_engines_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -13788,7 +14768,7 @@ pub fn discoveryengine_projects_locations_collections_engines_delete(
     ApiError,
 > {
     let builder =
-        discoveryengine_projects_locations_collections_engines_delete_builder(client, name)?;
+        discoveryengine_projects_locations_collections_engines_delete_builder(client, &args.name)?;
     discoveryengine_projects_locations_collections_engines_delete_execute(builder)
 }
 
@@ -13886,6 +14866,13 @@ pub fn discoveryengine_projects_locations_collections_engines_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}
 /// Gets an Engine.
 ///
@@ -13898,7 +14885,7 @@ pub fn discoveryengine_projects_locations_collections_engines_get_execute(
 
 pub fn discoveryengine_projects_locations_collections_engines_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Engine>, ApiError>,
@@ -13907,7 +14894,8 @@ pub fn discoveryengine_projects_locations_collections_engines_get(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_engines_get_builder(client, name)?;
+    let builder =
+        discoveryengine_projects_locations_collections_engines_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_collections_engines_get_execute(builder)
 }
 
@@ -14015,6 +15003,15 @@ pub fn discoveryengine_projects_locations_collections_engines_get_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}:getIamPolicy
 /// Gets the IAM access control policy for an Engine. A NOT_FOUND error is returned if the resource does not exist. An empty policy is returned if the resource exists but does not have a policy set on it.
 ///
@@ -14027,8 +15024,7 @@ pub fn discoveryengine_projects_locations_collections_engines_get_iam_policy_exe
 
 pub fn discoveryengine_projects_locations_collections_engines_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -14037,8 +15033,8 @@ pub fn discoveryengine_projects_locations_collections_engines_get_iam_policy(
 > {
     let builder = discoveryengine_projects_locations_collections_engines_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     discoveryengine_projects_locations_collections_engines_get_iam_policy_execute(builder)
 }
@@ -14158,6 +15154,19 @@ pub fn discoveryengine_projects_locations_collections_engines_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines
 /// Lists all the Engines associated with the project.
 ///
@@ -14170,10 +15179,7 @@ pub fn discoveryengine_projects_locations_collections_engines_list_execute(
 
 pub fn discoveryengine_projects_locations_collections_engines_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListEnginesResponse>, ApiError>,
@@ -14183,7 +15189,11 @@ pub fn discoveryengine_projects_locations_collections_engines_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_collections_engines_list_execute(builder)
 }
@@ -14297,6 +15307,17 @@ pub fn discoveryengine_projects_locations_collections_engines_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Engine,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}
 /// Updates an Engine
 ///
@@ -14309,9 +15330,7 @@ pub fn discoveryengine_projects_locations_collections_engines_patch_execute(
 
 pub fn discoveryengine_projects_locations_collections_engines_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Engine,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Engine>, ApiError>,
@@ -14321,7 +15340,10 @@ pub fn discoveryengine_projects_locations_collections_engines_patch(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_collections_engines_patch_execute(builder)
 }
@@ -14421,6 +15443,15 @@ pub fn discoveryengine_projects_locations_collections_engines_set_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}:setIamPolicy
 /// Sets the IAM access control policy for an Engine. A NOT_FOUND error is returned if the resource does not exist. **Important:** When setting a policy directly on an Engine resource, the only recommended roles in the bindings are: `roles/discoveryengine`.user and `roles/discoveryengine`.`agentspaceUser`. Attempting to grant any other role will result in a warning in logging.
 ///
@@ -14433,8 +15464,7 @@ pub fn discoveryengine_projects_locations_collections_engines_set_iam_policy_exe
 
 pub fn discoveryengine_projects_locations_collections_engines_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -14442,7 +15472,9 @@ pub fn discoveryengine_projects_locations_collections_engines_set_iam_policy(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     discoveryengine_projects_locations_collections_engines_set_iam_policy_execute(builder)
 }
@@ -14556,6 +15588,17 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_create_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: assistantId
+    pub assistantId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Assistant,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants
 /// Creates an Assistant.
 ///
@@ -14568,9 +15611,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_create_
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    assistantId: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Assistant,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Assistant>, ApiError>,
@@ -14581,9 +15622,9 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_create(
 > {
     let builder = discoveryengine_projects_locations_collections_engines_assistants_create_builder(
         client,
-        parent,
-        assistantId,
-        body,
+        &args.parent,
+        args.assistantId.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_collections_engines_assistants_create_execute(builder)
 }
@@ -14680,6 +15721,13 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_delete_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}
 /// Deletes an Assistant.
 ///
@@ -14692,7 +15740,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_delete_
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -14700,7 +15748,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_delete(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_assistants_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     discoveryengine_projects_locations_collections_engines_assistants_delete_execute(builder)
 }
@@ -14799,6 +15847,13 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}
 /// Gets an Assistant.
 ///
@@ -14811,7 +15866,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_get_exe
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Assistant>, ApiError>,
@@ -14821,7 +15876,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_get(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_assistants_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     discoveryengine_projects_locations_collections_engines_assistants_get_execute(builder)
 }
@@ -14937,6 +15992,17 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants
 /// Lists all Assistants under an Engine.
 ///
@@ -14949,9 +16015,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_list_ex
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListAssistantsResponse>, ApiError>,
@@ -14961,7 +16025,10 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_assistants_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_collections_engines_assistants_list_execute(builder)
 }
@@ -15075,6 +16142,17 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_patch_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Assistant,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}
 /// Updates an Assistant
 ///
@@ -15087,9 +16165,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_patch_e
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Assistant,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Assistant>, ApiError>,
@@ -15099,7 +16175,10 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_patch(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_assistants_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_collections_engines_assistants_patch_execute(builder)
 }
@@ -15202,6 +16281,15 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_stream_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_stream_assist`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsStreamAssistArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1StreamAssistRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}:streamAssist
 /// Assists the user with a query in a streaming fashion.
 ///
@@ -15214,8 +16302,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_stream_
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_stream_assist(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDiscoveryengineV1StreamAssistRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsStreamAssistArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1StreamAssistResponse>, ApiError>,
@@ -15226,7 +16313,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_stream_
 > {
     let builder =
         discoveryengine_projects_locations_collections_engines_assistants_stream_assist_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     discoveryengine_projects_locations_collections_engines_assistants_stream_assist_execute(builder)
 }
@@ -15323,6 +16410,13 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1GetCardArgs {
+    /// Path parameter: tenant
+    pub tenant: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/card
 /// GetAgentCard returns the agent card for the agent.
 ///
@@ -15335,14 +16429,14 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card(
     client: &SimpleHttpClient,
-    tenant: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1GetCardArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<A2aV1AgentCard>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card_builder(client, tenant)?;
+    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card_builder(client, &args.tenant)?;
     discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_get_card_execute(
         builder,
     )
@@ -15443,6 +16537,15 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageSendArgs {
+    /// Path parameter: tenant
+    pub tenant: String,
+    /// Request body.
+    pub body: A2aV1SendMessageRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/message:send
 /// Send a message to the agent. This is a blocking call that will return the task once it is completed, or a LRO if requested.
 ///
@@ -15455,15 +16558,14 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send(
     client: &SimpleHttpClient,
-    tenant: &str,
-    body: &A2aV1SendMessageRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageSendArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<A2aV1SendMessageResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send_builder(client, tenant, body)?;
+    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send_builder(client, &args.tenant, &args.body)?;
     discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_send_execute(builder)
 }
 
@@ -15562,6 +16664,16 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageStreamArgs
+{
+    /// Path parameter: tenant
+    pub tenant: String,
+    /// Request body.
+    pub body: A2aV1SendMessageRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/message:stream
 /// SendStreamingMessage is a streaming call that will return a stream of task update events until the Task is in an interrupted or terminal state.
 ///
@@ -15574,15 +16686,14 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream(
     client: &SimpleHttpClient,
-    tenant: &str,
-    body: &A2aV1SendMessageRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1MessageStreamArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<A2aV1StreamResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream_builder(client, tenant, body)?;
+    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream_builder(client, &args.tenant, &args.body)?;
     discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_message_stream_execute(builder)
 }
 
@@ -15681,6 +16792,17 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksCancelArgs {
+    /// Path parameter: tenant
+    pub tenant: String,
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: A2aV1CancelTaskRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}:cancel
 /// Cancel a task from the agent. If supported one should expect no more task updates for the task.
 ///
@@ -15693,14 +16815,12 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel(
     client: &SimpleHttpClient,
-    tenant: &str,
-    name: &str,
-    body: &A2aV1CancelTaskRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<A2aV1Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel_builder(client, tenant, name, body)?;
+    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel_builder(client, &args.tenant, &args.name, &args.body)?;
     discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_cancel_execute(builder)
 }
 
@@ -15808,6 +16928,17 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksGetArgs {
+    /// Path parameter: tenant
+    pub tenant: String,
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: historyLength
+    pub historyLength: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}
 /// Get the current state of a task from the agent.
 ///
@@ -15820,14 +16951,12 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get(
     client: &SimpleHttpClient,
-    tenant: &str,
-    name: &str,
-    historyLength: Option<i32>,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<A2aV1Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get_builder(client, tenant, name, historyLength)?;
+    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get_builder(client, &args.tenant, &args.name, args.historyLength)?;
     discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_get_execute(builder)
 }
 
@@ -15925,6 +17054,16 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksSubscribeArgs
+{
+    /// Path parameter: tenant
+    pub tenant: String,
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}:subscribe
 /// TaskSubscription is a streaming call that will return a stream of task update events. This attaches the stream to an existing in process task. If the task is complete the stream will return the completed task (like GetTask) and close the stream.
 ///
@@ -15937,15 +17076,14 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe(
     client: &SimpleHttpClient,
-    tenant: &str,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksSubscribeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<A2aV1StreamResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe_builder(client, tenant, name)?;
+    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe_builder(client, &args.tenant, &args.name)?;
     discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_subscribe_execute(builder)
 }
 
@@ -16060,6 +17198,20 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsCreateArgs
+{
+    /// Path parameter: tenant
+    pub tenant: String,
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: configId
+    pub configId: Option<String>,
+    /// Request body.
+    pub body: A2aV1TaskPushNotificationConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}/pushNotificationConfigs
 /// Set a push notification config for a task.
 ///
@@ -16072,10 +17224,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create(
     client: &SimpleHttpClient,
-    tenant: &str,
-    parent: &str,
-    configId: Option<&str>,
-    body: &A2aV1TaskPushNotificationConfig,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<A2aV1TaskPushNotificationConfig>, ApiError>,
@@ -16084,7 +17233,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create_builder(client, tenant, parent, configId, body)?;
+    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create_builder(client, &args.tenant, &args.parent, args.configId.as_deref(), &args.body)?;
     discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_create_execute(builder)
 }
 
@@ -16182,6 +17331,16 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsDeleteArgs
+{
+    /// Path parameter: tenant
+    pub tenant: String,
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}
 /// Delete a push notification config for a task.
 ///
@@ -16194,15 +17353,14 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete(
     client: &SimpleHttpClient,
-    tenant: &str,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete_builder(client, tenant, name)?;
+    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete_builder(client, &args.tenant, &args.name)?;
     discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_delete_execute(builder)
 }
 
@@ -16302,6 +17460,16 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsGetArgs
+{
+    /// Path parameter: tenant
+    pub tenant: String,
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}
 /// Get a push notification config for a task.
 ///
@@ -16314,8 +17482,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get(
     client: &SimpleHttpClient,
-    tenant: &str,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<A2aV1TaskPushNotificationConfig>, ApiError>,
@@ -16324,7 +17491,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get_builder(client, tenant, name)?;
+    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get_builder(client, &args.tenant, &args.name)?;
     discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_get_execute(builder)
 }
 
@@ -16441,6 +17608,20 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsListArgs
+{
+    /// Path parameter: tenant
+    pub tenant: String,
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/a2a/v1/tasks/{tasksId}/pushNotificationConfigs
 /// Get a list of push notifications configured for a task.
 ///
@@ -16453,10 +17634,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list(
     client: &SimpleHttpClient,
-    tenant: &str,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsA2aV1TasksPushNotificationConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<A2aV1ListTaskPushNotificationConfigResponse>, ApiError>,
@@ -16465,7 +17643,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list_builder(client, tenant, parent, pageSize, pageToken)?;
+    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list_builder(client, &args.tenant, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     discoveryengine_projects_locations_collections_engines_assistants_agents_a2a_v1_tasks_push_notification_configs_list_execute(builder)
 }
 
@@ -16563,6 +17741,13 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_assistants_agents_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/assistants/{assistantsId}/agents/{agentsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -16575,7 +17760,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
 
 pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesAssistantsAgentsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -16584,7 +17769,7 @@ pub fn discoveryengine_projects_locations_collections_engines_assistants_agents_
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_operations_get_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_collections_engines_assistants_agents_operations_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_collections_engines_assistants_agents_operations_get_execute(
         builder,
     )
@@ -16691,6 +17876,15 @@ pub fn discoveryengine_projects_locations_collections_engines_completion_config_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_completion_config_complete_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesCompletionConfigCompleteQueryArgs {
+    /// Path parameter: completionConfig
+    pub completionConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1AdvancedCompleteQueryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/completionConfig:completeQuery
 /// Completes the user input with advanced keyword suggestions.
 ///
@@ -16703,8 +17897,7 @@ pub fn discoveryengine_projects_locations_collections_engines_completion_config_
 
 pub fn discoveryengine_projects_locations_collections_engines_completion_config_complete_query(
     client: &SimpleHttpClient,
-    completionConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1AdvancedCompleteQueryRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesCompletionConfigCompleteQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -16716,7 +17909,7 @@ pub fn discoveryengine_projects_locations_collections_engines_completion_config_
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_engines_completion_config_complete_query_builder(client, completionConfig, body)?;
+    let builder = discoveryengine_projects_locations_collections_engines_completion_config_complete_query_builder(client, &args.completionConfig, &args.body)?;
     discoveryengine_projects_locations_collections_engines_completion_config_complete_query_execute(
         builder,
     )
@@ -16831,6 +18024,17 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_create_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_controls_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesControlsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: controlId
+    pub controlId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Control,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/controls
 /// Creates a Control. By default 1000 controls are allowed for a data store. A request can be submitted to adjust this limit. If the Control to create already exists, an ALREADY_EXISTS error is returned.
 ///
@@ -16843,9 +18047,7 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_create_ex
 
 pub fn discoveryengine_projects_locations_collections_engines_controls_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    controlId: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Control,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesControlsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Control>, ApiError>,
@@ -16855,7 +18057,10 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_create(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_controls_create_builder(
-        client, parent, controlId, body,
+        client,
+        &args.parent,
+        args.controlId.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_collections_engines_controls_create_execute(builder)
 }
@@ -16952,6 +18157,13 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_delete_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_controls_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesControlsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/controls/{controlsId}
 /// Deletes a Control. If the Control to delete does not exist, a NOT_FOUND error is returned.
 ///
@@ -16964,7 +18176,7 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_delete_ex
 
 pub fn discoveryengine_projects_locations_collections_engines_controls_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesControlsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -16972,7 +18184,7 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_delete(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_controls_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     discoveryengine_projects_locations_collections_engines_controls_delete_execute(builder)
 }
@@ -17071,6 +18283,13 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_get_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_controls_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesControlsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/controls/{controlsId}
 /// Gets a Control.
 ///
@@ -17083,7 +18302,7 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_get_execu
 
 pub fn discoveryengine_projects_locations_collections_engines_controls_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesControlsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Control>, ApiError>,
@@ -17092,8 +18311,9 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        discoveryengine_projects_locations_collections_engines_controls_get_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_collections_engines_controls_get_builder(
+        client, &args.name,
+    )?;
     discoveryengine_projects_locations_collections_engines_controls_get_execute(builder)
 }
 
@@ -17212,6 +18432,19 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_controls_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesControlsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/controls
 /// Lists all Controls by their parent DataStore.
 ///
@@ -17224,10 +18457,7 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_list_exec
 
 pub fn discoveryengine_projects_locations_collections_engines_controls_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesControlsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListControlsResponse>, ApiError>,
@@ -17237,7 +18467,11 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_controls_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_collections_engines_controls_list_execute(builder)
 }
@@ -17351,6 +18585,17 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_patch_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_controls_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesControlsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Control,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/controls/{controlsId}
 /// Updates a Control. Control action type cannot be changed. If the Control to update does not exist, a NOT_FOUND error is returned.
 ///
@@ -17363,9 +18608,7 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_patch_exe
 
 pub fn discoveryengine_projects_locations_collections_engines_controls_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Control,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesControlsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Control>, ApiError>,
@@ -17375,7 +18618,10 @@ pub fn discoveryengine_projects_locations_collections_engines_controls_patch(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_controls_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_collections_engines_controls_patch_execute(builder)
 }
@@ -17481,6 +18727,15 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_conv
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_conversations_converse`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesConversationsConverseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ConverseConversationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/conversations/{conversationsId}:converse
 /// Converses a conversation.
 ///
@@ -17493,8 +18748,7 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_conv
 
 pub fn discoveryengine_projects_locations_collections_engines_conversations_converse(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDiscoveryengineV1ConverseConversationRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesConversationsConverseArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -17508,7 +18762,7 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_conv
 > {
     let builder =
         discoveryengine_projects_locations_collections_engines_conversations_converse_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     discoveryengine_projects_locations_collections_engines_conversations_converse_execute(builder)
 }
@@ -17610,6 +18864,15 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_crea
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_conversations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesConversationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Conversation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/conversations
 /// Creates a Conversation. If the Conversation to create already exists, an ALREADY_EXISTS error is returned.
 ///
@@ -17622,8 +18885,7 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_crea
 
 pub fn discoveryengine_projects_locations_collections_engines_conversations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1Conversation,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesConversationsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Conversation>, ApiError>,
@@ -17634,7 +18896,9 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_crea
 > {
     let builder =
         discoveryengine_projects_locations_collections_engines_conversations_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_engines_conversations_create_execute(builder)
 }
@@ -17731,6 +18995,13 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_dele
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_conversations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesConversationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/conversations/{conversationsId}
 /// Deletes a Conversation. If the Conversation to delete does not exist, a NOT_FOUND error is returned.
 ///
@@ -17743,7 +19014,7 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_dele
 
 pub fn discoveryengine_projects_locations_collections_engines_conversations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesConversationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -17752,7 +19023,7 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_dele
 > {
     let builder =
         discoveryengine_projects_locations_collections_engines_conversations_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_engines_conversations_delete_execute(builder)
 }
@@ -17851,6 +19122,13 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_get_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_conversations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesConversationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/conversations/{conversationsId}
 /// Gets a Conversation.
 ///
@@ -17863,7 +19141,7 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_get_
 
 pub fn discoveryengine_projects_locations_collections_engines_conversations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesConversationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Conversation>, ApiError>,
@@ -17873,7 +19151,7 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_get(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_conversations_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     discoveryengine_projects_locations_collections_engines_conversations_get_execute(builder)
 }
@@ -18000,6 +19278,21 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_list
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_conversations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesConversationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/conversations
 /// Lists all Conversations by their parent DataStore.
 ///
@@ -18012,11 +19305,7 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_list
 
 pub fn discoveryengine_projects_locations_collections_engines_conversations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesConversationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -18030,7 +19319,12 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_list
 > {
     let builder =
         discoveryengine_projects_locations_collections_engines_conversations_list_builder(
-            client, parent, filter, orderBy, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     discoveryengine_projects_locations_collections_engines_conversations_list_execute(builder)
 }
@@ -18144,6 +19438,17 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_patc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_conversations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesConversationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Conversation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/conversations/{conversationsId}
 /// Updates a Conversation. Conversation action type cannot be changed. If the Conversation to update does not exist, a NOT_FOUND error is returned.
 ///
@@ -18156,9 +19461,7 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_patc
 
 pub fn discoveryengine_projects_locations_collections_engines_conversations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Conversation,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesConversationsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Conversation>, ApiError>,
@@ -18169,7 +19472,10 @@ pub fn discoveryengine_projects_locations_collections_engines_conversations_patc
 > {
     let builder =
         discoveryengine_projects_locations_collections_engines_conversations_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_engines_conversations_patch_execute(builder)
 }
@@ -18269,6 +19575,15 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_cancel_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -18281,8 +19596,7 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_cancel_
 
 pub fn discoveryengine_projects_locations_collections_engines_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -18290,7 +19604,7 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_cancel(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_operations_cancel_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     discoveryengine_projects_locations_collections_engines_operations_cancel_execute(builder)
 }
@@ -18389,6 +19703,13 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -18401,7 +19722,7 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_get_exe
 
 pub fn discoveryengine_projects_locations_collections_engines_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -18411,7 +19732,7 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_get(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_operations_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     discoveryengine_projects_locations_collections_engines_operations_get_execute(builder)
 }
@@ -18535,6 +19856,21 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -18547,11 +19883,7 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_list_ex
 
 pub fn discoveryengine_projects_locations_collections_engines_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -18562,11 +19894,11 @@ pub fn discoveryengine_projects_locations_collections_engines_operations_list(
 > {
     let builder = discoveryengine_projects_locations_collections_engines_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     discoveryengine_projects_locations_collections_engines_operations_list_execute(builder)
 }
@@ -18669,6 +20001,15 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_an
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_serving_configs_answer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsAnswerArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1AnswerQueryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}:answer
 /// Answer query method.
 ///
@@ -18681,8 +20022,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_an
 
 pub fn discoveryengine_projects_locations_collections_engines_serving_configs_answer(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1AnswerQueryRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsAnswerArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1AnswerQueryResponse>, ApiError>,
@@ -18694,8 +20034,8 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_an
     let builder =
         discoveryengine_projects_locations_collections_engines_serving_configs_answer_builder(
             client,
-            servingConfig,
-            body,
+            &args.servingConfig,
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_engines_serving_configs_answer_execute(builder)
 }
@@ -18809,6 +20149,17 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_cr
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_serving_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: servingConfigId
+    pub servingConfigId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ServingConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs
 /// Creates a ServingConfig. Note: The Google Cloud console works only with the default serving config. Additional ServingConfigs can be created and managed only via the API. A maximum of 100 ServingConfigs are allowed in an Engine, otherwise a RESOURCE_EXHAUSTED error is returned.
 ///
@@ -18821,9 +20172,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_cr
 
 pub fn discoveryengine_projects_locations_collections_engines_serving_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    servingConfigId: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1ServingConfig,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ServingConfig>, ApiError>,
@@ -18835,9 +20184,9 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_cr
     let builder =
         discoveryengine_projects_locations_collections_engines_serving_configs_create_builder(
             client,
-            parent,
-            servingConfigId,
-            body,
+            &args.parent,
+            args.servingConfigId.as_deref(),
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_engines_serving_configs_create_execute(builder)
 }
@@ -18934,6 +20283,13 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_de
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_serving_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}
 /// Deletes a ServingConfig. Returns a NOT_FOUND error if the ServingConfig does not exist.
 ///
@@ -18946,7 +20302,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_de
 
 pub fn discoveryengine_projects_locations_collections_engines_serving_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -18955,7 +20311,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_de
 > {
     let builder =
         discoveryengine_projects_locations_collections_engines_serving_configs_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_engines_serving_configs_delete_execute(builder)
 }
@@ -19054,6 +20410,13 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_ge
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_serving_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}
 /// Gets a ServingConfig. Returns a NotFound error if the ServingConfig does not exist.
 ///
@@ -19066,7 +20429,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_ge
 
 pub fn discoveryengine_projects_locations_collections_engines_serving_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ServingConfig>, ApiError>,
@@ -19077,7 +20440,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_ge
 > {
     let builder =
         discoveryengine_projects_locations_collections_engines_serving_configs_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_engines_serving_configs_get_execute(builder)
 }
@@ -19196,6 +20559,17 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_li
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_serving_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs
 /// Lists all ServingConfigs linked to this `dataStore`.
 ///
@@ -19208,9 +20582,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_li
 
 pub fn discoveryengine_projects_locations_collections_engines_serving_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -19224,7 +20596,10 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_li
 > {
     let builder =
         discoveryengine_projects_locations_collections_engines_serving_configs_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     discoveryengine_projects_locations_collections_engines_serving_configs_list_execute(builder)
 }
@@ -19338,6 +20713,17 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_pa
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_serving_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ServingConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}
 /// Updates a ServingConfig. Returns a NOT_FOUND error if the ServingConfig does not exist.
 ///
@@ -19350,9 +20736,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_pa
 
 pub fn discoveryengine_projects_locations_collections_engines_serving_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1ServingConfig,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ServingConfig>, ApiError>,
@@ -19363,7 +20747,10 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_pa
 > {
     let builder =
         discoveryengine_projects_locations_collections_engines_serving_configs_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_engines_serving_configs_patch_execute(builder)
 }
@@ -19466,6 +20853,15 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_re
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_serving_configs_recommend`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsRecommendArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1RecommendRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}:recommend
 /// Makes a recommendation, which requires a contextual user event.
 ///
@@ -19478,8 +20874,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_re
 
 pub fn discoveryengine_projects_locations_collections_engines_serving_configs_recommend(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1RecommendRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsRecommendArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1RecommendResponse>, ApiError>,
@@ -19491,8 +20886,8 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_re
     let builder =
         discoveryengine_projects_locations_collections_engines_serving_configs_recommend_builder(
             client,
-            servingConfig,
-            body,
+            &args.servingConfig,
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_engines_serving_configs_recommend_execute(
         builder,
@@ -19597,6 +20992,15 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_se
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_serving_configs_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsSearchArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1SearchRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}:search
 /// Performs a search.
 ///
@@ -19609,8 +21013,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_se
 
 pub fn discoveryengine_projects_locations_collections_engines_serving_configs_search(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1SearchRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1SearchResponse>, ApiError>,
@@ -19622,8 +21025,8 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_se
     let builder =
         discoveryengine_projects_locations_collections_engines_serving_configs_search_builder(
             client,
-            servingConfig,
-            body,
+            &args.servingConfig,
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_engines_serving_configs_search_execute(builder)
 }
@@ -19726,6 +21129,15 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_se
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_serving_configs_search_lite`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsSearchLiteArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1SearchRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}:searchLite
 /// Performs a search. Similar to the SearchService.Search method, but a lite version that allows API key for authentication, where OAuth and IAM checks are not required. Only public website search is supported by this method. If data stores and engines not associated with public website search are specified, a FAILED_PRECONDITION error is returned. This method can be used for easy onboarding without having to implement an authentication backend. However, it is strongly recommended to use SearchService.Search instead with required OAuth and IAM checks to provide better data security.
 ///
@@ -19738,8 +21150,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_se
 
 pub fn discoveryengine_projects_locations_collections_engines_serving_configs_search_lite(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1SearchRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsSearchLiteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1SearchResponse>, ApiError>,
@@ -19751,8 +21162,8 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_se
     let builder =
         discoveryengine_projects_locations_collections_engines_serving_configs_search_lite_builder(
             client,
-            servingConfig,
-            body,
+            &args.servingConfig,
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_engines_serving_configs_search_lite_execute(
         builder,
@@ -19857,6 +21268,15 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_st
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_serving_configs_stream_answer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsStreamAnswerArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1AnswerQueryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/servingConfigs/{servingConfigsId}:streamAnswer
 /// Answer query method (streaming). It takes one AnswerQueryRequest and returns multiple AnswerQueryResponse messages in a stream.
 ///
@@ -19869,8 +21289,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_st
 
 pub fn discoveryengine_projects_locations_collections_engines_serving_configs_stream_answer(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1AnswerQueryRequest,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesServingConfigsStreamAnswerArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1AnswerQueryResponse>, ApiError>,
@@ -19879,7 +21298,7 @@ pub fn discoveryengine_projects_locations_collections_engines_serving_configs_st
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_collections_engines_serving_configs_stream_answer_builder(client, servingConfig, body)?;
+    let builder = discoveryengine_projects_locations_collections_engines_serving_configs_stream_answer_builder(client, &args.servingConfig, &args.body)?;
     discoveryengine_projects_locations_collections_engines_serving_configs_stream_answer_execute(
         builder,
     )
@@ -19982,6 +21401,15 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_create_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_sessions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesSessionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Session,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions
 /// Creates a Session. If the Session to create already exists, an ALREADY_EXISTS error is returned.
 ///
@@ -19994,8 +21422,7 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_create_ex
 
 pub fn discoveryengine_projects_locations_collections_engines_sessions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1Session,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesSessionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Session>, ApiError>,
@@ -20005,7 +21432,9 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_create(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_sessions_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     discoveryengine_projects_locations_collections_engines_sessions_create_execute(builder)
 }
@@ -20102,6 +21531,13 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_delete_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_sessions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesSessionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions/{sessionsId}
 /// Deletes a Session. If the Session to delete does not exist, a NOT_FOUND error is returned.
 ///
@@ -20114,7 +21550,7 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_delete_ex
 
 pub fn discoveryengine_projects_locations_collections_engines_sessions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesSessionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -20122,7 +21558,7 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_delete(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_sessions_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     discoveryengine_projects_locations_collections_engines_sessions_delete_execute(builder)
 }
@@ -20233,6 +21669,15 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_get_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_sessions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesSessionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: includeAnswerDetails
+    pub includeAnswerDetails: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions/{sessionsId}
 /// Gets a Session.
 ///
@@ -20245,8 +21690,7 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_get_execu
 
 pub fn discoveryengine_projects_locations_collections_engines_sessions_get(
     client: &SimpleHttpClient,
-    name: &str,
-    includeAnswerDetails: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesSessionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Session>, ApiError>,
@@ -20257,8 +21701,8 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_get(
 > {
     let builder = discoveryengine_projects_locations_collections_engines_sessions_get_builder(
         client,
-        name,
-        includeAnswerDetails,
+        &args.name,
+        args.includeAnswerDetails,
     )?;
     discoveryengine_projects_locations_collections_engines_sessions_get_execute(builder)
 }
@@ -20382,6 +21826,21 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_sessions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesSessionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions
 /// Lists all Sessions by their parent DataStore.
 ///
@@ -20394,11 +21853,7 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_list_exec
 
 pub fn discoveryengine_projects_locations_collections_engines_sessions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesSessionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListSessionsResponse>, ApiError>,
@@ -20408,7 +21863,12 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_sessions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_collections_engines_sessions_list_execute(builder)
 }
@@ -20522,6 +21982,17 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_patch_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_sessions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesSessionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Session,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions/{sessionsId}
 /// Updates a Session. Session action type cannot be changed. If the Session to update does not exist, a NOT_FOUND error is returned.
 ///
@@ -20534,9 +22005,7 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_patch_exe
 
 pub fn discoveryengine_projects_locations_collections_engines_sessions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Session,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesSessionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Session>, ApiError>,
@@ -20546,7 +22015,10 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_patch(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_collections_engines_sessions_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_collections_engines_sessions_patch_execute(builder)
 }
@@ -20645,6 +22117,13 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_answers_g
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_sessions_answers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesSessionsAnswersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/sessions/{sessionsId}/answers/{answersId}
 /// Gets a Answer.
 ///
@@ -20657,7 +22136,7 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_answers_g
 
 pub fn discoveryengine_projects_locations_collections_engines_sessions_answers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesSessionsAnswersGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Answer>, ApiError>,
@@ -20668,7 +22147,7 @@ pub fn discoveryengine_projects_locations_collections_engines_sessions_answers_g
 > {
     let builder =
         discoveryengine_projects_locations_collections_engines_sessions_answers_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_collections_engines_sessions_answers_get_execute(builder)
 }
@@ -20786,6 +22265,17 @@ pub fn discoveryengine_projects_locations_collections_engines_widget_configs_get
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_widget_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesWidgetConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: acceptCache
+    pub acceptCache: Option<bool>,
+    /// Query parameter: getWidgetConfigRequestOption_turnOffCollectionComponents
+    pub getWidgetConfigRequestOption_turnOffCollectionComponents: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/widgetConfigs/{widgetConfigsId}
 /// Gets a WidgetConfig.
 ///
@@ -20798,9 +22288,7 @@ pub fn discoveryengine_projects_locations_collections_engines_widget_configs_get
 
 pub fn discoveryengine_projects_locations_collections_engines_widget_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
-    acceptCache: Option<bool>,
-    getWidgetConfigRequestOption_turnOffCollectionComponents: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesWidgetConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1WidgetConfig>, ApiError>,
@@ -20812,9 +22300,9 @@ pub fn discoveryengine_projects_locations_collections_engines_widget_configs_get
     let builder =
         discoveryengine_projects_locations_collections_engines_widget_configs_get_builder(
             client,
-            name,
-            acceptCache,
-            getWidgetConfigRequestOption_turnOffCollectionComponents,
+            &args.name,
+            args.acceptCache,
+            args.getWidgetConfigRequestOption_turnOffCollectionComponents,
         )?;
     discoveryengine_projects_locations_collections_engines_widget_configs_get_execute(builder)
 }
@@ -20928,6 +22416,17 @@ pub fn discoveryengine_projects_locations_collections_engines_widget_configs_pat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_engines_widget_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsEnginesWidgetConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1WidgetConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/engines/{enginesId}/widgetConfigs/{widgetConfigsId}
 /// Update a WidgetConfig.
 ///
@@ -20940,9 +22439,7 @@ pub fn discoveryengine_projects_locations_collections_engines_widget_configs_pat
 
 pub fn discoveryengine_projects_locations_collections_engines_widget_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1WidgetConfig,
+    args: &DiscoveryengineProjectsLocationsCollectionsEnginesWidgetConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1WidgetConfig>, ApiError>,
@@ -20953,7 +22450,10 @@ pub fn discoveryengine_projects_locations_collections_engines_widget_configs_pat
 > {
     let builder =
         discoveryengine_projects_locations_collections_engines_widget_configs_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     discoveryengine_projects_locations_collections_engines_widget_configs_patch_execute(builder)
 }
@@ -21052,6 +22552,13 @@ pub fn discoveryengine_projects_locations_collections_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -21064,7 +22571,7 @@ pub fn discoveryengine_projects_locations_collections_operations_get_execute(
 
 pub fn discoveryengine_projects_locations_collections_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsCollectionsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -21074,7 +22581,7 @@ pub fn discoveryengine_projects_locations_collections_operations_get(
     ApiError,
 > {
     let builder =
-        discoveryengine_projects_locations_collections_operations_get_builder(client, name)?;
+        discoveryengine_projects_locations_collections_operations_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_collections_operations_get_execute(builder)
 }
 
@@ -21197,6 +22704,21 @@ pub fn discoveryengine_projects_locations_collections_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_collections_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsCollectionsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/collections/{collectionsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -21209,11 +22731,7 @@ pub fn discoveryengine_projects_locations_collections_operations_list_execute(
 
 pub fn discoveryengine_projects_locations_collections_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsCollectionsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -21224,11 +22742,11 @@ pub fn discoveryengine_projects_locations_collections_operations_list(
 > {
     let builder = discoveryengine_projects_locations_collections_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     discoveryengine_projects_locations_collections_operations_list_execute(builder)
 }
@@ -21352,6 +22870,21 @@ pub fn discoveryengine_projects_locations_data_stores_complete_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_complete_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresCompleteQueryArgs {
+    /// Path parameter: dataStore
+    pub dataStore: String,
+    /// Query parameter: includeTailSuggestions
+    pub includeTailSuggestions: Option<bool>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: queryModel
+    pub queryModel: Option<String>,
+    /// Query parameter: userPseudoId
+    pub userPseudoId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}:completeQuery
 /// Completes the specified user input with keyword suggestions.
 ///
@@ -21364,11 +22897,7 @@ pub fn discoveryengine_projects_locations_data_stores_complete_query_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_complete_query(
     client: &SimpleHttpClient,
-    dataStore: &str,
-    includeTailSuggestions: Option<bool>,
-    query: Option<&str>,
-    queryModel: Option<&str>,
-    userPseudoId: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsDataStoresCompleteQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1CompleteQueryResponse>, ApiError>,
@@ -21379,11 +22908,11 @@ pub fn discoveryengine_projects_locations_data_stores_complete_query(
 > {
     let builder = discoveryengine_projects_locations_data_stores_complete_query_builder(
         client,
-        dataStore,
-        includeTailSuggestions,
-        query,
-        queryModel,
-        userPseudoId,
+        &args.dataStore,
+        args.includeTailSuggestions,
+        args.query.as_deref(),
+        args.queryModel.as_deref(),
+        args.userPseudoId.as_deref(),
     )?;
     discoveryengine_projects_locations_data_stores_complete_query_execute(builder)
 }
@@ -21513,6 +23042,25 @@ pub fn discoveryengine_projects_locations_data_stores_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: cmekConfigName
+    pub cmekConfigName: Option<String>,
+    /// Query parameter: createAdvancedSiteSearch
+    pub createAdvancedSiteSearch: Option<bool>,
+    /// Query parameter: dataStoreId
+    pub dataStoreId: Option<String>,
+    /// Query parameter: disableCmek
+    pub disableCmek: Option<bool>,
+    /// Query parameter: skipDefaultSchemaCreation
+    pub skipDefaultSchemaCreation: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1DataStore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores
 /// Creates a DataStore. DataStore is for storing Documents. To serve these documents for Search, or Recommendation use case, an Engine needs to be created separately.
 ///
@@ -21525,13 +23073,7 @@ pub fn discoveryengine_projects_locations_data_stores_create_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    cmekConfigName: Option<&str>,
-    createAdvancedSiteSearch: Option<bool>,
-    dataStoreId: Option<&str>,
-    disableCmek: Option<bool>,
-    skipDefaultSchemaCreation: Option<bool>,
-    body: &GoogleCloudDiscoveryengineV1DataStore,
+    args: &DiscoveryengineProjectsLocationsDataStoresCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -21542,13 +23084,13 @@ pub fn discoveryengine_projects_locations_data_stores_create(
 > {
     let builder = discoveryengine_projects_locations_data_stores_create_builder(
         client,
-        parent,
-        cmekConfigName,
-        createAdvancedSiteSearch,
-        dataStoreId,
-        disableCmek,
-        skipDefaultSchemaCreation,
-        body,
+        &args.parent,
+        args.cmekConfigName.as_deref(),
+        args.createAdvancedSiteSearch,
+        args.dataStoreId.as_deref(),
+        args.disableCmek,
+        args.skipDefaultSchemaCreation,
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_create_execute(builder)
 }
@@ -21647,6 +23189,13 @@ pub fn discoveryengine_projects_locations_data_stores_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}
 /// Deletes a DataStore.
 ///
@@ -21659,7 +23208,7 @@ pub fn discoveryengine_projects_locations_data_stores_delete_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -21668,7 +23217,8 @@ pub fn discoveryengine_projects_locations_data_stores_delete(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_data_stores_delete_builder(client, name)?;
+    let builder =
+        discoveryengine_projects_locations_data_stores_delete_builder(client, &args.name)?;
     discoveryengine_projects_locations_data_stores_delete_execute(builder)
 }
 
@@ -21766,6 +23316,13 @@ pub fn discoveryengine_projects_locations_data_stores_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}
 /// Gets a DataStore.
 ///
@@ -21778,7 +23335,7 @@ pub fn discoveryengine_projects_locations_data_stores_get_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1DataStore>, ApiError>,
@@ -21787,7 +23344,7 @@ pub fn discoveryengine_projects_locations_data_stores_get(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_data_stores_get_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_data_stores_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_data_stores_get_execute(builder)
 }
 
@@ -21886,6 +23443,13 @@ pub fn discoveryengine_projects_locations_data_stores_get_site_search_engine_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_get_site_search_engine`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresGetSiteSearchEngineArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine
 /// Gets the SiteSearchEngine.
 ///
@@ -21898,7 +23462,7 @@ pub fn discoveryengine_projects_locations_data_stores_get_site_search_engine_exe
 
 pub fn discoveryengine_projects_locations_data_stores_get_site_search_engine(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresGetSiteSearchEngineArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1SiteSearchEngine>, ApiError>,
@@ -21908,7 +23472,7 @@ pub fn discoveryengine_projects_locations_data_stores_get_site_search_engine(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_get_site_search_engine_builder(
-        client, name,
+        client, &args.name,
     )?;
     discoveryengine_projects_locations_data_stores_get_site_search_engine_execute(builder)
 }
@@ -22028,6 +23592,19 @@ pub fn discoveryengine_projects_locations_data_stores_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores
 /// Lists all the DataStores associated with the project.
 ///
@@ -22040,10 +23617,7 @@ pub fn discoveryengine_projects_locations_data_stores_list_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsDataStoresListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListDataStoresResponse>, ApiError>,
@@ -22053,7 +23627,11 @@ pub fn discoveryengine_projects_locations_data_stores_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_data_stores_list_execute(builder)
 }
@@ -22167,6 +23745,17 @@ pub fn discoveryengine_projects_locations_data_stores_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1DataStore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}
 /// Updates a DataStore
 ///
@@ -22179,9 +23768,7 @@ pub fn discoveryengine_projects_locations_data_stores_patch_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1DataStore,
+    args: &DiscoveryengineProjectsLocationsDataStoresPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1DataStore>, ApiError>,
@@ -22191,7 +23778,10 @@ pub fn discoveryengine_projects_locations_data_stores_patch(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_patch_execute(builder)
 }
@@ -22310,6 +23900,17 @@ pub fn discoveryengine_projects_locations_data_stores_branches_batch_get_documen
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_branches_batch_get_documents_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresBranchesBatchGetDocumentsMetadataArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: matcher_fhirMatcher_fhirResources
+    pub matcher_fhirMatcher_fhirResources: Option<String>,
+    /// Query parameter: matcher_urisMatcher_uris
+    pub matcher_urisMatcher_uris: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/batchGetDocumentsMetadata
 /// Gets index freshness metadata for Documents. Supported for website search only.
 ///
@@ -22322,9 +23923,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_batch_get_documen
 
 pub fn discoveryengine_projects_locations_data_stores_branches_batch_get_documents_metadata(
     client: &SimpleHttpClient,
-    parent: &str,
-    matcher_fhirMatcher_fhirResources: Option<&str>,
-    matcher_urisMatcher_uris: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsDataStoresBranchesBatchGetDocumentsMetadataArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -22336,7 +23935,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_batch_get_documen
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_data_stores_branches_batch_get_documents_metadata_builder(client, parent, matcher_fhirMatcher_fhirResources, matcher_urisMatcher_uris)?;
+    let builder = discoveryengine_projects_locations_data_stores_branches_batch_get_documents_metadata_builder(client, &args.parent, args.matcher_fhirMatcher_fhirResources.as_deref(), args.matcher_urisMatcher_uris.as_deref())?;
     discoveryengine_projects_locations_data_stores_branches_batch_get_documents_metadata_execute(
         builder,
     )
@@ -22451,6 +24050,17 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_create_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_branches_documents_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: documentId
+    pub documentId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Document,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents
 /// Creates a Document.
 ///
@@ -22463,9 +24073,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_create_
 
 pub fn discoveryengine_projects_locations_data_stores_branches_documents_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    documentId: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Document,
+    args: &DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Document>, ApiError>,
@@ -22475,7 +24083,10 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_create(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_branches_documents_create_builder(
-        client, parent, documentId, body,
+        client,
+        &args.parent,
+        args.documentId.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_branches_documents_create_execute(builder)
 }
@@ -22572,6 +24183,13 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_delete_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_branches_documents_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents/{documentsId}
 /// Deletes a Document.
 ///
@@ -22584,7 +24202,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_delete_
 
 pub fn discoveryengine_projects_locations_data_stores_branches_documents_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -22592,7 +24210,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_delete(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_branches_documents_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     discoveryengine_projects_locations_data_stores_branches_documents_delete_execute(builder)
 }
@@ -22691,6 +24309,13 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_branches_documents_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents/{documentsId}
 /// Gets a Document.
 ///
@@ -22703,7 +24328,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_get_exe
 
 pub fn discoveryengine_projects_locations_data_stores_branches_documents_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Document>, ApiError>,
@@ -22713,7 +24338,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_get(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_branches_documents_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     discoveryengine_projects_locations_data_stores_branches_documents_get_execute(builder)
 }
@@ -22815,6 +24440,15 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_import_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_branches_documents_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ImportDocumentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents:import
 /// Bulk import of multiple Documents. Request processing may be synchronous. Non-existing items are created. Note: It is possible for a subset of the Documents to be successfully updated.
 ///
@@ -22827,8 +24461,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_import_
 
 pub fn discoveryengine_projects_locations_data_stores_branches_documents_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1ImportDocumentsRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -22838,7 +24471,9 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_import(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_branches_documents_import_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_branches_documents_import_execute(builder)
 }
@@ -22954,6 +24589,17 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_branches_documents_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents
 /// Gets a list of Documents.
 ///
@@ -22966,9 +24612,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_list_ex
 
 pub fn discoveryengine_projects_locations_data_stores_branches_documents_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListDocumentsResponse>, ApiError>,
@@ -22978,7 +24622,10 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_branches_documents_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_data_stores_branches_documents_list_execute(builder)
 }
@@ -23096,6 +24743,19 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_patch_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_branches_documents_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Document,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents/{documentsId}
 /// Updates a Document.
 ///
@@ -23108,10 +24768,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_patch_e
 
 pub fn discoveryengine_projects_locations_data_stores_branches_documents_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Document,
+    args: &DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Document>, ApiError>,
@@ -23122,10 +24779,10 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_patch(
 > {
     let builder = discoveryengine_projects_locations_data_stores_branches_documents_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_branches_documents_patch_execute(builder)
 }
@@ -23227,6 +24884,15 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_purge_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_branches_documents_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsPurgeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1PurgeDocumentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/documents:purge
 /// Permanently deletes all selected Documents in a branch. This process is asynchronous. Depending on the number of Documents to be deleted, this operation can take hours to complete. Before the delete operation completes, some Documents might still be returned by DocumentService.GetDocument or DocumentService.ListDocuments. To get a list of the Documents to be deleted, set PurgeDocumentsRequest.force to `false`.
 ///
@@ -23239,8 +24905,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_purge_e
 
 pub fn discoveryengine_projects_locations_data_stores_branches_documents_purge(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1PurgeDocumentsRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresBranchesDocumentsPurgeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -23250,7 +24915,9 @@ pub fn discoveryengine_projects_locations_data_stores_branches_documents_purge(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_branches_documents_purge_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_branches_documents_purge_execute(builder)
 }
@@ -23350,6 +25017,15 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_cancel
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_branches_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresBranchesOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -23362,8 +25038,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_cancel
 
 pub fn discoveryengine_projects_locations_data_stores_branches_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresBranchesOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -23372,7 +25047,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_cancel
 > {
     let builder =
         discoveryengine_projects_locations_data_stores_branches_operations_cancel_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     discoveryengine_projects_locations_data_stores_branches_operations_cancel_execute(builder)
 }
@@ -23471,6 +25146,13 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_get_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_branches_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresBranchesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -23483,7 +25165,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_get_ex
 
 pub fn discoveryengine_projects_locations_data_stores_branches_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresBranchesOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -23493,7 +25175,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_get(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_branches_operations_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     discoveryengine_projects_locations_data_stores_branches_operations_get_execute(builder)
 }
@@ -23617,6 +25299,21 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_branches_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresBranchesOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/branches/{branchesId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -23629,11 +25326,7 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_list_e
 
 pub fn discoveryengine_projects_locations_data_stores_branches_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsDataStoresBranchesOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -23644,11 +25337,11 @@ pub fn discoveryengine_projects_locations_data_stores_branches_operations_list(
 > {
     let builder = discoveryengine_projects_locations_data_stores_branches_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     discoveryengine_projects_locations_data_stores_branches_operations_list_execute(builder)
 }
@@ -23754,6 +25447,15 @@ pub fn discoveryengine_projects_locations_data_stores_completion_config_complete
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_completion_config_complete_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresCompletionConfigCompleteQueryArgs {
+    /// Path parameter: completionConfig
+    pub completionConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1AdvancedCompleteQueryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/completionConfig:completeQuery
 /// Completes the user input with advanced keyword suggestions.
 ///
@@ -23766,8 +25468,7 @@ pub fn discoveryengine_projects_locations_data_stores_completion_config_complete
 
 pub fn discoveryengine_projects_locations_data_stores_completion_config_complete_query(
     client: &SimpleHttpClient,
-    completionConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1AdvancedCompleteQueryRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresCompletionConfigCompleteQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -23782,8 +25483,8 @@ pub fn discoveryengine_projects_locations_data_stores_completion_config_complete
     let builder =
         discoveryengine_projects_locations_data_stores_completion_config_complete_query_builder(
             client,
-            completionConfig,
-            body,
+            &args.completionConfig,
+            &args.body,
         )?;
     discoveryengine_projects_locations_data_stores_completion_config_complete_query_execute(builder)
 }
@@ -23885,6 +25586,15 @@ pub fn discoveryengine_projects_locations_data_stores_completion_suggestions_imp
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_completion_suggestions_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresCompletionSuggestionsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ImportCompletionSuggestionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/completionSuggestions:import
 /// Imports CompletionSuggestions for a DataStore.
 ///
@@ -23897,8 +25607,7 @@ pub fn discoveryengine_projects_locations_data_stores_completion_suggestions_imp
 
 pub fn discoveryengine_projects_locations_data_stores_completion_suggestions_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1ImportCompletionSuggestionsRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresCompletionSuggestionsImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -23909,7 +25618,9 @@ pub fn discoveryengine_projects_locations_data_stores_completion_suggestions_imp
 > {
     let builder =
         discoveryengine_projects_locations_data_stores_completion_suggestions_import_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     discoveryengine_projects_locations_data_stores_completion_suggestions_import_execute(builder)
 }
@@ -24011,6 +25722,15 @@ pub fn discoveryengine_projects_locations_data_stores_completion_suggestions_pur
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_completion_suggestions_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresCompletionSuggestionsPurgeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1PurgeCompletionSuggestionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/completionSuggestions:purge
 /// Permanently deletes all CompletionSuggestions for a DataStore.
 ///
@@ -24023,8 +25743,7 @@ pub fn discoveryengine_projects_locations_data_stores_completion_suggestions_pur
 
 pub fn discoveryengine_projects_locations_data_stores_completion_suggestions_purge(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1PurgeCompletionSuggestionsRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresCompletionSuggestionsPurgeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -24035,7 +25754,9 @@ pub fn discoveryengine_projects_locations_data_stores_completion_suggestions_pur
 > {
     let builder =
         discoveryengine_projects_locations_data_stores_completion_suggestions_purge_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     discoveryengine_projects_locations_data_stores_completion_suggestions_purge_execute(builder)
 }
@@ -24149,6 +25870,17 @@ pub fn discoveryengine_projects_locations_data_stores_controls_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_controls_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresControlsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: controlId
+    pub controlId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Control,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/controls
 /// Creates a Control. By default 1000 controls are allowed for a data store. A request can be submitted to adjust this limit. If the Control to create already exists, an ALREADY_EXISTS error is returned.
 ///
@@ -24161,9 +25893,7 @@ pub fn discoveryengine_projects_locations_data_stores_controls_create_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_controls_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    controlId: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Control,
+    args: &DiscoveryengineProjectsLocationsDataStoresControlsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Control>, ApiError>,
@@ -24173,7 +25903,10 @@ pub fn discoveryengine_projects_locations_data_stores_controls_create(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_controls_create_builder(
-        client, parent, controlId, body,
+        client,
+        &args.parent,
+        args.controlId.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_controls_create_execute(builder)
 }
@@ -24270,6 +26003,13 @@ pub fn discoveryengine_projects_locations_data_stores_controls_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_controls_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresControlsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/controls/{controlsId}
 /// Deletes a Control. If the Control to delete does not exist, a NOT_FOUND error is returned.
 ///
@@ -24282,7 +26022,7 @@ pub fn discoveryengine_projects_locations_data_stores_controls_delete_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_controls_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresControlsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -24290,7 +26030,7 @@ pub fn discoveryengine_projects_locations_data_stores_controls_delete(
     ApiError,
 > {
     let builder =
-        discoveryengine_projects_locations_data_stores_controls_delete_builder(client, name)?;
+        discoveryengine_projects_locations_data_stores_controls_delete_builder(client, &args.name)?;
     discoveryengine_projects_locations_data_stores_controls_delete_execute(builder)
 }
 
@@ -24388,6 +26128,13 @@ pub fn discoveryengine_projects_locations_data_stores_controls_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_controls_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresControlsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/controls/{controlsId}
 /// Gets a Control.
 ///
@@ -24400,7 +26147,7 @@ pub fn discoveryengine_projects_locations_data_stores_controls_get_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_controls_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresControlsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Control>, ApiError>,
@@ -24410,7 +26157,7 @@ pub fn discoveryengine_projects_locations_data_stores_controls_get(
     ApiError,
 > {
     let builder =
-        discoveryengine_projects_locations_data_stores_controls_get_builder(client, name)?;
+        discoveryengine_projects_locations_data_stores_controls_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_data_stores_controls_get_execute(builder)
 }
 
@@ -24529,6 +26276,19 @@ pub fn discoveryengine_projects_locations_data_stores_controls_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_controls_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresControlsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/controls
 /// Lists all Controls by their parent DataStore.
 ///
@@ -24541,10 +26301,7 @@ pub fn discoveryengine_projects_locations_data_stores_controls_list_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_controls_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsDataStoresControlsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListControlsResponse>, ApiError>,
@@ -24554,7 +26311,11 @@ pub fn discoveryengine_projects_locations_data_stores_controls_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_controls_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_data_stores_controls_list_execute(builder)
 }
@@ -24668,6 +26429,17 @@ pub fn discoveryengine_projects_locations_data_stores_controls_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_controls_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresControlsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Control,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/controls/{controlsId}
 /// Updates a Control. Control action type cannot be changed. If the Control to update does not exist, a NOT_FOUND error is returned.
 ///
@@ -24680,9 +26452,7 @@ pub fn discoveryengine_projects_locations_data_stores_controls_patch_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_controls_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Control,
+    args: &DiscoveryengineProjectsLocationsDataStoresControlsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Control>, ApiError>,
@@ -24692,7 +26462,10 @@ pub fn discoveryengine_projects_locations_data_stores_controls_patch(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_controls_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_controls_patch_execute(builder)
 }
@@ -24798,6 +26571,15 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_converse_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_conversations_converse`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresConversationsConverseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ConverseConversationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/conversations/{conversationsId}:converse
 /// Converses a conversation.
 ///
@@ -24810,8 +26592,7 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_converse_exe
 
 pub fn discoveryengine_projects_locations_data_stores_conversations_converse(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDiscoveryengineV1ConverseConversationRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresConversationsConverseArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -24824,7 +26605,7 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_converse(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_conversations_converse_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_conversations_converse_execute(builder)
 }
@@ -24926,6 +26707,15 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_conversations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresConversationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Conversation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/conversations
 /// Creates a Conversation. If the Conversation to create already exists, an ALREADY_EXISTS error is returned.
 ///
@@ -24938,8 +26728,7 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_create_execu
 
 pub fn discoveryengine_projects_locations_data_stores_conversations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1Conversation,
+    args: &DiscoveryengineProjectsLocationsDataStoresConversationsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Conversation>, ApiError>,
@@ -24949,7 +26738,9 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_create(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_conversations_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_conversations_create_execute(builder)
 }
@@ -25046,6 +26837,13 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_conversations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresConversationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/conversations/{conversationsId}
 /// Deletes a Conversation. If the Conversation to delete does not exist, a NOT_FOUND error is returned.
 ///
@@ -25058,15 +26856,16 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_delete_execu
 
 pub fn discoveryengine_projects_locations_data_stores_conversations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresConversationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        discoveryengine_projects_locations_data_stores_conversations_delete_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_data_stores_conversations_delete_builder(
+        client, &args.name,
+    )?;
     discoveryengine_projects_locations_data_stores_conversations_delete_execute(builder)
 }
 
@@ -25164,6 +26963,13 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_conversations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresConversationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/conversations/{conversationsId}
 /// Gets a Conversation.
 ///
@@ -25176,7 +26982,7 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_get_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_conversations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresConversationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Conversation>, ApiError>,
@@ -25185,8 +26991,9 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        discoveryengine_projects_locations_data_stores_conversations_get_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_data_stores_conversations_get_builder(
+        client, &args.name,
+    )?;
     discoveryengine_projects_locations_data_stores_conversations_get_execute(builder)
 }
 
@@ -25312,6 +27119,21 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_conversations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresConversationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/conversations
 /// Lists all Conversations by their parent DataStore.
 ///
@@ -25324,11 +27146,7 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_list_execute
 
 pub fn discoveryengine_projects_locations_data_stores_conversations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsDataStoresConversationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -25341,7 +27159,12 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_conversations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_data_stores_conversations_list_execute(builder)
 }
@@ -25455,6 +27278,17 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_patch_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_conversations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresConversationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Conversation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/conversations/{conversationsId}
 /// Updates a Conversation. Conversation action type cannot be changed. If the Conversation to update does not exist, a NOT_FOUND error is returned.
 ///
@@ -25467,9 +27301,7 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_patch_execut
 
 pub fn discoveryengine_projects_locations_data_stores_conversations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Conversation,
+    args: &DiscoveryengineProjectsLocationsDataStoresConversationsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Conversation>, ApiError>,
@@ -25479,7 +27311,10 @@ pub fn discoveryengine_projects_locations_data_stores_conversations_patch(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_conversations_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_conversations_patch_execute(builder)
 }
@@ -25578,6 +27413,13 @@ pub fn discoveryengine_projects_locations_data_stores_models_operations_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_models_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresModelsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/models/{modelsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -25590,7 +27432,7 @@ pub fn discoveryengine_projects_locations_data_stores_models_operations_get_exec
 
 pub fn discoveryengine_projects_locations_data_stores_models_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresModelsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -25599,8 +27441,9 @@ pub fn discoveryengine_projects_locations_data_stores_models_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        discoveryengine_projects_locations_data_stores_models_operations_get_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_data_stores_models_operations_get_builder(
+        client, &args.name,
+    )?;
     discoveryengine_projects_locations_data_stores_models_operations_get_execute(builder)
 }
 
@@ -25723,6 +27566,21 @@ pub fn discoveryengine_projects_locations_data_stores_models_operations_list_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_models_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresModelsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/models/{modelsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -25735,11 +27593,7 @@ pub fn discoveryengine_projects_locations_data_stores_models_operations_list_exe
 
 pub fn discoveryengine_projects_locations_data_stores_models_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsDataStoresModelsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -25750,11 +27604,11 @@ pub fn discoveryengine_projects_locations_data_stores_models_operations_list(
 > {
     let builder = discoveryengine_projects_locations_data_stores_models_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     discoveryengine_projects_locations_data_stores_models_operations_list_execute(builder)
 }
@@ -25853,6 +27707,13 @@ pub fn discoveryengine_projects_locations_data_stores_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -25865,7 +27726,7 @@ pub fn discoveryengine_projects_locations_data_stores_operations_get_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -25875,7 +27736,7 @@ pub fn discoveryengine_projects_locations_data_stores_operations_get(
     ApiError,
 > {
     let builder =
-        discoveryengine_projects_locations_data_stores_operations_get_builder(client, name)?;
+        discoveryengine_projects_locations_data_stores_operations_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_data_stores_operations_get_execute(builder)
 }
 
@@ -25998,6 +27859,21 @@ pub fn discoveryengine_projects_locations_data_stores_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -26010,11 +27886,7 @@ pub fn discoveryengine_projects_locations_data_stores_operations_list_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsDataStoresOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -26025,11 +27897,11 @@ pub fn discoveryengine_projects_locations_data_stores_operations_list(
 > {
     let builder = discoveryengine_projects_locations_data_stores_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     discoveryengine_projects_locations_data_stores_operations_list_execute(builder)
 }
@@ -26143,6 +28015,17 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_schemas_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSchemasCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: schemaId
+    pub schemaId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Schema,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/schemas
 /// Creates a Schema.
 ///
@@ -26155,9 +28038,7 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_create_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_schemas_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    schemaId: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Schema,
+    args: &DiscoveryengineProjectsLocationsDataStoresSchemasCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -26167,7 +28048,10 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_create(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_schemas_create_builder(
-        client, parent, schemaId, body,
+        client,
+        &args.parent,
+        args.schemaId.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_schemas_create_execute(builder)
 }
@@ -26266,6 +28150,13 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_schemas_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSchemasDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/schemas/{schemasId}
 /// Deletes a Schema.
 ///
@@ -26278,7 +28169,7 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_delete_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_schemas_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresSchemasDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -26288,7 +28179,7 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_delete(
     ApiError,
 > {
     let builder =
-        discoveryengine_projects_locations_data_stores_schemas_delete_builder(client, name)?;
+        discoveryengine_projects_locations_data_stores_schemas_delete_builder(client, &args.name)?;
     discoveryengine_projects_locations_data_stores_schemas_delete_execute(builder)
 }
 
@@ -26386,6 +28277,13 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_schemas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSchemasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/schemas/{schemasId}
 /// Gets a Schema.
 ///
@@ -26398,7 +28296,7 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_get_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_schemas_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresSchemasGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Schema>, ApiError>,
@@ -26407,7 +28305,8 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_get(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_data_stores_schemas_get_builder(client, name)?;
+    let builder =
+        discoveryengine_projects_locations_data_stores_schemas_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_data_stores_schemas_get_execute(builder)
 }
 
@@ -26522,6 +28421,17 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_schemas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSchemasListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/schemas
 /// Gets a list of Schemas.
 ///
@@ -26534,9 +28444,7 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_list_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_schemas_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsDataStoresSchemasListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListSchemasResponse>, ApiError>,
@@ -26546,7 +28454,10 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_schemas_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_data_stores_schemas_list_execute(builder)
 }
@@ -26660,6 +28571,17 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_schemas_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSchemasPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Schema,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/schemas/{schemasId}
 /// Updates a Schema.
 ///
@@ -26672,9 +28594,7 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_patch_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_schemas_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    body: &GoogleCloudDiscoveryengineV1Schema,
+    args: &DiscoveryengineProjectsLocationsDataStoresSchemasPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -26685,9 +28605,9 @@ pub fn discoveryengine_projects_locations_data_stores_schemas_patch(
 > {
     let builder = discoveryengine_projects_locations_data_stores_schemas_patch_builder(
         client,
-        name,
-        allowMissing,
-        body,
+        &args.name,
+        args.allowMissing,
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_schemas_patch_execute(builder)
 }
@@ -26790,6 +28710,15 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_answer_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_serving_configs_answer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresServingConfigsAnswerArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1AnswerQueryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:answer
 /// Answer query method.
 ///
@@ -26802,8 +28731,7 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_answer_exe
 
 pub fn discoveryengine_projects_locations_data_stores_serving_configs_answer(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1AnswerQueryRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresServingConfigsAnswerArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1AnswerQueryResponse>, ApiError>,
@@ -26814,8 +28742,8 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_answer(
 > {
     let builder = discoveryengine_projects_locations_data_stores_serving_configs_answer_builder(
         client,
-        servingConfig,
-        body,
+        &args.servingConfig,
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_serving_configs_answer_execute(builder)
 }
@@ -26929,6 +28857,17 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_create_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_serving_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresServingConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: servingConfigId
+    pub servingConfigId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ServingConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs
 /// Creates a ServingConfig. Note: The Google Cloud console works only with the default serving config. Additional ServingConfigs can be created and managed only via the API. A maximum of 100 ServingConfigs are allowed in an Engine, otherwise a RESOURCE_EXHAUSTED error is returned.
 ///
@@ -26941,9 +28880,7 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_create_exe
 
 pub fn discoveryengine_projects_locations_data_stores_serving_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    servingConfigId: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1ServingConfig,
+    args: &DiscoveryengineProjectsLocationsDataStoresServingConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ServingConfig>, ApiError>,
@@ -26954,9 +28891,9 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_create(
 > {
     let builder = discoveryengine_projects_locations_data_stores_serving_configs_create_builder(
         client,
-        parent,
-        servingConfigId,
-        body,
+        &args.parent,
+        args.servingConfigId.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_serving_configs_create_execute(builder)
 }
@@ -27053,6 +28990,13 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_delete_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_serving_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresServingConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}
 /// Deletes a ServingConfig. Returns a NOT_FOUND error if the ServingConfig does not exist.
 ///
@@ -27065,7 +29009,7 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_delete_exe
 
 pub fn discoveryengine_projects_locations_data_stores_serving_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresServingConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -27073,7 +29017,7 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_delete(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_serving_configs_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     discoveryengine_projects_locations_data_stores_serving_configs_delete_execute(builder)
 }
@@ -27172,6 +29116,13 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_serving_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresServingConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}
 /// Gets a ServingConfig. Returns a NotFound error if the ServingConfig does not exist.
 ///
@@ -27184,7 +29135,7 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_get_execut
 
 pub fn discoveryengine_projects_locations_data_stores_serving_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresServingConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ServingConfig>, ApiError>,
@@ -27193,8 +29144,9 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        discoveryengine_projects_locations_data_stores_serving_configs_get_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_data_stores_serving_configs_get_builder(
+        client, &args.name,
+    )?;
     discoveryengine_projects_locations_data_stores_serving_configs_get_execute(builder)
 }
 
@@ -27312,6 +29264,17 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_serving_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresServingConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs
 /// Lists all ServingConfigs linked to this `dataStore`.
 ///
@@ -27324,9 +29287,7 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_list_execu
 
 pub fn discoveryengine_projects_locations_data_stores_serving_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsDataStoresServingConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -27339,7 +29300,10 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_serving_configs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_data_stores_serving_configs_list_execute(builder)
 }
@@ -27453,6 +29417,17 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_serving_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresServingConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ServingConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}
 /// Updates a ServingConfig. Returns a NOT_FOUND error if the ServingConfig does not exist.
 ///
@@ -27465,9 +29440,7 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_patch_exec
 
 pub fn discoveryengine_projects_locations_data_stores_serving_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1ServingConfig,
+    args: &DiscoveryengineProjectsLocationsDataStoresServingConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ServingConfig>, ApiError>,
@@ -27477,7 +29450,10 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_patch(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_serving_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_serving_configs_patch_execute(builder)
 }
@@ -27580,6 +29556,15 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_recommend_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_serving_configs_recommend`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresServingConfigsRecommendArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1RecommendRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:recommend
 /// Makes a recommendation, which requires a contextual user event.
 ///
@@ -27592,8 +29577,7 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_recommend_
 
 pub fn discoveryengine_projects_locations_data_stores_serving_configs_recommend(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1RecommendRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresServingConfigsRecommendArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1RecommendResponse>, ApiError>,
@@ -27604,8 +29588,8 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_recommend(
 > {
     let builder = discoveryengine_projects_locations_data_stores_serving_configs_recommend_builder(
         client,
-        servingConfig,
-        body,
+        &args.servingConfig,
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_serving_configs_recommend_execute(builder)
 }
@@ -27708,6 +29692,15 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_search_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_serving_configs_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresServingConfigsSearchArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1SearchRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:search
 /// Performs a search.
 ///
@@ -27720,8 +29713,7 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_search_exe
 
 pub fn discoveryengine_projects_locations_data_stores_serving_configs_search(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1SearchRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresServingConfigsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1SearchResponse>, ApiError>,
@@ -27732,8 +29724,8 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_search(
 > {
     let builder = discoveryengine_projects_locations_data_stores_serving_configs_search_builder(
         client,
-        servingConfig,
-        body,
+        &args.servingConfig,
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_serving_configs_search_execute(builder)
 }
@@ -27836,6 +29828,15 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_search_lit
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_serving_configs_search_lite`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresServingConfigsSearchLiteArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1SearchRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:searchLite
 /// Performs a search. Similar to the SearchService.Search method, but a lite version that allows API key for authentication, where OAuth and IAM checks are not required. Only public website search is supported by this method. If data stores and engines not associated with public website search are specified, a FAILED_PRECONDITION error is returned. This method can be used for easy onboarding without having to implement an authentication backend. However, it is strongly recommended to use SearchService.Search instead with required OAuth and IAM checks to provide better data security.
 ///
@@ -27848,8 +29849,7 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_search_lit
 
 pub fn discoveryengine_projects_locations_data_stores_serving_configs_search_lite(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1SearchRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresServingConfigsSearchLiteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1SearchResponse>, ApiError>,
@@ -27861,8 +29861,8 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_search_lit
     let builder =
         discoveryengine_projects_locations_data_stores_serving_configs_search_lite_builder(
             client,
-            servingConfig,
-            body,
+            &args.servingConfig,
+            &args.body,
         )?;
     discoveryengine_projects_locations_data_stores_serving_configs_search_lite_execute(builder)
 }
@@ -27965,6 +29965,15 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_stream_ans
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_serving_configs_stream_answer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresServingConfigsStreamAnswerArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1AnswerQueryRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/servingConfigs/{servingConfigsId}:streamAnswer
 /// Answer query method (streaming). It takes one AnswerQueryRequest and returns multiple AnswerQueryResponse messages in a stream.
 ///
@@ -27977,8 +29986,7 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_stream_ans
 
 pub fn discoveryengine_projects_locations_data_stores_serving_configs_stream_answer(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1AnswerQueryRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresServingConfigsStreamAnswerArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1AnswerQueryResponse>, ApiError>,
@@ -27990,8 +29998,8 @@ pub fn discoveryengine_projects_locations_data_stores_serving_configs_stream_ans
     let builder =
         discoveryengine_projects_locations_data_stores_serving_configs_stream_answer_builder(
             client,
-            servingConfig,
-            body,
+            &args.servingConfig,
+            &args.body,
         )?;
     discoveryengine_projects_locations_data_stores_serving_configs_stream_answer_execute(builder)
 }
@@ -28093,6 +30101,15 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_sessions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSessionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Session,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/sessions
 /// Creates a Session. If the Session to create already exists, an ALREADY_EXISTS error is returned.
 ///
@@ -28105,8 +30122,7 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_create_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_sessions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1Session,
+    args: &DiscoveryengineProjectsLocationsDataStoresSessionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Session>, ApiError>,
@@ -28116,7 +30132,9 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_create(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_sessions_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_sessions_create_execute(builder)
 }
@@ -28213,6 +30231,13 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_sessions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSessionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/sessions/{sessionsId}
 /// Deletes a Session. If the Session to delete does not exist, a NOT_FOUND error is returned.
 ///
@@ -28225,7 +30250,7 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_delete_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_sessions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresSessionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -28233,7 +30258,7 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_delete(
     ApiError,
 > {
     let builder =
-        discoveryengine_projects_locations_data_stores_sessions_delete_builder(client, name)?;
+        discoveryengine_projects_locations_data_stores_sessions_delete_builder(client, &args.name)?;
     discoveryengine_projects_locations_data_stores_sessions_delete_execute(builder)
 }
 
@@ -28343,6 +30368,15 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_sessions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSessionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: includeAnswerDetails
+    pub includeAnswerDetails: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/sessions/{sessionsId}
 /// Gets a Session.
 ///
@@ -28355,8 +30389,7 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_get_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_sessions_get(
     client: &SimpleHttpClient,
-    name: &str,
-    includeAnswerDetails: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsDataStoresSessionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Session>, ApiError>,
@@ -28367,8 +30400,8 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_get(
 > {
     let builder = discoveryengine_projects_locations_data_stores_sessions_get_builder(
         client,
-        name,
-        includeAnswerDetails,
+        &args.name,
+        args.includeAnswerDetails,
     )?;
     discoveryengine_projects_locations_data_stores_sessions_get_execute(builder)
 }
@@ -28492,6 +30525,21 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_sessions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSessionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/sessions
 /// Lists all Sessions by their parent DataStore.
 ///
@@ -28504,11 +30552,7 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_list_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_sessions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsDataStoresSessionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListSessionsResponse>, ApiError>,
@@ -28518,7 +30562,12 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_sessions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_data_stores_sessions_list_execute(builder)
 }
@@ -28632,6 +30681,17 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_sessions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSessionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Session,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/sessions/{sessionsId}
 /// Updates a Session. Session action type cannot be changed. If the Session to update does not exist, a NOT_FOUND error is returned.
 ///
@@ -28644,9 +30704,7 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_patch_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_sessions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1Session,
+    args: &DiscoveryengineProjectsLocationsDataStoresSessionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Session>, ApiError>,
@@ -28656,7 +30714,10 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_patch(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_sessions_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_sessions_patch_execute(builder)
 }
@@ -28755,6 +30816,13 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_answers_get_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_sessions_answers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSessionsAnswersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/sessions/{sessionsId}/answers/{answersId}
 /// Gets a Answer.
 ///
@@ -28767,7 +30835,7 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_answers_get_execu
 
 pub fn discoveryengine_projects_locations_data_stores_sessions_answers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresSessionsAnswersGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1Answer>, ApiError>,
@@ -28776,8 +30844,9 @@ pub fn discoveryengine_projects_locations_data_stores_sessions_answers_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        discoveryengine_projects_locations_data_stores_sessions_answers_get_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_data_stores_sessions_answers_get_builder(
+        client, &args.name,
+    )?;
     discoveryengine_projects_locations_data_stores_sessions_answers_get_execute(builder)
 }
 
@@ -28878,6 +30947,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_disable
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_site_search_engine_disable_advanced_site_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineDisableAdvancedSiteSearchArgs {
+    /// Path parameter: siteSearchEngine
+    pub siteSearchEngine: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine:disableAdvancedSiteSearch
 /// Downgrade from advanced site search to basic site search.
 ///
@@ -28890,8 +30968,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_disable
 
 pub fn discoveryengine_projects_locations_data_stores_site_search_engine_disable_advanced_site_search(
     client: &SimpleHttpClient,
-    siteSearchEngine: &str,
-    body: &GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineDisableAdvancedSiteSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -28900,7 +30977,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_disable
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_data_stores_site_search_engine_disable_advanced_site_search_builder(client, siteSearchEngine, body)?;
+    let builder = discoveryengine_projects_locations_data_stores_site_search_engine_disable_advanced_site_search_builder(client, &args.siteSearchEngine, &args.body)?;
     discoveryengine_projects_locations_data_stores_site_search_engine_disable_advanced_site_search_execute(builder)
 }
 
@@ -29001,6 +31078,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_enable_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_site_search_engine_enable_advanced_site_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineEnableAdvancedSiteSearchArgs {
+    /// Path parameter: siteSearchEngine
+    pub siteSearchEngine: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine:enableAdvancedSiteSearch
 /// Upgrade from basic site search to advanced site search.
 ///
@@ -29013,8 +31099,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_enable_
 
 pub fn discoveryengine_projects_locations_data_stores_site_search_engine_enable_advanced_site_search(
     client: &SimpleHttpClient,
-    siteSearchEngine: &str,
-    body: &GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineEnableAdvancedSiteSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -29023,7 +31108,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_enable_
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_data_stores_site_search_engine_enable_advanced_site_search_builder(client, siteSearchEngine, body)?;
+    let builder = discoveryengine_projects_locations_data_stores_site_search_engine_enable_advanced_site_search_builder(client, &args.siteSearchEngine, &args.body)?;
     discoveryengine_projects_locations_data_stores_site_search_engine_enable_advanced_site_search_execute(builder)
 }
 
@@ -29124,6 +31209,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_recrawl
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_site_search_engine_recrawl_uris`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineRecrawlUrisArgs {
+    /// Path parameter: siteSearchEngine
+    pub siteSearchEngine: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1RecrawlUrisRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine:recrawlUris
 /// Request on-demand recrawl for a list of URIs.
 ///
@@ -29136,8 +31230,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_recrawl
 
 pub fn discoveryengine_projects_locations_data_stores_site_search_engine_recrawl_uris(
     client: &SimpleHttpClient,
-    siteSearchEngine: &str,
-    body: &GoogleCloudDiscoveryengineV1RecrawlUrisRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineRecrawlUrisArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -29149,8 +31242,8 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_recrawl
     let builder =
         discoveryengine_projects_locations_data_stores_site_search_engine_recrawl_uris_builder(
             client,
-            siteSearchEngine,
-            body,
+            &args.siteSearchEngine,
+            &args.body,
         )?;
     discoveryengine_projects_locations_data_stores_site_search_engine_recrawl_uris_execute(builder)
 }
@@ -29252,6 +31345,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemap
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineSitemapsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1Sitemap,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/sitemaps
 /// Creates a Sitemap.
 ///
@@ -29264,8 +31366,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemap
 
 pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1Sitemap,
+    args: &DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineSitemapsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -29276,7 +31377,9 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemap
 > {
     let builder =
         discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_create_execute(
         builder,
@@ -29377,6 +31480,13 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemap
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineSitemapsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/sitemaps/{sitemapsId}
 /// Deletes a Sitemap.
 ///
@@ -29389,7 +31499,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemap
 
 pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineSitemapsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -29400,7 +31510,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemap
 > {
     let builder =
         discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_delete_execute(
         builder,
@@ -29514,6 +31624,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemap
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_fetch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineSitemapsFetchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: matcher_urisMatcher_uris
+    pub matcher_urisMatcher_uris: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/sitemaps:fetch
 /// Fetch Sitemaps in a DataStore.
 ///
@@ -29526,8 +31645,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemap
 
 pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_fetch(
     client: &SimpleHttpClient,
-    parent: &str,
-    matcher_urisMatcher_uris: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineSitemapsFetchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1FetchSitemapsResponse>, ApiError>,
@@ -29539,8 +31657,8 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_sitemap
     let builder =
         discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_fetch_builder(
             client,
-            parent,
-            matcher_urisMatcher_uris,
+            &args.parent,
+            args.matcher_urisMatcher_uris.as_deref(),
         )?;
     discoveryengine_projects_locations_data_stores_site_search_engine_sitemaps_fetch_execute(
         builder,
@@ -29644,6 +31762,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineTargetSitesBatchCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1BatchCreateTargetSitesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites:batchCreate
 /// Creates TargetSite in a batch.
 ///
@@ -29656,8 +31783,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
 
 pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_batch_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1BatchCreateTargetSitesRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineTargetSitesBatchCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -29666,7 +31792,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_batch_create_builder(client, parent, body)?;
+    let builder = discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_batch_create_builder(client, &args.parent, &args.body)?;
     discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_batch_create_execute(builder)
 }
 
@@ -29767,6 +31893,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineTargetSitesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1TargetSite,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites
 /// Creates a TargetSite.
 ///
@@ -29779,8 +31914,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
 
 pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1TargetSite,
+    args: &DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineTargetSitesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -29789,7 +31923,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_create_builder(client, parent, body)?;
+    let builder = discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_create_builder(client, &args.parent, &args.body)?;
     discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_create_execute(
         builder,
     )
@@ -29889,6 +32023,13 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineTargetSitesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/{targetSitesId}
 /// Deletes a TargetSite.
 ///
@@ -29901,7 +32042,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
 
 pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineTargetSitesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -29910,7 +32051,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_delete_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_delete_builder(client, &args.name)?;
     discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_delete_execute(
         builder,
     )
@@ -30010,6 +32151,13 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineTargetSitesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/{targetSitesId}
 /// Gets a TargetSite.
 ///
@@ -30022,7 +32170,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
 
 pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineTargetSitesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1TargetSite>, ApiError>,
@@ -30033,7 +32181,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
 > {
     let builder =
         discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_get_execute(
         builder,
@@ -30151,6 +32299,17 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineTargetSitesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites
 /// Gets a list of TargetSites.
 ///
@@ -30163,9 +32322,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
 
 pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineTargetSitesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListTargetSitesResponse>, ApiError>,
@@ -30174,7 +32331,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_list_execute(
         builder,
     )
@@ -30277,6 +32434,15 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineTargetSitesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1TargetSite,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/siteSearchEngine/targetSites/{targetSitesId}
 /// Updates a TargetSite.
 ///
@@ -30289,8 +32455,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
 
 pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDiscoveryengineV1TargetSite,
+    args: &DiscoveryengineProjectsLocationsDataStoresSiteSearchEngineTargetSitesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -30299,7 +32464,7 @@ pub fn discoveryengine_projects_locations_data_stores_site_search_engine_target_
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_patch_builder(client, name, body)?;
+    let builder = discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_patch_builder(client, &args.name, &args.body)?;
     discoveryengine_projects_locations_data_stores_site_search_engine_target_sites_patch_execute(
         builder,
     )
@@ -30402,6 +32567,15 @@ pub fn discoveryengine_projects_locations_data_stores_suggestion_deny_list_entri
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSuggestionDenyListEntriesImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ImportSuggestionDenyListEntriesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/suggestionDenyListEntries:import
 /// Imports all SuggestionDenyListEntry for a DataStore.
 ///
@@ -30414,8 +32588,7 @@ pub fn discoveryengine_projects_locations_data_stores_suggestion_deny_list_entri
 
 pub fn discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1ImportSuggestionDenyListEntriesRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresSuggestionDenyListEntriesImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -30426,7 +32599,9 @@ pub fn discoveryengine_projects_locations_data_stores_suggestion_deny_list_entri
 > {
     let builder =
         discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_import_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_import_execute(
         builder,
@@ -30530,6 +32705,15 @@ pub fn discoveryengine_projects_locations_data_stores_suggestion_deny_list_entri
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresSuggestionDenyListEntriesPurgeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1PurgeSuggestionDenyListEntriesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/suggestionDenyListEntries:purge
 /// Permanently deletes all SuggestionDenyListEntry for a DataStore.
 ///
@@ -30542,8 +32726,7 @@ pub fn discoveryengine_projects_locations_data_stores_suggestion_deny_list_entri
 
 pub fn discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_purge(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1PurgeSuggestionDenyListEntriesRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresSuggestionDenyListEntriesPurgeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -30554,7 +32737,9 @@ pub fn discoveryengine_projects_locations_data_stores_suggestion_deny_list_entri
 > {
     let builder =
         discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_purge_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     discoveryengine_projects_locations_data_stores_suggestion_deny_list_entries_purge_execute(
         builder,
@@ -30673,6 +32858,19 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_collect_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_user_events_collect`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresUserEventsCollectArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: ets
+    pub ets: Option<String>,
+    /// Query parameter: uri
+    pub uri: Option<String>,
+    /// Query parameter: userEvent
+    pub userEvent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/userEvents:collect
 /// Writes a single user event from the browser. This uses a GET request to due to browser restriction of POST-ing to a third-party domain. This method is used only by the Discovery Engine API JavaScript pixel and Google Tag Manager. Users should not call this method directly.
 ///
@@ -30685,10 +32883,7 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_collect_execut
 
 pub fn discoveryengine_projects_locations_data_stores_user_events_collect(
     client: &SimpleHttpClient,
-    parent: &str,
-    ets: Option<&str>,
-    uri: Option<&str>,
-    userEvent: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsDataStoresUserEventsCollectArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApiHttpBody>, ApiError>, P = ApiPending>
         + Send
@@ -30696,7 +32891,11 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_collect(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_user_events_collect_builder(
-        client, parent, ets, uri, userEvent,
+        client,
+        &args.parent,
+        args.ets.as_deref(),
+        args.uri.as_deref(),
+        args.userEvent.as_deref(),
     )?;
     discoveryengine_projects_locations_data_stores_user_events_collect_execute(builder)
 }
@@ -30798,6 +32997,15 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_import_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_user_events_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresUserEventsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ImportUserEventsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/userEvents:import
 /// Bulk import of user events. Request processing might be synchronous. Events that already exist are skipped. Use this method for backfilling historical user events. Operation.response is of type ImportResponse. Note that it is possible for a subset of the items to be successfully inserted. Operation.metadata is of type ImportMetadata.
 ///
@@ -30810,8 +33018,7 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_import_execute
 
 pub fn discoveryengine_projects_locations_data_stores_user_events_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1ImportUserEventsRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresUserEventsImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -30821,7 +33028,9 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_import(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_user_events_import_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_user_events_import_execute(builder)
 }
@@ -30923,6 +33132,15 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_purge_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_user_events_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresUserEventsPurgeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1PurgeUserEventsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/userEvents:purge
 /// Deletes permanently all user events specified by the filter provided. Depending on the number of events specified by the filter, this operation could take hours or days to complete. To test a filter, use the list command first.
 ///
@@ -30935,8 +33153,7 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_purge_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_user_events_purge(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1PurgeUserEventsRequest,
+    args: &DiscoveryengineProjectsLocationsDataStoresUserEventsPurgeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -30946,7 +33163,9 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_purge(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_user_events_purge_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_user_events_purge_execute(builder)
 }
@@ -31060,6 +33279,17 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_write_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_user_events_write`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresUserEventsWriteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: writeAsync
+    pub writeAsync: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1UserEvent,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/userEvents:write
 /// Writes a single user event.
 ///
@@ -31072,9 +33302,7 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_write_execute(
 
 pub fn discoveryengine_projects_locations_data_stores_user_events_write(
     client: &SimpleHttpClient,
-    parent: &str,
-    writeAsync: Option<bool>,
-    body: &GoogleCloudDiscoveryengineV1UserEvent,
+    args: &DiscoveryengineProjectsLocationsDataStoresUserEventsWriteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1UserEvent>, ApiError>,
@@ -31084,7 +33312,10 @@ pub fn discoveryengine_projects_locations_data_stores_user_events_write(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_user_events_write_builder(
-        client, parent, writeAsync, body,
+        client,
+        &args.parent,
+        args.writeAsync,
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_user_events_write_execute(builder)
 }
@@ -31202,6 +33433,17 @@ pub fn discoveryengine_projects_locations_data_stores_widget_configs_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_widget_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresWidgetConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: acceptCache
+    pub acceptCache: Option<bool>,
+    /// Query parameter: getWidgetConfigRequestOption_turnOffCollectionComponents
+    pub getWidgetConfigRequestOption_turnOffCollectionComponents: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/widgetConfigs/{widgetConfigsId}
 /// Gets a WidgetConfig.
 ///
@@ -31214,9 +33456,7 @@ pub fn discoveryengine_projects_locations_data_stores_widget_configs_get_execute
 
 pub fn discoveryengine_projects_locations_data_stores_widget_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
-    acceptCache: Option<bool>,
-    getWidgetConfigRequestOption_turnOffCollectionComponents: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsDataStoresWidgetConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1WidgetConfig>, ApiError>,
@@ -31227,9 +33467,9 @@ pub fn discoveryengine_projects_locations_data_stores_widget_configs_get(
 > {
     let builder = discoveryengine_projects_locations_data_stores_widget_configs_get_builder(
         client,
-        name,
-        acceptCache,
-        getWidgetConfigRequestOption_turnOffCollectionComponents,
+        &args.name,
+        args.acceptCache,
+        args.getWidgetConfigRequestOption_turnOffCollectionComponents,
     )?;
     discoveryengine_projects_locations_data_stores_widget_configs_get_execute(builder)
 }
@@ -31343,6 +33583,17 @@ pub fn discoveryengine_projects_locations_data_stores_widget_configs_patch_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_data_stores_widget_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsDataStoresWidgetConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1WidgetConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataStores/{dataStoresId}/widgetConfigs/{widgetConfigsId}
 /// Update a WidgetConfig.
 ///
@@ -31355,9 +33606,7 @@ pub fn discoveryengine_projects_locations_data_stores_widget_configs_patch_execu
 
 pub fn discoveryengine_projects_locations_data_stores_widget_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1WidgetConfig,
+    args: &DiscoveryengineProjectsLocationsDataStoresWidgetConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1WidgetConfig>, ApiError>,
@@ -31367,7 +33616,10 @@ pub fn discoveryengine_projects_locations_data_stores_widget_configs_patch(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_data_stores_widget_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_data_stores_widget_configs_patch_execute(builder)
 }
@@ -31470,6 +33722,15 @@ pub fn discoveryengine_projects_locations_grounding_configs_check_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_grounding_configs_check`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsGroundingConfigsCheckArgs {
+    /// Path parameter: groundingConfig
+    pub groundingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1CheckGroundingRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groundingConfigs/{groundingConfigsId}:check
 /// Performs a grounding check.
 ///
@@ -31482,8 +33743,7 @@ pub fn discoveryengine_projects_locations_grounding_configs_check_execute(
 
 pub fn discoveryengine_projects_locations_grounding_configs_check(
     client: &SimpleHttpClient,
-    groundingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1CheckGroundingRequest,
+    args: &DiscoveryengineProjectsLocationsGroundingConfigsCheckArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1CheckGroundingResponse>, ApiError>,
@@ -31494,8 +33754,8 @@ pub fn discoveryengine_projects_locations_grounding_configs_check(
 > {
     let builder = discoveryengine_projects_locations_grounding_configs_check_builder(
         client,
-        groundingConfig,
-        body,
+        &args.groundingConfig,
+        &args.body,
     )?;
     discoveryengine_projects_locations_grounding_configs_check_execute(builder)
 }
@@ -31618,6 +33878,21 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_identity_mapping_stores_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsIdentityMappingStoresCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: cmekConfigName
+    pub cmekConfigName: Option<String>,
+    /// Query parameter: disableCmek
+    pub disableCmek: Option<bool>,
+    /// Query parameter: identityMappingStoreId
+    pub identityMappingStoreId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1IdentityMappingStore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores
 /// Creates a new Identity Mapping Store.
 ///
@@ -31630,11 +33905,7 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_create_execute
 
 pub fn discoveryengine_projects_locations_identity_mapping_stores_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    cmekConfigName: Option<&str>,
-    disableCmek: Option<bool>,
-    identityMappingStoreId: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1IdentityMappingStore,
+    args: &DiscoveryengineProjectsLocationsIdentityMappingStoresCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1IdentityMappingStore>, ApiError>,
@@ -31645,11 +33916,11 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_create(
 > {
     let builder = discoveryengine_projects_locations_identity_mapping_stores_create_builder(
         client,
-        parent,
-        cmekConfigName,
-        disableCmek,
-        identityMappingStoreId,
-        body,
+        &args.parent,
+        args.cmekConfigName.as_deref(),
+        args.disableCmek,
+        args.identityMappingStoreId.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_identity_mapping_stores_create_execute(builder)
 }
@@ -31748,6 +34019,13 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_identity_mapping_stores_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsIdentityMappingStoresDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}
 /// Deletes the Identity Mapping Store.
 ///
@@ -31760,7 +34038,7 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_delete_execute
 
 pub fn discoveryengine_projects_locations_identity_mapping_stores_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsIdentityMappingStoresDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -31769,8 +34047,9 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        discoveryengine_projects_locations_identity_mapping_stores_delete_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_identity_mapping_stores_delete_builder(
+        client, &args.name,
+    )?;
     discoveryengine_projects_locations_identity_mapping_stores_delete_execute(builder)
 }
 
@@ -31869,6 +34148,13 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_identity_mapping_stores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsIdentityMappingStoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}
 /// Gets the Identity Mapping Store.
 ///
@@ -31881,7 +34167,7 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_get_execute(
 
 pub fn discoveryengine_projects_locations_identity_mapping_stores_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsIdentityMappingStoresGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1IdentityMappingStore>, ApiError>,
@@ -31891,7 +34177,7 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_get(
     ApiError,
 > {
     let builder =
-        discoveryengine_projects_locations_identity_mapping_stores_get_builder(client, name)?;
+        discoveryengine_projects_locations_identity_mapping_stores_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_identity_mapping_stores_get_execute(builder)
 }
 
@@ -31992,6 +34278,15 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_import_identit
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_identity_mapping_stores_import_identity_mappings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsIdentityMappingStoresImportIdentityMappingsArgs {
+    /// Path parameter: identityMappingStore
+    pub identityMappingStore: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ImportIdentityMappingsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}:importIdentityMappings
 /// Imports a list of Identity Mapping Entries to an Identity Mapping Store.
 ///
@@ -32004,8 +34299,7 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_import_identit
 
 pub fn discoveryengine_projects_locations_identity_mapping_stores_import_identity_mappings(
     client: &SimpleHttpClient,
-    identityMappingStore: &str,
-    body: &GoogleCloudDiscoveryengineV1ImportIdentityMappingsRequest,
+    args: &DiscoveryengineProjectsLocationsIdentityMappingStoresImportIdentityMappingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -32014,7 +34308,7 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_import_identit
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_identity_mapping_stores_import_identity_mappings_builder(client, identityMappingStore, body)?;
+    let builder = discoveryengine_projects_locations_identity_mapping_stores_import_identity_mappings_builder(client, &args.identityMappingStore, &args.body)?;
     discoveryengine_projects_locations_identity_mapping_stores_import_identity_mappings_execute(
         builder,
     )
@@ -32134,6 +34428,17 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_identity_mapping_stores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsIdentityMappingStoresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores
 /// Lists all Identity Mapping Stores.
 ///
@@ -32146,9 +34451,7 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_list_execute(
 
 pub fn discoveryengine_projects_locations_identity_mapping_stores_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsIdentityMappingStoresListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -32161,7 +34464,10 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_identity_mapping_stores_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_identity_mapping_stores_list_execute(builder)
 }
@@ -32280,6 +34586,17 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_list_identity_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_identity_mapping_stores_list_identity_mappings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsIdentityMappingStoresListIdentityMappingsArgs {
+    /// Path parameter: identityMappingStore
+    pub identityMappingStore: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}:listIdentityMappings
 /// Lists Identity Mappings in an Identity Mapping Store.
 ///
@@ -32292,9 +34609,7 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_list_identity_
 
 pub fn discoveryengine_projects_locations_identity_mapping_stores_list_identity_mappings(
     client: &SimpleHttpClient,
-    identityMappingStore: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsIdentityMappingStoresListIdentityMappingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -32309,9 +34624,9 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_list_identity_
     let builder =
         discoveryengine_projects_locations_identity_mapping_stores_list_identity_mappings_builder(
             client,
-            identityMappingStore,
-            pageSize,
-            pageToken,
+            &args.identityMappingStore,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     discoveryengine_projects_locations_identity_mapping_stores_list_identity_mappings_execute(
         builder,
@@ -32415,6 +34730,15 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_purge_identity
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_identity_mapping_stores_purge_identity_mappings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsIdentityMappingStoresPurgeIdentityMappingsArgs {
+    /// Path parameter: identityMappingStore
+    pub identityMappingStore: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1PurgeIdentityMappingsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}:purgeIdentityMappings
 /// Purges specified or all Identity Mapping Entries from an Identity Mapping Store.
 ///
@@ -32427,8 +34751,7 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_purge_identity
 
 pub fn discoveryengine_projects_locations_identity_mapping_stores_purge_identity_mappings(
     client: &SimpleHttpClient,
-    identityMappingStore: &str,
-    body: &GoogleCloudDiscoveryengineV1PurgeIdentityMappingsRequest,
+    args: &DiscoveryengineProjectsLocationsIdentityMappingStoresPurgeIdentityMappingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -32440,8 +34763,8 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_purge_identity
     let builder =
         discoveryengine_projects_locations_identity_mapping_stores_purge_identity_mappings_builder(
             client,
-            identityMappingStore,
-            body,
+            &args.identityMappingStore,
+            &args.body,
         )?;
     discoveryengine_projects_locations_identity_mapping_stores_purge_identity_mappings_execute(
         builder,
@@ -32542,6 +34865,13 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_get
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_identity_mapping_stores_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsIdentityMappingStoresOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -32554,7 +34884,7 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_get
 
 pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsIdentityMappingStoresOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -32565,7 +34895,7 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_get
 > {
     let builder =
         discoveryengine_projects_locations_identity_mapping_stores_operations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     discoveryengine_projects_locations_identity_mapping_stores_operations_get_execute(builder)
 }
@@ -32689,6 +35019,21 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_lis
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_identity_mapping_stores_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsIdentityMappingStoresOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/identityMappingStores/{identityMappingStoresId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -32701,11 +35046,7 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_lis
 
 pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsIdentityMappingStoresOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -32717,11 +35058,11 @@ pub fn discoveryengine_projects_locations_identity_mapping_stores_operations_lis
     let builder =
         discoveryengine_projects_locations_identity_mapping_stores_operations_list_builder(
             client,
-            name,
-            filter,
-            pageSize,
-            pageToken,
-            returnPartialSuccess,
+            &args.name,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.returnPartialSuccess,
         )?;
     discoveryengine_projects_locations_identity_mapping_stores_operations_list_execute(builder)
 }
@@ -32835,6 +35176,17 @@ pub fn discoveryengine_projects_locations_license_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_license_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsLicenseConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: licenseConfigId
+    pub licenseConfigId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1LicenseConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/licenseConfigs
 /// Creates a LicenseConfig This method should only be used for creating NotebookLm licenses or Gemini Enterprise free trial licenses.
 ///
@@ -32847,9 +35199,7 @@ pub fn discoveryengine_projects_locations_license_configs_create_execute(
 
 pub fn discoveryengine_projects_locations_license_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    licenseConfigId: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1LicenseConfig,
+    args: &DiscoveryengineProjectsLocationsLicenseConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1LicenseConfig>, ApiError>,
@@ -32860,9 +35210,9 @@ pub fn discoveryengine_projects_locations_license_configs_create(
 > {
     let builder = discoveryengine_projects_locations_license_configs_create_builder(
         client,
-        parent,
-        licenseConfigId,
-        body,
+        &args.parent,
+        args.licenseConfigId.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_license_configs_create_execute(builder)
 }
@@ -32961,6 +35311,13 @@ pub fn discoveryengine_projects_locations_license_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_license_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsLicenseConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/licenseConfigs/{licenseConfigsId}
 /// Gets a LicenseConfig.
 ///
@@ -32973,7 +35330,7 @@ pub fn discoveryengine_projects_locations_license_configs_get_execute(
 
 pub fn discoveryengine_projects_locations_license_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsLicenseConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1LicenseConfig>, ApiError>,
@@ -32982,7 +35339,8 @@ pub fn discoveryengine_projects_locations_license_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_license_configs_get_builder(client, name)?;
+    let builder =
+        discoveryengine_projects_locations_license_configs_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_license_configs_get_execute(builder)
 }
 
@@ -33095,6 +35453,17 @@ pub fn discoveryengine_projects_locations_license_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_license_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsLicenseConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1LicenseConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/licenseConfigs/{licenseConfigsId}
 /// Updates the LicenseConfig
 ///
@@ -33107,9 +35476,7 @@ pub fn discoveryengine_projects_locations_license_configs_patch_execute(
 
 pub fn discoveryengine_projects_locations_license_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1LicenseConfig,
+    args: &DiscoveryengineProjectsLocationsLicenseConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1LicenseConfig>, ApiError>,
@@ -33119,7 +35486,10 @@ pub fn discoveryengine_projects_locations_license_configs_patch(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_license_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_license_configs_patch_execute(builder)
 }
@@ -33218,6 +35588,13 @@ pub fn discoveryengine_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -33230,7 +35607,7 @@ pub fn discoveryengine_projects_locations_operations_get_execute(
 
 pub fn discoveryengine_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -33239,7 +35616,7 @@ pub fn discoveryengine_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_operations_get_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_operations_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_operations_get_execute(builder)
 }
 
@@ -33362,6 +35739,21 @@ pub fn discoveryengine_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -33374,11 +35766,7 @@ pub fn discoveryengine_projects_locations_operations_list_execute(
 
 pub fn discoveryengine_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DiscoveryengineProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -33389,11 +35777,11 @@ pub fn discoveryengine_projects_locations_operations_list(
 > {
     let builder = discoveryengine_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     discoveryengine_projects_locations_operations_list_execute(builder)
 }
@@ -33492,6 +35880,13 @@ pub fn discoveryengine_projects_locations_podcasts_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_podcasts_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsPodcastsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/podcasts/{podcastsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -33504,7 +35899,7 @@ pub fn discoveryengine_projects_locations_podcasts_operations_get_execute(
 
 pub fn discoveryengine_projects_locations_podcasts_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsPodcastsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -33513,7 +35908,8 @@ pub fn discoveryengine_projects_locations_podcasts_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_podcasts_operations_get_builder(client, name)?;
+    let builder =
+        discoveryengine_projects_locations_podcasts_operations_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_podcasts_operations_get_execute(builder)
 }
 
@@ -33614,6 +36010,15 @@ pub fn discoveryengine_projects_locations_ranking_configs_rank_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_ranking_configs_rank`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsRankingConfigsRankArgs {
+    /// Path parameter: rankingConfig
+    pub rankingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1RankRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/rankingConfigs/{rankingConfigsId}:rank
 /// Ranks a list of text records based on the given input query.
 ///
@@ -33626,8 +36031,7 @@ pub fn discoveryengine_projects_locations_ranking_configs_rank_execute(
 
 pub fn discoveryengine_projects_locations_ranking_configs_rank(
     client: &SimpleHttpClient,
-    rankingConfig: &str,
-    body: &GoogleCloudDiscoveryengineV1RankRequest,
+    args: &DiscoveryengineProjectsLocationsRankingConfigsRankArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1RankResponse>, ApiError>,
@@ -33638,8 +36042,8 @@ pub fn discoveryengine_projects_locations_ranking_configs_rank(
 > {
     let builder = discoveryengine_projects_locations_ranking_configs_rank_builder(
         client,
-        rankingConfig,
-        body,
+        &args.rankingConfig,
+        &args.body,
     )?;
     discoveryengine_projects_locations_ranking_configs_rank_execute(builder)
 }
@@ -33756,6 +36160,19 @@ pub fn discoveryengine_projects_locations_user_events_collect_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_user_events_collect`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsUserEventsCollectArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: ets
+    pub ets: Option<String>,
+    /// Query parameter: uri
+    pub uri: Option<String>,
+    /// Query parameter: userEvent
+    pub userEvent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/userEvents:collect
 /// Writes a single user event from the browser. This uses a GET request to due to browser restriction of POST-ing to a third-party domain. This method is used only by the Discovery Engine API JavaScript pixel and Google Tag Manager. Users should not call this method directly.
 ///
@@ -33768,10 +36185,7 @@ pub fn discoveryengine_projects_locations_user_events_collect_execute(
 
 pub fn discoveryengine_projects_locations_user_events_collect(
     client: &SimpleHttpClient,
-    parent: &str,
-    ets: Option<&str>,
-    uri: Option<&str>,
-    userEvent: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsUserEventsCollectArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApiHttpBody>, ApiError>, P = ApiPending>
         + Send
@@ -33779,7 +36193,11 @@ pub fn discoveryengine_projects_locations_user_events_collect(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_user_events_collect_builder(
-        client, parent, ets, uri, userEvent,
+        client,
+        &args.parent,
+        args.ets.as_deref(),
+        args.uri.as_deref(),
+        args.userEvent.as_deref(),
     )?;
     discoveryengine_projects_locations_user_events_collect_execute(builder)
 }
@@ -33881,6 +36299,15 @@ pub fn discoveryengine_projects_locations_user_events_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_user_events_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsUserEventsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1ImportUserEventsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/userEvents:import
 /// Bulk import of user events. Request processing might be synchronous. Events that already exist are skipped. Use this method for backfilling historical user events. Operation.response is of type ImportResponse. Note that it is possible for a subset of the items to be successfully inserted. Operation.metadata is of type ImportMetadata.
 ///
@@ -33893,8 +36320,7 @@ pub fn discoveryengine_projects_locations_user_events_import_execute(
 
 pub fn discoveryengine_projects_locations_user_events_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1ImportUserEventsRequest,
+    args: &DiscoveryengineProjectsLocationsUserEventsImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -33903,8 +36329,11 @@ pub fn discoveryengine_projects_locations_user_events_import(
         + 'static,
     ApiError,
 > {
-    let builder =
-        discoveryengine_projects_locations_user_events_import_builder(client, parent, body)?;
+    let builder = discoveryengine_projects_locations_user_events_import_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     discoveryengine_projects_locations_user_events_import_execute(builder)
 }
 
@@ -34017,6 +36446,17 @@ pub fn discoveryengine_projects_locations_user_events_write_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_user_events_write`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsUserEventsWriteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: writeAsync
+    pub writeAsync: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1UserEvent,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/userEvents:write
 /// Writes a single user event.
 ///
@@ -34029,9 +36469,7 @@ pub fn discoveryengine_projects_locations_user_events_write_execute(
 
 pub fn discoveryengine_projects_locations_user_events_write(
     client: &SimpleHttpClient,
-    parent: &str,
-    writeAsync: Option<bool>,
-    body: &GoogleCloudDiscoveryengineV1UserEvent,
+    args: &DiscoveryengineProjectsLocationsUserEventsWriteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1UserEvent>, ApiError>,
@@ -34041,7 +36479,10 @@ pub fn discoveryengine_projects_locations_user_events_write(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_user_events_write_builder(
-        client, parent, writeAsync, body,
+        client,
+        &args.parent,
+        args.writeAsync,
+        &args.body,
     )?;
     discoveryengine_projects_locations_user_events_write_execute(builder)
 }
@@ -34143,6 +36584,15 @@ pub fn discoveryengine_projects_locations_user_stores_batch_update_user_licenses
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_user_stores_batch_update_user_licenses`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsUserStoresBatchUpdateUserLicensesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1BatchUpdateUserLicensesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/userStores/{userStoresId}:batchUpdateUserLicenses
 /// Updates the User License. This method is used for batch `assign/unassign` licenses to users.
 ///
@@ -34155,8 +36605,7 @@ pub fn discoveryengine_projects_locations_user_stores_batch_update_user_licenses
 
 pub fn discoveryengine_projects_locations_user_stores_batch_update_user_licenses(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDiscoveryengineV1BatchUpdateUserLicensesRequest,
+    args: &DiscoveryengineProjectsLocationsUserStoresBatchUpdateUserLicensesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -34167,7 +36616,9 @@ pub fn discoveryengine_projects_locations_user_stores_batch_update_user_licenses
 > {
     let builder =
         discoveryengine_projects_locations_user_stores_batch_update_user_licenses_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     discoveryengine_projects_locations_user_stores_batch_update_user_licenses_execute(builder)
 }
@@ -34266,6 +36717,13 @@ pub fn discoveryengine_projects_locations_user_stores_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_user_stores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsUserStoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/userStores/{userStoresId}
 /// Gets the User Store.
 ///
@@ -34278,7 +36736,7 @@ pub fn discoveryengine_projects_locations_user_stores_get_execute(
 
 pub fn discoveryengine_projects_locations_user_stores_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsLocationsUserStoresGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1UserStore>, ApiError>,
@@ -34287,7 +36745,7 @@ pub fn discoveryengine_projects_locations_user_stores_get(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_locations_user_stores_get_builder(client, name)?;
+    let builder = discoveryengine_projects_locations_user_stores_get_builder(client, &args.name)?;
     discoveryengine_projects_locations_user_stores_get_execute(builder)
 }
 
@@ -34400,6 +36858,17 @@ pub fn discoveryengine_projects_locations_user_stores_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_user_stores_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsUserStoresPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDiscoveryengineV1UserStore,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/userStores/{userStoresId}
 /// Updates the User Store.
 ///
@@ -34412,9 +36881,7 @@ pub fn discoveryengine_projects_locations_user_stores_patch_execute(
 
 pub fn discoveryengine_projects_locations_user_stores_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDiscoveryengineV1UserStore,
+    args: &DiscoveryengineProjectsLocationsUserStoresPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1UserStore>, ApiError>,
@@ -34424,7 +36891,10 @@ pub fn discoveryengine_projects_locations_user_stores_patch(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_user_stores_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     discoveryengine_projects_locations_user_stores_patch_execute(builder)
 }
@@ -34527,6 +36997,13 @@ pub fn discoveryengine_projects_locations_user_stores_license_configs_usage_stat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_user_stores_license_configs_usage_stats_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsUserStoresLicenseConfigsUsageStatsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/userStores/{userStoresId}/licenseConfigsUsageStats
 /// Lists all the LicenseConfigUsageStatss associated with the project.
 ///
@@ -34539,7 +37016,7 @@ pub fn discoveryengine_projects_locations_user_stores_license_configs_usage_stat
 
 pub fn discoveryengine_projects_locations_user_stores_license_configs_usage_stats_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &DiscoveryengineProjectsLocationsUserStoresLicenseConfigsUsageStatsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -34553,7 +37030,8 @@ pub fn discoveryengine_projects_locations_user_stores_license_configs_usage_stat
 > {
     let builder =
         discoveryengine_projects_locations_user_stores_license_configs_usage_stats_list_builder(
-            client, parent,
+            client,
+            &args.parent,
         )?;
     discoveryengine_projects_locations_user_stores_license_configs_usage_stats_list_execute(builder)
 }
@@ -34673,6 +37151,19 @@ pub fn discoveryengine_projects_locations_user_stores_user_licenses_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_locations_user_stores_user_licenses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsLocationsUserStoresUserLicensesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/userStores/{userStoresId}/userLicenses
 /// Lists the User Licenses.
 ///
@@ -34685,10 +37176,7 @@ pub fn discoveryengine_projects_locations_user_stores_user_licenses_list_execute
 
 pub fn discoveryengine_projects_locations_user_stores_user_licenses_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DiscoveryengineProjectsLocationsUserStoresUserLicensesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDiscoveryengineV1ListUserLicensesResponse>, ApiError>,
@@ -34698,7 +37186,11 @@ pub fn discoveryengine_projects_locations_user_stores_user_licenses_list(
     ApiError,
 > {
     let builder = discoveryengine_projects_locations_user_stores_user_licenses_list_builder(
-        client, parent, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     discoveryengine_projects_locations_user_stores_user_licenses_list_execute(builder)
 }
@@ -34798,6 +37290,15 @@ pub fn discoveryengine_projects_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -34810,15 +37311,15 @@ pub fn discoveryengine_projects_operations_cancel_execute(
 
 pub fn discoveryengine_projects_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &DiscoveryengineProjectsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_operations_cancel_builder(client, name, body)?;
+    let builder =
+        discoveryengine_projects_operations_cancel_builder(client, &args.name, &args.body)?;
     discoveryengine_projects_operations_cancel_execute(builder)
 }
 
@@ -34916,6 +37417,13 @@ pub fn discoveryengine_projects_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -34928,7 +37436,7 @@ pub fn discoveryengine_projects_operations_get_execute(
 
 pub fn discoveryengine_projects_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DiscoveryengineProjectsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -34937,7 +37445,7 @@ pub fn discoveryengine_projects_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = discoveryengine_projects_operations_get_builder(client, name)?;
+    let builder = discoveryengine_projects_operations_get_builder(client, &args.name)?;
     discoveryengine_projects_operations_get_execute(builder)
 }
 
@@ -35060,6 +37568,21 @@ pub fn discoveryengine_projects_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discoveryengine_projects_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryengineProjectsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -35072,11 +37595,7 @@ pub fn discoveryengine_projects_operations_list_execute(
 
 pub fn discoveryengine_projects_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DiscoveryengineProjectsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -35087,11 +37606,11 @@ pub fn discoveryengine_projects_operations_list(
 > {
     let builder = discoveryengine_projects_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     discoveryengine_projects_operations_list_execute(builder)
 }

@@ -51,7 +51,11 @@ pub struct ApiResponse<T> {
 pub enum ApiError {
     RequestBuildFailed(String),
     RequestSendFailed(String),
-    HttpStatus { code: u16, headers: SimpleHeaders, body: Option<String> },
+    HttpStatus {
+        code: u16,
+        headers: SimpleHeaders,
+        body: Option<String>,
+    },
     ApiError(ApiErrorDetails),
     ParseFailed(String),
 }
@@ -82,4 +86,3 @@ pub enum ApiPending {
     Building,
     Sending,
 }
-

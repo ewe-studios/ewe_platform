@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn workloadmanager_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn workloadmanager_projects_locations_get_execute(
 
 pub fn workloadmanager_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkloadmanagerProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workloadmanager_projects_locations_get_builder(client, name)?;
+    let builder = workloadmanager_projects_locations_get_builder(client, &args.name)?;
     workloadmanager_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn workloadmanager_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -255,11 +279,7 @@ pub fn workloadmanager_projects_locations_list_execute(
 
 pub fn workloadmanager_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkloadmanagerProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn workloadmanager_projects_locations_list(
 > {
     let builder = workloadmanager_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     workloadmanager_projects_locations_list_execute(builder)
 }
@@ -386,6 +406,19 @@ pub fn workloadmanager_projects_locations_deployments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deploymentId
+    pub deploymentId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Deployment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments
 /// Creates a new Deployment in a given project and location.
 ///
@@ -398,20 +431,17 @@ pub fn workloadmanager_projects_locations_deployments_create_execute(
 
 pub fn workloadmanager_projects_locations_deployments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    deploymentId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Deployment,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = workloadmanager_projects_locations_deployments_create_builder(
         client,
-        parent,
-        deploymentId,
-        requestId,
-        body,
+        &args.parent,
+        args.deploymentId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     workloadmanager_projects_locations_deployments_create_execute(builder)
 }
@@ -518,6 +548,15 @@ pub fn workloadmanager_projects_locations_deployments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
 /// Deletes a single Deployment.
 ///
@@ -530,14 +569,14 @@ pub fn workloadmanager_projects_locations_deployments_delete_execute(
 
 pub fn workloadmanager_projects_locations_deployments_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        workloadmanager_projects_locations_deployments_delete_builder(client, name, force)?;
+    let builder = workloadmanager_projects_locations_deployments_delete_builder(
+        client, &args.name, args.force,
+    )?;
     workloadmanager_projects_locations_deployments_delete_execute(builder)
 }
 
@@ -631,6 +670,13 @@ pub fn workloadmanager_projects_locations_deployments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
 /// Gets details of a single Deployment.
 ///
@@ -643,12 +689,12 @@ pub fn workloadmanager_projects_locations_deployments_get_execute(
 
 pub fn workloadmanager_projects_locations_deployments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workloadmanager_projects_locations_deployments_get_builder(client, name)?;
+    let builder = workloadmanager_projects_locations_deployments_get_builder(client, &args.name)?;
     workloadmanager_projects_locations_deployments_get_execute(builder)
 }
 
@@ -768,6 +814,21 @@ pub fn workloadmanager_projects_locations_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments
 /// Lists Deployments in a given project and location.
 ///
@@ -780,11 +841,7 @@ pub fn workloadmanager_projects_locations_deployments_list_execute(
 
 pub fn workloadmanager_projects_locations_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDeploymentsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -792,7 +849,12 @@ pub fn workloadmanager_projects_locations_deployments_list(
     ApiError,
 > {
     let builder = workloadmanager_projects_locations_deployments_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     workloadmanager_projects_locations_deployments_list_execute(builder)
 }
@@ -902,6 +964,17 @@ pub fn workloadmanager_projects_locations_deployments_actuations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_deployments_actuations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsActuationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Actuation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations
 /// Creates a new actuation for an existing Deployment.
 ///
@@ -914,15 +987,16 @@ pub fn workloadmanager_projects_locations_deployments_actuations_create_execute(
 
 pub fn workloadmanager_projects_locations_deployments_actuations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    body: &Actuation,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsActuationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = workloadmanager_projects_locations_deployments_actuations_create_builder(
-        client, parent, requestId, body,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     workloadmanager_projects_locations_deployments_actuations_create_execute(builder)
 }
@@ -1017,6 +1091,13 @@ pub fn workloadmanager_projects_locations_deployments_actuations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_deployments_actuations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsActuationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations/{actuationsId}
 /// Deletes a single Actuation
 ///
@@ -1029,13 +1110,14 @@ pub fn workloadmanager_projects_locations_deployments_actuations_delete_execute(
 
 pub fn workloadmanager_projects_locations_deployments_actuations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsActuationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        workloadmanager_projects_locations_deployments_actuations_delete_builder(client, name)?;
+    let builder = workloadmanager_projects_locations_deployments_actuations_delete_builder(
+        client, &args.name,
+    )?;
     workloadmanager_projects_locations_deployments_actuations_delete_execute(builder)
 }
 
@@ -1129,6 +1211,13 @@ pub fn workloadmanager_projects_locations_deployments_actuations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_deployments_actuations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsActuationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations/{actuationsId}
 /// Gets details of a single Actuation.
 ///
@@ -1141,13 +1230,13 @@ pub fn workloadmanager_projects_locations_deployments_actuations_get_execute(
 
 pub fn workloadmanager_projects_locations_deployments_actuations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsActuationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Actuation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        workloadmanager_projects_locations_deployments_actuations_get_builder(client, name)?;
+        workloadmanager_projects_locations_deployments_actuations_get_builder(client, &args.name)?;
     workloadmanager_projects_locations_deployments_actuations_get_execute(builder)
 }
 
@@ -1267,6 +1356,21 @@ pub fn workloadmanager_projects_locations_deployments_actuations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_deployments_actuations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDeploymentsActuationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}/actuations
 /// Lists Actuations in a given project, location and deployment.
 ///
@@ -1279,11 +1383,7 @@ pub fn workloadmanager_projects_locations_deployments_actuations_list_execute(
 
 pub fn workloadmanager_projects_locations_deployments_actuations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkloadmanagerProjectsLocationsDeploymentsActuationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListActuationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1291,7 +1391,12 @@ pub fn workloadmanager_projects_locations_deployments_actuations_list(
     ApiError,
 > {
     let builder = workloadmanager_projects_locations_deployments_actuations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     workloadmanager_projects_locations_deployments_actuations_list_execute(builder)
 }
@@ -1388,6 +1493,13 @@ pub fn workloadmanager_projects_locations_discoveredprofiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_discoveredprofiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDiscoveredprofilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredprofiles/{discoveredprofilesId}
 /// Gets details of a discovered workload profile.
 ///
@@ -1400,14 +1512,15 @@ pub fn workloadmanager_projects_locations_discoveredprofiles_get_execute(
 
 pub fn workloadmanager_projects_locations_discoveredprofiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkloadmanagerProjectsLocationsDiscoveredprofilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkloadProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = workloadmanager_projects_locations_discoveredprofiles_get_builder(client, name)?;
+    let builder =
+        workloadmanager_projects_locations_discoveredprofiles_get_builder(client, &args.name)?;
     workloadmanager_projects_locations_discoveredprofiles_get_execute(builder)
 }
 
@@ -1525,6 +1638,19 @@ pub fn workloadmanager_projects_locations_discoveredprofiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_discoveredprofiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDiscoveredprofilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredprofiles
 /// List discovered workload profiles
 ///
@@ -1537,10 +1663,7 @@ pub fn workloadmanager_projects_locations_discoveredprofiles_list_execute(
 
 pub fn workloadmanager_projects_locations_discoveredprofiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkloadmanagerProjectsLocationsDiscoveredprofilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDiscoveredProfilesResponse>, ApiError>,
@@ -1550,7 +1673,11 @@ pub fn workloadmanager_projects_locations_discoveredprofiles_list(
     ApiError,
 > {
     let builder = workloadmanager_projects_locations_discoveredprofiles_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     workloadmanager_projects_locations_discoveredprofiles_list_execute(builder)
 }
@@ -1647,6 +1774,13 @@ pub fn workloadmanager_projects_locations_discoveredprofiles_health_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_discoveredprofiles_health_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsDiscoveredprofilesHealthGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredprofiles/{discoveredprofilesId}/health/{healthId}
 /// Get the health of a discovered workload profile.
 ///
@@ -1659,15 +1793,16 @@ pub fn workloadmanager_projects_locations_discoveredprofiles_health_get_execute(
 
 pub fn workloadmanager_projects_locations_discoveredprofiles_health_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkloadmanagerProjectsLocationsDiscoveredprofilesHealthGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkloadProfileHealth>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        workloadmanager_projects_locations_discoveredprofiles_health_get_builder(client, name)?;
+    let builder = workloadmanager_projects_locations_discoveredprofiles_health_get_builder(
+        client, &args.name,
+    )?;
     workloadmanager_projects_locations_discoveredprofiles_health_get_execute(builder)
 }
 
@@ -1780,6 +1915,19 @@ pub fn workloadmanager_projects_locations_evaluations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_evaluations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: evaluationId
+    pub evaluationId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Evaluation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations
 /// Creates a new Evaluation in a given project and location.
 ///
@@ -1792,20 +1940,17 @@ pub fn workloadmanager_projects_locations_evaluations_create_execute(
 
 pub fn workloadmanager_projects_locations_evaluations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    evaluationId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Evaluation,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = workloadmanager_projects_locations_evaluations_create_builder(
         client,
-        parent,
-        evaluationId,
-        requestId,
-        body,
+        &args.parent,
+        args.evaluationId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     workloadmanager_projects_locations_evaluations_create_execute(builder)
 }
@@ -1916,6 +2061,17 @@ pub fn workloadmanager_projects_locations_evaluations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_evaluations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}
 /// Deletes a single Evaluation.
 ///
@@ -1928,15 +2084,16 @@ pub fn workloadmanager_projects_locations_evaluations_delete_execute(
 
 pub fn workloadmanager_projects_locations_evaluations_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    requestId: Option<&str>,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = workloadmanager_projects_locations_evaluations_delete_builder(
-        client, name, force, requestId,
+        client,
+        &args.name,
+        args.force,
+        args.requestId.as_deref(),
     )?;
     workloadmanager_projects_locations_evaluations_delete_execute(builder)
 }
@@ -2031,6 +2188,13 @@ pub fn workloadmanager_projects_locations_evaluations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_evaluations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}
 /// Gets details of a single Evaluation.
 ///
@@ -2043,12 +2207,12 @@ pub fn workloadmanager_projects_locations_evaluations_get_execute(
 
 pub fn workloadmanager_projects_locations_evaluations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Evaluation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workloadmanager_projects_locations_evaluations_get_builder(client, name)?;
+    let builder = workloadmanager_projects_locations_evaluations_get_builder(client, &args.name)?;
     workloadmanager_projects_locations_evaluations_get_execute(builder)
 }
 
@@ -2168,6 +2332,21 @@ pub fn workloadmanager_projects_locations_evaluations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_evaluations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations
 /// Lists Evaluations in a given project and location.
 ///
@@ -2180,11 +2359,7 @@ pub fn workloadmanager_projects_locations_evaluations_list_execute(
 
 pub fn workloadmanager_projects_locations_evaluations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListEvaluationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2192,7 +2367,12 @@ pub fn workloadmanager_projects_locations_evaluations_list(
     ApiError,
 > {
     let builder = workloadmanager_projects_locations_evaluations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     workloadmanager_projects_locations_evaluations_list_execute(builder)
 }
@@ -2306,6 +2486,19 @@ pub fn workloadmanager_projects_locations_evaluations_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_evaluations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Evaluation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}
 /// Updates the parameters of a single Evaluation.
 ///
@@ -2318,16 +2511,17 @@ pub fn workloadmanager_projects_locations_evaluations_patch_execute(
 
 pub fn workloadmanager_projects_locations_evaluations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Evaluation,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = workloadmanager_projects_locations_evaluations_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     workloadmanager_projects_locations_evaluations_patch_execute(builder)
 }
@@ -2434,6 +2628,15 @@ pub fn workloadmanager_projects_locations_evaluations_executions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_evaluations_executions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsExecutionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}
 /// Deletes a single Execution.
 ///
@@ -2446,14 +2649,15 @@ pub fn workloadmanager_projects_locations_evaluations_executions_delete_execute(
 
 pub fn workloadmanager_projects_locations_evaluations_executions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = workloadmanager_projects_locations_evaluations_executions_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     workloadmanager_projects_locations_evaluations_executions_delete_execute(builder)
 }
@@ -2548,6 +2752,13 @@ pub fn workloadmanager_projects_locations_evaluations_executions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_evaluations_executions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsExecutionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}
 /// Gets details of a single Execution.
 ///
@@ -2560,13 +2771,13 @@ pub fn workloadmanager_projects_locations_evaluations_executions_get_execute(
 
 pub fn workloadmanager_projects_locations_evaluations_executions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        workloadmanager_projects_locations_evaluations_executions_get_builder(client, name)?;
+        workloadmanager_projects_locations_evaluations_executions_get_builder(client, &args.name)?;
     workloadmanager_projects_locations_evaluations_executions_get_execute(builder)
 }
 
@@ -2686,6 +2897,21 @@ pub fn workloadmanager_projects_locations_evaluations_executions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_evaluations_executions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsExecutionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions
 /// Lists Executions in a given project and location.
 ///
@@ -2698,11 +2924,7 @@ pub fn workloadmanager_projects_locations_evaluations_executions_list_execute(
 
 pub fn workloadmanager_projects_locations_evaluations_executions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListExecutionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2710,7 +2932,12 @@ pub fn workloadmanager_projects_locations_evaluations_executions_list(
     ApiError,
 > {
     let builder = workloadmanager_projects_locations_evaluations_executions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     workloadmanager_projects_locations_evaluations_executions_list_execute(builder)
 }
@@ -2808,6 +3035,15 @@ pub fn workloadmanager_projects_locations_evaluations_executions_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_evaluations_executions_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsExecutionsRunArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RunEvaluationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions:run
 /// Creates a new Execution in a given project and location.
 ///
@@ -2820,14 +3056,14 @@ pub fn workloadmanager_projects_locations_evaluations_executions_run_execute(
 
 pub fn workloadmanager_projects_locations_evaluations_executions_run(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RunEvaluationRequest,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsRunArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        workloadmanager_projects_locations_evaluations_executions_run_builder(client, name, body)?;
+    let builder = workloadmanager_projects_locations_evaluations_executions_run_builder(
+        client, &args.name, &args.body,
+    )?;
     workloadmanager_projects_locations_evaluations_executions_run_execute(builder)
 }
 
@@ -2945,6 +3181,19 @@ pub fn workloadmanager_projects_locations_evaluations_executions_results_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_evaluations_executions_results_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsExecutionsResultsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}/results
 /// Lists the result of a single evaluation.
 ///
@@ -2957,10 +3206,7 @@ pub fn workloadmanager_projects_locations_evaluations_executions_results_list_ex
 
 pub fn workloadmanager_projects_locations_evaluations_executions_results_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsResultsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListExecutionResultsResponse>, ApiError>,
@@ -2970,7 +3216,11 @@ pub fn workloadmanager_projects_locations_evaluations_executions_results_list(
     ApiError,
 > {
     let builder = workloadmanager_projects_locations_evaluations_executions_results_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     workloadmanager_projects_locations_evaluations_executions_results_list_execute(builder)
 }
@@ -3097,6 +3347,23 @@ pub fn workloadmanager_projects_locations_evaluations_executions_scanned_resourc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_evaluations_executions_scanned_resources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsEvaluationsExecutionsScannedResourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: rule
+    pub rule: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/evaluations/{evaluationsId}/executions/{executionsId}/scannedResources
 /// List all scanned resources for a single Execution.
 ///
@@ -3109,12 +3376,7 @@ pub fn workloadmanager_projects_locations_evaluations_executions_scanned_resourc
 
 pub fn workloadmanager_projects_locations_evaluations_executions_scanned_resources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    rule: Option<&str>,
+    args: &WorkloadmanagerProjectsLocationsEvaluationsExecutionsScannedResourcesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListScannedResourcesResponse>, ApiError>,
@@ -3125,7 +3387,13 @@ pub fn workloadmanager_projects_locations_evaluations_executions_scanned_resourc
 > {
     let builder =
         workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_builder(
-            client, parent, filter, orderBy, pageSize, pageToken, rule,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.rule.as_deref(),
         )?;
     workloadmanager_projects_locations_evaluations_executions_scanned_resources_list_execute(
         builder,
@@ -3234,6 +3502,15 @@ pub fn workloadmanager_projects_locations_insights_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_insights_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsInsightsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insights/{insightsId}
 /// Delete the data insights from workload manager data warehouse.
 ///
@@ -3246,14 +3523,16 @@ pub fn workloadmanager_projects_locations_insights_delete_execute(
 
 pub fn workloadmanager_projects_locations_insights_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &WorkloadmanagerProjectsLocationsInsightsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        workloadmanager_projects_locations_insights_delete_builder(client, name, requestId)?;
+    let builder = workloadmanager_projects_locations_insights_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     workloadmanager_projects_locations_insights_delete_execute(builder)
 }
 
@@ -3352,6 +3631,15 @@ pub fn workloadmanager_projects_locations_insights_write_insight_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_insights_write_insight`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsInsightsWriteInsightArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Request body.
+    pub body: WriteInsightRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insights:writeInsight
 /// Write the data insights to workload manager data warehouse.
 ///
@@ -3364,16 +3652,18 @@ pub fn workloadmanager_projects_locations_insights_write_insight_execute(
 
 pub fn workloadmanager_projects_locations_insights_write_insight(
     client: &SimpleHttpClient,
-    location: &str,
-    body: &WriteInsightRequest,
+    args: &WorkloadmanagerProjectsLocationsInsightsWriteInsightArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WriteInsightResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        workloadmanager_projects_locations_insights_write_insight_builder(client, location, body)?;
+    let builder = workloadmanager_projects_locations_insights_write_insight_builder(
+        client,
+        &args.location,
+        &args.body,
+    )?;
     workloadmanager_projects_locations_insights_write_insight_execute(builder)
 }
 
@@ -3470,6 +3760,15 @@ pub fn workloadmanager_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -3482,13 +3781,14 @@ pub fn workloadmanager_projects_locations_operations_cancel_execute(
 
 pub fn workloadmanager_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &WorkloadmanagerProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workloadmanager_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = workloadmanager_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     workloadmanager_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -3582,6 +3882,13 @@ pub fn workloadmanager_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -3594,12 +3901,12 @@ pub fn workloadmanager_projects_locations_operations_delete_execute(
 
 pub fn workloadmanager_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkloadmanagerProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workloadmanager_projects_locations_operations_delete_builder(client, name)?;
+    let builder = workloadmanager_projects_locations_operations_delete_builder(client, &args.name)?;
     workloadmanager_projects_locations_operations_delete_execute(builder)
 }
 
@@ -3693,6 +4000,13 @@ pub fn workloadmanager_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3705,12 +4019,12 @@ pub fn workloadmanager_projects_locations_operations_get_execute(
 
 pub fn workloadmanager_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkloadmanagerProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workloadmanager_projects_locations_operations_get_builder(client, name)?;
+    let builder = workloadmanager_projects_locations_operations_get_builder(client, &args.name)?;
     workloadmanager_projects_locations_operations_get_execute(builder)
 }
 
@@ -3830,6 +4144,21 @@ pub fn workloadmanager_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -3842,11 +4171,7 @@ pub fn workloadmanager_projects_locations_operations_list_execute(
 
 pub fn workloadmanager_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &WorkloadmanagerProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3855,11 +4180,11 @@ pub fn workloadmanager_projects_locations_operations_list(
 > {
     let builder = workloadmanager_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     workloadmanager_projects_locations_operations_list_execute(builder)
 }
@@ -3984,6 +4309,23 @@ pub fn workloadmanager_projects_locations_rules_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workloadmanager_projects_locations_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkloadmanagerProjectsLocationsRulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: customRulesBucket
+    pub customRulesBucket: Option<String>,
+    /// Query parameter: evaluationType
+    pub evaluationType: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/rules
 /// Lists rules in a given project.
 ///
@@ -3996,12 +4338,7 @@ pub fn workloadmanager_projects_locations_rules_list_execute(
 
 pub fn workloadmanager_projects_locations_rules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    customRulesBucket: Option<&str>,
-    evaluationType: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkloadmanagerProjectsLocationsRulesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRulesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4010,12 +4347,12 @@ pub fn workloadmanager_projects_locations_rules_list(
 > {
     let builder = workloadmanager_projects_locations_rules_list_builder(
         client,
-        parent,
-        customRulesBucket,
-        evaluationType,
-        filter,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.customRulesBucket.as_deref(),
+        args.evaluationType.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     workloadmanager_projects_locations_rules_list_execute(builder)
 }

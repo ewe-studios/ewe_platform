@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET toolresults/v1beta3/projects/{projectId}/settings
 /// Gets the Tool Results settings for a project. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read from project
@@ -108,6 +110,13 @@ pub fn toolresults_projects_get_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_get_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsGetSettingsArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/settings
 /// Gets the Tool Results settings for a project. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read from project
 ///
@@ -120,14 +129,14 @@ pub fn toolresults_projects_get_settings_execute(
 
 pub fn toolresults_projects_get_settings(
     client: &SimpleHttpClient,
-    projectId: &str,
+    args: &ToolresultsProjectsGetSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProjectSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = toolresults_projects_get_settings_builder(client, projectId)?;
+    let builder = toolresults_projects_get_settings_builder(client, &args.projectId)?;
     toolresults_projects_get_settings_execute(builder)
 }
 
@@ -223,6 +232,13 @@ pub fn toolresults_projects_initialize_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_initialize_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsInitializeSettingsArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}:initializeSettings
 /// Creates resources for settings which have not yet been set. Currently, this creates a single resource: a Google Cloud Storage bucket, to be used as the default bucket for this project. The bucket is created in an FTL-own storage project. Except for in rare cases, calling this method in parallel from multiple clients will only create a single bucket. In order to avoid unnecessary storage charges, the bucket is configured to automatically delete objects older than 60 days. The bucket is created with the following permissions: - Owner access for owners of central storage project (FTL-owned) - Writer access for `owners/editors` of customer project - Reader access for viewers of customer project The default ACL on objects created in the bucket is: - Owner access for owners of central storage project - Reader access for `owners/editors/viewers` of customer project See Google Cloud Storage documentation for more details. If there is already a default bucket set and the project can access the bucket, this call does nothing. However, if the project doesn't have the permission to access the bucket or the bucket is deleted, a new bucket will be created. May return any canonical error codes, including the following: - PERMISSION_DENIED - if the user is not authorized to write to project - Any error code raised by Google Cloud Storage
 ///
@@ -235,14 +251,14 @@ pub fn toolresults_projects_initialize_settings_execute(
 
 pub fn toolresults_projects_initialize_settings(
     client: &SimpleHttpClient,
-    projectId: &str,
+    args: &ToolresultsProjectsInitializeSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProjectSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = toolresults_projects_initialize_settings_builder(client, projectId)?;
+    let builder = toolresults_projects_initialize_settings_builder(client, &args.projectId)?;
     toolresults_projects_initialize_settings_execute(builder)
 }
 
@@ -351,6 +367,17 @@ pub fn toolresults_projects_histories_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesCreateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: History,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories
 /// Creates a History. The returned History will have the id set. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing project does not exist
 ///
@@ -363,15 +390,17 @@ pub fn toolresults_projects_histories_create_execute(
 
 pub fn toolresults_projects_histories_create(
     client: &SimpleHttpClient,
-    projectId: &str,
-    requestId: Option<&str>,
-    body: &History,
+    args: &ToolresultsProjectsHistoriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<History>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        toolresults_projects_histories_create_builder(client, projectId, requestId, body)?;
+    let builder = toolresults_projects_histories_create_builder(
+        client,
+        &args.projectId,
+        args.requestId.as_deref(),
+        &args.body,
+    )?;
     toolresults_projects_histories_create_execute(builder)
 }
 
@@ -466,6 +495,15 @@ pub fn toolresults_projects_histories_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}
 /// Gets a History. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the History does not exist
 ///
@@ -478,13 +516,13 @@ pub fn toolresults_projects_histories_get_execute(
 
 pub fn toolresults_projects_histories_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
+    args: &ToolresultsProjectsHistoriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<History>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = toolresults_projects_histories_get_builder(client, projectId, historyId)?;
+    let builder =
+        toolresults_projects_histories_get_builder(client, &args.projectId, &args.historyId)?;
     toolresults_projects_histories_get_execute(builder)
 }
 
@@ -600,6 +638,19 @@ pub fn toolresults_projects_histories_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: filterByName
+    pub filterByName: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories
 /// Lists Histories for a given Project. The histories are sorted by modification time in descending order. The history_id key will be used to order the history with the same modification time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the History does not exist
 ///
@@ -612,10 +663,7 @@ pub fn toolresults_projects_histories_list_execute(
 
 pub fn toolresults_projects_histories_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    filterByName: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ToolresultsProjectsHistoriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListHistoriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -624,10 +672,10 @@ pub fn toolresults_projects_histories_list(
 > {
     let builder = toolresults_projects_histories_list_builder(
         client,
-        projectId,
-        filterByName,
-        pageSize,
-        pageToken,
+        &args.projectId,
+        args.filterByName.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     toolresults_projects_histories_list_execute(builder)
 }
@@ -739,6 +787,19 @@ pub fn toolresults_projects_histories_executions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsCreateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Execution,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
 /// Creates an Execution. The returned Execution will have the id set. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing History does not exist
 ///
@@ -751,16 +812,17 @@ pub fn toolresults_projects_histories_executions_create_execute(
 
 pub fn toolresults_projects_histories_executions_create(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    requestId: Option<&str>,
-    body: &Execution,
+    args: &ToolresultsProjectsHistoriesExecutionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = toolresults_projects_histories_executions_create_builder(
-        client, projectId, historyId, requestId, body,
+        client,
+        &args.projectId,
+        &args.historyId,
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     toolresults_projects_histories_executions_create_execute(builder)
 }
@@ -859,6 +921,17 @@ pub fn toolresults_projects_histories_executions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}
 /// Gets an Execution. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the Execution does not exist
 ///
@@ -871,18 +944,16 @@ pub fn toolresults_projects_histories_executions_get_execute(
 
 pub fn toolresults_projects_histories_executions_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
+    args: &ToolresultsProjectsHistoriesExecutionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = toolresults_projects_histories_executions_get_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
     )?;
     toolresults_projects_histories_executions_get_execute(builder)
 }
@@ -997,6 +1068,19 @@ pub fn toolresults_projects_histories_executions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
 /// Lists Executions for a given History. The executions are sorted by creation_time in descending order. The execution_id key will be used to order the executions with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing History does not exist
 ///
@@ -1009,10 +1093,7 @@ pub fn toolresults_projects_histories_executions_list_execute(
 
 pub fn toolresults_projects_histories_executions_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ToolresultsProjectsHistoriesExecutionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListExecutionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1020,7 +1101,11 @@ pub fn toolresults_projects_histories_executions_list(
     ApiError,
 > {
     let builder = toolresults_projects_histories_executions_list_builder(
-        client, projectId, historyId, pageSize, pageToken,
+        client,
+        &args.projectId,
+        &args.historyId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     toolresults_projects_histories_executions_list_execute(builder)
 }
@@ -1134,6 +1219,21 @@ pub fn toolresults_projects_histories_executions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsPatchArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Execution,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}
 /// Updates an existing Execution with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal - NOT_FOUND - if the containing History does not exist
 ///
@@ -1146,22 +1246,18 @@ pub fn toolresults_projects_histories_executions_patch_execute(
 
 pub fn toolresults_projects_histories_executions_patch(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    requestId: Option<&str>,
-    body: &Execution,
+    args: &ToolresultsProjectsHistoriesExecutionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = toolresults_projects_histories_executions_patch_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
-        requestId,
-        body,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     toolresults_projects_histories_executions_patch_execute(builder)
 }
@@ -1264,6 +1360,19 @@ pub fn toolresults_projects_histories_executions_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsClustersGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: clusterId
+    pub clusterId: String,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/clusters/{clusterId}
 /// Retrieves a single screenshot cluster by its ID
 ///
@@ -1276,10 +1385,7 @@ pub fn toolresults_projects_histories_executions_clusters_get_execute(
 
 pub fn toolresults_projects_histories_executions_clusters_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    clusterId: &str,
+    args: &ToolresultsProjectsHistoriesExecutionsClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ScreenshotCluster>, ApiError>, P = ApiPending>
         + Send
@@ -1288,10 +1394,10 @@ pub fn toolresults_projects_histories_executions_clusters_get(
 > {
     let builder = toolresults_projects_histories_executions_clusters_get_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
-        clusterId,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.clusterId,
     )?;
     toolresults_projects_histories_executions_clusters_get_execute(builder)
 }
@@ -1394,6 +1500,17 @@ pub fn toolresults_projects_histories_executions_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsClustersListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/clusters
 /// Lists Screenshot Clusters Returns the list of screenshot clusters corresponding to an execution. Screenshot clusters are created after the execution is finished. Clusters are created from a set of screenshots. Between any two screenshots, a matching score is calculated based off their metadata that determines how similar they are. Screenshots are placed in the cluster that has screens which have the highest matching scores.
 ///
@@ -1406,9 +1523,7 @@ pub fn toolresults_projects_histories_executions_clusters_list_execute(
 
 pub fn toolresults_projects_histories_executions_clusters_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
+    args: &ToolresultsProjectsHistoriesExecutionsClustersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListScreenshotClustersResponse>, ApiError>,
@@ -1419,9 +1534,9 @@ pub fn toolresults_projects_histories_executions_clusters_list(
 > {
     let builder = toolresults_projects_histories_executions_clusters_list_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
     )?;
     toolresults_projects_histories_executions_clusters_list_execute(builder)
 }
@@ -1522,6 +1637,19 @@ pub fn toolresults_projects_histories_executions_environments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_environments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsEnvironmentsGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: environmentId
+    pub environmentId: String,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/environments/{environmentId}
 /// Gets an Environment. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the Environment does not exist
 ///
@@ -1534,20 +1662,17 @@ pub fn toolresults_projects_histories_executions_environments_get_execute(
 
 pub fn toolresults_projects_histories_executions_environments_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    environmentId: &str,
+    args: &ToolresultsProjectsHistoriesExecutionsEnvironmentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = toolresults_projects_histories_executions_environments_get_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
-        environmentId,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.environmentId,
     )?;
     toolresults_projects_histories_executions_environments_get_execute(builder)
 }
@@ -1664,6 +1789,21 @@ pub fn toolresults_projects_histories_executions_environments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_environments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsEnvironmentsListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/environments
 /// Lists Environments for a given Execution. The Environments are sorted by display name. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing Execution does not exist
 ///
@@ -1676,11 +1816,7 @@ pub fn toolresults_projects_histories_executions_environments_list_execute(
 
 pub fn toolresults_projects_histories_executions_environments_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ToolresultsProjectsHistoriesExecutionsEnvironmentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListEnvironmentsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1689,11 +1825,11 @@ pub fn toolresults_projects_histories_executions_environments_list(
 > {
     let builder = toolresults_projects_histories_executions_environments_list_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
-        pageSize,
-        pageToken,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     toolresults_projects_histories_executions_environments_list_execute(builder)
 }
@@ -1804,6 +1940,15 @@ pub fn toolresults_projects_histories_executions_steps_accessibility_clusters_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_accessibility_clusters`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsAccessibilityClustersArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: locale
+    pub locale: Option<String>,
+}
+
 /// GET toolresults/v1beta3/projects/{projectsId}/histories/{historiesId}/executions/{executionsId}/steps/{stepsId}:accessibilityClusters
 /// Lists accessibility clusters for a given Step May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if the locale format is incorrect - NOT_FOUND - if the containing Step does not exist
 ///
@@ -1816,8 +1961,7 @@ pub fn toolresults_projects_histories_executions_steps_accessibility_clusters_ex
 
 pub fn toolresults_projects_histories_executions_steps_accessibility_clusters(
     client: &SimpleHttpClient,
-    name: &str,
-    locale: Option<&str>,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsAccessibilityClustersArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListStepAccessibilityClustersResponse>, ApiError>,
@@ -1827,7 +1971,9 @@ pub fn toolresults_projects_histories_executions_steps_accessibility_clusters(
     ApiError,
 > {
     let builder = toolresults_projects_histories_executions_steps_accessibility_clusters_builder(
-        client, name, locale,
+        client,
+        &args.name,
+        args.locale.as_deref(),
     )?;
     toolresults_projects_histories_executions_steps_accessibility_clusters_execute(builder)
 }
@@ -1941,6 +2087,21 @@ pub fn toolresults_projects_histories_executions_steps_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsCreateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Step,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
 /// Creates a Step. The returned Step will have the id set. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the step is too large (more than 10Mib) - NOT_FOUND - if the containing Execution does not exist
 ///
@@ -1953,22 +2114,18 @@ pub fn toolresults_projects_histories_executions_steps_create_execute(
 
 pub fn toolresults_projects_histories_executions_steps_create(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    requestId: Option<&str>,
-    body: &Step,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Step>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = toolresults_projects_histories_executions_steps_create_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
-        requestId,
-        body,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     toolresults_projects_histories_executions_steps_create_execute(builder)
 }
@@ -2069,6 +2226,19 @@ pub fn toolresults_projects_histories_executions_steps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}
 /// Gets a Step. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the Step does not exist
 ///
@@ -2081,20 +2251,17 @@ pub fn toolresults_projects_histories_executions_steps_get_execute(
 
 pub fn toolresults_projects_histories_executions_steps_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Step>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = toolresults_projects_histories_executions_steps_get_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
-        stepId,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
     )?;
     toolresults_projects_histories_executions_steps_get_execute(builder)
 }
@@ -2197,6 +2364,19 @@ pub fn toolresults_projects_histories_executions_steps_get_perf_metrics_summary_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_get_perf_metrics_summary`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsGetPerfMetricsSummaryArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfMetricsSummary
 /// Retrieves a PerfMetricsSummary. May return any of the following error code(s): - NOT_FOUND - The specified PerfMetricsSummary does not exist
 ///
@@ -2209,10 +2389,7 @@ pub fn toolresults_projects_histories_executions_steps_get_perf_metrics_summary_
 
 pub fn toolresults_projects_histories_executions_steps_get_perf_metrics_summary(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsGetPerfMetricsSummaryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PerfMetricsSummary>, ApiError>, P = ApiPending>
         + Send
@@ -2221,10 +2398,10 @@ pub fn toolresults_projects_histories_executions_steps_get_perf_metrics_summary(
 > {
     let builder = toolresults_projects_histories_executions_steps_get_perf_metrics_summary_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
-        stepId,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
     )?;
     toolresults_projects_histories_executions_steps_get_perf_metrics_summary_execute(builder)
 }
@@ -2341,6 +2518,21 @@ pub fn toolresults_projects_histories_executions_steps_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
 /// Lists Steps for a given Execution. The steps are sorted by creation_time in descending order. The step_id key will be used to order the steps with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if an attempt is made to list the children of a nonexistent Step - NOT_FOUND - if the containing Execution does not exist
 ///
@@ -2353,11 +2545,7 @@ pub fn toolresults_projects_histories_executions_steps_list_execute(
 
 pub fn toolresults_projects_histories_executions_steps_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListStepsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2366,11 +2554,11 @@ pub fn toolresults_projects_histories_executions_steps_list(
 > {
     let builder = toolresults_projects_histories_executions_steps_list_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
-        pageSize,
-        pageToken,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     toolresults_projects_histories_executions_steps_list_execute(builder)
 }
@@ -2486,6 +2674,23 @@ pub fn toolresults_projects_histories_executions_steps_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsPatchArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Step,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}
 /// Updates an existing Step with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal (e.g try to upload a duplicate xml file), if the updated step is too large (more than 10Mib) - NOT_FOUND - if the containing Execution does not exist
 ///
@@ -2498,24 +2703,19 @@ pub fn toolresults_projects_histories_executions_steps_patch_execute(
 
 pub fn toolresults_projects_histories_executions_steps_patch(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    requestId: Option<&str>,
-    body: &Step,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Step>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = toolresults_projects_histories_executions_steps_patch_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
-        stepId,
-        requestId,
-        body,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     toolresults_projects_histories_executions_steps_patch_execute(builder)
 }
@@ -2619,6 +2819,21 @@ pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_publish_xunit_xml_files`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsPublishXunitXmlFilesArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+    /// Request body.
+    pub body: PublishXunitXmlFilesRequest,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}:publishXunitXmlFiles
 /// Publish xml files to an existing Step. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal, e.g. try to upload a duplicate xml file or a file too large. - NOT_FOUND - if the containing Execution does not exist
 ///
@@ -2631,22 +2846,18 @@ pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files_e
 
 pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    body: &PublishXunitXmlFilesRequest,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsPublishXunitXmlFilesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Step>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = toolresults_projects_histories_executions_steps_publish_xunit_xml_files_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
-        stepId,
-        body,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
+        &args.body,
     )?;
     toolresults_projects_histories_executions_steps_publish_xunit_xml_files_execute(builder)
 }
@@ -2752,6 +2963,21 @@ pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_crea
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_perf_metrics_summary_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsPerfMetricsSummaryCreateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+    /// Request body.
+    pub body: PerfMetricsSummary,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfMetricsSummary
 /// Creates a PerfMetricsSummary resource. Returns the existing one if it has already been created. May return any of the following error code(s): - NOT_FOUND - The containing Step does not exist
 ///
@@ -2764,11 +2990,7 @@ pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_crea
 
 pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_create(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    body: &PerfMetricsSummary,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsPerfMetricsSummaryCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PerfMetricsSummary>, ApiError>, P = ApiPending>
         + Send
@@ -2778,11 +3000,11 @@ pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_crea
     let builder =
         toolresults_projects_histories_executions_steps_perf_metrics_summary_create_builder(
             client,
-            projectId,
-            historyId,
-            executionId,
-            stepId,
-            body,
+            &args.projectId,
+            &args.historyId,
+            &args.executionId,
+            &args.stepId,
+            &args.body,
         )?;
     toolresults_projects_histories_executions_steps_perf_metrics_summary_create_execute(builder)
 }
@@ -2888,6 +3110,21 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_perf_sample_series_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesCreateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+    /// Request body.
+    pub body: PerfSampleSeries,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
 /// Creates a PerfSampleSeries. May return any of the following error code(s): - ALREADY_EXISTS - PerfMetricSummary already exists for the given Step - NOT_FOUND - The containing Step does not exist
 ///
@@ -2900,11 +3137,7 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create
 
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    body: &PerfSampleSeries,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PerfSampleSeries>, ApiError>, P = ApiPending>
         + Send
@@ -2914,11 +3147,11 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create
     let builder =
         toolresults_projects_histories_executions_steps_perf_sample_series_create_builder(
             client,
-            projectId,
-            historyId,
-            executionId,
-            stepId,
-            body,
+            &args.projectId,
+            &args.historyId,
+            &args.executionId,
+            &args.stepId,
+            &args.body,
         )?;
     toolresults_projects_histories_executions_steps_perf_sample_series_create_execute(builder)
 }
@@ -3023,6 +3256,21 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_get_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_perf_sample_series_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+    /// Path parameter: sampleSeriesId
+    pub sampleSeriesId: String,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries/{sampleSeriesId}
 /// Gets a PerfSampleSeries. May return any of the following error code(s): - NOT_FOUND - The specified PerfSampleSeries does not exist
 ///
@@ -3035,11 +3283,7 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_get_ex
 
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    sampleSeriesId: &str,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PerfSampleSeries>, ApiError>, P = ApiPending>
         + Send
@@ -3048,11 +3292,11 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_get(
 > {
     let builder = toolresults_projects_histories_executions_steps_perf_sample_series_get_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
-        stepId,
-        sampleSeriesId,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
+        &args.sampleSeriesId,
     )?;
     toolresults_projects_histories_executions_steps_perf_sample_series_get_execute(builder)
 }
@@ -3169,6 +3413,21 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_perf_sample_series_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
 /// Lists PerfSampleSeries for a given Step. The request provides an optional filter which specifies one or more PerfMetricsType to include in the result; if none returns all. The resulting PerfSampleSeries are sorted by ids. May return any of the following canonical error codes: - NOT_FOUND - The containing Step does not exist
 ///
@@ -3181,11 +3440,7 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list_e
 
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    filter: Option<&str>,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPerfSampleSeriesResponse>, ApiError>,
@@ -3196,11 +3451,11 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list(
 > {
     let builder = toolresults_projects_histories_executions_steps_perf_sample_series_list_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
-        stepId,
-        filter,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
+        args.filter.as_deref(),
     )?;
     toolresults_projects_histories_executions_steps_perf_sample_series_list_execute(builder)
 }
@@ -3310,6 +3565,23 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesSamplesBatchCreateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+    /// Path parameter: sampleSeriesId
+    pub sampleSeriesId: String,
+    /// Request body.
+    pub body: BatchCreatePerfSamplesRequest,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries/{sampleSeriesId}/samples:batchCreate
 /// Creates a batch of PerfSamples - a client can submit multiple batches of Perf Samples through repeated calls to this method in order to split up a large request payload - duplicates and existing timestamp entries will be ignored. - the batch operation may partially succeed - the set of elements successfully inserted is returned in the response (omits items which already existed in the database). May return any of the following canonical error codes: - NOT_FOUND - The containing PerfSampleSeries does not exist
 ///
@@ -3322,12 +3594,7 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
 
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    sampleSeriesId: &str,
-    body: &BatchCreatePerfSamplesRequest,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesSamplesBatchCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchCreatePerfSamplesResponse>, ApiError>,
@@ -3336,7 +3603,7 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
         + 'static,
     ApiError,
 > {
-    let builder = toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_builder(client, projectId, historyId, executionId, stepId, sampleSeriesId, body)?;
+    let builder = toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_builder(client, &args.projectId, &args.historyId, &args.executionId, &args.stepId, &args.sampleSeriesId, &args.body)?;
     toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_execute(
         builder,
     )
@@ -3458,6 +3725,25 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_perf_sample_series_samples_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesSamplesListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+    /// Path parameter: sampleSeriesId
+    pub sampleSeriesId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries/{sampleSeriesId}/samples
 /// Lists the Performance Samples of a given Sample Series - The list results are sorted by timestamps ascending - The default page size is 500 samples; and maximum size allowed 5000 - The response token indicates the last returned PerfSample timestamp - When the results size exceeds the page size, submit a subsequent request including the page token to return the rest of the samples up to the page limit May return any of the following canonical error codes: - OUT_OF_RANGE - The specified request page_token is out of valid range - NOT_FOUND - The containing PerfSampleSeries does not exist
 ///
@@ -3470,13 +3756,7 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
 
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_samples_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    sampleSeriesId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesSamplesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPerfSamplesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3486,13 +3766,13 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
     let builder =
         toolresults_projects_histories_executions_steps_perf_sample_series_samples_list_builder(
             client,
-            projectId,
-            historyId,
-            executionId,
-            stepId,
-            sampleSeriesId,
-            pageSize,
-            pageToken,
+            &args.projectId,
+            &args.historyId,
+            &args.executionId,
+            &args.stepId,
+            &args.sampleSeriesId,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     toolresults_projects_histories_executions_steps_perf_sample_series_samples_list_execute(builder)
 }
@@ -3595,6 +3875,21 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_test_cases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsTestCasesGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+    /// Path parameter: testCaseId
+    pub testCaseId: String,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/testCases/{testCaseId}
 /// Gets details of a Test Case for a Step. Experimental test cases API. Still in active development. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing Test Case does not exist
 ///
@@ -3607,22 +3902,18 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_get_execute(
 
 pub fn toolresults_projects_histories_executions_steps_test_cases_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    testCaseId: &str,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsTestCasesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TestCase>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = toolresults_projects_histories_executions_steps_test_cases_get_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
-        stepId,
-        testCaseId,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
+        &args.testCaseId,
     )?;
     toolresults_projects_histories_executions_steps_test_cases_get_execute(builder)
 }
@@ -3741,6 +4032,23 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_test_cases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsTestCasesListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/testCases
 /// Lists Test Cases attached to a Step. Experimental test cases API. Still in active development. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing Step does not exist
 ///
@@ -3753,12 +4061,7 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_list_execute(
 
 pub fn toolresults_projects_histories_executions_steps_test_cases_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsTestCasesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTestCasesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3767,12 +4070,12 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_list(
 > {
     let builder = toolresults_projects_histories_executions_steps_test_cases_list_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
-        stepId,
-        pageSize,
-        pageToken,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     toolresults_projects_histories_executions_steps_test_cases_list_execute(builder)
 }
@@ -3893,6 +4196,23 @@ pub fn toolresults_projects_histories_executions_steps_thumbnails_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`toolresults_projects_histories_executions_steps_thumbnails_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ToolresultsProjectsHistoriesExecutionsStepsThumbnailsListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: historyId
+    pub historyId: String,
+    /// Path parameter: executionId
+    pub executionId: String,
+    /// Path parameter: stepId
+    pub stepId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/thumbnails
 /// Lists thumbnails of images attached to a step. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read from the project, or from any of the images - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the step does not exist, or if any of the images do not exist
 ///
@@ -3905,12 +4225,7 @@ pub fn toolresults_projects_histories_executions_steps_thumbnails_list_execute(
 
 pub fn toolresults_projects_histories_executions_steps_thumbnails_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ToolresultsProjectsHistoriesExecutionsStepsThumbnailsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListStepThumbnailsResponse>, ApiError>,
@@ -3921,12 +4236,12 @@ pub fn toolresults_projects_histories_executions_steps_thumbnails_list(
 > {
     let builder = toolresults_projects_histories_executions_steps_thumbnails_list_builder(
         client,
-        projectId,
-        historyId,
-        executionId,
-        stepId,
-        pageSize,
-        pageToken,
+        &args.projectId,
+        &args.historyId,
+        &args.executionId,
+        &args.stepId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     toolresults_projects_histories_executions_steps_thumbnails_list_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/settings
 /// Get notification settings.
@@ -111,6 +113,13 @@ pub fn advisorynotifications_organizations_locations_get_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`advisorynotifications_organizations_locations_get_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdvisorynotificationsOrganizationsLocationsGetSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/settings
 /// Get notification settings.
 ///
@@ -123,7 +132,7 @@ pub fn advisorynotifications_organizations_locations_get_settings_execute(
 
 pub fn advisorynotifications_organizations_locations_get_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdvisorynotificationsOrganizationsLocationsGetSettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudAdvisorynotificationsV1Settings>, ApiError>,
@@ -132,7 +141,8 @@ pub fn advisorynotifications_organizations_locations_get_settings(
         + 'static,
     ApiError,
 > {
-    let builder = advisorynotifications_organizations_locations_get_settings_builder(client, name)?;
+    let builder =
+        advisorynotifications_organizations_locations_get_settings_builder(client, &args.name)?;
     advisorynotifications_organizations_locations_get_settings_execute(builder)
 }
 
@@ -234,6 +244,15 @@ pub fn advisorynotifications_organizations_locations_update_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`advisorynotifications_organizations_locations_update_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdvisorynotificationsOrganizationsLocationsUpdateSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudAdvisorynotificationsV1Settings,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/settings
 /// Update notification settings.
 ///
@@ -246,8 +265,7 @@ pub fn advisorynotifications_organizations_locations_update_settings_execute(
 
 pub fn advisorynotifications_organizations_locations_update_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudAdvisorynotificationsV1Settings,
+    args: &AdvisorynotificationsOrganizationsLocationsUpdateSettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudAdvisorynotificationsV1Settings>, ApiError>,
@@ -256,8 +274,9 @@ pub fn advisorynotifications_organizations_locations_update_settings(
         + 'static,
     ApiError,
 > {
-    let builder =
-        advisorynotifications_organizations_locations_update_settings_builder(client, name, body)?;
+    let builder = advisorynotifications_organizations_locations_update_settings_builder(
+        client, &args.name, &args.body,
+    )?;
     advisorynotifications_organizations_locations_update_settings_execute(builder)
 }
 
@@ -368,6 +387,15 @@ pub fn advisorynotifications_organizations_locations_notifications_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`advisorynotifications_organizations_locations_notifications_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdvisorynotificationsOrganizationsLocationsNotificationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/notifications/{notificationsId}
 /// Gets a notification.
 ///
@@ -380,8 +408,7 @@ pub fn advisorynotifications_organizations_locations_notifications_get_execute(
 
 pub fn advisorynotifications_organizations_locations_notifications_get(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
+    args: &AdvisorynotificationsOrganizationsLocationsNotificationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudAdvisorynotificationsV1Notification>, ApiError>,
@@ -392,8 +419,8 @@ pub fn advisorynotifications_organizations_locations_notifications_get(
 > {
     let builder = advisorynotifications_organizations_locations_notifications_get_builder(
         client,
-        name,
-        languageCode,
+        &args.name,
+        args.languageCode.as_deref(),
     )?;
     advisorynotifications_organizations_locations_notifications_get_execute(builder)
 }
@@ -520,6 +547,21 @@ pub fn advisorynotifications_organizations_locations_notifications_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`advisorynotifications_organizations_locations_notifications_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdvisorynotificationsOrganizationsLocationsNotificationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/notifications
 /// Lists notifications under a given parent.
 ///
@@ -532,11 +574,7 @@ pub fn advisorynotifications_organizations_locations_notifications_list_execute(
 
 pub fn advisorynotifications_organizations_locations_notifications_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &AdvisorynotificationsOrganizationsLocationsNotificationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -550,11 +588,11 @@ pub fn advisorynotifications_organizations_locations_notifications_list(
 > {
     let builder = advisorynotifications_organizations_locations_notifications_list_builder(
         client,
-        parent,
-        languageCode,
-        pageSize,
-        pageToken,
-        view,
+        &args.parent,
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     advisorynotifications_organizations_locations_notifications_list_execute(builder)
 }
@@ -654,6 +692,13 @@ pub fn advisorynotifications_projects_locations_get_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`advisorynotifications_projects_locations_get_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdvisorynotificationsProjectsLocationsGetSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/settings
 /// Get notification settings.
 ///
@@ -666,7 +711,7 @@ pub fn advisorynotifications_projects_locations_get_settings_execute(
 
 pub fn advisorynotifications_projects_locations_get_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdvisorynotificationsProjectsLocationsGetSettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudAdvisorynotificationsV1Settings>, ApiError>,
@@ -675,7 +720,8 @@ pub fn advisorynotifications_projects_locations_get_settings(
         + 'static,
     ApiError,
 > {
-    let builder = advisorynotifications_projects_locations_get_settings_builder(client, name)?;
+    let builder =
+        advisorynotifications_projects_locations_get_settings_builder(client, &args.name)?;
     advisorynotifications_projects_locations_get_settings_execute(builder)
 }
 
@@ -777,6 +823,15 @@ pub fn advisorynotifications_projects_locations_update_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`advisorynotifications_projects_locations_update_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdvisorynotificationsProjectsLocationsUpdateSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudAdvisorynotificationsV1Settings,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/settings
 /// Update notification settings.
 ///
@@ -789,8 +844,7 @@ pub fn advisorynotifications_projects_locations_update_settings_execute(
 
 pub fn advisorynotifications_projects_locations_update_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudAdvisorynotificationsV1Settings,
+    args: &AdvisorynotificationsProjectsLocationsUpdateSettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudAdvisorynotificationsV1Settings>, ApiError>,
@@ -799,8 +853,9 @@ pub fn advisorynotifications_projects_locations_update_settings(
         + 'static,
     ApiError,
 > {
-    let builder =
-        advisorynotifications_projects_locations_update_settings_builder(client, name, body)?;
+    let builder = advisorynotifications_projects_locations_update_settings_builder(
+        client, &args.name, &args.body,
+    )?;
     advisorynotifications_projects_locations_update_settings_execute(builder)
 }
 
@@ -911,6 +966,15 @@ pub fn advisorynotifications_projects_locations_notifications_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`advisorynotifications_projects_locations_notifications_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdvisorynotificationsProjectsLocationsNotificationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notifications/{notificationsId}
 /// Gets a notification.
 ///
@@ -923,8 +987,7 @@ pub fn advisorynotifications_projects_locations_notifications_get_execute(
 
 pub fn advisorynotifications_projects_locations_notifications_get(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
+    args: &AdvisorynotificationsProjectsLocationsNotificationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudAdvisorynotificationsV1Notification>, ApiError>,
@@ -935,8 +998,8 @@ pub fn advisorynotifications_projects_locations_notifications_get(
 > {
     let builder = advisorynotifications_projects_locations_notifications_get_builder(
         client,
-        name,
-        languageCode,
+        &args.name,
+        args.languageCode.as_deref(),
     )?;
     advisorynotifications_projects_locations_notifications_get_execute(builder)
 }
@@ -1063,6 +1126,21 @@ pub fn advisorynotifications_projects_locations_notifications_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`advisorynotifications_projects_locations_notifications_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdvisorynotificationsProjectsLocationsNotificationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/notifications
 /// Lists notifications under a given parent.
 ///
@@ -1075,11 +1153,7 @@ pub fn advisorynotifications_projects_locations_notifications_list_execute(
 
 pub fn advisorynotifications_projects_locations_notifications_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &AdvisorynotificationsProjectsLocationsNotificationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1093,11 +1167,11 @@ pub fn advisorynotifications_projects_locations_notifications_list(
 > {
     let builder = advisorynotifications_projects_locations_notifications_list_builder(
         client,
-        parent,
-        languageCode,
-        pageSize,
-        pageToken,
-        view,
+        &args.parent,
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     advisorynotifications_projects_locations_notifications_list_execute(builder)
 }

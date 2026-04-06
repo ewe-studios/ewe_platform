@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/databases/{databasesId}:bulkDeleteDocuments
 /// Bulk deletes a subset of documents from Google Cloud Firestore. Documents created or updated after the underlying system starts to process the request will not be deleted. The bulk delete occurs in the background and its progress can be monitored and managed via the Operation resource that is created. For more details on bulk delete behavior, refer to: <https://cloud.google.`com/firestore/docs/manage-data/bulk-delete`>
@@ -113,6 +115,15 @@ pub fn firestore_projects_databases_bulk_delete_documents_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_bulk_delete_documents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesBulkDeleteDocumentsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleFirestoreAdminV1BulkDeleteDocumentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}:bulkDeleteDocuments
 /// Bulk deletes a subset of documents from Google Cloud Firestore. Documents created or updated after the underlying system starts to process the request will not be deleted. The bulk delete occurs in the background and its progress can be monitored and managed via the Operation resource that is created. For more details on bulk delete behavior, refer to: <https://cloud.google.`com/firestore/docs/manage-data/bulk-delete`>
 ///
@@ -125,8 +136,7 @@ pub fn firestore_projects_databases_bulk_delete_documents_execute(
 
 pub fn firestore_projects_databases_bulk_delete_documents(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleFirestoreAdminV1BulkDeleteDocumentsRequest,
+    args: &FirestoreProjectsDatabasesBulkDeleteDocumentsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -135,7 +145,8 @@ pub fn firestore_projects_databases_bulk_delete_documents(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_bulk_delete_documents_builder(client, name, body)?;
+    let builder =
+        firestore_projects_databases_bulk_delete_documents_builder(client, &args.name, &args.body)?;
     firestore_projects_databases_bulk_delete_documents_execute(builder)
 }
 
@@ -236,6 +247,15 @@ pub fn firestore_projects_databases_clone_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_clone`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesCloneArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleFirestoreAdminV1CloneDatabaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases:clone
 /// Creates a new database by cloning an existing one. The new database must be in the same cloud region or multi-region location as the existing database. This behaves similar to FirestoreAdmin.CreateDatabase except instead of creating a new empty database, a new database is created with the database type, index configuration, and documents from an existing database. The long-running operation can be used to track the progress of the clone, with the Operation's metadata field type being the CloneDatabaseMetadata. The response type is the Database if the clone was successful. The new database is not readable or writeable until the LRO has completed.
 ///
@@ -248,8 +268,7 @@ pub fn firestore_projects_databases_clone_execute(
 
 pub fn firestore_projects_databases_clone(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleFirestoreAdminV1CloneDatabaseRequest,
+    args: &FirestoreProjectsDatabasesCloneArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -258,7 +277,7 @@ pub fn firestore_projects_databases_clone(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_clone_builder(client, parent, body)?;
+    let builder = firestore_projects_databases_clone_builder(client, &args.parent, &args.body)?;
     firestore_projects_databases_clone_execute(builder)
 }
 
@@ -371,6 +390,17 @@ pub fn firestore_projects_databases_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: databaseId
+    pub databaseId: Option<String>,
+    /// Request body.
+    pub body: GoogleFirestoreAdminV1Database,
+}
+
 /// GET v1/projects/{projectsId}/databases
 /// Create a database.
 ///
@@ -383,9 +413,7 @@ pub fn firestore_projects_databases_create_execute(
 
 pub fn firestore_projects_databases_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    databaseId: Option<&str>,
-    body: &GoogleFirestoreAdminV1Database,
+    args: &FirestoreProjectsDatabasesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -394,7 +422,12 @@ pub fn firestore_projects_databases_create(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_create_builder(client, parent, databaseId, body)?;
+    let builder = firestore_projects_databases_create_builder(
+        client,
+        &args.parent,
+        args.databaseId.as_deref(),
+        &args.body,
+    )?;
     firestore_projects_databases_create_execute(builder)
 }
 
@@ -504,6 +537,15 @@ pub fn firestore_projects_databases_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}
 /// Deletes a database.
 ///
@@ -516,8 +558,7 @@ pub fn firestore_projects_databases_delete_execute(
 
 pub fn firestore_projects_databases_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &FirestoreProjectsDatabasesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -526,7 +567,8 @@ pub fn firestore_projects_databases_delete(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_delete_builder(client, name, etag)?;
+    let builder =
+        firestore_projects_databases_delete_builder(client, &args.name, args.etag.as_deref())?;
     firestore_projects_databases_delete_execute(builder)
 }
 
@@ -627,6 +669,15 @@ pub fn firestore_projects_databases_export_documents_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_export_documents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesExportDocumentsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleFirestoreAdminV1ExportDocumentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}:exportDocuments
 /// Exports a copy of all or a subset of documents from Google Cloud Firestore to another storage system, such as Google Cloud Storage. Recent updates to documents may not be reflected in the export. The export occurs in the background and its progress can be monitored and managed via the Operation resource that is created. The output of an export may only be used once the associated operation is done. If an export operation is cancelled before completion it may leave partial data behind in Google Cloud Storage. For more details on export behavior and output format, refer to: <https://cloud.google.`com/firestore/docs/manage-data/export-import`>
 ///
@@ -639,8 +690,7 @@ pub fn firestore_projects_databases_export_documents_execute(
 
 pub fn firestore_projects_databases_export_documents(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleFirestoreAdminV1ExportDocumentsRequest,
+    args: &FirestoreProjectsDatabasesExportDocumentsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -649,7 +699,8 @@ pub fn firestore_projects_databases_export_documents(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_export_documents_builder(client, name, body)?;
+    let builder =
+        firestore_projects_databases_export_documents_builder(client, &args.name, &args.body)?;
     firestore_projects_databases_export_documents_execute(builder)
 }
 
@@ -747,6 +798,13 @@ pub fn firestore_projects_databases_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}
 /// Gets information about a database.
 ///
@@ -759,7 +817,7 @@ pub fn firestore_projects_databases_get_execute(
 
 pub fn firestore_projects_databases_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirestoreProjectsDatabasesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1Database>, ApiError>,
@@ -768,7 +826,7 @@ pub fn firestore_projects_databases_get(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_get_builder(client, name)?;
+    let builder = firestore_projects_databases_get_builder(client, &args.name)?;
     firestore_projects_databases_get_execute(builder)
 }
 
@@ -869,6 +927,15 @@ pub fn firestore_projects_databases_import_documents_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_import_documents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesImportDocumentsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleFirestoreAdminV1ImportDocumentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}:importDocuments
 /// Imports documents into Google Cloud Firestore. Existing documents with the same name are overwritten. The import occurs in the background and its progress can be monitored and managed via the Operation resource that is created. If an ImportDocuments operation is cancelled, it is possible that a subset of the data has already been imported to Cloud Firestore.
 ///
@@ -881,8 +948,7 @@ pub fn firestore_projects_databases_import_documents_execute(
 
 pub fn firestore_projects_databases_import_documents(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleFirestoreAdminV1ImportDocumentsRequest,
+    args: &FirestoreProjectsDatabasesImportDocumentsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -891,7 +957,8 @@ pub fn firestore_projects_databases_import_documents(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_import_documents_builder(client, name, body)?;
+    let builder =
+        firestore_projects_databases_import_documents_builder(client, &args.name, &args.body)?;
     firestore_projects_databases_import_documents_execute(builder)
 }
 
@@ -1002,6 +1069,15 @@ pub fn firestore_projects_databases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/databases
 /// List all the databases in the project.
 ///
@@ -1014,8 +1090,7 @@ pub fn firestore_projects_databases_list_execute(
 
 pub fn firestore_projects_databases_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    showDeleted: Option<bool>,
+    args: &FirestoreProjectsDatabasesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1ListDatabasesResponse>, ApiError>,
@@ -1024,7 +1099,8 @@ pub fn firestore_projects_databases_list(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_list_builder(client, parent, showDeleted)?;
+    let builder =
+        firestore_projects_databases_list_builder(client, &args.parent, args.showDeleted)?;
     firestore_projects_databases_list_execute(builder)
 }
 
@@ -1137,6 +1213,17 @@ pub fn firestore_projects_databases_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleFirestoreAdminV1Database,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}
 /// Updates a database.
 ///
@@ -1149,9 +1236,7 @@ pub fn firestore_projects_databases_patch_execute(
 
 pub fn firestore_projects_databases_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleFirestoreAdminV1Database,
+    args: &FirestoreProjectsDatabasesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1160,7 +1245,12 @@ pub fn firestore_projects_databases_patch(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_patch_builder(client, name, updateMask, body)?;
+    let builder = firestore_projects_databases_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     firestore_projects_databases_patch_execute(builder)
 }
 
@@ -1261,6 +1351,15 @@ pub fn firestore_projects_databases_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesRestoreArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleFirestoreAdminV1RestoreDatabaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases:restore
 /// Creates a new database by restoring from an existing backup. The new database must be in the same cloud region or multi-region location as the existing backup. This behaves similar to FirestoreAdmin.CreateDatabase except instead of creating a new empty database, a new database is created with the database type, index configuration, and documents from an existing backup. The long-running operation can be used to track the progress of the restore, with the Operation's metadata field type being the RestoreDatabaseMetadata. The response type is the Database if the restore was successful. The new database is not readable or writeable until the LRO has completed.
 ///
@@ -1273,8 +1372,7 @@ pub fn firestore_projects_databases_restore_execute(
 
 pub fn firestore_projects_databases_restore(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleFirestoreAdminV1RestoreDatabaseRequest,
+    args: &FirestoreProjectsDatabasesRestoreArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1283,7 +1381,7 @@ pub fn firestore_projects_databases_restore(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_restore_builder(client, parent, body)?;
+    let builder = firestore_projects_databases_restore_builder(client, &args.parent, &args.body)?;
     firestore_projects_databases_restore_execute(builder)
 }
 
@@ -1384,6 +1482,15 @@ pub fn firestore_projects_databases_backup_schedules_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_backup_schedules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesBackupSchedulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleFirestoreAdminV1BackupSchedule,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/backupSchedules
 /// Creates a backup schedule on a database. At most two backup schedules can be configured on a database, one daily backup schedule and one weekly backup schedule.
 ///
@@ -1396,8 +1503,7 @@ pub fn firestore_projects_databases_backup_schedules_create_execute(
 
 pub fn firestore_projects_databases_backup_schedules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleFirestoreAdminV1BackupSchedule,
+    args: &FirestoreProjectsDatabasesBackupSchedulesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1BackupSchedule>, ApiError>,
@@ -1406,8 +1512,11 @@ pub fn firestore_projects_databases_backup_schedules_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firestore_projects_databases_backup_schedules_create_builder(client, parent, body)?;
+    let builder = firestore_projects_databases_backup_schedules_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     firestore_projects_databases_backup_schedules_create_execute(builder)
 }
 
@@ -1501,6 +1610,13 @@ pub fn firestore_projects_databases_backup_schedules_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_backup_schedules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesBackupSchedulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
 /// Deletes a backup schedule.
 ///
@@ -1513,12 +1629,12 @@ pub fn firestore_projects_databases_backup_schedules_delete_execute(
 
 pub fn firestore_projects_databases_backup_schedules_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirestoreProjectsDatabasesBackupSchedulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_backup_schedules_delete_builder(client, name)?;
+    let builder = firestore_projects_databases_backup_schedules_delete_builder(client, &args.name)?;
     firestore_projects_databases_backup_schedules_delete_execute(builder)
 }
 
@@ -1616,6 +1732,13 @@ pub fn firestore_projects_databases_backup_schedules_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_backup_schedules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesBackupSchedulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
 /// Gets information about a backup schedule.
 ///
@@ -1628,7 +1751,7 @@ pub fn firestore_projects_databases_backup_schedules_get_execute(
 
 pub fn firestore_projects_databases_backup_schedules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirestoreProjectsDatabasesBackupSchedulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1BackupSchedule>, ApiError>,
@@ -1637,7 +1760,7 @@ pub fn firestore_projects_databases_backup_schedules_get(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_backup_schedules_get_builder(client, name)?;
+    let builder = firestore_projects_databases_backup_schedules_get_builder(client, &args.name)?;
     firestore_projects_databases_backup_schedules_get_execute(builder)
 }
 
@@ -1736,6 +1859,13 @@ pub fn firestore_projects_databases_backup_schedules_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_backup_schedules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesBackupSchedulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/backupSchedules
 /// List backup schedules.
 ///
@@ -1748,7 +1878,7 @@ pub fn firestore_projects_databases_backup_schedules_list_execute(
 
 pub fn firestore_projects_databases_backup_schedules_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &FirestoreProjectsDatabasesBackupSchedulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1ListBackupSchedulesResponse>, ApiError>,
@@ -1757,7 +1887,7 @@ pub fn firestore_projects_databases_backup_schedules_list(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_backup_schedules_list_builder(client, parent)?;
+    let builder = firestore_projects_databases_backup_schedules_list_builder(client, &args.parent)?;
     firestore_projects_databases_backup_schedules_list_execute(builder)
 }
 
@@ -1870,6 +2000,17 @@ pub fn firestore_projects_databases_backup_schedules_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_backup_schedules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesBackupSchedulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleFirestoreAdminV1BackupSchedule,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
 /// Updates a backup schedule.
 ///
@@ -1882,9 +2023,7 @@ pub fn firestore_projects_databases_backup_schedules_patch_execute(
 
 pub fn firestore_projects_databases_backup_schedules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleFirestoreAdminV1BackupSchedule,
+    args: &FirestoreProjectsDatabasesBackupSchedulesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1BackupSchedule>, ApiError>,
@@ -1894,7 +2033,10 @@ pub fn firestore_projects_databases_backup_schedules_patch(
     ApiError,
 > {
     let builder = firestore_projects_databases_backup_schedules_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     firestore_projects_databases_backup_schedules_patch_execute(builder)
 }
@@ -1993,6 +2135,13 @@ pub fn firestore_projects_databases_collection_groups_fields_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_collection_groups_fields_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesCollectionGroupsFieldsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/fields/{fieldsId}
 /// Gets the metadata and configuration for a Field.
 ///
@@ -2005,7 +2154,7 @@ pub fn firestore_projects_databases_collection_groups_fields_get_execute(
 
 pub fn firestore_projects_databases_collection_groups_fields_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirestoreProjectsDatabasesCollectionGroupsFieldsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1Field>, ApiError>,
@@ -2014,7 +2163,8 @@ pub fn firestore_projects_databases_collection_groups_fields_get(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_collection_groups_fields_get_builder(client, name)?;
+    let builder =
+        firestore_projects_databases_collection_groups_fields_get_builder(client, &args.name)?;
     firestore_projects_databases_collection_groups_fields_get_execute(builder)
 }
 
@@ -2132,6 +2282,19 @@ pub fn firestore_projects_databases_collection_groups_fields_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_collection_groups_fields_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesCollectionGroupsFieldsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/fields
 /// Lists the field configuration and metadata for this database. Currently, FirestoreAdmin.ListFields only supports listing fields that have been explicitly overridden. To issue this query, call FirestoreAdmin.ListFields with the filter set to `indexConfig`.`usesAncestorConfig`:`false` or `ttlConfig`:*.
 ///
@@ -2144,10 +2307,7 @@ pub fn firestore_projects_databases_collection_groups_fields_list_execute(
 
 pub fn firestore_projects_databases_collection_groups_fields_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirestoreProjectsDatabasesCollectionGroupsFieldsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1ListFieldsResponse>, ApiError>,
@@ -2157,7 +2317,11 @@ pub fn firestore_projects_databases_collection_groups_fields_list(
     ApiError,
 > {
     let builder = firestore_projects_databases_collection_groups_fields_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     firestore_projects_databases_collection_groups_fields_list_execute(builder)
 }
@@ -2271,6 +2435,17 @@ pub fn firestore_projects_databases_collection_groups_fields_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_collection_groups_fields_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesCollectionGroupsFieldsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleFirestoreAdminV1Field,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/fields/{fieldsId}
 /// Updates a field configuration. Currently, field updates apply only to single field index configuration. However, calls to FirestoreAdmin.UpdateField should provide a field mask to avoid changing any configuration that the caller isn't aware of. The field mask should be specified as: { paths: "index_config" }. This call returns a google.longrunning.Operation which may be used to track the status of the field update. The metadata for the operation will be the type FieldOperationMetadata. To configure the default field settings for the database, use the special Field with resource name: `projects/{project_id}/databases/{database_id}/`collectionGroups`/__default__/fields/`*.
 ///
@@ -2283,9 +2458,7 @@ pub fn firestore_projects_databases_collection_groups_fields_patch_execute(
 
 pub fn firestore_projects_databases_collection_groups_fields_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleFirestoreAdminV1Field,
+    args: &FirestoreProjectsDatabasesCollectionGroupsFieldsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2295,7 +2468,10 @@ pub fn firestore_projects_databases_collection_groups_fields_patch(
     ApiError,
 > {
     let builder = firestore_projects_databases_collection_groups_fields_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     firestore_projects_databases_collection_groups_fields_patch_execute(builder)
 }
@@ -2397,6 +2573,15 @@ pub fn firestore_projects_databases_collection_groups_indexes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_collection_groups_indexes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesCollectionGroupsIndexesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleFirestoreAdminV1Index,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/indexes
 /// Creates a composite index. This returns a google.longrunning.Operation which may be used to track the status of the creation. The metadata for the operation will be the type IndexOperationMetadata.
 ///
@@ -2409,8 +2594,7 @@ pub fn firestore_projects_databases_collection_groups_indexes_create_execute(
 
 pub fn firestore_projects_databases_collection_groups_indexes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleFirestoreAdminV1Index,
+    args: &FirestoreProjectsDatabasesCollectionGroupsIndexesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2420,7 +2604,9 @@ pub fn firestore_projects_databases_collection_groups_indexes_create(
     ApiError,
 > {
     let builder = firestore_projects_databases_collection_groups_indexes_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     firestore_projects_databases_collection_groups_indexes_create_execute(builder)
 }
@@ -2515,6 +2701,13 @@ pub fn firestore_projects_databases_collection_groups_indexes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_collection_groups_indexes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesCollectionGroupsIndexesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/indexes/{indexesId}
 /// Deletes a composite index.
 ///
@@ -2527,13 +2720,13 @@ pub fn firestore_projects_databases_collection_groups_indexes_delete_execute(
 
 pub fn firestore_projects_databases_collection_groups_indexes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirestoreProjectsDatabasesCollectionGroupsIndexesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        firestore_projects_databases_collection_groups_indexes_delete_builder(client, name)?;
+        firestore_projects_databases_collection_groups_indexes_delete_builder(client, &args.name)?;
     firestore_projects_databases_collection_groups_indexes_delete_execute(builder)
 }
 
@@ -2631,6 +2824,13 @@ pub fn firestore_projects_databases_collection_groups_indexes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_collection_groups_indexes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesCollectionGroupsIndexesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/indexes/{indexesId}
 /// Gets a composite index.
 ///
@@ -2643,7 +2843,7 @@ pub fn firestore_projects_databases_collection_groups_indexes_get_execute(
 
 pub fn firestore_projects_databases_collection_groups_indexes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirestoreProjectsDatabasesCollectionGroupsIndexesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1Index>, ApiError>,
@@ -2652,7 +2852,8 @@ pub fn firestore_projects_databases_collection_groups_indexes_get(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_collection_groups_indexes_get_builder(client, name)?;
+    let builder =
+        firestore_projects_databases_collection_groups_indexes_get_builder(client, &args.name)?;
     firestore_projects_databases_collection_groups_indexes_get_execute(builder)
 }
 
@@ -2770,6 +2971,19 @@ pub fn firestore_projects_databases_collection_groups_indexes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_collection_groups_indexes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesCollectionGroupsIndexesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/collectionGroups/{collectionGroupsId}/indexes
 /// Lists composite indexes.
 ///
@@ -2782,10 +2996,7 @@ pub fn firestore_projects_databases_collection_groups_indexes_list_execute(
 
 pub fn firestore_projects_databases_collection_groups_indexes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirestoreProjectsDatabasesCollectionGroupsIndexesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1ListIndexesResponse>, ApiError>,
@@ -2795,7 +3006,11 @@ pub fn firestore_projects_databases_collection_groups_indexes_list(
     ApiError,
 > {
     let builder = firestore_projects_databases_collection_groups_indexes_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     firestore_projects_databases_collection_groups_indexes_list_execute(builder)
 }
@@ -2895,6 +3110,15 @@ pub fn firestore_projects_databases_documents_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsBatchGetArgs {
+    /// Path parameter: database
+    pub database: String,
+    /// Request body.
+    pub body: BatchGetDocumentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents:batchGet
 /// Gets multiple documents. Documents returned by this method are not guaranteed to be returned in the same order that they were requested.
 ///
@@ -2907,15 +3131,18 @@ pub fn firestore_projects_databases_documents_batch_get_execute(
 
 pub fn firestore_projects_databases_documents_batch_get(
     client: &SimpleHttpClient,
-    database: &str,
-    body: &BatchGetDocumentsRequest,
+    args: &FirestoreProjectsDatabasesDocumentsBatchGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchGetDocumentsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_documents_batch_get_builder(client, database, body)?;
+    let builder = firestore_projects_databases_documents_batch_get_builder(
+        client,
+        &args.database,
+        &args.body,
+    )?;
     firestore_projects_databases_documents_batch_get_execute(builder)
 }
 
@@ -3014,6 +3241,15 @@ pub fn firestore_projects_databases_documents_batch_write_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_batch_write`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsBatchWriteArgs {
+    /// Path parameter: database
+    pub database: String,
+    /// Request body.
+    pub body: BatchWriteRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents:batchWrite
 /// Applies a batch of write operations. The BatchWrite method does not apply the write operations atomically and can apply them out of order. Method does not allow more than one write per document. Each write succeeds or fails independently. See the BatchWriteResponse for the success status of each write. If you require an atomically applied set of writes, use Commit instead.
 ///
@@ -3026,16 +3262,18 @@ pub fn firestore_projects_databases_documents_batch_write_execute(
 
 pub fn firestore_projects_databases_documents_batch_write(
     client: &SimpleHttpClient,
-    database: &str,
-    body: &BatchWriteRequest,
+    args: &FirestoreProjectsDatabasesDocumentsBatchWriteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchWriteResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        firestore_projects_databases_documents_batch_write_builder(client, database, body)?;
+    let builder = firestore_projects_databases_documents_batch_write_builder(
+        client,
+        &args.database,
+        &args.body,
+    )?;
     firestore_projects_databases_documents_batch_write_execute(builder)
 }
 
@@ -3134,6 +3372,15 @@ pub fn firestore_projects_databases_documents_begin_transaction_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_begin_transaction`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsBeginTransactionArgs {
+    /// Path parameter: database
+    pub database: String,
+    /// Request body.
+    pub body: BeginTransactionRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents:beginTransaction
 /// Starts a new transaction.
 ///
@@ -3146,16 +3393,18 @@ pub fn firestore_projects_databases_documents_begin_transaction_execute(
 
 pub fn firestore_projects_databases_documents_begin_transaction(
     client: &SimpleHttpClient,
-    database: &str,
-    body: &BeginTransactionRequest,
+    args: &FirestoreProjectsDatabasesDocumentsBeginTransactionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BeginTransactionResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        firestore_projects_databases_documents_begin_transaction_builder(client, database, body)?;
+    let builder = firestore_projects_databases_documents_begin_transaction_builder(
+        client,
+        &args.database,
+        &args.body,
+    )?;
     firestore_projects_databases_documents_begin_transaction_execute(builder)
 }
 
@@ -3254,6 +3503,15 @@ pub fn firestore_projects_databases_documents_commit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_commit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsCommitArgs {
+    /// Path parameter: database
+    pub database: String,
+    /// Request body.
+    pub body: CommitRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents:commit
 /// Commits a transaction, while optionally updating documents.
 ///
@@ -3266,15 +3524,15 @@ pub fn firestore_projects_databases_documents_commit_execute(
 
 pub fn firestore_projects_databases_documents_commit(
     client: &SimpleHttpClient,
-    database: &str,
-    body: &CommitRequest,
+    args: &FirestoreProjectsDatabasesDocumentsCommitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CommitResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_documents_commit_builder(client, database, body)?;
+    let builder =
+        firestore_projects_databases_documents_commit_builder(client, &args.database, &args.body)?;
     firestore_projects_databases_documents_commit_execute(builder)
 }
 
@@ -3388,6 +3646,21 @@ pub fn firestore_projects_databases_documents_create_document_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_create_document`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsCreateDocumentArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: collectionId
+    pub collectionId: String,
+    /// Query parameter: documentId
+    pub documentId: Option<String>,
+    /// Query parameter: mask_fieldPaths
+    pub mask_fieldPaths: Option<String>,
+    /// Request body.
+    pub body: Document,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents/{documentsId}/{collectionId}
 /// Creates a new document.
 ///
@@ -3400,22 +3673,18 @@ pub fn firestore_projects_databases_documents_create_document_execute(
 
 pub fn firestore_projects_databases_documents_create_document(
     client: &SimpleHttpClient,
-    parent: &str,
-    collectionId: &str,
-    documentId: Option<&str>,
-    mask_fieldPaths: Option<&str>,
-    body: &Document,
+    args: &FirestoreProjectsDatabasesDocumentsCreateDocumentArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Document>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firestore_projects_databases_documents_create_document_builder(
         client,
-        parent,
-        collectionId,
-        documentId,
-        mask_fieldPaths,
-        body,
+        &args.parent,
+        &args.collectionId,
+        args.documentId.as_deref(),
+        args.mask_fieldPaths.as_deref(),
+        &args.body,
     )?;
     firestore_projects_databases_documents_create_document_execute(builder)
 }
@@ -3526,6 +3795,17 @@ pub fn firestore_projects_databases_documents_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: currentDocument_exists
+    pub currentDocument_exists: Option<bool>,
+    /// Query parameter: currentDocument_updateTime
+    pub currentDocument_updateTime: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents/{documentsId}/{documentsId1}
 /// Deletes a document.
 ///
@@ -3538,18 +3818,16 @@ pub fn firestore_projects_databases_documents_delete_execute(
 
 pub fn firestore_projects_databases_documents_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    currentDocument_exists: Option<bool>,
-    currentDocument_updateTime: Option<&str>,
+    args: &FirestoreProjectsDatabasesDocumentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firestore_projects_databases_documents_delete_builder(
         client,
-        name,
-        currentDocument_exists,
-        currentDocument_updateTime,
+        &args.name,
+        args.currentDocument_exists,
+        args.currentDocument_updateTime.as_deref(),
     )?;
     firestore_projects_databases_documents_delete_execute(builder)
 }
@@ -3649,6 +3927,15 @@ pub fn firestore_projects_databases_documents_execute_pipeline_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_execute_pipeline`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsExecutePipelineArgs {
+    /// Path parameter: database
+    pub database: String,
+    /// Request body.
+    pub body: ExecutePipelineRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents:executePipeline
 /// Executes a pipeline query.
 ///
@@ -3661,16 +3948,18 @@ pub fn firestore_projects_databases_documents_execute_pipeline_execute(
 
 pub fn firestore_projects_databases_documents_execute_pipeline(
     client: &SimpleHttpClient,
-    database: &str,
-    body: &ExecutePipelineRequest,
+    args: &FirestoreProjectsDatabasesDocumentsExecutePipelineArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExecutePipelineResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        firestore_projects_databases_documents_execute_pipeline_builder(client, database, body)?;
+    let builder = firestore_projects_databases_documents_execute_pipeline_builder(
+        client,
+        &args.database,
+        &args.body,
+    )?;
     firestore_projects_databases_documents_execute_pipeline_execute(builder)
 }
 
@@ -3784,6 +4073,19 @@ pub fn firestore_projects_databases_documents_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: mask_fieldPaths
+    pub mask_fieldPaths: Option<String>,
+    /// Query parameter: readTime
+    pub readTime: Option<String>,
+    /// Query parameter: transaction
+    pub transaction: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents/{documentsId}/{documentsId1}
 /// Gets a single document.
 ///
@@ -3796,20 +4098,17 @@ pub fn firestore_projects_databases_documents_get_execute(
 
 pub fn firestore_projects_databases_documents_get(
     client: &SimpleHttpClient,
-    name: &str,
-    mask_fieldPaths: Option<&str>,
-    readTime: Option<&str>,
-    transaction: Option<&str>,
+    args: &FirestoreProjectsDatabasesDocumentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Document>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firestore_projects_databases_documents_get_builder(
         client,
-        name,
-        mask_fieldPaths,
-        readTime,
-        transaction,
+        &args.name,
+        args.mask_fieldPaths.as_deref(),
+        args.readTime.as_deref(),
+        args.transaction.as_deref(),
     )?;
     firestore_projects_databases_documents_get_execute(builder)
 }
@@ -3943,6 +4242,29 @@ pub fn firestore_projects_databases_documents_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: collectionId
+    pub collectionId: String,
+    /// Query parameter: mask_fieldPaths
+    pub mask_fieldPaths: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readTime
+    pub readTime: Option<String>,
+    /// Query parameter: showMissing
+    pub showMissing: Option<bool>,
+    /// Query parameter: transaction
+    pub transaction: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents/{documentsId}/{documentsId1}/{collectionId}
 /// Lists documents.
 ///
@@ -3955,15 +4277,7 @@ pub fn firestore_projects_databases_documents_list_execute(
 
 pub fn firestore_projects_databases_documents_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    collectionId: &str,
-    mask_fieldPaths: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readTime: Option<&str>,
-    showMissing: Option<bool>,
-    transaction: Option<&str>,
+    args: &FirestoreProjectsDatabasesDocumentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDocumentsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3972,15 +4286,15 @@ pub fn firestore_projects_databases_documents_list(
 > {
     let builder = firestore_projects_databases_documents_list_builder(
         client,
-        parent,
-        collectionId,
-        mask_fieldPaths,
-        orderBy,
-        pageSize,
-        pageToken,
-        readTime,
-        showMissing,
-        transaction,
+        &args.parent,
+        &args.collectionId,
+        args.mask_fieldPaths.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readTime.as_deref(),
+        args.showMissing,
+        args.transaction.as_deref(),
     )?;
     firestore_projects_databases_documents_list_execute(builder)
 }
@@ -4080,6 +4394,15 @@ pub fn firestore_projects_databases_documents_list_collection_ids_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_list_collection_ids`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsListCollectionIdsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ListCollectionIdsRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents/{documentsId}/{documentsId1}:listCollectionIds
 /// Lists all the collection IDs underneath a document.
 ///
@@ -4092,16 +4415,18 @@ pub fn firestore_projects_databases_documents_list_collection_ids_execute(
 
 pub fn firestore_projects_databases_documents_list_collection_ids(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ListCollectionIdsRequest,
+    args: &FirestoreProjectsDatabasesDocumentsListCollectionIdsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCollectionIdsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        firestore_projects_databases_documents_list_collection_ids_builder(client, parent, body)?;
+    let builder = firestore_projects_databases_documents_list_collection_ids_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     firestore_projects_databases_documents_list_collection_ids_execute(builder)
 }
 
@@ -4234,6 +4559,29 @@ pub fn firestore_projects_databases_documents_list_documents_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_list_documents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsListDocumentsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: collectionId
+    pub collectionId: String,
+    /// Query parameter: mask_fieldPaths
+    pub mask_fieldPaths: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readTime
+    pub readTime: Option<String>,
+    /// Query parameter: showMissing
+    pub showMissing: Option<bool>,
+    /// Query parameter: transaction
+    pub transaction: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents/{collectionId}
 /// Lists documents.
 ///
@@ -4246,15 +4594,7 @@ pub fn firestore_projects_databases_documents_list_documents_execute(
 
 pub fn firestore_projects_databases_documents_list_documents(
     client: &SimpleHttpClient,
-    parent: &str,
-    collectionId: &str,
-    mask_fieldPaths: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readTime: Option<&str>,
-    showMissing: Option<bool>,
-    transaction: Option<&str>,
+    args: &FirestoreProjectsDatabasesDocumentsListDocumentsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDocumentsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4263,15 +4603,15 @@ pub fn firestore_projects_databases_documents_list_documents(
 > {
     let builder = firestore_projects_databases_documents_list_documents_builder(
         client,
-        parent,
-        collectionId,
-        mask_fieldPaths,
-        orderBy,
-        pageSize,
-        pageToken,
-        readTime,
-        showMissing,
-        transaction,
+        &args.parent,
+        &args.collectionId,
+        args.mask_fieldPaths.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readTime.as_deref(),
+        args.showMissing,
+        args.transaction.as_deref(),
     )?;
     firestore_projects_databases_documents_list_documents_execute(builder)
 }
@@ -4371,6 +4711,15 @@ pub fn firestore_projects_databases_documents_listen_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_listen`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsListenArgs {
+    /// Path parameter: database
+    pub database: String,
+    /// Request body.
+    pub body: ListenRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents:listen
 /// Listens to changes. This method is only available via `gRPC` or WebChannel (not REST).
 ///
@@ -4383,15 +4732,15 @@ pub fn firestore_projects_databases_documents_listen_execute(
 
 pub fn firestore_projects_databases_documents_listen(
     client: &SimpleHttpClient,
-    database: &str,
-    body: &ListenRequest,
+    args: &FirestoreProjectsDatabasesDocumentsListenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListenResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_documents_listen_builder(client, database, body)?;
+    let builder =
+        firestore_projects_databases_documents_listen_builder(client, &args.database, &args.body)?;
     firestore_projects_databases_documents_listen_execute(builder)
 }
 
@@ -4490,6 +4839,15 @@ pub fn firestore_projects_databases_documents_partition_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_partition_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsPartitionQueryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: PartitionQueryRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents/{documentsId}/{documentsId1}:partitionQuery
 /// Partitions a query by returning partition cursors that can be used to run the query in parallel. The returned partition cursors are split points that can be used by RunQuery as `starting/end` points for the query results.
 ///
@@ -4502,16 +4860,18 @@ pub fn firestore_projects_databases_documents_partition_query_execute(
 
 pub fn firestore_projects_databases_documents_partition_query(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &PartitionQueryRequest,
+    args: &FirestoreProjectsDatabasesDocumentsPartitionQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PartitionQueryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        firestore_projects_databases_documents_partition_query_builder(client, parent, body)?;
+    let builder = firestore_projects_databases_documents_partition_query_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     firestore_projects_databases_documents_partition_query_execute(builder)
 }
 
@@ -4632,6 +4992,23 @@ pub fn firestore_projects_databases_documents_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: currentDocument_exists
+    pub currentDocument_exists: Option<bool>,
+    /// Query parameter: currentDocument_updateTime
+    pub currentDocument_updateTime: Option<String>,
+    /// Query parameter: mask_fieldPaths
+    pub mask_fieldPaths: Option<String>,
+    /// Query parameter: updateMask_fieldPaths
+    pub updateMask_fieldPaths: Option<String>,
+    /// Request body.
+    pub body: Document,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents/{documentsId}/{documentsId1}
 /// Updates or inserts a document.
 ///
@@ -4644,24 +5021,19 @@ pub fn firestore_projects_databases_documents_patch_execute(
 
 pub fn firestore_projects_databases_documents_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    currentDocument_exists: Option<bool>,
-    currentDocument_updateTime: Option<&str>,
-    mask_fieldPaths: Option<&str>,
-    updateMask_fieldPaths: Option<&str>,
-    body: &Document,
+    args: &FirestoreProjectsDatabasesDocumentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Document>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firestore_projects_databases_documents_patch_builder(
         client,
-        name,
-        currentDocument_exists,
-        currentDocument_updateTime,
-        mask_fieldPaths,
-        updateMask_fieldPaths,
-        body,
+        &args.name,
+        args.currentDocument_exists,
+        args.currentDocument_updateTime.as_deref(),
+        args.mask_fieldPaths.as_deref(),
+        args.updateMask_fieldPaths.as_deref(),
+        &args.body,
     )?;
     firestore_projects_databases_documents_patch_execute(builder)
 }
@@ -4759,6 +5131,15 @@ pub fn firestore_projects_databases_documents_rollback_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_rollback`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsRollbackArgs {
+    /// Path parameter: database
+    pub database: String,
+    /// Request body.
+    pub body: RollbackRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents:rollback
 /// Rolls back a transaction.
 ///
@@ -4771,13 +5152,16 @@ pub fn firestore_projects_databases_documents_rollback_execute(
 
 pub fn firestore_projects_databases_documents_rollback(
     client: &SimpleHttpClient,
-    database: &str,
-    body: &RollbackRequest,
+    args: &FirestoreProjectsDatabasesDocumentsRollbackArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_documents_rollback_builder(client, database, body)?;
+    let builder = firestore_projects_databases_documents_rollback_builder(
+        client,
+        &args.database,
+        &args.body,
+    )?;
     firestore_projects_databases_documents_rollback_execute(builder)
 }
 
@@ -4878,6 +5262,15 @@ pub fn firestore_projects_databases_documents_run_aggregation_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_run_aggregation_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsRunAggregationQueryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: RunAggregationQueryRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents/{documentsId}/{documentsId1}:runAggregationQuery
 /// Runs an aggregation query. Rather than producing Document results like Firestore.RunQuery, this API allows running an aggregation to produce a series of AggregationResult server-side. High-Level Example:  -- Return the number of documents in table given a filter. SELECT COUNT(*) FROM ( SELECT * FROM k where a = `true` );
 ///
@@ -4890,8 +5283,7 @@ pub fn firestore_projects_databases_documents_run_aggregation_query_execute(
 
 pub fn firestore_projects_databases_documents_run_aggregation_query(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &RunAggregationQueryRequest,
+    args: &FirestoreProjectsDatabasesDocumentsRunAggregationQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RunAggregationQueryResponse>, ApiError>,
@@ -4900,8 +5292,11 @@ pub fn firestore_projects_databases_documents_run_aggregation_query(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firestore_projects_databases_documents_run_aggregation_query_builder(client, parent, body)?;
+    let builder = firestore_projects_databases_documents_run_aggregation_query_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     firestore_projects_databases_documents_run_aggregation_query_execute(builder)
 }
 
@@ -5000,6 +5395,15 @@ pub fn firestore_projects_databases_documents_run_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_run_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsRunQueryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: RunQueryRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents/{documentsId}/{documentsId1}:runQuery
 /// Runs a query.
 ///
@@ -5012,15 +5416,15 @@ pub fn firestore_projects_databases_documents_run_query_execute(
 
 pub fn firestore_projects_databases_documents_run_query(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &RunQueryRequest,
+    args: &FirestoreProjectsDatabasesDocumentsRunQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RunQueryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_documents_run_query_builder(client, parent, body)?;
+    let builder =
+        firestore_projects_databases_documents_run_query_builder(client, &args.parent, &args.body)?;
     firestore_projects_databases_documents_run_query_execute(builder)
 }
 
@@ -5119,6 +5523,15 @@ pub fn firestore_projects_databases_documents_write_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_documents_write`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesDocumentsWriteArgs {
+    /// Path parameter: database
+    pub database: String,
+    /// Request body.
+    pub body: WriteRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/documents:write
 /// Streams batches of document updates and deletes, in order. This method is only available via `gRPC` or WebChannel (not REST).
 ///
@@ -5131,15 +5544,15 @@ pub fn firestore_projects_databases_documents_write_execute(
 
 pub fn firestore_projects_databases_documents_write(
     client: &SimpleHttpClient,
-    database: &str,
-    body: &WriteRequest,
+    args: &FirestoreProjectsDatabasesDocumentsWriteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WriteResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_documents_write_builder(client, database, body)?;
+    let builder =
+        firestore_projects_databases_documents_write_builder(client, &args.database, &args.body)?;
     firestore_projects_databases_documents_write_execute(builder)
 }
 
@@ -5236,6 +5649,15 @@ pub fn firestore_projects_databases_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -5248,13 +5670,13 @@ pub fn firestore_projects_databases_operations_cancel_execute(
 
 pub fn firestore_projects_databases_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &FirestoreProjectsDatabasesOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_operations_cancel_builder(client, name, body)?;
+    let builder =
+        firestore_projects_databases_operations_cancel_builder(client, &args.name, &args.body)?;
     firestore_projects_databases_operations_cancel_execute(builder)
 }
 
@@ -5348,6 +5770,13 @@ pub fn firestore_projects_databases_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -5360,12 +5789,12 @@ pub fn firestore_projects_databases_operations_delete_execute(
 
 pub fn firestore_projects_databases_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirestoreProjectsDatabasesOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_operations_delete_builder(client, name)?;
+    let builder = firestore_projects_databases_operations_delete_builder(client, &args.name)?;
     firestore_projects_databases_operations_delete_execute(builder)
 }
 
@@ -5463,6 +5892,13 @@ pub fn firestore_projects_databases_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -5475,7 +5911,7 @@ pub fn firestore_projects_databases_operations_get_execute(
 
 pub fn firestore_projects_databases_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirestoreProjectsDatabasesOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5484,7 +5920,7 @@ pub fn firestore_projects_databases_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_operations_get_builder(client, name)?;
+    let builder = firestore_projects_databases_operations_get_builder(client, &args.name)?;
     firestore_projects_databases_operations_get_execute(builder)
 }
 
@@ -5607,6 +6043,21 @@ pub fn firestore_projects_databases_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -5619,11 +6070,7 @@ pub fn firestore_projects_databases_operations_list_execute(
 
 pub fn firestore_projects_databases_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &FirestoreProjectsDatabasesOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -5634,11 +6081,11 @@ pub fn firestore_projects_databases_operations_list(
 > {
     let builder = firestore_projects_databases_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     firestore_projects_databases_operations_list_execute(builder)
 }
@@ -5752,6 +6199,17 @@ pub fn firestore_projects_databases_user_creds_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_user_creds_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesUserCredsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: userCredsId
+    pub userCredsId: Option<String>,
+    /// Request body.
+    pub body: GoogleFirestoreAdminV1UserCreds,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/userCreds
 /// Create a user creds.
 ///
@@ -5764,9 +6222,7 @@ pub fn firestore_projects_databases_user_creds_create_execute(
 
 pub fn firestore_projects_databases_user_creds_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    userCredsId: Option<&str>,
-    body: &GoogleFirestoreAdminV1UserCreds,
+    args: &FirestoreProjectsDatabasesUserCredsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1UserCreds>, ApiError>,
@@ -5775,8 +6231,12 @@ pub fn firestore_projects_databases_user_creds_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firestore_projects_databases_user_creds_create_builder(client, parent, userCredsId, body)?;
+    let builder = firestore_projects_databases_user_creds_create_builder(
+        client,
+        &args.parent,
+        args.userCredsId.as_deref(),
+        &args.body,
+    )?;
     firestore_projects_databases_user_creds_create_execute(builder)
 }
 
@@ -5870,6 +6330,13 @@ pub fn firestore_projects_databases_user_creds_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_user_creds_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesUserCredsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/userCreds/{userCredsId}
 /// Deletes a user creds.
 ///
@@ -5882,12 +6349,12 @@ pub fn firestore_projects_databases_user_creds_delete_execute(
 
 pub fn firestore_projects_databases_user_creds_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirestoreProjectsDatabasesUserCredsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_user_creds_delete_builder(client, name)?;
+    let builder = firestore_projects_databases_user_creds_delete_builder(client, &args.name)?;
     firestore_projects_databases_user_creds_delete_execute(builder)
 }
 
@@ -5988,6 +6455,15 @@ pub fn firestore_projects_databases_user_creds_disable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_user_creds_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesUserCredsDisableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleFirestoreAdminV1DisableUserCredsRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/userCreds/{userCredsId}:disable
 /// Disables a user creds. No-op if the user creds are already disabled.
 ///
@@ -6000,8 +6476,7 @@ pub fn firestore_projects_databases_user_creds_disable_execute(
 
 pub fn firestore_projects_databases_user_creds_disable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleFirestoreAdminV1DisableUserCredsRequest,
+    args: &FirestoreProjectsDatabasesUserCredsDisableArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1UserCreds>, ApiError>,
@@ -6010,7 +6485,8 @@ pub fn firestore_projects_databases_user_creds_disable(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_user_creds_disable_builder(client, name, body)?;
+    let builder =
+        firestore_projects_databases_user_creds_disable_builder(client, &args.name, &args.body)?;
     firestore_projects_databases_user_creds_disable_execute(builder)
 }
 
@@ -6111,6 +6587,15 @@ pub fn firestore_projects_databases_user_creds_enable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_user_creds_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesUserCredsEnableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleFirestoreAdminV1EnableUserCredsRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/userCreds/{userCredsId}:enable
 /// Enables a user creds. No-op if the user creds are already enabled.
 ///
@@ -6123,8 +6608,7 @@ pub fn firestore_projects_databases_user_creds_enable_execute(
 
 pub fn firestore_projects_databases_user_creds_enable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleFirestoreAdminV1EnableUserCredsRequest,
+    args: &FirestoreProjectsDatabasesUserCredsEnableArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1UserCreds>, ApiError>,
@@ -6133,7 +6617,8 @@ pub fn firestore_projects_databases_user_creds_enable(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_user_creds_enable_builder(client, name, body)?;
+    let builder =
+        firestore_projects_databases_user_creds_enable_builder(client, &args.name, &args.body)?;
     firestore_projects_databases_user_creds_enable_execute(builder)
 }
 
@@ -6231,6 +6716,13 @@ pub fn firestore_projects_databases_user_creds_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_user_creds_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesUserCredsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/userCreds/{userCredsId}
 /// Gets a user creds resource. Note that the returned resource does not contain the secret value itself.
 ///
@@ -6243,7 +6735,7 @@ pub fn firestore_projects_databases_user_creds_get_execute(
 
 pub fn firestore_projects_databases_user_creds_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirestoreProjectsDatabasesUserCredsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1UserCreds>, ApiError>,
@@ -6252,7 +6744,7 @@ pub fn firestore_projects_databases_user_creds_get(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_user_creds_get_builder(client, name)?;
+    let builder = firestore_projects_databases_user_creds_get_builder(client, &args.name)?;
     firestore_projects_databases_user_creds_get_execute(builder)
 }
 
@@ -6351,6 +6843,13 @@ pub fn firestore_projects_databases_user_creds_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_user_creds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesUserCredsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/userCreds
 /// List all user creds in the database. Note that the returned resource does not contain the secret value itself.
 ///
@@ -6363,7 +6862,7 @@ pub fn firestore_projects_databases_user_creds_list_execute(
 
 pub fn firestore_projects_databases_user_creds_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &FirestoreProjectsDatabasesUserCredsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1ListUserCredsResponse>, ApiError>,
@@ -6372,7 +6871,7 @@ pub fn firestore_projects_databases_user_creds_list(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_databases_user_creds_list_builder(client, parent)?;
+    let builder = firestore_projects_databases_user_creds_list_builder(client, &args.parent)?;
     firestore_projects_databases_user_creds_list_execute(builder)
 }
 
@@ -6473,6 +6972,15 @@ pub fn firestore_projects_databases_user_creds_reset_password_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_databases_user_creds_reset_password`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsDatabasesUserCredsResetPasswordArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleFirestoreAdminV1ResetUserPasswordRequest,
+}
+
 /// GET v1/projects/{projectsId}/databases/{databasesId}/userCreds/{userCredsId}:resetPassword
 /// Resets the password of a user creds.
 ///
@@ -6485,8 +6993,7 @@ pub fn firestore_projects_databases_user_creds_reset_password_execute(
 
 pub fn firestore_projects_databases_user_creds_reset_password(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleFirestoreAdminV1ResetUserPasswordRequest,
+    args: &FirestoreProjectsDatabasesUserCredsResetPasswordArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1UserCreds>, ApiError>,
@@ -6495,8 +7002,9 @@ pub fn firestore_projects_databases_user_creds_reset_password(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firestore_projects_databases_user_creds_reset_password_builder(client, name, body)?;
+    let builder = firestore_projects_databases_user_creds_reset_password_builder(
+        client, &args.name, &args.body,
+    )?;
     firestore_projects_databases_user_creds_reset_password_execute(builder)
 }
 
@@ -6590,6 +7098,13 @@ pub fn firestore_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -6602,12 +7117,12 @@ pub fn firestore_projects_locations_get_execute(
 
 pub fn firestore_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirestoreProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_locations_get_builder(client, name)?;
+    let builder = firestore_projects_locations_get_builder(client, &args.name)?;
     firestore_projects_locations_get_execute(builder)
 }
 
@@ -6727,6 +7242,21 @@ pub fn firestore_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -6739,11 +7269,7 @@ pub fn firestore_projects_locations_list_execute(
 
 pub fn firestore_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirestoreProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6752,11 +7278,11 @@ pub fn firestore_projects_locations_list(
 > {
     let builder = firestore_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     firestore_projects_locations_list_execute(builder)
 }
@@ -6851,6 +7377,13 @@ pub fn firestore_projects_locations_backups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_locations_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsLocationsBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backups/{backupsId}
 /// Deletes a backup.
 ///
@@ -6863,12 +7396,12 @@ pub fn firestore_projects_locations_backups_delete_execute(
 
 pub fn firestore_projects_locations_backups_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirestoreProjectsLocationsBackupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_locations_backups_delete_builder(client, name)?;
+    let builder = firestore_projects_locations_backups_delete_builder(client, &args.name)?;
     firestore_projects_locations_backups_delete_execute(builder)
 }
 
@@ -6966,6 +7499,13 @@ pub fn firestore_projects_locations_backups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_locations_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsLocationsBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backups/{backupsId}
 /// Gets information about a backup.
 ///
@@ -6978,7 +7518,7 @@ pub fn firestore_projects_locations_backups_get_execute(
 
 pub fn firestore_projects_locations_backups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirestoreProjectsLocationsBackupsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1Backup>, ApiError>,
@@ -6987,7 +7527,7 @@ pub fn firestore_projects_locations_backups_get(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_locations_backups_get_builder(client, name)?;
+    let builder = firestore_projects_locations_backups_get_builder(client, &args.name)?;
     firestore_projects_locations_backups_get_execute(builder)
 }
 
@@ -7097,6 +7637,15 @@ pub fn firestore_projects_locations_backups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firestore_projects_locations_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirestoreProjectsLocationsBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backups
 /// Lists all the backups.
 ///
@@ -7109,8 +7658,7 @@ pub fn firestore_projects_locations_backups_list_execute(
 
 pub fn firestore_projects_locations_backups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    args: &FirestoreProjectsLocationsBackupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleFirestoreAdminV1ListBackupsResponse>, ApiError>,
@@ -7119,6 +7667,10 @@ pub fn firestore_projects_locations_backups_list(
         + 'static,
     ApiError,
 > {
-    let builder = firestore_projects_locations_backups_list_builder(client, parent, filter)?;
+    let builder = firestore_projects_locations_backups_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+    )?;
     firestore_projects_locations_backups_list_execute(builder)
 }

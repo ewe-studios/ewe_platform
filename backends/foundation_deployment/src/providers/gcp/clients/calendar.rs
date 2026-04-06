@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET calendars/{calendarId}/acl/{ruleId}
 /// Deletes an access control rule.
@@ -104,6 +106,15 @@ pub fn calendar_acl_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_acl_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarAclDeleteArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: ruleId
+    pub ruleId: String,
+}
+
 /// GET calendars/{calendarId}/acl/{ruleId}
 /// Deletes an access control rule.
 ///
@@ -116,13 +127,12 @@ pub fn calendar_acl_delete_execute(
 
 pub fn calendar_acl_delete(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    ruleId: &str,
+    args: &CalendarAclDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_acl_delete_builder(client, calendarId, ruleId)?;
+    let builder = calendar_acl_delete_builder(client, &args.calendarId, &args.ruleId)?;
     calendar_acl_delete_execute(builder)
 }
 
@@ -217,6 +227,15 @@ pub fn calendar_acl_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_acl_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarAclGetArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: ruleId
+    pub ruleId: String,
+}
+
 /// GET calendars/{calendarId}/acl/{ruleId}
 /// Returns an access control rule.
 ///
@@ -229,13 +248,12 @@ pub fn calendar_acl_get_execute(
 
 pub fn calendar_acl_get(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    ruleId: &str,
+    args: &CalendarAclGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_acl_get_builder(client, calendarId, ruleId)?;
+    let builder = calendar_acl_get_builder(client, &args.calendarId, &args.ruleId)?;
     calendar_acl_get_execute(builder)
 }
 
@@ -344,6 +362,17 @@ pub fn calendar_acl_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_acl_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarAclInsertArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Query parameter: sendNotifications
+    pub sendNotifications: Option<bool>,
+    /// Request body.
+    pub body: AclRule,
+}
+
 /// GET calendars/{calendarId}/acl
 /// Creates an access control rule.
 ///
@@ -356,14 +385,13 @@ pub fn calendar_acl_insert_execute(
 
 pub fn calendar_acl_insert(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    sendNotifications: Option<bool>,
-    body: &AclRule,
+    args: &CalendarAclInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_acl_insert_builder(client, calendarId, sendNotifications, body)?;
+    let builder =
+        calendar_acl_insert_builder(client, &args.calendarId, args.sendNotifications, &args.body)?;
     calendar_acl_insert_execute(builder)
 }
 
@@ -481,6 +509,21 @@ pub fn calendar_acl_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_acl_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarAclListArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<String>,
+}
+
 /// GET calendars/{calendarId}/acl
 /// Returns the rules in the access control list for the calendar.
 ///
@@ -493,22 +536,18 @@ pub fn calendar_acl_list_execute(
 
 pub fn calendar_acl_list(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
-    syncToken: Option<&str>,
+    args: &CalendarAclListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Acl>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = calendar_acl_list_builder(
         client,
-        calendarId,
-        maxResults,
-        pageToken,
-        showDeleted,
-        syncToken,
+        &args.calendarId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.showDeleted,
+        args.syncToken.as_deref(),
     )?;
     calendar_acl_list_execute(builder)
 }
@@ -619,6 +658,19 @@ pub fn calendar_acl_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_acl_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarAclPatchArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: ruleId
+    pub ruleId: String,
+    /// Query parameter: sendNotifications
+    pub sendNotifications: Option<bool>,
+    /// Request body.
+    pub body: AclRule,
+}
+
 /// GET calendars/{calendarId}/acl/{ruleId}
 /// Updates an access control rule. This method supports patch semantics.
 ///
@@ -631,15 +683,18 @@ pub fn calendar_acl_patch_execute(
 
 pub fn calendar_acl_patch(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    ruleId: &str,
-    sendNotifications: Option<bool>,
-    body: &AclRule,
+    args: &CalendarAclPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_acl_patch_builder(client, calendarId, ruleId, sendNotifications, body)?;
+    let builder = calendar_acl_patch_builder(
+        client,
+        &args.calendarId,
+        &args.ruleId,
+        args.sendNotifications,
+        &args.body,
+    )?;
     calendar_acl_patch_execute(builder)
 }
 
@@ -749,6 +804,19 @@ pub fn calendar_acl_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_acl_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarAclUpdateArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: ruleId
+    pub ruleId: String,
+    /// Query parameter: sendNotifications
+    pub sendNotifications: Option<bool>,
+    /// Request body.
+    pub body: AclRule,
+}
+
 /// GET calendars/{calendarId}/acl/{ruleId}
 /// Updates an access control rule.
 ///
@@ -761,15 +829,18 @@ pub fn calendar_acl_update_execute(
 
 pub fn calendar_acl_update(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    ruleId: &str,
-    sendNotifications: Option<bool>,
-    body: &AclRule,
+    args: &CalendarAclUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AclRule>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_acl_update_builder(client, calendarId, ruleId, sendNotifications, body)?;
+    let builder = calendar_acl_update_builder(
+        client,
+        &args.calendarId,
+        &args.ruleId,
+        args.sendNotifications,
+        &args.body,
+    )?;
     calendar_acl_update_execute(builder)
 }
 
@@ -890,6 +961,23 @@ pub fn calendar_acl_watch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_acl_watch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarAclWatchArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<String>,
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET calendars/{calendarId}/acl/watch
 /// Watch for changes to ACL resources.
 ///
@@ -902,24 +990,19 @@ pub fn calendar_acl_watch_execute(
 
 pub fn calendar_acl_watch(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
-    syncToken: Option<&str>,
-    body: &Channel,
+    args: &CalendarAclWatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = calendar_acl_watch_builder(
         client,
-        calendarId,
-        maxResults,
-        pageToken,
-        showDeleted,
-        syncToken,
-        body,
+        &args.calendarId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.showDeleted,
+        args.syncToken.as_deref(),
+        &args.body,
     )?;
     calendar_acl_watch_execute(builder)
 }
@@ -1011,6 +1094,13 @@ pub fn calendar_calendar_list_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_calendar_list_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarListDeleteArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+}
+
 /// GET users/me/calendarList/{calendarId}
 /// Removes a calendar from the user's calendar list.
 ///
@@ -1023,12 +1113,12 @@ pub fn calendar_calendar_list_delete_execute(
 
 pub fn calendar_calendar_list_delete(
     client: &SimpleHttpClient,
-    calendarId: &str,
+    args: &CalendarCalendarListDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_calendar_list_delete_builder(client, calendarId)?;
+    let builder = calendar_calendar_list_delete_builder(client, &args.calendarId)?;
     calendar_calendar_list_delete_execute(builder)
 }
 
@@ -1124,6 +1214,13 @@ pub fn calendar_calendar_list_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_calendar_list_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarListGetArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+}
+
 /// GET users/me/calendarList/{calendarId}
 /// Returns a calendar from the user's calendar list.
 ///
@@ -1136,14 +1233,14 @@ pub fn calendar_calendar_list_get_execute(
 
 pub fn calendar_calendar_list_get(
     client: &SimpleHttpClient,
-    calendarId: &str,
+    args: &CalendarCalendarListGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = calendar_calendar_list_get_builder(client, calendarId)?;
+    let builder = calendar_calendar_list_get_builder(client, &args.calendarId)?;
     calendar_calendar_list_get_execute(builder)
 }
 
@@ -1250,6 +1347,15 @@ pub fn calendar_calendar_list_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_calendar_list_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarListInsertArgs {
+    /// Query parameter: colorRgbFormat
+    pub colorRgbFormat: Option<bool>,
+    /// Request body.
+    pub body: CalendarListEntry,
+}
+
 /// GET users/me/calendarList
 /// Inserts an existing calendar into the user's calendar list.
 ///
@@ -1262,15 +1368,14 @@ pub fn calendar_calendar_list_insert_execute(
 
 pub fn calendar_calendar_list_insert(
     client: &SimpleHttpClient,
-    colorRgbFormat: Option<bool>,
-    body: &CalendarListEntry,
+    args: &CalendarCalendarListInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = calendar_calendar_list_insert_builder(client, colorRgbFormat, body)?;
+    let builder = calendar_calendar_list_insert_builder(client, args.colorRgbFormat, &args.body)?;
     calendar_calendar_list_insert_execute(builder)
 }
 
@@ -1394,6 +1499,23 @@ pub fn calendar_calendar_list_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_calendar_list_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarListListArgs {
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: minAccessRole
+    pub minAccessRole: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+    /// Query parameter: showHidden
+    pub showHidden: Option<bool>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<String>,
+}
+
 /// GET users/me/calendarList
 /// Returns the calendars on the user's calendar list.
 ///
@@ -1406,12 +1528,7 @@ pub fn calendar_calendar_list_list_execute(
 
 pub fn calendar_calendar_list_list(
     client: &SimpleHttpClient,
-    maxResults: Option<i32>,
-    minAccessRole: Option<&str>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
-    showHidden: Option<bool>,
-    syncToken: Option<&str>,
+    args: &CalendarCalendarListListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CalendarList>, ApiError>, P = ApiPending>
         + Send
@@ -1420,12 +1537,12 @@ pub fn calendar_calendar_list_list(
 > {
     let builder = calendar_calendar_list_list_builder(
         client,
-        maxResults,
-        minAccessRole,
-        pageToken,
-        showDeleted,
-        showHidden,
-        syncToken,
+        args.maxResults,
+        args.minAccessRole.as_deref(),
+        args.pageToken.as_deref(),
+        args.showDeleted,
+        args.showHidden,
+        args.syncToken.as_deref(),
     )?;
     calendar_calendar_list_list_execute(builder)
 }
@@ -1537,6 +1654,17 @@ pub fn calendar_calendar_list_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_calendar_list_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarListPatchArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Query parameter: colorRgbFormat
+    pub colorRgbFormat: Option<bool>,
+    /// Request body.
+    pub body: CalendarListEntry,
+}
+
 /// GET users/me/calendarList/{calendarId}
 /// Updates an existing calendar on the user's calendar list. This method supports patch semantics.
 ///
@@ -1549,16 +1677,19 @@ pub fn calendar_calendar_list_patch_execute(
 
 pub fn calendar_calendar_list_patch(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    colorRgbFormat: Option<bool>,
-    body: &CalendarListEntry,
+    args: &CalendarCalendarListPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = calendar_calendar_list_patch_builder(client, calendarId, colorRgbFormat, body)?;
+    let builder = calendar_calendar_list_patch_builder(
+        client,
+        &args.calendarId,
+        args.colorRgbFormat,
+        &args.body,
+    )?;
     calendar_calendar_list_patch_execute(builder)
 }
 
@@ -1669,6 +1800,17 @@ pub fn calendar_calendar_list_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_calendar_list_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarListUpdateArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Query parameter: colorRgbFormat
+    pub colorRgbFormat: Option<bool>,
+    /// Request body.
+    pub body: CalendarListEntry,
+}
+
 /// GET users/me/calendarList/{calendarId}
 /// Updates an existing calendar on the user's calendar list.
 ///
@@ -1681,16 +1823,19 @@ pub fn calendar_calendar_list_update_execute(
 
 pub fn calendar_calendar_list_update(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    colorRgbFormat: Option<bool>,
-    body: &CalendarListEntry,
+    args: &CalendarCalendarListUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CalendarListEntry>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = calendar_calendar_list_update_builder(client, calendarId, colorRgbFormat, body)?;
+    let builder = calendar_calendar_list_update_builder(
+        client,
+        &args.calendarId,
+        args.colorRgbFormat,
+        &args.body,
+    )?;
     calendar_calendar_list_update_execute(builder)
 }
 
@@ -1815,6 +1960,25 @@ pub fn calendar_calendar_list_watch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_calendar_list_watch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarListWatchArgs {
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: minAccessRole
+    pub minAccessRole: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+    /// Query parameter: showHidden
+    pub showHidden: Option<bool>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<String>,
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET users/me/calendarList/watch
 /// Watch for changes to CalendarList resources.
 ///
@@ -1827,26 +1991,20 @@ pub fn calendar_calendar_list_watch_execute(
 
 pub fn calendar_calendar_list_watch(
     client: &SimpleHttpClient,
-    maxResults: Option<i32>,
-    minAccessRole: Option<&str>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
-    showHidden: Option<bool>,
-    syncToken: Option<&str>,
-    body: &Channel,
+    args: &CalendarCalendarListWatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = calendar_calendar_list_watch_builder(
         client,
-        maxResults,
-        minAccessRole,
-        pageToken,
-        showDeleted,
-        showHidden,
-        syncToken,
-        body,
+        args.maxResults,
+        args.minAccessRole.as_deref(),
+        args.pageToken.as_deref(),
+        args.showDeleted,
+        args.showHidden,
+        args.syncToken.as_deref(),
+        &args.body,
     )?;
     calendar_calendar_list_watch_execute(builder)
 }
@@ -1938,6 +2096,13 @@ pub fn calendar_calendars_clear_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_calendars_clear`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarsClearArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+}
+
 /// GET calendars/{calendarId}/clear
 /// Clears a primary calendar. This operation deletes all events associated with the primary calendar of an account.
 ///
@@ -1950,12 +2115,12 @@ pub fn calendar_calendars_clear_execute(
 
 pub fn calendar_calendars_clear(
     client: &SimpleHttpClient,
-    calendarId: &str,
+    args: &CalendarCalendarsClearArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_calendars_clear_builder(client, calendarId)?;
+    let builder = calendar_calendars_clear_builder(client, &args.calendarId)?;
     calendar_calendars_clear_execute(builder)
 }
 
@@ -2046,6 +2211,13 @@ pub fn calendar_calendars_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_calendars_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarsDeleteArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+}
+
 /// GET calendars/{calendarId}
 /// Deletes a secondary calendar. Use calendars.clear for clearing all events on primary calendars.
 ///
@@ -2058,12 +2230,12 @@ pub fn calendar_calendars_delete_execute(
 
 pub fn calendar_calendars_delete(
     client: &SimpleHttpClient,
-    calendarId: &str,
+    args: &CalendarCalendarsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_calendars_delete_builder(client, calendarId)?;
+    let builder = calendar_calendars_delete_builder(client, &args.calendarId)?;
     calendar_calendars_delete_execute(builder)
 }
 
@@ -2157,6 +2329,13 @@ pub fn calendar_calendars_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_calendars_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarsGetArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+}
+
 /// GET calendars/{calendarId}
 /// Returns metadata for a calendar.
 ///
@@ -2169,12 +2348,12 @@ pub fn calendar_calendars_get_execute(
 
 pub fn calendar_calendars_get(
     client: &SimpleHttpClient,
-    calendarId: &str,
+    args: &CalendarCalendarsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_calendars_get_builder(client, calendarId)?;
+    let builder = calendar_calendars_get_builder(client, &args.calendarId)?;
     calendar_calendars_get_execute(builder)
 }
 
@@ -2267,6 +2446,13 @@ pub fn calendar_calendars_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_calendars_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarsInsertArgs {
+    /// Request body.
+    pub body: Calendar,
+}
+
 /// GET calendars
 /// Creates a secondary calendar. The authenticated user for the request is made the data owner of the new calendar.  Note: We recommend to authenticate as the intended data owner of the calendar. You can use domain-wide delegation of authority to allow applications to act on behalf of a specific user. Don't use a service account for authentication. If you use a service account for authentication, the service account is the data owner, which can lead to unexpected behavior. For example, if a service account is the data owner, data ownership cannot be transferred.
 ///
@@ -2279,12 +2465,12 @@ pub fn calendar_calendars_insert_execute(
 
 pub fn calendar_calendars_insert(
     client: &SimpleHttpClient,
-    body: &Calendar,
+    args: &CalendarCalendarsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_calendars_insert_builder(client, body)?;
+    let builder = calendar_calendars_insert_builder(client, &args.body)?;
     calendar_calendars_insert_execute(builder)
 }
 
@@ -2381,6 +2567,15 @@ pub fn calendar_calendars_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_calendars_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarsPatchArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Request body.
+    pub body: Calendar,
+}
+
 /// GET calendars/{calendarId}
 /// Updates metadata for a calendar. This method supports patch semantics.
 ///
@@ -2393,13 +2588,12 @@ pub fn calendar_calendars_patch_execute(
 
 pub fn calendar_calendars_patch(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    body: &Calendar,
+    args: &CalendarCalendarsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_calendars_patch_builder(client, calendarId, body)?;
+    let builder = calendar_calendars_patch_builder(client, &args.calendarId, &args.body)?;
     calendar_calendars_patch_execute(builder)
 }
 
@@ -2496,6 +2690,15 @@ pub fn calendar_calendars_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_calendars_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarCalendarsUpdateArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Request body.
+    pub body: Calendar,
+}
+
 /// GET calendars/{calendarId}
 /// Updates metadata for a calendar.
 ///
@@ -2508,13 +2711,12 @@ pub fn calendar_calendars_update_execute(
 
 pub fn calendar_calendars_update(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    body: &Calendar,
+    args: &CalendarCalendarsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Calendar>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_calendars_update_builder(client, calendarId, body)?;
+    let builder = calendar_calendars_update_builder(client, &args.calendarId, &args.body)?;
     calendar_calendars_update_execute(builder)
 }
 
@@ -2604,6 +2806,13 @@ pub fn calendar_channels_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_channels_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarChannelsStopArgs {
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET channels/stop
 /// Stop watching resources through this channel
 ///
@@ -2616,12 +2825,12 @@ pub fn calendar_channels_stop_execute(
 
 pub fn calendar_channels_stop(
     client: &SimpleHttpClient,
-    body: &Channel,
+    args: &CalendarChannelsStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_channels_stop_builder(client, body)?;
+    let builder = calendar_channels_stop_builder(client, &args.body)?;
     calendar_channels_stop_execute(builder)
 }
 
@@ -2835,6 +3044,19 @@ pub fn calendar_events_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_events_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsDeleteArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: eventId
+    pub eventId: String,
+    /// Query parameter: sendNotifications
+    pub sendNotifications: Option<bool>,
+    /// Query parameter: sendUpdates
+    pub sendUpdates: Option<String>,
+}
+
 /// GET calendars/{calendarId}/events/{eventId}
 /// Deletes an event.
 ///
@@ -2847,20 +3069,17 @@ pub fn calendar_events_delete_execute(
 
 pub fn calendar_events_delete(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    eventId: &str,
-    sendNotifications: Option<bool>,
-    sendUpdates: Option<&str>,
+    args: &CalendarEventsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = calendar_events_delete_builder(
         client,
-        calendarId,
-        eventId,
-        sendNotifications,
-        sendUpdates,
+        &args.calendarId,
+        &args.eventId,
+        args.sendNotifications,
+        args.sendUpdates.as_deref(),
     )?;
     calendar_events_delete_execute(builder)
 }
@@ -2976,6 +3195,21 @@ pub fn calendar_events_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_events_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsGetArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: eventId
+    pub eventId: String,
+    /// Query parameter: alwaysIncludeEmail
+    pub alwaysIncludeEmail: Option<bool>,
+    /// Query parameter: maxAttendees
+    pub maxAttendees: Option<i32>,
+    /// Query parameter: timeZone
+    pub timeZone: Option<String>,
+}
+
 /// GET calendars/{calendarId}/events/{eventId}
 /// Returns an event based on its Google Calendar ID. To retrieve an event using its iCalendar ID, call the events.list method using the `iCalUID` parameter.
 ///
@@ -2988,22 +3222,18 @@ pub fn calendar_events_get_execute(
 
 pub fn calendar_events_get(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    eventId: &str,
-    alwaysIncludeEmail: Option<bool>,
-    maxAttendees: Option<i32>,
-    timeZone: Option<&str>,
+    args: &CalendarEventsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = calendar_events_get_builder(
         client,
-        calendarId,
-        eventId,
-        alwaysIncludeEmail,
-        maxAttendees,
-        timeZone,
+        &args.calendarId,
+        &args.eventId,
+        args.alwaysIncludeEmail,
+        args.maxAttendees,
+        args.timeZone.as_deref(),
     )?;
     calendar_events_get_execute(builder)
 }
@@ -3117,6 +3347,19 @@ pub fn calendar_events_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_events_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsImportArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Query parameter: conferenceDataVersion
+    pub conferenceDataVersion: Option<i32>,
+    /// Query parameter: supportsAttachments
+    pub supportsAttachments: Option<bool>,
+    /// Request body.
+    pub body: Event,
+}
+
 /// GET calendars/{calendarId}/events/import
 /// Imports an event. This operation is used to add a private copy of an existing event to a calendar. Only events with an `eventType` of default may be imported. Deprecated behavior: If a non-default event is imported, its type will be changed to default and any event-type-specific properties it may have will be dropped.
 ///
@@ -3129,20 +3372,17 @@ pub fn calendar_events_import_execute(
 
 pub fn calendar_events_import(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    conferenceDataVersion: Option<i32>,
-    supportsAttachments: Option<bool>,
-    body: &Event,
+    args: &CalendarEventsImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = calendar_events_import_builder(
         client,
-        calendarId,
-        conferenceDataVersion,
-        supportsAttachments,
-        body,
+        &args.calendarId,
+        args.conferenceDataVersion,
+        args.supportsAttachments,
+        &args.body,
     )?;
     calendar_events_import_execute(builder)
 }
@@ -3268,6 +3508,25 @@ pub fn calendar_events_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_events_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsInsertArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Query parameter: conferenceDataVersion
+    pub conferenceDataVersion: Option<i32>,
+    /// Query parameter: maxAttendees
+    pub maxAttendees: Option<i32>,
+    /// Query parameter: sendNotifications
+    pub sendNotifications: Option<bool>,
+    /// Query parameter: sendUpdates
+    pub sendUpdates: Option<String>,
+    /// Query parameter: supportsAttachments
+    pub supportsAttachments: Option<bool>,
+    /// Request body.
+    pub body: Event,
+}
+
 /// GET calendars/{calendarId}/events
 /// Creates an event.
 ///
@@ -3280,26 +3539,20 @@ pub fn calendar_events_insert_execute(
 
 pub fn calendar_events_insert(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    conferenceDataVersion: Option<i32>,
-    maxAttendees: Option<i32>,
-    sendNotifications: Option<bool>,
-    sendUpdates: Option<&str>,
-    supportsAttachments: Option<bool>,
-    body: &Event,
+    args: &CalendarEventsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = calendar_events_insert_builder(
         client,
-        calendarId,
-        conferenceDataVersion,
-        maxAttendees,
-        sendNotifications,
-        sendUpdates,
-        supportsAttachments,
-        body,
+        &args.calendarId,
+        args.conferenceDataVersion,
+        args.maxAttendees,
+        args.sendNotifications,
+        args.sendUpdates.as_deref(),
+        args.supportsAttachments,
+        &args.body,
     )?;
     calendar_events_insert_execute(builder)
 }
@@ -3439,6 +3692,33 @@ pub fn calendar_events_instances_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_events_instances`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsInstancesArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: eventId
+    pub eventId: String,
+    /// Query parameter: alwaysIncludeEmail
+    pub alwaysIncludeEmail: Option<bool>,
+    /// Query parameter: maxAttendees
+    pub maxAttendees: Option<i32>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: originalStart
+    pub originalStart: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+    /// Query parameter: timeMax
+    pub timeMax: Option<String>,
+    /// Query parameter: timeMin
+    pub timeMin: Option<String>,
+    /// Query parameter: timeZone
+    pub timeZone: Option<String>,
+}
+
 /// GET calendars/{calendarId}/events/{eventId}/instances
 /// Returns instances of the specified recurring event.
 ///
@@ -3451,34 +3731,24 @@ pub fn calendar_events_instances_execute(
 
 pub fn calendar_events_instances(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    eventId: &str,
-    alwaysIncludeEmail: Option<bool>,
-    maxAttendees: Option<i32>,
-    maxResults: Option<i32>,
-    originalStart: Option<&str>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
-    timeMax: Option<&str>,
-    timeMin: Option<&str>,
-    timeZone: Option<&str>,
+    args: &CalendarEventsInstancesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Events>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = calendar_events_instances_builder(
         client,
-        calendarId,
-        eventId,
-        alwaysIncludeEmail,
-        maxAttendees,
-        maxResults,
-        originalStart,
-        pageToken,
-        showDeleted,
-        timeMax,
-        timeMin,
-        timeZone,
+        &args.calendarId,
+        &args.eventId,
+        args.alwaysIncludeEmail,
+        args.maxAttendees,
+        args.maxResults,
+        args.originalStart.as_deref(),
+        args.pageToken.as_deref(),
+        args.showDeleted,
+        args.timeMax.as_deref(),
+        args.timeMin.as_deref(),
+        args.timeZone.as_deref(),
     )?;
     calendar_events_instances_execute(builder)
 }
@@ -3653,6 +3923,49 @@ pub fn calendar_events_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsListArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Query parameter: alwaysIncludeEmail
+    pub alwaysIncludeEmail: Option<bool>,
+    /// Query parameter: eventTypes
+    pub eventTypes: Option<String>,
+    /// Query parameter: iCalUID
+    pub iCalUID: Option<String>,
+    /// Query parameter: maxAttendees
+    pub maxAttendees: Option<i32>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: privateExtendedProperty
+    pub privateExtendedProperty: Option<String>,
+    /// Query parameter: q
+    pub q: Option<String>,
+    /// Query parameter: sharedExtendedProperty
+    pub sharedExtendedProperty: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+    /// Query parameter: showHiddenInvitations
+    pub showHiddenInvitations: Option<bool>,
+    /// Query parameter: singleEvents
+    pub singleEvents: Option<bool>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<String>,
+    /// Query parameter: timeMax
+    pub timeMax: Option<String>,
+    /// Query parameter: timeMin
+    pub timeMin: Option<String>,
+    /// Query parameter: timeZone
+    pub timeZone: Option<String>,
+    /// Query parameter: updatedMin
+    pub updatedMin: Option<String>,
+}
+
 /// GET calendars/{calendarId}/events
 /// Returns events on the specified calendar.
 ///
@@ -3665,50 +3978,32 @@ pub fn calendar_events_list_execute(
 
 pub fn calendar_events_list(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    alwaysIncludeEmail: Option<bool>,
-    eventTypes: Option<&str>,
-    iCalUID: Option<&str>,
-    maxAttendees: Option<i32>,
-    maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
-    privateExtendedProperty: Option<&str>,
-    q: Option<&str>,
-    sharedExtendedProperty: Option<&str>,
-    showDeleted: Option<bool>,
-    showHiddenInvitations: Option<bool>,
-    singleEvents: Option<bool>,
-    syncToken: Option<&str>,
-    timeMax: Option<&str>,
-    timeMin: Option<&str>,
-    timeZone: Option<&str>,
-    updatedMin: Option<&str>,
+    args: &CalendarEventsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Events>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = calendar_events_list_builder(
         client,
-        calendarId,
-        alwaysIncludeEmail,
-        eventTypes,
-        iCalUID,
-        maxAttendees,
-        maxResults,
-        orderBy,
-        pageToken,
-        privateExtendedProperty,
-        q,
-        sharedExtendedProperty,
-        showDeleted,
-        showHiddenInvitations,
-        singleEvents,
-        syncToken,
-        timeMax,
-        timeMin,
-        timeZone,
-        updatedMin,
+        &args.calendarId,
+        args.alwaysIncludeEmail,
+        args.eventTypes.as_deref(),
+        args.iCalUID.as_deref(),
+        args.maxAttendees,
+        args.maxResults,
+        args.orderBy.as_deref(),
+        args.pageToken.as_deref(),
+        args.privateExtendedProperty.as_deref(),
+        args.q.as_deref(),
+        args.sharedExtendedProperty.as_deref(),
+        args.showDeleted,
+        args.showHiddenInvitations,
+        args.singleEvents,
+        args.syncToken.as_deref(),
+        args.timeMax.as_deref(),
+        args.timeMin.as_deref(),
+        args.timeZone.as_deref(),
+        args.updatedMin.as_deref(),
     )?;
     calendar_events_list_execute(builder)
 }
@@ -3821,6 +4116,21 @@ pub fn calendar_events_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_events_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsMoveArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: eventId
+    pub eventId: String,
+    /// Path parameter: destination
+    pub destination: String,
+    /// Query parameter: sendNotifications
+    pub sendNotifications: Option<bool>,
+    /// Query parameter: sendUpdates
+    pub sendUpdates: Option<String>,
+}
+
 /// GET calendars/{calendarId}/events/{eventId}/move
 /// Moves an event to another calendar, i.e. changes an event's organizer. Note that only default events can be moved; birthday, `focusTime`, `fromGmail`, `outOfOffice` and `workingLocation` events cannot be moved.
 ///
@@ -3833,22 +4143,18 @@ pub fn calendar_events_move_execute(
 
 pub fn calendar_events_move(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    eventId: &str,
-    destination: &str,
-    sendNotifications: Option<bool>,
-    sendUpdates: Option<&str>,
+    args: &CalendarEventsMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = calendar_events_move_builder(
         client,
-        calendarId,
-        eventId,
-        destination,
-        sendNotifications,
-        sendUpdates,
+        &args.calendarId,
+        &args.eventId,
+        &args.destination,
+        args.sendNotifications,
+        args.sendUpdates.as_deref(),
     )?;
     calendar_events_move_execute(builder)
 }
@@ -3979,6 +4285,29 @@ pub fn calendar_events_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_events_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsPatchArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: eventId
+    pub eventId: String,
+    /// Query parameter: alwaysIncludeEmail
+    pub alwaysIncludeEmail: Option<bool>,
+    /// Query parameter: conferenceDataVersion
+    pub conferenceDataVersion: Option<i32>,
+    /// Query parameter: maxAttendees
+    pub maxAttendees: Option<i32>,
+    /// Query parameter: sendNotifications
+    pub sendNotifications: Option<bool>,
+    /// Query parameter: sendUpdates
+    pub sendUpdates: Option<String>,
+    /// Query parameter: supportsAttachments
+    pub supportsAttachments: Option<bool>,
+    /// Request body.
+    pub body: Event,
+}
+
 /// GET calendars/{calendarId}/events/{eventId}
 /// Updates an event. This method supports patch semantics.
 ///
@@ -3991,30 +4320,22 @@ pub fn calendar_events_patch_execute(
 
 pub fn calendar_events_patch(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    eventId: &str,
-    alwaysIncludeEmail: Option<bool>,
-    conferenceDataVersion: Option<i32>,
-    maxAttendees: Option<i32>,
-    sendNotifications: Option<bool>,
-    sendUpdates: Option<&str>,
-    supportsAttachments: Option<bool>,
-    body: &Event,
+    args: &CalendarEventsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = calendar_events_patch_builder(
         client,
-        calendarId,
-        eventId,
-        alwaysIncludeEmail,
-        conferenceDataVersion,
-        maxAttendees,
-        sendNotifications,
-        sendUpdates,
-        supportsAttachments,
-        body,
+        &args.calendarId,
+        &args.eventId,
+        args.alwaysIncludeEmail,
+        args.conferenceDataVersion,
+        args.maxAttendees,
+        args.sendNotifications,
+        args.sendUpdates.as_deref(),
+        args.supportsAttachments,
+        &args.body,
     )?;
     calendar_events_patch_execute(builder)
 }
@@ -4126,6 +4447,19 @@ pub fn calendar_events_quick_add_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_events_quick_add`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsQuickAddArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: text
+    pub text: String,
+    /// Query parameter: sendNotifications
+    pub sendNotifications: Option<bool>,
+    /// Query parameter: sendUpdates
+    pub sendUpdates: Option<String>,
+}
+
 /// GET calendars/{calendarId}/events/quickAdd
 /// Creates an event based on a simple text string.
 ///
@@ -4138,20 +4472,17 @@ pub fn calendar_events_quick_add_execute(
 
 pub fn calendar_events_quick_add(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    text: &str,
-    sendNotifications: Option<bool>,
-    sendUpdates: Option<&str>,
+    args: &CalendarEventsQuickAddArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = calendar_events_quick_add_builder(
         client,
-        calendarId,
-        text,
-        sendNotifications,
-        sendUpdates,
+        &args.calendarId,
+        &args.text,
+        args.sendNotifications,
+        args.sendUpdates.as_deref(),
     )?;
     calendar_events_quick_add_execute(builder)
 }
@@ -4282,6 +4613,29 @@ pub fn calendar_events_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_events_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsUpdateArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Path parameter: eventId
+    pub eventId: String,
+    /// Query parameter: alwaysIncludeEmail
+    pub alwaysIncludeEmail: Option<bool>,
+    /// Query parameter: conferenceDataVersion
+    pub conferenceDataVersion: Option<i32>,
+    /// Query parameter: maxAttendees
+    pub maxAttendees: Option<i32>,
+    /// Query parameter: sendNotifications
+    pub sendNotifications: Option<bool>,
+    /// Query parameter: sendUpdates
+    pub sendUpdates: Option<String>,
+    /// Query parameter: supportsAttachments
+    pub supportsAttachments: Option<bool>,
+    /// Request body.
+    pub body: Event,
+}
+
 /// GET calendars/{calendarId}/events/{eventId}
 /// Updates an event.
 ///
@@ -4294,30 +4648,22 @@ pub fn calendar_events_update_execute(
 
 pub fn calendar_events_update(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    eventId: &str,
-    alwaysIncludeEmail: Option<bool>,
-    conferenceDataVersion: Option<i32>,
-    maxAttendees: Option<i32>,
-    sendNotifications: Option<bool>,
-    sendUpdates: Option<&str>,
-    supportsAttachments: Option<bool>,
-    body: &Event,
+    args: &CalendarEventsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = calendar_events_update_builder(
         client,
-        calendarId,
-        eventId,
-        alwaysIncludeEmail,
-        conferenceDataVersion,
-        maxAttendees,
-        sendNotifications,
-        sendUpdates,
-        supportsAttachments,
-        body,
+        &args.calendarId,
+        &args.eventId,
+        args.alwaysIncludeEmail,
+        args.conferenceDataVersion,
+        args.maxAttendees,
+        args.sendNotifications,
+        args.sendUpdates.as_deref(),
+        args.supportsAttachments,
+        &args.body,
     )?;
     calendar_events_update_execute(builder)
 }
@@ -4495,6 +4841,51 @@ pub fn calendar_events_watch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_events_watch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarEventsWatchArgs {
+    /// Path parameter: calendarId
+    pub calendarId: String,
+    /// Query parameter: alwaysIncludeEmail
+    pub alwaysIncludeEmail: Option<bool>,
+    /// Query parameter: eventTypes
+    pub eventTypes: Option<String>,
+    /// Query parameter: iCalUID
+    pub iCalUID: Option<String>,
+    /// Query parameter: maxAttendees
+    pub maxAttendees: Option<i32>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: privateExtendedProperty
+    pub privateExtendedProperty: Option<String>,
+    /// Query parameter: q
+    pub q: Option<String>,
+    /// Query parameter: sharedExtendedProperty
+    pub sharedExtendedProperty: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+    /// Query parameter: showHiddenInvitations
+    pub showHiddenInvitations: Option<bool>,
+    /// Query parameter: singleEvents
+    pub singleEvents: Option<bool>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<String>,
+    /// Query parameter: timeMax
+    pub timeMax: Option<String>,
+    /// Query parameter: timeMin
+    pub timeMin: Option<String>,
+    /// Query parameter: timeZone
+    pub timeZone: Option<String>,
+    /// Query parameter: updatedMin
+    pub updatedMin: Option<String>,
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET calendars/{calendarId}/events/watch
 /// Watch for changes to Events resources.
 ///
@@ -4507,52 +4898,33 @@ pub fn calendar_events_watch_execute(
 
 pub fn calendar_events_watch(
     client: &SimpleHttpClient,
-    calendarId: &str,
-    alwaysIncludeEmail: Option<bool>,
-    eventTypes: Option<&str>,
-    iCalUID: Option<&str>,
-    maxAttendees: Option<i32>,
-    maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
-    privateExtendedProperty: Option<&str>,
-    q: Option<&str>,
-    sharedExtendedProperty: Option<&str>,
-    showDeleted: Option<bool>,
-    showHiddenInvitations: Option<bool>,
-    singleEvents: Option<bool>,
-    syncToken: Option<&str>,
-    timeMax: Option<&str>,
-    timeMin: Option<&str>,
-    timeZone: Option<&str>,
-    updatedMin: Option<&str>,
-    body: &Channel,
+    args: &CalendarEventsWatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = calendar_events_watch_builder(
         client,
-        calendarId,
-        alwaysIncludeEmail,
-        eventTypes,
-        iCalUID,
-        maxAttendees,
-        maxResults,
-        orderBy,
-        pageToken,
-        privateExtendedProperty,
-        q,
-        sharedExtendedProperty,
-        showDeleted,
-        showHiddenInvitations,
-        singleEvents,
-        syncToken,
-        timeMax,
-        timeMin,
-        timeZone,
-        updatedMin,
-        body,
+        &args.calendarId,
+        args.alwaysIncludeEmail,
+        args.eventTypes.as_deref(),
+        args.iCalUID.as_deref(),
+        args.maxAttendees,
+        args.maxResults,
+        args.orderBy.as_deref(),
+        args.pageToken.as_deref(),
+        args.privateExtendedProperty.as_deref(),
+        args.q.as_deref(),
+        args.sharedExtendedProperty.as_deref(),
+        args.showDeleted,
+        args.showHiddenInvitations,
+        args.singleEvents,
+        args.syncToken.as_deref(),
+        args.timeMax.as_deref(),
+        args.timeMin.as_deref(),
+        args.timeZone.as_deref(),
+        args.updatedMin.as_deref(),
+        &args.body,
     )?;
     calendar_events_watch_execute(builder)
 }
@@ -4648,6 +5020,13 @@ pub fn calendar_freebusy_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_freebusy_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarFreebusyQueryArgs {
+    /// Request body.
+    pub body: FreeBusyRequest,
+}
+
 /// GET freeBusy
 /// Returns `free/busy` information for a set of calendars.
 ///
@@ -4660,14 +5039,14 @@ pub fn calendar_freebusy_query_execute(
 
 pub fn calendar_freebusy_query(
     client: &SimpleHttpClient,
-    body: &FreeBusyRequest,
+    args: &CalendarFreebusyQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FreeBusyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = calendar_freebusy_query_builder(client, body)?;
+    let builder = calendar_freebusy_query_builder(client, &args.body)?;
     calendar_freebusy_query_execute(builder)
 }
 
@@ -4761,6 +5140,13 @@ pub fn calendar_settings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_settings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarSettingsGetArgs {
+    /// Path parameter: setting
+    pub setting: String,
+}
+
 /// GET users/me/settings/{setting}
 /// Returns a single user setting.
 ///
@@ -4773,12 +5159,12 @@ pub fn calendar_settings_get_execute(
 
 pub fn calendar_settings_get(
     client: &SimpleHttpClient,
-    setting: &str,
+    args: &CalendarSettingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Setting>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_settings_get_builder(client, setting)?;
+    let builder = calendar_settings_get_builder(client, &args.setting)?;
     calendar_settings_get_execute(builder)
 }
 
@@ -4888,6 +5274,17 @@ pub fn calendar_settings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_settings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarSettingsListArgs {
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<String>,
+}
+
 /// GET users/me/settings
 /// Returns all user settings for the authenticated user.
 ///
@@ -4900,14 +5297,17 @@ pub fn calendar_settings_list_execute(
 
 pub fn calendar_settings_list(
     client: &SimpleHttpClient,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    syncToken: Option<&str>,
+    args: &CalendarSettingsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_settings_list_builder(client, maxResults, pageToken, syncToken)?;
+    let builder = calendar_settings_list_builder(
+        client,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.syncToken.as_deref(),
+    )?;
     calendar_settings_list_execute(builder)
 }
 
@@ -5020,6 +5420,19 @@ pub fn calendar_settings_watch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`calendar_settings_watch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CalendarSettingsWatchArgs {
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<String>,
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET users/me/settings/watch
 /// Watch for changes to Settings resources.
 ///
@@ -5032,14 +5445,17 @@ pub fn calendar_settings_watch_execute(
 
 pub fn calendar_settings_watch(
     client: &SimpleHttpClient,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    syncToken: Option<&str>,
-    body: &Channel,
+    args: &CalendarSettingsWatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = calendar_settings_watch_builder(client, maxResults, pageToken, syncToken, body)?;
+    let builder = calendar_settings_watch_builder(
+        client,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.syncToken.as_deref(),
+        &args.body,
+    )?;
     calendar_settings_watch_execute(builder)
 }

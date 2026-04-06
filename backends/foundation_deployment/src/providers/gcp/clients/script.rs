@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/processes
 /// List information about processes made by or on behalf of a user, such as process type and current status.
@@ -156,6 +158,33 @@ pub fn script_processes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_processes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptProcessesListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: userProcessFilter_deploymentId
+    pub userProcessFilter_deploymentId: Option<String>,
+    /// Query parameter: userProcessFilter_endTime
+    pub userProcessFilter_endTime: Option<String>,
+    /// Query parameter: userProcessFilter_functionName
+    pub userProcessFilter_functionName: Option<String>,
+    /// Query parameter: userProcessFilter_projectName
+    pub userProcessFilter_projectName: Option<String>,
+    /// Query parameter: userProcessFilter_scriptId
+    pub userProcessFilter_scriptId: Option<String>,
+    /// Query parameter: userProcessFilter_startTime
+    pub userProcessFilter_startTime: Option<String>,
+    /// Query parameter: userProcessFilter_statuses
+    pub userProcessFilter_statuses: Option<String>,
+    /// Query parameter: userProcessFilter_types
+    pub userProcessFilter_types: Option<String>,
+    /// Query parameter: userProcessFilter_userAccessLevels
+    pub userProcessFilter_userAccessLevels: Option<String>,
+}
+
 /// GET v1/processes
 /// List information about processes made by or on behalf of a user, such as process type and current status.
 ///
@@ -168,17 +197,7 @@ pub fn script_processes_list_execute(
 
 pub fn script_processes_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    userProcessFilter_deploymentId: Option<&str>,
-    userProcessFilter_endTime: Option<&str>,
-    userProcessFilter_functionName: Option<&str>,
-    userProcessFilter_projectName: Option<&str>,
-    userProcessFilter_scriptId: Option<&str>,
-    userProcessFilter_startTime: Option<&str>,
-    userProcessFilter_statuses: Option<&str>,
-    userProcessFilter_types: Option<&str>,
-    userProcessFilter_userAccessLevels: Option<&str>,
+    args: &ScriptProcessesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListUserProcessesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -187,17 +206,17 @@ pub fn script_processes_list(
 > {
     let builder = script_processes_list_builder(
         client,
-        pageSize,
-        pageToken,
-        userProcessFilter_deploymentId,
-        userProcessFilter_endTime,
-        userProcessFilter_functionName,
-        userProcessFilter_projectName,
-        userProcessFilter_scriptId,
-        userProcessFilter_startTime,
-        userProcessFilter_statuses,
-        userProcessFilter_types,
-        userProcessFilter_userAccessLevels,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.userProcessFilter_deploymentId.as_deref(),
+        args.userProcessFilter_endTime.as_deref(),
+        args.userProcessFilter_functionName.as_deref(),
+        args.userProcessFilter_projectName.as_deref(),
+        args.userProcessFilter_scriptId.as_deref(),
+        args.userProcessFilter_startTime.as_deref(),
+        args.userProcessFilter_statuses.as_deref(),
+        args.userProcessFilter_types.as_deref(),
+        args.userProcessFilter_userAccessLevels.as_deref(),
     )?;
     script_processes_list_execute(builder)
 }
@@ -340,6 +359,31 @@ pub fn script_processes_list_script_processes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_processes_list_script_processes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptProcessesListScriptProcessesArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: scriptId
+    pub scriptId: Option<String>,
+    /// Query parameter: scriptProcessFilter_deploymentId
+    pub scriptProcessFilter_deploymentId: Option<String>,
+    /// Query parameter: scriptProcessFilter_endTime
+    pub scriptProcessFilter_endTime: Option<String>,
+    /// Query parameter: scriptProcessFilter_functionName
+    pub scriptProcessFilter_functionName: Option<String>,
+    /// Query parameter: scriptProcessFilter_startTime
+    pub scriptProcessFilter_startTime: Option<String>,
+    /// Query parameter: scriptProcessFilter_statuses
+    pub scriptProcessFilter_statuses: Option<String>,
+    /// Query parameter: scriptProcessFilter_types
+    pub scriptProcessFilter_types: Option<String>,
+    /// Query parameter: scriptProcessFilter_userAccessLevels
+    pub scriptProcessFilter_userAccessLevels: Option<String>,
+}
+
 /// GET v1/processes:listScriptProcesses
 /// List information about a script's executed processes, such as process type and current status.
 ///
@@ -352,16 +396,7 @@ pub fn script_processes_list_script_processes_execute(
 
 pub fn script_processes_list_script_processes(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    scriptId: Option<&str>,
-    scriptProcessFilter_deploymentId: Option<&str>,
-    scriptProcessFilter_endTime: Option<&str>,
-    scriptProcessFilter_functionName: Option<&str>,
-    scriptProcessFilter_startTime: Option<&str>,
-    scriptProcessFilter_statuses: Option<&str>,
-    scriptProcessFilter_types: Option<&str>,
-    scriptProcessFilter_userAccessLevels: Option<&str>,
+    args: &ScriptProcessesListScriptProcessesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListScriptProcessesResponse>, ApiError>,
@@ -372,16 +407,16 @@ pub fn script_processes_list_script_processes(
 > {
     let builder = script_processes_list_script_processes_builder(
         client,
-        pageSize,
-        pageToken,
-        scriptId,
-        scriptProcessFilter_deploymentId,
-        scriptProcessFilter_endTime,
-        scriptProcessFilter_functionName,
-        scriptProcessFilter_startTime,
-        scriptProcessFilter_statuses,
-        scriptProcessFilter_types,
-        scriptProcessFilter_userAccessLevels,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.scriptId.as_deref(),
+        args.scriptProcessFilter_deploymentId.as_deref(),
+        args.scriptProcessFilter_endTime.as_deref(),
+        args.scriptProcessFilter_functionName.as_deref(),
+        args.scriptProcessFilter_startTime.as_deref(),
+        args.scriptProcessFilter_statuses.as_deref(),
+        args.scriptProcessFilter_types.as_deref(),
+        args.scriptProcessFilter_userAccessLevels.as_deref(),
     )?;
     script_processes_list_script_processes_execute(builder)
 }
@@ -475,6 +510,13 @@ pub fn script_projects_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_projects_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptProjectsCreateArgs {
+    /// Request body.
+    pub body: CreateProjectRequest,
+}
+
 /// GET v1/projects
 /// Creates a new, empty script project with no script files and a base manifest file.
 ///
@@ -487,12 +529,12 @@ pub fn script_projects_create_execute(
 
 pub fn script_projects_create(
     client: &SimpleHttpClient,
-    body: &CreateProjectRequest,
+    args: &ScriptProjectsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Project>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_create_builder(client, body)?;
+    let builder = script_projects_create_builder(client, &args.body)?;
     script_projects_create_execute(builder)
 }
 
@@ -583,6 +625,13 @@ pub fn script_projects_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_projects_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptProjectsGetArgs {
+    /// Path parameter: scriptId
+    pub scriptId: String,
+}
+
 /// GET v1/projects/{scriptId}
 /// Gets a script project's metadata.
 ///
@@ -595,12 +644,12 @@ pub fn script_projects_get_execute(
 
 pub fn script_projects_get(
     client: &SimpleHttpClient,
-    scriptId: &str,
+    args: &ScriptProjectsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Project>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_get_builder(client, scriptId)?;
+    let builder = script_projects_get_builder(client, &args.scriptId)?;
     script_projects_get_execute(builder)
 }
 
@@ -706,6 +755,15 @@ pub fn script_projects_get_content_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_projects_get_content`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptProjectsGetContentArgs {
+    /// Path parameter: scriptId
+    pub scriptId: String,
+    /// Query parameter: versionNumber
+    pub versionNumber: Option<i32>,
+}
+
 /// GET v1/projects/{scriptId}/content
 /// Gets the content of the script project, including the code source and metadata for each script file.
 ///
@@ -718,13 +776,12 @@ pub fn script_projects_get_content_execute(
 
 pub fn script_projects_get_content(
     client: &SimpleHttpClient,
-    scriptId: &str,
-    versionNumber: Option<i32>,
+    args: &ScriptProjectsGetContentArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Content>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_get_content_builder(client, scriptId, versionNumber)?;
+    let builder = script_projects_get_content_builder(client, &args.scriptId, args.versionNumber)?;
     script_projects_get_content_execute(builder)
 }
 
@@ -834,6 +891,17 @@ pub fn script_projects_get_metrics_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_projects_get_metrics`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptProjectsGetMetricsArgs {
+    /// Path parameter: scriptId
+    pub scriptId: String,
+    /// Query parameter: metricsFilter_deploymentId
+    pub metricsFilter_deploymentId: Option<String>,
+    /// Query parameter: metricsGranularity
+    pub metricsGranularity: Option<String>,
+}
+
 /// GET v1/projects/{scriptId}/metrics
 /// Get metrics data for scripts, such as number of executions and active users.
 ///
@@ -846,18 +914,16 @@ pub fn script_projects_get_metrics_execute(
 
 pub fn script_projects_get_metrics(
     client: &SimpleHttpClient,
-    scriptId: &str,
-    metricsFilter_deploymentId: Option<&str>,
-    metricsGranularity: Option<&str>,
+    args: &ScriptProjectsGetMetricsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Metrics>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = script_projects_get_metrics_builder(
         client,
-        scriptId,
-        metricsFilter_deploymentId,
-        metricsGranularity,
+        &args.scriptId,
+        args.metricsFilter_deploymentId.as_deref(),
+        args.metricsGranularity.as_deref(),
     )?;
     script_projects_get_metrics_execute(builder)
 }
@@ -955,6 +1021,15 @@ pub fn script_projects_update_content_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_projects_update_content`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptProjectsUpdateContentArgs {
+    /// Path parameter: scriptId
+    pub scriptId: String,
+    /// Request body.
+    pub body: Content,
+}
+
 /// GET v1/projects/{scriptId}/content
 /// Updates the content of the specified script project. This content is stored as the HEAD version, and is used when the script is executed as a trigger, in the script editor, in add-on preview mode, or as a web app or Apps Script API in development mode. This clears all the existing files in the project.
 ///
@@ -967,13 +1042,12 @@ pub fn script_projects_update_content_execute(
 
 pub fn script_projects_update_content(
     client: &SimpleHttpClient,
-    scriptId: &str,
-    body: &Content,
+    args: &ScriptProjectsUpdateContentArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Content>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_update_content_builder(client, scriptId, body)?;
+    let builder = script_projects_update_content_builder(client, &args.scriptId, &args.body)?;
     script_projects_update_content_execute(builder)
 }
 
@@ -1070,6 +1144,15 @@ pub fn script_projects_deployments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_projects_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptProjectsDeploymentsCreateArgs {
+    /// Path parameter: scriptId
+    pub scriptId: String,
+    /// Request body.
+    pub body: DeploymentConfig,
+}
+
 /// GET v1/projects/{scriptId}/deployments
 /// Creates a deployment of an Apps Script project.
 ///
@@ -1082,13 +1165,12 @@ pub fn script_projects_deployments_create_execute(
 
 pub fn script_projects_deployments_create(
     client: &SimpleHttpClient,
-    scriptId: &str,
-    body: &DeploymentConfig,
+    args: &ScriptProjectsDeploymentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_deployments_create_builder(client, scriptId, body)?;
+    let builder = script_projects_deployments_create_builder(client, &args.scriptId, &args.body)?;
     script_projects_deployments_create_execute(builder)
 }
 
@@ -1183,6 +1265,15 @@ pub fn script_projects_deployments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_projects_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptProjectsDeploymentsDeleteArgs {
+    /// Path parameter: scriptId
+    pub scriptId: String,
+    /// Path parameter: deploymentId
+    pub deploymentId: String,
+}
+
 /// GET v1/projects/{scriptId}/deployments/{deploymentId}
 /// Deletes a deployment of an Apps Script project.
 ///
@@ -1195,13 +1286,13 @@ pub fn script_projects_deployments_delete_execute(
 
 pub fn script_projects_deployments_delete(
     client: &SimpleHttpClient,
-    scriptId: &str,
-    deploymentId: &str,
+    args: &ScriptProjectsDeploymentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_deployments_delete_builder(client, scriptId, deploymentId)?;
+    let builder =
+        script_projects_deployments_delete_builder(client, &args.scriptId, &args.deploymentId)?;
     script_projects_deployments_delete_execute(builder)
 }
 
@@ -1296,6 +1387,15 @@ pub fn script_projects_deployments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_projects_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptProjectsDeploymentsGetArgs {
+    /// Path parameter: scriptId
+    pub scriptId: String,
+    /// Path parameter: deploymentId
+    pub deploymentId: String,
+}
+
 /// GET v1/projects/{scriptId}/deployments/{deploymentId}
 /// Gets a deployment of an Apps Script project.
 ///
@@ -1308,13 +1408,13 @@ pub fn script_projects_deployments_get_execute(
 
 pub fn script_projects_deployments_get(
     client: &SimpleHttpClient,
-    scriptId: &str,
-    deploymentId: &str,
+    args: &ScriptProjectsDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_deployments_get_builder(client, scriptId, deploymentId)?;
+    let builder =
+        script_projects_deployments_get_builder(client, &args.scriptId, &args.deploymentId)?;
     script_projects_deployments_get_execute(builder)
 }
 
@@ -1426,6 +1526,17 @@ pub fn script_projects_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_projects_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptProjectsDeploymentsListArgs {
+    /// Path parameter: scriptId
+    pub scriptId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{scriptId}/deployments
 /// Lists the deployments of an Apps Script project.
 ///
@@ -1438,16 +1549,19 @@ pub fn script_projects_deployments_list_execute(
 
 pub fn script_projects_deployments_list(
     client: &SimpleHttpClient,
-    scriptId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ScriptProjectsDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDeploymentsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = script_projects_deployments_list_builder(client, scriptId, pageSize, pageToken)?;
+    let builder = script_projects_deployments_list_builder(
+        client,
+        &args.scriptId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     script_projects_deployments_list_execute(builder)
 }
 
@@ -1545,6 +1659,17 @@ pub fn script_projects_deployments_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_projects_deployments_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptProjectsDeploymentsUpdateArgs {
+    /// Path parameter: scriptId
+    pub scriptId: String,
+    /// Path parameter: deploymentId
+    pub deploymentId: String,
+    /// Request body.
+    pub body: UpdateDeploymentRequest,
+}
+
 /// GET v1/projects/{scriptId}/deployments/{deploymentId}
 /// Updates a deployment of an Apps Script project.
 ///
@@ -1557,14 +1682,17 @@ pub fn script_projects_deployments_update_execute(
 
 pub fn script_projects_deployments_update(
     client: &SimpleHttpClient,
-    scriptId: &str,
-    deploymentId: &str,
-    body: &UpdateDeploymentRequest,
+    args: &ScriptProjectsDeploymentsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_deployments_update_builder(client, scriptId, deploymentId, body)?;
+    let builder = script_projects_deployments_update_builder(
+        client,
+        &args.scriptId,
+        &args.deploymentId,
+        &args.body,
+    )?;
     script_projects_deployments_update_execute(builder)
 }
 
@@ -1661,6 +1789,15 @@ pub fn script_projects_versions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_projects_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptProjectsVersionsCreateArgs {
+    /// Path parameter: scriptId
+    pub scriptId: String,
+    /// Request body.
+    pub body: Version,
+}
+
 /// GET v1/projects/{scriptId}/versions
 /// Creates a new immutable version using the current code, with a unique version number.
 ///
@@ -1673,13 +1810,12 @@ pub fn script_projects_versions_create_execute(
 
 pub fn script_projects_versions_create(
     client: &SimpleHttpClient,
-    scriptId: &str,
-    body: &Version,
+    args: &ScriptProjectsVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_versions_create_builder(client, scriptId, body)?;
+    let builder = script_projects_versions_create_builder(client, &args.scriptId, &args.body)?;
     script_projects_versions_create_execute(builder)
 }
 
@@ -1774,6 +1910,15 @@ pub fn script_projects_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_projects_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptProjectsVersionsGetArgs {
+    /// Path parameter: scriptId
+    pub scriptId: String,
+    /// Path parameter: versionNumber
+    pub versionNumber: String,
+}
+
 /// GET v1/projects/{scriptId}/versions/{versionNumber}
 /// Gets a version of a script project.
 ///
@@ -1786,13 +1931,13 @@ pub fn script_projects_versions_get_execute(
 
 pub fn script_projects_versions_get(
     client: &SimpleHttpClient,
-    scriptId: &str,
-    versionNumber: &str,
+    args: &ScriptProjectsVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_versions_get_builder(client, scriptId, versionNumber)?;
+    let builder =
+        script_projects_versions_get_builder(client, &args.scriptId, &args.versionNumber)?;
     script_projects_versions_get_execute(builder)
 }
 
@@ -1904,6 +2049,17 @@ pub fn script_projects_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_projects_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptProjectsVersionsListArgs {
+    /// Path parameter: scriptId
+    pub scriptId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{scriptId}/versions
 /// List the versions of a script project.
 ///
@@ -1916,16 +2072,19 @@ pub fn script_projects_versions_list_execute(
 
 pub fn script_projects_versions_list(
     client: &SimpleHttpClient,
-    scriptId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ScriptProjectsVersionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListVersionsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = script_projects_versions_list_builder(client, scriptId, pageSize, pageToken)?;
+    let builder = script_projects_versions_list_builder(
+        client,
+        &args.scriptId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     script_projects_versions_list_execute(builder)
 }
 
@@ -2019,6 +2178,15 @@ pub fn script_scripts_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`script_scripts_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ScriptScriptsRunArgs {
+    /// Path parameter: scriptId
+    pub scriptId: String,
+    /// Request body.
+    pub body: ExecutionRequest,
+}
+
 /// GET v1/scripts/{scriptId}:run
 ///
 ///
@@ -2031,12 +2199,11 @@ pub fn script_scripts_run_execute(
 
 pub fn script_scripts_run(
     client: &SimpleHttpClient,
-    scriptId: &str,
-    body: &ExecutionRequest,
+    args: &ScriptScriptsRunArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_scripts_run_builder(client, scriptId, body)?;
+    let builder = script_scripts_run_builder(client, &args.scriptId, &args.body)?;
     script_scripts_run_execute(builder)
 }

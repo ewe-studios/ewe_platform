@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1beta/projects/{projectsId}/locations/{locationsId}/instances
 /// Requests that a new DatabaseInstance be created. The state of a successfully created DatabaseInstance is `ACTIVE`. Only available for projects on the Blaze plan. Projects can be upgraded using the Cloud Billing API <https://cloud.google.`com/billing/reference/rest/v1/projects/`updateBillingInfo``.> Note that it might take a few minutes for billing enablement state to propagate to Firebase systems.
@@ -127,6 +129,19 @@ pub fn firebasedatabase_projects_locations_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedatabase_projects_locations_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedatabaseProjectsLocationsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: databaseId
+    pub databaseId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: DatabaseInstance,
+}
+
 /// GET v1beta/projects/{projectsId}/locations/{locationsId}/instances
 /// Requests that a new DatabaseInstance be created. The state of a successfully created DatabaseInstance is `ACTIVE`. Only available for projects on the Blaze plan. Projects can be upgraded using the Cloud Billing API <https://cloud.google.`com/billing/reference/rest/v1/projects/`updateBillingInfo``.> Note that it might take a few minutes for billing enablement state to propagate to Firebase systems.
 ///
@@ -139,10 +154,7 @@ pub fn firebasedatabase_projects_locations_instances_create_execute(
 
 pub fn firebasedatabase_projects_locations_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    databaseId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &DatabaseInstance,
+    args: &FirebasedatabaseProjectsLocationsInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabaseInstance>, ApiError>, P = ApiPending>
         + Send
@@ -151,10 +163,10 @@ pub fn firebasedatabase_projects_locations_instances_create(
 > {
     let builder = firebasedatabase_projects_locations_instances_create_builder(
         client,
-        parent,
-        databaseId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.databaseId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     firebasedatabase_projects_locations_instances_create_execute(builder)
 }
@@ -251,6 +263,13 @@ pub fn firebasedatabase_projects_locations_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedatabase_projects_locations_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedatabaseProjectsLocationsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Marks a DatabaseInstance to be deleted. The DatabaseInstance will be set to the DELETED state for 20 days, and will be purged within 30 days. The default database cannot be deleted. IDs for deleted database instances may never be recovered or re-used. The Database may only be deleted if it is already in a DISABLED state.
 ///
@@ -263,14 +282,14 @@ pub fn firebasedatabase_projects_locations_instances_delete_execute(
 
 pub fn firebasedatabase_projects_locations_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebasedatabaseProjectsLocationsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabaseInstance>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = firebasedatabase_projects_locations_instances_delete_builder(client, name)?;
+    let builder = firebasedatabase_projects_locations_instances_delete_builder(client, &args.name)?;
     firebasedatabase_projects_locations_instances_delete_execute(builder)
 }
 
@@ -369,6 +388,15 @@ pub fn firebasedatabase_projects_locations_instances_disable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedatabase_projects_locations_instances_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedatabaseProjectsLocationsInstancesDisableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DisableDatabaseInstanceRequest,
+}
+
 /// GET v1beta/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:disable
 /// Disables a DatabaseInstance. The database can be re-enabled later using ReenableDatabaseInstance. When a database is disabled, all reads and writes are denied, including view access in the Firebase console.
 ///
@@ -381,16 +409,16 @@ pub fn firebasedatabase_projects_locations_instances_disable_execute(
 
 pub fn firebasedatabase_projects_locations_instances_disable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DisableDatabaseInstanceRequest,
+    args: &FirebasedatabaseProjectsLocationsInstancesDisableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabaseInstance>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebasedatabase_projects_locations_instances_disable_builder(client, name, body)?;
+    let builder = firebasedatabase_projects_locations_instances_disable_builder(
+        client, &args.name, &args.body,
+    )?;
     firebasedatabase_projects_locations_instances_disable_execute(builder)
 }
 
@@ -486,6 +514,13 @@ pub fn firebasedatabase_projects_locations_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedatabase_projects_locations_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedatabaseProjectsLocationsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Gets the DatabaseInstance identified by the specified resource name.
 ///
@@ -498,14 +533,14 @@ pub fn firebasedatabase_projects_locations_instances_get_execute(
 
 pub fn firebasedatabase_projects_locations_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebasedatabaseProjectsLocationsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabaseInstance>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = firebasedatabase_projects_locations_instances_get_builder(client, name)?;
+    let builder = firebasedatabase_projects_locations_instances_get_builder(client, &args.name)?;
     firebasedatabase_projects_locations_instances_get_execute(builder)
 }
 
@@ -623,6 +658,19 @@ pub fn firebasedatabase_projects_locations_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedatabase_projects_locations_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedatabaseProjectsLocationsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v1beta/projects/{projectsId}/locations/{locationsId}/instances
 /// Lists each DatabaseInstance associated with the specified parent project. The list items are returned in no particular order, but will be a consistent view of the database instances when additional requests are made with a `pageToken`. The resulting list contains instances in any STATE. The list results may be stale by a few seconds. Use GetDatabaseInstance for consistent reads.
 ///
@@ -635,10 +683,7 @@ pub fn firebasedatabase_projects_locations_instances_list_execute(
 
 pub fn firebasedatabase_projects_locations_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &FirebasedatabaseProjectsLocationsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDatabaseInstancesResponse>, ApiError>,
@@ -649,10 +694,10 @@ pub fn firebasedatabase_projects_locations_instances_list(
 > {
     let builder = firebasedatabase_projects_locations_instances_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     firebasedatabase_projects_locations_instances_list_execute(builder)
 }
@@ -752,6 +797,15 @@ pub fn firebasedatabase_projects_locations_instances_reenable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedatabase_projects_locations_instances_reenable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedatabaseProjectsLocationsInstancesReenableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ReenableDatabaseInstanceRequest,
+}
+
 /// GET v1beta/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:reenable
 /// Enables a DatabaseInstance. The database must have been disabled previously using DisableDatabaseInstance. The state of a successfully reenabled DatabaseInstance is `ACTIVE`.
 ///
@@ -764,16 +818,16 @@ pub fn firebasedatabase_projects_locations_instances_reenable_execute(
 
 pub fn firebasedatabase_projects_locations_instances_reenable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ReenableDatabaseInstanceRequest,
+    args: &FirebasedatabaseProjectsLocationsInstancesReenableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabaseInstance>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebasedatabase_projects_locations_instances_reenable_builder(client, name, body)?;
+    let builder = firebasedatabase_projects_locations_instances_reenable_builder(
+        client, &args.name, &args.body,
+    )?;
     firebasedatabase_projects_locations_instances_reenable_execute(builder)
 }
 
@@ -872,6 +926,15 @@ pub fn firebasedatabase_projects_locations_instances_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedatabase_projects_locations_instances_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedatabaseProjectsLocationsInstancesUndeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UndeleteDatabaseInstanceRequest,
+}
+
 /// GET v1beta/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:undelete
 /// Restores a DatabaseInstance that was previously marked to be deleted. After the delete method is used, DatabaseInstances are set to the DELETED state for 20 days, and will be purged within 30 days. Databases in the DELETED state can be undeleted without losing any data. This method may only be used on a DatabaseInstance in the DELETED state. Purged DatabaseInstances may not be recovered.
 ///
@@ -884,15 +947,15 @@ pub fn firebasedatabase_projects_locations_instances_undelete_execute(
 
 pub fn firebasedatabase_projects_locations_instances_undelete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UndeleteDatabaseInstanceRequest,
+    args: &FirebasedatabaseProjectsLocationsInstancesUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatabaseInstance>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebasedatabase_projects_locations_instances_undelete_builder(client, name, body)?;
+    let builder = firebasedatabase_projects_locations_instances_undelete_builder(
+        client, &args.name, &args.body,
+    )?;
     firebasedatabase_projects_locations_instances_undelete_execute(builder)
 }

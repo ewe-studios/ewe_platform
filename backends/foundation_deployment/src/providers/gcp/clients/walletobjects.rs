@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET walletobjects/v1/eventTicketClass/{resourceId}/addMessage
 /// Adds a message to the event ticket class referenced by the given class ID.
@@ -113,6 +115,15 @@ pub fn walletobjects_eventticketclass_addmessage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_eventticketclass_addmessage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketclassAddmessageArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: AddMessageRequest,
+}
+
 /// GET walletobjects/v1/eventTicketClass/{resourceId}/addMessage
 /// Adds a message to the event ticket class referenced by the given class ID.
 ///
@@ -125,8 +136,7 @@ pub fn walletobjects_eventticketclass_addmessage_execute(
 
 pub fn walletobjects_eventticketclass_addmessage(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &AddMessageRequest,
+    args: &WalletobjectsEventticketclassAddmessageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EventTicketClassAddMessageResponse>, ApiError>,
@@ -135,7 +145,8 @@ pub fn walletobjects_eventticketclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketclass_addmessage_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_eventticketclass_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_eventticketclass_addmessage_execute(builder)
 }
 
@@ -231,6 +242,13 @@ pub fn walletobjects_eventticketclass_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_eventticketclass_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketclassGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/eventTicketClass/{resourceId}
 /// Returns the event ticket class with the given class ID.
 ///
@@ -243,14 +261,14 @@ pub fn walletobjects_eventticketclass_get_execute(
 
 pub fn walletobjects_eventticketclass_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsEventticketclassGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketclass_get_builder(client, resourceId)?;
+    let builder = walletobjects_eventticketclass_get_builder(client, &args.resourceId)?;
     walletobjects_eventticketclass_get_execute(builder)
 }
 
@@ -345,6 +363,13 @@ pub fn walletobjects_eventticketclass_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_eventticketclass_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketclassInsertArgs {
+    /// Request body.
+    pub body: EventTicketClass,
+}
+
 /// GET walletobjects/v1/eventTicketClass
 /// Inserts an event ticket class with the given ID and properties.
 ///
@@ -357,14 +382,14 @@ pub fn walletobjects_eventticketclass_insert_execute(
 
 pub fn walletobjects_eventticketclass_insert(
     client: &SimpleHttpClient,
-    body: &EventTicketClass,
+    args: &WalletobjectsEventticketclassInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketclass_insert_builder(client, body)?;
+    let builder = walletobjects_eventticketclass_insert_builder(client, &args.body)?;
     walletobjects_eventticketclass_insert_execute(builder)
 }
 
@@ -478,6 +503,17 @@ pub fn walletobjects_eventticketclass_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_eventticketclass_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketclassListArgs {
+    /// Query parameter: issuerId
+    pub issuerId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET walletobjects/v1/eventTicketClass
 /// Returns a list of all event ticket classes for a given issuer ID.
 ///
@@ -490,9 +526,7 @@ pub fn walletobjects_eventticketclass_list_execute(
 
 pub fn walletobjects_eventticketclass_list(
     client: &SimpleHttpClient,
-    issuerId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
+    args: &WalletobjectsEventticketclassListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EventTicketClassListResponse>, ApiError>,
@@ -501,7 +535,12 @@ pub fn walletobjects_eventticketclass_list(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketclass_list_builder(client, issuerId, maxResults, token)?;
+    let builder = walletobjects_eventticketclass_list_builder(
+        client,
+        args.issuerId.as_deref(),
+        args.maxResults,
+        args.token.as_deref(),
+    )?;
     walletobjects_eventticketclass_list_execute(builder)
 }
 
@@ -600,6 +639,15 @@ pub fn walletobjects_eventticketclass_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_eventticketclass_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketclassPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: EventTicketClass,
+}
+
 /// GET walletobjects/v1/eventTicketClass/{resourceId}
 /// Updates the event ticket class referenced by the given class ID. This method supports patch semantics.
 ///
@@ -612,15 +660,15 @@ pub fn walletobjects_eventticketclass_patch_execute(
 
 pub fn walletobjects_eventticketclass_patch(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &EventTicketClass,
+    args: &WalletobjectsEventticketclassPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketclass_patch_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_eventticketclass_patch_builder(client, &args.resourceId, &args.body)?;
     walletobjects_eventticketclass_patch_execute(builder)
 }
 
@@ -719,6 +767,15 @@ pub fn walletobjects_eventticketclass_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_eventticketclass_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketclassUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: EventTicketClass,
+}
+
 /// GET walletobjects/v1/eventTicketClass/{resourceId}
 /// Updates the event ticket class referenced by the given class ID.
 ///
@@ -731,15 +788,15 @@ pub fn walletobjects_eventticketclass_update_execute(
 
 pub fn walletobjects_eventticketclass_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &EventTicketClass,
+    args: &WalletobjectsEventticketclassUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketclass_update_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_eventticketclass_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_eventticketclass_update_execute(builder)
 }
 
@@ -840,6 +897,15 @@ pub fn walletobjects_eventticketobject_addmessage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_eventticketobject_addmessage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketobjectAddmessageArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: AddMessageRequest,
+}
+
 /// GET walletobjects/v1/eventTicketObject/{resourceId}/addMessage
 /// Adds a message to the event ticket object referenced by the given object ID.
 ///
@@ -852,8 +918,7 @@ pub fn walletobjects_eventticketobject_addmessage_execute(
 
 pub fn walletobjects_eventticketobject_addmessage(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &AddMessageRequest,
+    args: &WalletobjectsEventticketobjectAddmessageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EventTicketObjectAddMessageResponse>, ApiError>,
@@ -862,7 +927,8 @@ pub fn walletobjects_eventticketobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketobject_addmessage_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_eventticketobject_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_eventticketobject_addmessage_execute(builder)
 }
 
@@ -958,6 +1024,13 @@ pub fn walletobjects_eventticketobject_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_eventticketobject_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketobjectGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/eventTicketObject/{resourceId}
 /// Returns the event ticket object with the given object ID.
 ///
@@ -970,14 +1043,14 @@ pub fn walletobjects_eventticketobject_get_execute(
 
 pub fn walletobjects_eventticketobject_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsEventticketobjectGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketobject_get_builder(client, resourceId)?;
+    let builder = walletobjects_eventticketobject_get_builder(client, &args.resourceId)?;
     walletobjects_eventticketobject_get_execute(builder)
 }
 
@@ -1072,6 +1145,13 @@ pub fn walletobjects_eventticketobject_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_eventticketobject_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketobjectInsertArgs {
+    /// Request body.
+    pub body: EventTicketObject,
+}
+
 /// GET walletobjects/v1/eventTicketObject
 /// Inserts an event ticket object with the given ID and properties.
 ///
@@ -1084,14 +1164,14 @@ pub fn walletobjects_eventticketobject_insert_execute(
 
 pub fn walletobjects_eventticketobject_insert(
     client: &SimpleHttpClient,
-    body: &EventTicketObject,
+    args: &WalletobjectsEventticketobjectInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketobject_insert_builder(client, body)?;
+    let builder = walletobjects_eventticketobject_insert_builder(client, &args.body)?;
     walletobjects_eventticketobject_insert_execute(builder)
 }
 
@@ -1205,6 +1285,17 @@ pub fn walletobjects_eventticketobject_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_eventticketobject_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketobjectListArgs {
+    /// Query parameter: classId
+    pub classId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET walletobjects/v1/eventTicketObject
 /// Returns a list of all event ticket objects for a given issuer ID.
 ///
@@ -1217,9 +1308,7 @@ pub fn walletobjects_eventticketobject_list_execute(
 
 pub fn walletobjects_eventticketobject_list(
     client: &SimpleHttpClient,
-    classId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
+    args: &WalletobjectsEventticketobjectListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EventTicketObjectListResponse>, ApiError>,
@@ -1228,7 +1317,12 @@ pub fn walletobjects_eventticketobject_list(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketobject_list_builder(client, classId, maxResults, token)?;
+    let builder = walletobjects_eventticketobject_list_builder(
+        client,
+        args.classId.as_deref(),
+        args.maxResults,
+        args.token.as_deref(),
+    )?;
     walletobjects_eventticketobject_list_execute(builder)
 }
 
@@ -1327,6 +1421,15 @@ pub fn walletobjects_eventticketobject_modifylinkedofferobjects_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_eventticketobject_modifylinkedofferobjects`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketobjectModifylinkedofferobjectsArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: ModifyLinkedOfferObjectsRequest,
+}
+
 /// GET walletobjects/v1/eventTicketObject/{resourceId}/modifyLinkedOfferObjects
 /// Deprecated: Use Auto Linked Passes instead. Modifies linked offer objects for the event ticket object with the given ID.
 ///
@@ -1339,16 +1442,18 @@ pub fn walletobjects_eventticketobject_modifylinkedofferobjects_execute(
 
 pub fn walletobjects_eventticketobject_modifylinkedofferobjects(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &ModifyLinkedOfferObjectsRequest,
+    args: &WalletobjectsEventticketobjectModifylinkedofferobjectsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_eventticketobject_modifylinkedofferobjects_builder(client, resourceId, body)?;
+    let builder = walletobjects_eventticketobject_modifylinkedofferobjects_builder(
+        client,
+        &args.resourceId,
+        &args.body,
+    )?;
     walletobjects_eventticketobject_modifylinkedofferobjects_execute(builder)
 }
 
@@ -1447,6 +1552,15 @@ pub fn walletobjects_eventticketobject_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_eventticketobject_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketobjectPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: EventTicketObject,
+}
+
 /// GET walletobjects/v1/eventTicketObject/{resourceId}
 /// Updates the event ticket object referenced by the given object ID. This method supports patch semantics.
 ///
@@ -1459,15 +1573,15 @@ pub fn walletobjects_eventticketobject_patch_execute(
 
 pub fn walletobjects_eventticketobject_patch(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &EventTicketObject,
+    args: &WalletobjectsEventticketobjectPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketobject_patch_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_eventticketobject_patch_builder(client, &args.resourceId, &args.body)?;
     walletobjects_eventticketobject_patch_execute(builder)
 }
 
@@ -1566,6 +1680,15 @@ pub fn walletobjects_eventticketobject_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_eventticketobject_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsEventticketobjectUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: EventTicketObject,
+}
+
 /// GET walletobjects/v1/eventTicketObject/{resourceId}
 /// Updates the event ticket object referenced by the given object ID.
 ///
@@ -1578,15 +1701,15 @@ pub fn walletobjects_eventticketobject_update_execute(
 
 pub fn walletobjects_eventticketobject_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &EventTicketObject,
+    args: &WalletobjectsEventticketobjectUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketobject_update_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_eventticketobject_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_eventticketobject_update_execute(builder)
 }
 
@@ -1687,6 +1810,15 @@ pub fn walletobjects_flightclass_addmessage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_flightclass_addmessage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightclassAddmessageArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: AddMessageRequest,
+}
+
 /// GET walletobjects/v1/flightClass/{resourceId}/addMessage
 /// Adds a message to the flight class referenced by the given class ID.
 ///
@@ -1699,8 +1831,7 @@ pub fn walletobjects_flightclass_addmessage_execute(
 
 pub fn walletobjects_flightclass_addmessage(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &AddMessageRequest,
+    args: &WalletobjectsFlightclassAddmessageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FlightClassAddMessageResponse>, ApiError>,
@@ -1709,7 +1840,8 @@ pub fn walletobjects_flightclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightclass_addmessage_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_flightclass_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_flightclass_addmessage_execute(builder)
 }
 
@@ -1803,6 +1935,13 @@ pub fn walletobjects_flightclass_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_flightclass_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightclassGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/flightClass/{resourceId}
 /// Returns the flight class with the given class ID.
 ///
@@ -1815,12 +1954,12 @@ pub fn walletobjects_flightclass_get_execute(
 
 pub fn walletobjects_flightclass_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsFlightclassGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightclass_get_builder(client, resourceId)?;
+    let builder = walletobjects_flightclass_get_builder(client, &args.resourceId)?;
     walletobjects_flightclass_get_execute(builder)
 }
 
@@ -1913,6 +2052,13 @@ pub fn walletobjects_flightclass_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_flightclass_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightclassInsertArgs {
+    /// Request body.
+    pub body: FlightClass,
+}
+
 /// GET walletobjects/v1/flightClass
 /// Inserts an flight class with the given ID and properties.
 ///
@@ -1925,12 +2071,12 @@ pub fn walletobjects_flightclass_insert_execute(
 
 pub fn walletobjects_flightclass_insert(
     client: &SimpleHttpClient,
-    body: &FlightClass,
+    args: &WalletobjectsFlightclassInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightclass_insert_builder(client, body)?;
+    let builder = walletobjects_flightclass_insert_builder(client, &args.body)?;
     walletobjects_flightclass_insert_execute(builder)
 }
 
@@ -2042,6 +2188,17 @@ pub fn walletobjects_flightclass_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_flightclass_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightclassListArgs {
+    /// Query parameter: issuerId
+    pub issuerId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET walletobjects/v1/flightClass
 /// Returns a list of all flight classes for a given issuer ID.
 ///
@@ -2054,16 +2211,19 @@ pub fn walletobjects_flightclass_list_execute(
 
 pub fn walletobjects_flightclass_list(
     client: &SimpleHttpClient,
-    issuerId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
+    args: &WalletobjectsFlightclassListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FlightClassListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightclass_list_builder(client, issuerId, maxResults, token)?;
+    let builder = walletobjects_flightclass_list_builder(
+        client,
+        args.issuerId.as_deref(),
+        args.maxResults,
+        args.token.as_deref(),
+    )?;
     walletobjects_flightclass_list_execute(builder)
 }
 
@@ -2160,6 +2320,15 @@ pub fn walletobjects_flightclass_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_flightclass_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightclassPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: FlightClass,
+}
+
 /// GET walletobjects/v1/flightClass/{resourceId}
 /// Updates the flight class referenced by the given class ID. This method supports patch semantics.
 ///
@@ -2172,13 +2341,12 @@ pub fn walletobjects_flightclass_patch_execute(
 
 pub fn walletobjects_flightclass_patch(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &FlightClass,
+    args: &WalletobjectsFlightclassPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightclass_patch_builder(client, resourceId, body)?;
+    let builder = walletobjects_flightclass_patch_builder(client, &args.resourceId, &args.body)?;
     walletobjects_flightclass_patch_execute(builder)
 }
 
@@ -2275,6 +2443,15 @@ pub fn walletobjects_flightclass_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_flightclass_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightclassUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: FlightClass,
+}
+
 /// GET walletobjects/v1/flightClass/{resourceId}
 /// Updates the flight class referenced by the given class ID.
 ///
@@ -2287,13 +2464,12 @@ pub fn walletobjects_flightclass_update_execute(
 
 pub fn walletobjects_flightclass_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &FlightClass,
+    args: &WalletobjectsFlightclassUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightclass_update_builder(client, resourceId, body)?;
+    let builder = walletobjects_flightclass_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_flightclass_update_execute(builder)
 }
 
@@ -2394,6 +2570,15 @@ pub fn walletobjects_flightobject_addmessage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_flightobject_addmessage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightobjectAddmessageArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: AddMessageRequest,
+}
+
 /// GET walletobjects/v1/flightObject/{resourceId}/addMessage
 /// Adds a message to the flight object referenced by the given object ID.
 ///
@@ -2406,8 +2591,7 @@ pub fn walletobjects_flightobject_addmessage_execute(
 
 pub fn walletobjects_flightobject_addmessage(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &AddMessageRequest,
+    args: &WalletobjectsFlightobjectAddmessageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FlightObjectAddMessageResponse>, ApiError>,
@@ -2416,7 +2600,8 @@ pub fn walletobjects_flightobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightobject_addmessage_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_flightobject_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_flightobject_addmessage_execute(builder)
 }
 
@@ -2512,6 +2697,13 @@ pub fn walletobjects_flightobject_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_flightobject_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightobjectGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/flightObject/{resourceId}
 /// Returns the flight object with the given object ID.
 ///
@@ -2524,14 +2716,14 @@ pub fn walletobjects_flightobject_get_execute(
 
 pub fn walletobjects_flightobject_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsFlightobjectGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightobject_get_builder(client, resourceId)?;
+    let builder = walletobjects_flightobject_get_builder(client, &args.resourceId)?;
     walletobjects_flightobject_get_execute(builder)
 }
 
@@ -2626,6 +2818,13 @@ pub fn walletobjects_flightobject_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_flightobject_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightobjectInsertArgs {
+    /// Request body.
+    pub body: FlightObject,
+}
+
 /// GET walletobjects/v1/flightObject
 /// Inserts an flight object with the given ID and properties.
 ///
@@ -2638,14 +2837,14 @@ pub fn walletobjects_flightobject_insert_execute(
 
 pub fn walletobjects_flightobject_insert(
     client: &SimpleHttpClient,
-    body: &FlightObject,
+    args: &WalletobjectsFlightobjectInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightobject_insert_builder(client, body)?;
+    let builder = walletobjects_flightobject_insert_builder(client, &args.body)?;
     walletobjects_flightobject_insert_execute(builder)
 }
 
@@ -2757,6 +2956,17 @@ pub fn walletobjects_flightobject_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_flightobject_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightobjectListArgs {
+    /// Query parameter: classId
+    pub classId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET walletobjects/v1/flightObject
 /// Returns a list of all flight objects for a given issuer ID.
 ///
@@ -2769,16 +2979,19 @@ pub fn walletobjects_flightobject_list_execute(
 
 pub fn walletobjects_flightobject_list(
     client: &SimpleHttpClient,
-    classId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
+    args: &WalletobjectsFlightobjectListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FlightObjectListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightobject_list_builder(client, classId, maxResults, token)?;
+    let builder = walletobjects_flightobject_list_builder(
+        client,
+        args.classId.as_deref(),
+        args.maxResults,
+        args.token.as_deref(),
+    )?;
     walletobjects_flightobject_list_execute(builder)
 }
 
@@ -2877,6 +3090,15 @@ pub fn walletobjects_flightobject_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_flightobject_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightobjectPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: FlightObject,
+}
+
 /// GET walletobjects/v1/flightObject/{resourceId}
 /// Updates the flight object referenced by the given object ID. This method supports patch semantics.
 ///
@@ -2889,15 +3111,14 @@ pub fn walletobjects_flightobject_patch_execute(
 
 pub fn walletobjects_flightobject_patch(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &FlightObject,
+    args: &WalletobjectsFlightobjectPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightobject_patch_builder(client, resourceId, body)?;
+    let builder = walletobjects_flightobject_patch_builder(client, &args.resourceId, &args.body)?;
     walletobjects_flightobject_patch_execute(builder)
 }
 
@@ -2996,6 +3217,15 @@ pub fn walletobjects_flightobject_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_flightobject_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsFlightobjectUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: FlightObject,
+}
+
 /// GET walletobjects/v1/flightObject/{resourceId}
 /// Updates the flight object referenced by the given object ID.
 ///
@@ -3008,15 +3238,14 @@ pub fn walletobjects_flightobject_update_execute(
 
 pub fn walletobjects_flightobject_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &FlightObject,
+    args: &WalletobjectsFlightobjectUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightobject_update_builder(client, resourceId, body)?;
+    let builder = walletobjects_flightobject_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_flightobject_update_execute(builder)
 }
 
@@ -3117,6 +3346,15 @@ pub fn walletobjects_genericclass_addmessage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_genericclass_addmessage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericclassAddmessageArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: AddMessageRequest,
+}
+
 /// GET walletobjects/v1/genericClass/{resourceId}/addMessage
 /// Adds a message to the generic class referenced by the given class ID.
 ///
@@ -3129,8 +3367,7 @@ pub fn walletobjects_genericclass_addmessage_execute(
 
 pub fn walletobjects_genericclass_addmessage(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &AddMessageRequest,
+    args: &WalletobjectsGenericclassAddmessageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenericClassAddMessageResponse>, ApiError>,
@@ -3139,7 +3376,8 @@ pub fn walletobjects_genericclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericclass_addmessage_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_genericclass_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_genericclass_addmessage_execute(builder)
 }
 
@@ -3235,6 +3473,13 @@ pub fn walletobjects_genericclass_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_genericclass_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericclassGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/genericClass/{resourceId}
 /// Returns the generic class with the given class ID.
 ///
@@ -3247,14 +3492,14 @@ pub fn walletobjects_genericclass_get_execute(
 
 pub fn walletobjects_genericclass_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsGenericclassGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericclass_get_builder(client, resourceId)?;
+    let builder = walletobjects_genericclass_get_builder(client, &args.resourceId)?;
     walletobjects_genericclass_get_execute(builder)
 }
 
@@ -3349,6 +3594,13 @@ pub fn walletobjects_genericclass_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_genericclass_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericclassInsertArgs {
+    /// Request body.
+    pub body: GenericClass,
+}
+
 /// GET walletobjects/v1/genericClass
 /// Inserts a generic class with the given ID and properties.
 ///
@@ -3361,14 +3613,14 @@ pub fn walletobjects_genericclass_insert_execute(
 
 pub fn walletobjects_genericclass_insert(
     client: &SimpleHttpClient,
-    body: &GenericClass,
+    args: &WalletobjectsGenericclassInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericclass_insert_builder(client, body)?;
+    let builder = walletobjects_genericclass_insert_builder(client, &args.body)?;
     walletobjects_genericclass_insert_execute(builder)
 }
 
@@ -3480,6 +3732,17 @@ pub fn walletobjects_genericclass_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_genericclass_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericclassListArgs {
+    /// Query parameter: issuerId
+    pub issuerId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET walletobjects/v1/genericClass
 /// Returns a list of all generic classes for a given issuer ID.
 ///
@@ -3492,16 +3755,19 @@ pub fn walletobjects_genericclass_list_execute(
 
 pub fn walletobjects_genericclass_list(
     client: &SimpleHttpClient,
-    issuerId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
+    args: &WalletobjectsGenericclassListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GenericClassListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericclass_list_builder(client, issuerId, maxResults, token)?;
+    let builder = walletobjects_genericclass_list_builder(
+        client,
+        args.issuerId.as_deref(),
+        args.maxResults,
+        args.token.as_deref(),
+    )?;
     walletobjects_genericclass_list_execute(builder)
 }
 
@@ -3600,6 +3866,15 @@ pub fn walletobjects_genericclass_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_genericclass_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericclassPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: GenericClass,
+}
+
 /// GET walletobjects/v1/genericClass/{resourceId}
 /// Updates the generic class referenced by the given class ID. This method supports patch semantics.
 ///
@@ -3612,15 +3887,14 @@ pub fn walletobjects_genericclass_patch_execute(
 
 pub fn walletobjects_genericclass_patch(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GenericClass,
+    args: &WalletobjectsGenericclassPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericclass_patch_builder(client, resourceId, body)?;
+    let builder = walletobjects_genericclass_patch_builder(client, &args.resourceId, &args.body)?;
     walletobjects_genericclass_patch_execute(builder)
 }
 
@@ -3719,6 +3993,15 @@ pub fn walletobjects_genericclass_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_genericclass_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericclassUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: GenericClass,
+}
+
 /// GET walletobjects/v1/genericClass/{resourceId}
 /// Updates the Generic class referenced by the given class ID.
 ///
@@ -3731,15 +4014,14 @@ pub fn walletobjects_genericclass_update_execute(
 
 pub fn walletobjects_genericclass_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GenericClass,
+    args: &WalletobjectsGenericclassUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericclass_update_builder(client, resourceId, body)?;
+    let builder = walletobjects_genericclass_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_genericclass_update_execute(builder)
 }
 
@@ -3840,6 +4122,15 @@ pub fn walletobjects_genericobject_addmessage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_genericobject_addmessage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericobjectAddmessageArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: AddMessageRequest,
+}
+
 /// GET walletobjects/v1/genericObject/{resourceId}/addMessage
 /// Adds a message to the generic object referenced by the given object ID.
 ///
@@ -3852,8 +4143,7 @@ pub fn walletobjects_genericobject_addmessage_execute(
 
 pub fn walletobjects_genericobject_addmessage(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &AddMessageRequest,
+    args: &WalletobjectsGenericobjectAddmessageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenericObjectAddMessageResponse>, ApiError>,
@@ -3862,7 +4152,8 @@ pub fn walletobjects_genericobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericobject_addmessage_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_genericobject_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_genericobject_addmessage_execute(builder)
 }
 
@@ -3958,6 +4249,13 @@ pub fn walletobjects_genericobject_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_genericobject_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericobjectGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/genericObject/{resourceId}
 /// Returns the generic object with the given object ID.
 ///
@@ -3970,14 +4268,14 @@ pub fn walletobjects_genericobject_get_execute(
 
 pub fn walletobjects_genericobject_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsGenericobjectGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericobject_get_builder(client, resourceId)?;
+    let builder = walletobjects_genericobject_get_builder(client, &args.resourceId)?;
     walletobjects_genericobject_get_execute(builder)
 }
 
@@ -4072,6 +4370,13 @@ pub fn walletobjects_genericobject_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_genericobject_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericobjectInsertArgs {
+    /// Request body.
+    pub body: GenericObject,
+}
+
 /// GET walletobjects/v1/genericObject
 /// Inserts a generic object with the given ID and properties.
 ///
@@ -4084,14 +4389,14 @@ pub fn walletobjects_genericobject_insert_execute(
 
 pub fn walletobjects_genericobject_insert(
     client: &SimpleHttpClient,
-    body: &GenericObject,
+    args: &WalletobjectsGenericobjectInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericobject_insert_builder(client, body)?;
+    let builder = walletobjects_genericobject_insert_builder(client, &args.body)?;
     walletobjects_genericobject_insert_execute(builder)
 }
 
@@ -4203,6 +4508,17 @@ pub fn walletobjects_genericobject_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_genericobject_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericobjectListArgs {
+    /// Query parameter: classId
+    pub classId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET walletobjects/v1/genericObject
 /// Returns a list of all generic objects for a given issuer ID.
 ///
@@ -4215,16 +4531,19 @@ pub fn walletobjects_genericobject_list_execute(
 
 pub fn walletobjects_genericobject_list(
     client: &SimpleHttpClient,
-    classId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
+    args: &WalletobjectsGenericobjectListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GenericObjectListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericobject_list_builder(client, classId, maxResults, token)?;
+    let builder = walletobjects_genericobject_list_builder(
+        client,
+        args.classId.as_deref(),
+        args.maxResults,
+        args.token.as_deref(),
+    )?;
     walletobjects_genericobject_list_execute(builder)
 }
 
@@ -4323,6 +4642,15 @@ pub fn walletobjects_genericobject_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_genericobject_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericobjectPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: GenericObject,
+}
+
 /// GET walletobjects/v1/genericObject/{resourceId}
 /// Updates the generic object referenced by the given object ID. This method supports patch semantics.
 ///
@@ -4335,15 +4663,14 @@ pub fn walletobjects_genericobject_patch_execute(
 
 pub fn walletobjects_genericobject_patch(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GenericObject,
+    args: &WalletobjectsGenericobjectPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericobject_patch_builder(client, resourceId, body)?;
+    let builder = walletobjects_genericobject_patch_builder(client, &args.resourceId, &args.body)?;
     walletobjects_genericobject_patch_execute(builder)
 }
 
@@ -4442,6 +4769,15 @@ pub fn walletobjects_genericobject_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_genericobject_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGenericobjectUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: GenericObject,
+}
+
 /// GET walletobjects/v1/genericObject/{resourceId}
 /// Updates the generic object referenced by the given object ID.
 ///
@@ -4454,15 +4790,14 @@ pub fn walletobjects_genericobject_update_execute(
 
 pub fn walletobjects_genericobject_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GenericObject,
+    args: &WalletobjectsGenericobjectUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericobject_update_builder(client, resourceId, body)?;
+    let builder = walletobjects_genericobject_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_genericobject_update_execute(builder)
 }
 
@@ -4563,6 +4898,15 @@ pub fn walletobjects_giftcardclass_addmessage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_giftcardclass_addmessage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardclassAddmessageArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: AddMessageRequest,
+}
+
 /// GET walletobjects/v1/giftCardClass/{resourceId}/addMessage
 /// Adds a message to the gift card class referenced by the given class ID.
 ///
@@ -4575,8 +4919,7 @@ pub fn walletobjects_giftcardclass_addmessage_execute(
 
 pub fn walletobjects_giftcardclass_addmessage(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &AddMessageRequest,
+    args: &WalletobjectsGiftcardclassAddmessageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GiftCardClassAddMessageResponse>, ApiError>,
@@ -4585,7 +4928,8 @@ pub fn walletobjects_giftcardclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardclass_addmessage_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_giftcardclass_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_giftcardclass_addmessage_execute(builder)
 }
 
@@ -4681,6 +5025,13 @@ pub fn walletobjects_giftcardclass_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_giftcardclass_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardclassGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/giftCardClass/{resourceId}
 /// Returns the gift card class with the given class ID.
 ///
@@ -4693,14 +5044,14 @@ pub fn walletobjects_giftcardclass_get_execute(
 
 pub fn walletobjects_giftcardclass_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsGiftcardclassGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardclass_get_builder(client, resourceId)?;
+    let builder = walletobjects_giftcardclass_get_builder(client, &args.resourceId)?;
     walletobjects_giftcardclass_get_execute(builder)
 }
 
@@ -4795,6 +5146,13 @@ pub fn walletobjects_giftcardclass_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_giftcardclass_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardclassInsertArgs {
+    /// Request body.
+    pub body: GiftCardClass,
+}
+
 /// GET walletobjects/v1/giftCardClass
 /// Inserts an gift card class with the given ID and properties.
 ///
@@ -4807,14 +5165,14 @@ pub fn walletobjects_giftcardclass_insert_execute(
 
 pub fn walletobjects_giftcardclass_insert(
     client: &SimpleHttpClient,
-    body: &GiftCardClass,
+    args: &WalletobjectsGiftcardclassInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardclass_insert_builder(client, body)?;
+    let builder = walletobjects_giftcardclass_insert_builder(client, &args.body)?;
     walletobjects_giftcardclass_insert_execute(builder)
 }
 
@@ -4926,6 +5284,17 @@ pub fn walletobjects_giftcardclass_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_giftcardclass_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardclassListArgs {
+    /// Query parameter: issuerId
+    pub issuerId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET walletobjects/v1/giftCardClass
 /// Returns a list of all gift card classes for a given issuer ID.
 ///
@@ -4938,16 +5307,19 @@ pub fn walletobjects_giftcardclass_list_execute(
 
 pub fn walletobjects_giftcardclass_list(
     client: &SimpleHttpClient,
-    issuerId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
+    args: &WalletobjectsGiftcardclassListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GiftCardClassListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardclass_list_builder(client, issuerId, maxResults, token)?;
+    let builder = walletobjects_giftcardclass_list_builder(
+        client,
+        args.issuerId.as_deref(),
+        args.maxResults,
+        args.token.as_deref(),
+    )?;
     walletobjects_giftcardclass_list_execute(builder)
 }
 
@@ -5046,6 +5418,15 @@ pub fn walletobjects_giftcardclass_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_giftcardclass_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardclassPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: GiftCardClass,
+}
+
 /// GET walletobjects/v1/giftCardClass/{resourceId}
 /// Updates the gift card class referenced by the given class ID. This method supports patch semantics.
 ///
@@ -5058,15 +5439,14 @@ pub fn walletobjects_giftcardclass_patch_execute(
 
 pub fn walletobjects_giftcardclass_patch(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GiftCardClass,
+    args: &WalletobjectsGiftcardclassPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardclass_patch_builder(client, resourceId, body)?;
+    let builder = walletobjects_giftcardclass_patch_builder(client, &args.resourceId, &args.body)?;
     walletobjects_giftcardclass_patch_execute(builder)
 }
 
@@ -5165,6 +5545,15 @@ pub fn walletobjects_giftcardclass_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_giftcardclass_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardclassUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: GiftCardClass,
+}
+
 /// GET walletobjects/v1/giftCardClass/{resourceId}
 /// Updates the gift card class referenced by the given class ID.
 ///
@@ -5177,15 +5566,14 @@ pub fn walletobjects_giftcardclass_update_execute(
 
 pub fn walletobjects_giftcardclass_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GiftCardClass,
+    args: &WalletobjectsGiftcardclassUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardclass_update_builder(client, resourceId, body)?;
+    let builder = walletobjects_giftcardclass_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_giftcardclass_update_execute(builder)
 }
 
@@ -5286,6 +5674,15 @@ pub fn walletobjects_giftcardobject_addmessage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_giftcardobject_addmessage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardobjectAddmessageArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: AddMessageRequest,
+}
+
 /// GET walletobjects/v1/giftCardObject/{resourceId}/addMessage
 /// Adds a message to the gift card object referenced by the given object ID.
 ///
@@ -5298,8 +5695,7 @@ pub fn walletobjects_giftcardobject_addmessage_execute(
 
 pub fn walletobjects_giftcardobject_addmessage(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &AddMessageRequest,
+    args: &WalletobjectsGiftcardobjectAddmessageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GiftCardObjectAddMessageResponse>, ApiError>,
@@ -5308,7 +5704,8 @@ pub fn walletobjects_giftcardobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardobject_addmessage_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_giftcardobject_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_giftcardobject_addmessage_execute(builder)
 }
 
@@ -5404,6 +5801,13 @@ pub fn walletobjects_giftcardobject_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_giftcardobject_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardobjectGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/giftCardObject/{resourceId}
 /// Returns the gift card object with the given object ID.
 ///
@@ -5416,14 +5820,14 @@ pub fn walletobjects_giftcardobject_get_execute(
 
 pub fn walletobjects_giftcardobject_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsGiftcardobjectGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardobject_get_builder(client, resourceId)?;
+    let builder = walletobjects_giftcardobject_get_builder(client, &args.resourceId)?;
     walletobjects_giftcardobject_get_execute(builder)
 }
 
@@ -5518,6 +5922,13 @@ pub fn walletobjects_giftcardobject_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_giftcardobject_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardobjectInsertArgs {
+    /// Request body.
+    pub body: GiftCardObject,
+}
+
 /// GET walletobjects/v1/giftCardObject
 /// Inserts an gift card object with the given ID and properties.
 ///
@@ -5530,14 +5941,14 @@ pub fn walletobjects_giftcardobject_insert_execute(
 
 pub fn walletobjects_giftcardobject_insert(
     client: &SimpleHttpClient,
-    body: &GiftCardObject,
+    args: &WalletobjectsGiftcardobjectInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardobject_insert_builder(client, body)?;
+    let builder = walletobjects_giftcardobject_insert_builder(client, &args.body)?;
     walletobjects_giftcardobject_insert_execute(builder)
 }
 
@@ -5651,6 +6062,17 @@ pub fn walletobjects_giftcardobject_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_giftcardobject_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardobjectListArgs {
+    /// Query parameter: classId
+    pub classId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET walletobjects/v1/giftCardObject
 /// Returns a list of all gift card objects for a given issuer ID.
 ///
@@ -5663,9 +6085,7 @@ pub fn walletobjects_giftcardobject_list_execute(
 
 pub fn walletobjects_giftcardobject_list(
     client: &SimpleHttpClient,
-    classId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
+    args: &WalletobjectsGiftcardobjectListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GiftCardObjectListResponse>, ApiError>,
@@ -5674,7 +6094,12 @@ pub fn walletobjects_giftcardobject_list(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardobject_list_builder(client, classId, maxResults, token)?;
+    let builder = walletobjects_giftcardobject_list_builder(
+        client,
+        args.classId.as_deref(),
+        args.maxResults,
+        args.token.as_deref(),
+    )?;
     walletobjects_giftcardobject_list_execute(builder)
 }
 
@@ -5773,6 +6198,15 @@ pub fn walletobjects_giftcardobject_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_giftcardobject_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardobjectPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: GiftCardObject,
+}
+
 /// GET walletobjects/v1/giftCardObject/{resourceId}
 /// Updates the gift card object referenced by the given object ID. This method supports patch semantics.
 ///
@@ -5785,15 +6219,14 @@ pub fn walletobjects_giftcardobject_patch_execute(
 
 pub fn walletobjects_giftcardobject_patch(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GiftCardObject,
+    args: &WalletobjectsGiftcardobjectPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardobject_patch_builder(client, resourceId, body)?;
+    let builder = walletobjects_giftcardobject_patch_builder(client, &args.resourceId, &args.body)?;
     walletobjects_giftcardobject_patch_execute(builder)
 }
 
@@ -5892,6 +6325,15 @@ pub fn walletobjects_giftcardobject_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_giftcardobject_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsGiftcardobjectUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: GiftCardObject,
+}
+
 /// GET walletobjects/v1/giftCardObject/{resourceId}
 /// Updates the gift card object referenced by the given object ID.
 ///
@@ -5904,15 +6346,15 @@ pub fn walletobjects_giftcardobject_update_execute(
 
 pub fn walletobjects_giftcardobject_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GiftCardObject,
+    args: &WalletobjectsGiftcardobjectUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardobject_update_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_giftcardobject_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_giftcardobject_update_execute(builder)
 }
 
@@ -6006,6 +6448,13 @@ pub fn walletobjects_issuer_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_issuer_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsIssuerGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/issuer/{resourceId}
 /// Returns the issuer with the given issuer ID.
 ///
@@ -6018,12 +6467,12 @@ pub fn walletobjects_issuer_get_execute(
 
 pub fn walletobjects_issuer_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsIssuerGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_issuer_get_builder(client, resourceId)?;
+    let builder = walletobjects_issuer_get_builder(client, &args.resourceId)?;
     walletobjects_issuer_get_execute(builder)
 }
 
@@ -6116,6 +6565,13 @@ pub fn walletobjects_issuer_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_issuer_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsIssuerInsertArgs {
+    /// Request body.
+    pub body: Issuer,
+}
+
 /// GET walletobjects/v1/issuer
 /// Inserts an issuer with the given ID and properties.
 ///
@@ -6128,12 +6584,12 @@ pub fn walletobjects_issuer_insert_execute(
 
 pub fn walletobjects_issuer_insert(
     client: &SimpleHttpClient,
-    body: &Issuer,
+    args: &WalletobjectsIssuerInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_issuer_insert_builder(client, body)?;
+    let builder = walletobjects_issuer_insert_builder(client, &args.body)?;
     walletobjects_issuer_insert_execute(builder)
 }
 
@@ -6340,6 +6796,15 @@ pub fn walletobjects_issuer_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_issuer_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsIssuerPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: Issuer,
+}
+
 /// GET walletobjects/v1/issuer/{resourceId}
 /// Updates the issuer referenced by the given issuer ID. This method supports patch semantics.
 ///
@@ -6352,13 +6817,12 @@ pub fn walletobjects_issuer_patch_execute(
 
 pub fn walletobjects_issuer_patch(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &Issuer,
+    args: &WalletobjectsIssuerPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_issuer_patch_builder(client, resourceId, body)?;
+    let builder = walletobjects_issuer_patch_builder(client, &args.resourceId, &args.body)?;
     walletobjects_issuer_patch_execute(builder)
 }
 
@@ -6455,6 +6919,15 @@ pub fn walletobjects_issuer_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_issuer_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsIssuerUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: Issuer,
+}
+
 /// GET walletobjects/v1/issuer/{resourceId}
 /// Updates the issuer referenced by the given issuer ID.
 ///
@@ -6467,13 +6940,12 @@ pub fn walletobjects_issuer_update_execute(
 
 pub fn walletobjects_issuer_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &Issuer,
+    args: &WalletobjectsIssuerUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_issuer_update_builder(client, resourceId, body)?;
+    let builder = walletobjects_issuer_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_issuer_update_execute(builder)
 }
 
@@ -6568,6 +7040,13 @@ pub fn walletobjects_jwt_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_jwt_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsJwtInsertArgs {
+    /// Request body.
+    pub body: JwtResource,
+}
+
 /// GET walletobjects/v1/jwt
 /// Inserts the resources in the JWT.
 ///
@@ -6580,14 +7059,14 @@ pub fn walletobjects_jwt_insert_execute(
 
 pub fn walletobjects_jwt_insert(
     client: &SimpleHttpClient,
-    body: &JwtResource,
+    args: &WalletobjectsJwtInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<JwtInsertResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_jwt_insert_builder(client, body)?;
+    let builder = walletobjects_jwt_insert_builder(client, &args.body)?;
     walletobjects_jwt_insert_execute(builder)
 }
 
@@ -6688,6 +7167,15 @@ pub fn walletobjects_loyaltyclass_addmessage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_loyaltyclass_addmessage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyclassAddmessageArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: AddMessageRequest,
+}
+
 /// GET walletobjects/v1/loyaltyClass/{resourceId}/addMessage
 /// Adds a message to the loyalty class referenced by the given class ID.
 ///
@@ -6700,8 +7188,7 @@ pub fn walletobjects_loyaltyclass_addmessage_execute(
 
 pub fn walletobjects_loyaltyclass_addmessage(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &AddMessageRequest,
+    args: &WalletobjectsLoyaltyclassAddmessageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LoyaltyClassAddMessageResponse>, ApiError>,
@@ -6710,7 +7197,8 @@ pub fn walletobjects_loyaltyclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyclass_addmessage_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_loyaltyclass_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_loyaltyclass_addmessage_execute(builder)
 }
 
@@ -6806,6 +7294,13 @@ pub fn walletobjects_loyaltyclass_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_loyaltyclass_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyclassGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/loyaltyClass/{resourceId}
 /// Returns the loyalty class with the given class ID.
 ///
@@ -6818,14 +7313,14 @@ pub fn walletobjects_loyaltyclass_get_execute(
 
 pub fn walletobjects_loyaltyclass_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsLoyaltyclassGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyclass_get_builder(client, resourceId)?;
+    let builder = walletobjects_loyaltyclass_get_builder(client, &args.resourceId)?;
     walletobjects_loyaltyclass_get_execute(builder)
 }
 
@@ -6920,6 +7415,13 @@ pub fn walletobjects_loyaltyclass_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_loyaltyclass_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyclassInsertArgs {
+    /// Request body.
+    pub body: LoyaltyClass,
+}
+
 /// GET walletobjects/v1/loyaltyClass
 /// Inserts an loyalty class with the given ID and properties.
 ///
@@ -6932,14 +7434,14 @@ pub fn walletobjects_loyaltyclass_insert_execute(
 
 pub fn walletobjects_loyaltyclass_insert(
     client: &SimpleHttpClient,
-    body: &LoyaltyClass,
+    args: &WalletobjectsLoyaltyclassInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyclass_insert_builder(client, body)?;
+    let builder = walletobjects_loyaltyclass_insert_builder(client, &args.body)?;
     walletobjects_loyaltyclass_insert_execute(builder)
 }
 
@@ -7051,6 +7553,17 @@ pub fn walletobjects_loyaltyclass_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_loyaltyclass_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyclassListArgs {
+    /// Query parameter: issuerId
+    pub issuerId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET walletobjects/v1/loyaltyClass
 /// Returns a list of all loyalty classes for a given issuer ID.
 ///
@@ -7063,16 +7576,19 @@ pub fn walletobjects_loyaltyclass_list_execute(
 
 pub fn walletobjects_loyaltyclass_list(
     client: &SimpleHttpClient,
-    issuerId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
+    args: &WalletobjectsLoyaltyclassListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LoyaltyClassListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyclass_list_builder(client, issuerId, maxResults, token)?;
+    let builder = walletobjects_loyaltyclass_list_builder(
+        client,
+        args.issuerId.as_deref(),
+        args.maxResults,
+        args.token.as_deref(),
+    )?;
     walletobjects_loyaltyclass_list_execute(builder)
 }
 
@@ -7171,6 +7687,15 @@ pub fn walletobjects_loyaltyclass_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_loyaltyclass_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyclassPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: LoyaltyClass,
+}
+
 /// GET walletobjects/v1/loyaltyClass/{resourceId}
 /// Updates the loyalty class referenced by the given class ID. This method supports patch semantics.
 ///
@@ -7183,15 +7708,14 @@ pub fn walletobjects_loyaltyclass_patch_execute(
 
 pub fn walletobjects_loyaltyclass_patch(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &LoyaltyClass,
+    args: &WalletobjectsLoyaltyclassPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyclass_patch_builder(client, resourceId, body)?;
+    let builder = walletobjects_loyaltyclass_patch_builder(client, &args.resourceId, &args.body)?;
     walletobjects_loyaltyclass_patch_execute(builder)
 }
 
@@ -7290,6 +7814,15 @@ pub fn walletobjects_loyaltyclass_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_loyaltyclass_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyclassUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: LoyaltyClass,
+}
+
 /// GET walletobjects/v1/loyaltyClass/{resourceId}
 /// Updates the loyalty class referenced by the given class ID.
 ///
@@ -7302,15 +7835,14 @@ pub fn walletobjects_loyaltyclass_update_execute(
 
 pub fn walletobjects_loyaltyclass_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &LoyaltyClass,
+    args: &WalletobjectsLoyaltyclassUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyclass_update_builder(client, resourceId, body)?;
+    let builder = walletobjects_loyaltyclass_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_loyaltyclass_update_execute(builder)
 }
 
@@ -7411,6 +7943,15 @@ pub fn walletobjects_loyaltyobject_addmessage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_loyaltyobject_addmessage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyobjectAddmessageArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: AddMessageRequest,
+}
+
 /// GET walletobjects/v1/loyaltyObject/{resourceId}/addMessage
 /// Adds a message to the loyalty object referenced by the given object ID.
 ///
@@ -7423,8 +7964,7 @@ pub fn walletobjects_loyaltyobject_addmessage_execute(
 
 pub fn walletobjects_loyaltyobject_addmessage(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &AddMessageRequest,
+    args: &WalletobjectsLoyaltyobjectAddmessageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LoyaltyObjectAddMessageResponse>, ApiError>,
@@ -7433,7 +7973,8 @@ pub fn walletobjects_loyaltyobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyobject_addmessage_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_loyaltyobject_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_loyaltyobject_addmessage_execute(builder)
 }
 
@@ -7529,6 +8070,13 @@ pub fn walletobjects_loyaltyobject_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_loyaltyobject_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyobjectGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/loyaltyObject/{resourceId}
 /// Returns the loyalty object with the given object ID.
 ///
@@ -7541,14 +8089,14 @@ pub fn walletobjects_loyaltyobject_get_execute(
 
 pub fn walletobjects_loyaltyobject_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsLoyaltyobjectGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyobject_get_builder(client, resourceId)?;
+    let builder = walletobjects_loyaltyobject_get_builder(client, &args.resourceId)?;
     walletobjects_loyaltyobject_get_execute(builder)
 }
 
@@ -7643,6 +8191,13 @@ pub fn walletobjects_loyaltyobject_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_loyaltyobject_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyobjectInsertArgs {
+    /// Request body.
+    pub body: LoyaltyObject,
+}
+
 /// GET walletobjects/v1/loyaltyObject
 /// Inserts an loyalty object with the given ID and properties.
 ///
@@ -7655,14 +8210,14 @@ pub fn walletobjects_loyaltyobject_insert_execute(
 
 pub fn walletobjects_loyaltyobject_insert(
     client: &SimpleHttpClient,
-    body: &LoyaltyObject,
+    args: &WalletobjectsLoyaltyobjectInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyobject_insert_builder(client, body)?;
+    let builder = walletobjects_loyaltyobject_insert_builder(client, &args.body)?;
     walletobjects_loyaltyobject_insert_execute(builder)
 }
 
@@ -7774,6 +8329,17 @@ pub fn walletobjects_loyaltyobject_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_loyaltyobject_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyobjectListArgs {
+    /// Query parameter: classId
+    pub classId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET walletobjects/v1/loyaltyObject
 /// Returns a list of all loyalty objects for a given issuer ID.
 ///
@@ -7786,16 +8352,19 @@ pub fn walletobjects_loyaltyobject_list_execute(
 
 pub fn walletobjects_loyaltyobject_list(
     client: &SimpleHttpClient,
-    classId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
+    args: &WalletobjectsLoyaltyobjectListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LoyaltyObjectListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyobject_list_builder(client, classId, maxResults, token)?;
+    let builder = walletobjects_loyaltyobject_list_builder(
+        client,
+        args.classId.as_deref(),
+        args.maxResults,
+        args.token.as_deref(),
+    )?;
     walletobjects_loyaltyobject_list_execute(builder)
 }
 
@@ -7894,6 +8463,15 @@ pub fn walletobjects_loyaltyobject_modifylinkedofferobjects_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_loyaltyobject_modifylinkedofferobjects`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyobjectModifylinkedofferobjectsArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: ModifyLinkedOfferObjectsRequest,
+}
+
 /// GET walletobjects/v1/loyaltyObject/{resourceId}/modifyLinkedOfferObjects
 /// Deprecated: Use Auto Linked Passes instead. Modifies linked offer objects for the loyalty object with the given ID.
 ///
@@ -7906,16 +8484,18 @@ pub fn walletobjects_loyaltyobject_modifylinkedofferobjects_execute(
 
 pub fn walletobjects_loyaltyobject_modifylinkedofferobjects(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &ModifyLinkedOfferObjectsRequest,
+    args: &WalletobjectsLoyaltyobjectModifylinkedofferobjectsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_loyaltyobject_modifylinkedofferobjects_builder(client, resourceId, body)?;
+    let builder = walletobjects_loyaltyobject_modifylinkedofferobjects_builder(
+        client,
+        &args.resourceId,
+        &args.body,
+    )?;
     walletobjects_loyaltyobject_modifylinkedofferobjects_execute(builder)
 }
 
@@ -8014,6 +8594,15 @@ pub fn walletobjects_loyaltyobject_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_loyaltyobject_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyobjectPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: LoyaltyObject,
+}
+
 /// GET walletobjects/v1/loyaltyObject/{resourceId}
 /// Updates the loyalty object referenced by the given object ID. This method supports patch semantics.
 ///
@@ -8026,15 +8615,14 @@ pub fn walletobjects_loyaltyobject_patch_execute(
 
 pub fn walletobjects_loyaltyobject_patch(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &LoyaltyObject,
+    args: &WalletobjectsLoyaltyobjectPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyobject_patch_builder(client, resourceId, body)?;
+    let builder = walletobjects_loyaltyobject_patch_builder(client, &args.resourceId, &args.body)?;
     walletobjects_loyaltyobject_patch_execute(builder)
 }
 
@@ -8133,6 +8721,15 @@ pub fn walletobjects_loyaltyobject_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_loyaltyobject_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsLoyaltyobjectUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: LoyaltyObject,
+}
+
 /// GET walletobjects/v1/loyaltyObject/{resourceId}
 /// Updates the loyalty object referenced by the given object ID.
 ///
@@ -8145,15 +8742,14 @@ pub fn walletobjects_loyaltyobject_update_execute(
 
 pub fn walletobjects_loyaltyobject_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &LoyaltyObject,
+    args: &WalletobjectsLoyaltyobjectUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyobject_update_builder(client, resourceId, body)?;
+    let builder = walletobjects_loyaltyobject_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_loyaltyobject_update_execute(builder)
 }
 
@@ -8247,6 +8843,13 @@ pub fn walletobjects_media_download_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_media_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsMediaDownloadArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/transitObject/{resourceId}/downloadRotatingBarcodeValues
 /// Downloads rotating barcode values for the transit object referenced by the given object ID.
 ///
@@ -8259,12 +8862,12 @@ pub fn walletobjects_media_download_execute(
 
 pub fn walletobjects_media_download(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsMediaDownloadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Media>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_media_download_builder(client, resourceId)?;
+    let builder = walletobjects_media_download_builder(client, &args.resourceId)?;
     walletobjects_media_download_execute(builder)
 }
 
@@ -8366,6 +8969,15 @@ pub fn walletobjects_media_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_media_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsMediaUploadArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: TransitObjectUploadRotatingBarcodeValuesRequest,
+}
+
 /// GET walletobjects/v1/transitObject/{resourceId}/uploadRotatingBarcodeValues
 /// Uploads rotating barcode values for the transit object referenced by the given object ID. Note the max upload size is specified in google3/`production/config/cdd/apps-upload/customers/payments-consumer-passes/config`.gcl and enforced by Scotty.
 ///
@@ -8378,8 +8990,7 @@ pub fn walletobjects_media_upload_execute(
 
 pub fn walletobjects_media_upload(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &TransitObjectUploadRotatingBarcodeValuesRequest,
+    args: &WalletobjectsMediaUploadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TransitObjectUploadRotatingBarcodeValuesResponse>, ApiError>,
@@ -8388,7 +8999,7 @@ pub fn walletobjects_media_upload(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_media_upload_builder(client, resourceId, body)?;
+    let builder = walletobjects_media_upload_builder(client, &args.resourceId, &args.body)?;
     walletobjects_media_upload_execute(builder)
 }
 
@@ -8489,6 +9100,15 @@ pub fn walletobjects_offerclass_addmessage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_offerclass_addmessage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferclassAddmessageArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: AddMessageRequest,
+}
+
 /// GET walletobjects/v1/offerClass/{resourceId}/addMessage
 /// Adds a message to the offer class referenced by the given class ID.
 ///
@@ -8501,8 +9121,7 @@ pub fn walletobjects_offerclass_addmessage_execute(
 
 pub fn walletobjects_offerclass_addmessage(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &AddMessageRequest,
+    args: &WalletobjectsOfferclassAddmessageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<OfferClassAddMessageResponse>, ApiError>,
@@ -8511,7 +9130,8 @@ pub fn walletobjects_offerclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerclass_addmessage_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_offerclass_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_offerclass_addmessage_execute(builder)
 }
 
@@ -8605,6 +9225,13 @@ pub fn walletobjects_offerclass_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_offerclass_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferclassGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/offerClass/{resourceId}
 /// Returns the offer class with the given class ID.
 ///
@@ -8617,12 +9244,12 @@ pub fn walletobjects_offerclass_get_execute(
 
 pub fn walletobjects_offerclass_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsOfferclassGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerclass_get_builder(client, resourceId)?;
+    let builder = walletobjects_offerclass_get_builder(client, &args.resourceId)?;
     walletobjects_offerclass_get_execute(builder)
 }
 
@@ -8715,6 +9342,13 @@ pub fn walletobjects_offerclass_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_offerclass_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferclassInsertArgs {
+    /// Request body.
+    pub body: OfferClass,
+}
+
 /// GET walletobjects/v1/offerClass
 /// Inserts an offer class with the given ID and properties.
 ///
@@ -8727,12 +9361,12 @@ pub fn walletobjects_offerclass_insert_execute(
 
 pub fn walletobjects_offerclass_insert(
     client: &SimpleHttpClient,
-    body: &OfferClass,
+    args: &WalletobjectsOfferclassInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerclass_insert_builder(client, body)?;
+    let builder = walletobjects_offerclass_insert_builder(client, &args.body)?;
     walletobjects_offerclass_insert_execute(builder)
 }
 
@@ -8844,6 +9478,17 @@ pub fn walletobjects_offerclass_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_offerclass_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferclassListArgs {
+    /// Query parameter: issuerId
+    pub issuerId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET walletobjects/v1/offerClass
 /// Returns a list of all offer classes for a given issuer ID.
 ///
@@ -8856,16 +9501,19 @@ pub fn walletobjects_offerclass_list_execute(
 
 pub fn walletobjects_offerclass_list(
     client: &SimpleHttpClient,
-    issuerId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
+    args: &WalletobjectsOfferclassListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OfferClassListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerclass_list_builder(client, issuerId, maxResults, token)?;
+    let builder = walletobjects_offerclass_list_builder(
+        client,
+        args.issuerId.as_deref(),
+        args.maxResults,
+        args.token.as_deref(),
+    )?;
     walletobjects_offerclass_list_execute(builder)
 }
 
@@ -8962,6 +9610,15 @@ pub fn walletobjects_offerclass_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_offerclass_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferclassPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: OfferClass,
+}
+
 /// GET walletobjects/v1/offerClass/{resourceId}
 /// Updates the offer class referenced by the given class ID. This method supports patch semantics.
 ///
@@ -8974,13 +9631,12 @@ pub fn walletobjects_offerclass_patch_execute(
 
 pub fn walletobjects_offerclass_patch(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &OfferClass,
+    args: &WalletobjectsOfferclassPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerclass_patch_builder(client, resourceId, body)?;
+    let builder = walletobjects_offerclass_patch_builder(client, &args.resourceId, &args.body)?;
     walletobjects_offerclass_patch_execute(builder)
 }
 
@@ -9077,6 +9733,15 @@ pub fn walletobjects_offerclass_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_offerclass_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferclassUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: OfferClass,
+}
+
 /// GET walletobjects/v1/offerClass/{resourceId}
 /// Updates the offer class referenced by the given class ID.
 ///
@@ -9089,13 +9754,12 @@ pub fn walletobjects_offerclass_update_execute(
 
 pub fn walletobjects_offerclass_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &OfferClass,
+    args: &WalletobjectsOfferclassUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerclass_update_builder(client, resourceId, body)?;
+    let builder = walletobjects_offerclass_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_offerclass_update_execute(builder)
 }
 
@@ -9196,6 +9860,15 @@ pub fn walletobjects_offerobject_addmessage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_offerobject_addmessage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferobjectAddmessageArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: AddMessageRequest,
+}
+
 /// GET walletobjects/v1/offerObject/{resourceId}/addMessage
 /// Adds a message to the offer object referenced by the given object ID.
 ///
@@ -9208,8 +9881,7 @@ pub fn walletobjects_offerobject_addmessage_execute(
 
 pub fn walletobjects_offerobject_addmessage(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &AddMessageRequest,
+    args: &WalletobjectsOfferobjectAddmessageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<OfferObjectAddMessageResponse>, ApiError>,
@@ -9218,7 +9890,8 @@ pub fn walletobjects_offerobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerobject_addmessage_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_offerobject_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_offerobject_addmessage_execute(builder)
 }
 
@@ -9312,6 +9985,13 @@ pub fn walletobjects_offerobject_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_offerobject_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferobjectGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/offerObject/{resourceId}
 /// Returns the offer object with the given object ID.
 ///
@@ -9324,12 +10004,12 @@ pub fn walletobjects_offerobject_get_execute(
 
 pub fn walletobjects_offerobject_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsOfferobjectGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerobject_get_builder(client, resourceId)?;
+    let builder = walletobjects_offerobject_get_builder(client, &args.resourceId)?;
     walletobjects_offerobject_get_execute(builder)
 }
 
@@ -9422,6 +10102,13 @@ pub fn walletobjects_offerobject_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_offerobject_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferobjectInsertArgs {
+    /// Request body.
+    pub body: OfferObject,
+}
+
 /// GET walletobjects/v1/offerObject
 /// Inserts an offer object with the given ID and properties.
 ///
@@ -9434,12 +10121,12 @@ pub fn walletobjects_offerobject_insert_execute(
 
 pub fn walletobjects_offerobject_insert(
     client: &SimpleHttpClient,
-    body: &OfferObject,
+    args: &WalletobjectsOfferobjectInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerobject_insert_builder(client, body)?;
+    let builder = walletobjects_offerobject_insert_builder(client, &args.body)?;
     walletobjects_offerobject_insert_execute(builder)
 }
 
@@ -9551,6 +10238,17 @@ pub fn walletobjects_offerobject_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_offerobject_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferobjectListArgs {
+    /// Query parameter: classId
+    pub classId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET walletobjects/v1/offerObject
 /// Returns a list of all offer objects for a given issuer ID.
 ///
@@ -9563,16 +10261,19 @@ pub fn walletobjects_offerobject_list_execute(
 
 pub fn walletobjects_offerobject_list(
     client: &SimpleHttpClient,
-    classId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
+    args: &WalletobjectsOfferobjectListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OfferObjectListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerobject_list_builder(client, classId, maxResults, token)?;
+    let builder = walletobjects_offerobject_list_builder(
+        client,
+        args.classId.as_deref(),
+        args.maxResults,
+        args.token.as_deref(),
+    )?;
     walletobjects_offerobject_list_execute(builder)
 }
 
@@ -9669,6 +10370,15 @@ pub fn walletobjects_offerobject_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_offerobject_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferobjectPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: OfferObject,
+}
+
 /// GET walletobjects/v1/offerObject/{resourceId}
 /// Updates the offer object referenced by the given object ID. This method supports patch semantics.
 ///
@@ -9681,13 +10391,12 @@ pub fn walletobjects_offerobject_patch_execute(
 
 pub fn walletobjects_offerobject_patch(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &OfferObject,
+    args: &WalletobjectsOfferobjectPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerobject_patch_builder(client, resourceId, body)?;
+    let builder = walletobjects_offerobject_patch_builder(client, &args.resourceId, &args.body)?;
     walletobjects_offerobject_patch_execute(builder)
 }
 
@@ -9784,6 +10493,15 @@ pub fn walletobjects_offerobject_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_offerobject_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsOfferobjectUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: OfferObject,
+}
+
 /// GET walletobjects/v1/offerObject/{resourceId}
 /// Updates the offer object referenced by the given object ID.
 ///
@@ -9796,13 +10514,12 @@ pub fn walletobjects_offerobject_update_execute(
 
 pub fn walletobjects_offerobject_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &OfferObject,
+    args: &WalletobjectsOfferobjectUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerobject_update_builder(client, resourceId, body)?;
+    let builder = walletobjects_offerobject_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_offerobject_update_execute(builder)
 }
 
@@ -9896,6 +10613,13 @@ pub fn walletobjects_permissions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_permissions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsPermissionsGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/permissions/{resourceId}
 /// Returns the permissions for the given issuer id.
 ///
@@ -9908,12 +10632,12 @@ pub fn walletobjects_permissions_get_execute(
 
 pub fn walletobjects_permissions_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsPermissionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Permissions>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_permissions_get_builder(client, resourceId)?;
+    let builder = walletobjects_permissions_get_builder(client, &args.resourceId)?;
     walletobjects_permissions_get_execute(builder)
 }
 
@@ -10010,6 +10734,15 @@ pub fn walletobjects_permissions_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_permissions_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsPermissionsUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: Permissions,
+}
+
 /// GET walletobjects/v1/permissions/{resourceId}
 /// Updates the permissions for the given issuer.
 ///
@@ -10022,13 +10755,12 @@ pub fn walletobjects_permissions_update_execute(
 
 pub fn walletobjects_permissions_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &Permissions,
+    args: &WalletobjectsPermissionsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Permissions>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_permissions_update_builder(client, resourceId, body)?;
+    let builder = walletobjects_permissions_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_permissions_update_execute(builder)
 }
 
@@ -10121,6 +10853,13 @@ pub fn walletobjects_smarttap_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_smarttap_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsSmarttapInsertArgs {
+    /// Request body.
+    pub body: SmartTap,
+}
+
 /// GET walletobjects/v1/smartTap
 /// Inserts the smart tap.
 ///
@@ -10133,12 +10872,12 @@ pub fn walletobjects_smarttap_insert_execute(
 
 pub fn walletobjects_smarttap_insert(
     client: &SimpleHttpClient,
-    body: &SmartTap,
+    args: &WalletobjectsSmarttapInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SmartTap>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_smarttap_insert_builder(client, body)?;
+    let builder = walletobjects_smarttap_insert_builder(client, &args.body)?;
     walletobjects_smarttap_insert_execute(builder)
 }
 
@@ -10239,6 +10978,15 @@ pub fn walletobjects_transitclass_addmessage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_transitclass_addmessage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitclassAddmessageArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: AddMessageRequest,
+}
+
 /// GET walletobjects/v1/transitClass/{resourceId}/addMessage
 /// Adds a message to the transit class referenced by the given class ID.
 ///
@@ -10251,8 +10999,7 @@ pub fn walletobjects_transitclass_addmessage_execute(
 
 pub fn walletobjects_transitclass_addmessage(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &AddMessageRequest,
+    args: &WalletobjectsTransitclassAddmessageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TransitClassAddMessageResponse>, ApiError>,
@@ -10261,7 +11008,8 @@ pub fn walletobjects_transitclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitclass_addmessage_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_transitclass_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_transitclass_addmessage_execute(builder)
 }
 
@@ -10357,6 +11105,13 @@ pub fn walletobjects_transitclass_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_transitclass_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitclassGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/transitClass/{resourceId}
 /// Returns the transit class with the given class ID.
 ///
@@ -10369,14 +11124,14 @@ pub fn walletobjects_transitclass_get_execute(
 
 pub fn walletobjects_transitclass_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsTransitclassGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitclass_get_builder(client, resourceId)?;
+    let builder = walletobjects_transitclass_get_builder(client, &args.resourceId)?;
     walletobjects_transitclass_get_execute(builder)
 }
 
@@ -10471,6 +11226,13 @@ pub fn walletobjects_transitclass_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_transitclass_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitclassInsertArgs {
+    /// Request body.
+    pub body: TransitClass,
+}
+
 /// GET walletobjects/v1/transitClass
 /// Inserts a transit class with the given ID and properties.
 ///
@@ -10483,14 +11245,14 @@ pub fn walletobjects_transitclass_insert_execute(
 
 pub fn walletobjects_transitclass_insert(
     client: &SimpleHttpClient,
-    body: &TransitClass,
+    args: &WalletobjectsTransitclassInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitclass_insert_builder(client, body)?;
+    let builder = walletobjects_transitclass_insert_builder(client, &args.body)?;
     walletobjects_transitclass_insert_execute(builder)
 }
 
@@ -10602,6 +11364,17 @@ pub fn walletobjects_transitclass_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_transitclass_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitclassListArgs {
+    /// Query parameter: issuerId
+    pub issuerId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET walletobjects/v1/transitClass
 /// Returns a list of all transit classes for a given issuer ID.
 ///
@@ -10614,16 +11387,19 @@ pub fn walletobjects_transitclass_list_execute(
 
 pub fn walletobjects_transitclass_list(
     client: &SimpleHttpClient,
-    issuerId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
+    args: &WalletobjectsTransitclassListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransitClassListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitclass_list_builder(client, issuerId, maxResults, token)?;
+    let builder = walletobjects_transitclass_list_builder(
+        client,
+        args.issuerId.as_deref(),
+        args.maxResults,
+        args.token.as_deref(),
+    )?;
     walletobjects_transitclass_list_execute(builder)
 }
 
@@ -10722,6 +11498,15 @@ pub fn walletobjects_transitclass_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_transitclass_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitclassPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: TransitClass,
+}
+
 /// GET walletobjects/v1/transitClass/{resourceId}
 /// Updates the transit class referenced by the given class ID. This method supports patch semantics.
 ///
@@ -10734,15 +11519,14 @@ pub fn walletobjects_transitclass_patch_execute(
 
 pub fn walletobjects_transitclass_patch(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &TransitClass,
+    args: &WalletobjectsTransitclassPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitclass_patch_builder(client, resourceId, body)?;
+    let builder = walletobjects_transitclass_patch_builder(client, &args.resourceId, &args.body)?;
     walletobjects_transitclass_patch_execute(builder)
 }
 
@@ -10841,6 +11625,15 @@ pub fn walletobjects_transitclass_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_transitclass_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitclassUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: TransitClass,
+}
+
 /// GET walletobjects/v1/transitClass/{resourceId}
 /// Updates the transit class referenced by the given class ID.
 ///
@@ -10853,15 +11646,14 @@ pub fn walletobjects_transitclass_update_execute(
 
 pub fn walletobjects_transitclass_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &TransitClass,
+    args: &WalletobjectsTransitclassUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitclass_update_builder(client, resourceId, body)?;
+    let builder = walletobjects_transitclass_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_transitclass_update_execute(builder)
 }
 
@@ -10962,6 +11754,15 @@ pub fn walletobjects_transitobject_addmessage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_transitobject_addmessage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitobjectAddmessageArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: AddMessageRequest,
+}
+
 /// GET walletobjects/v1/transitObject/{resourceId}/addMessage
 /// Adds a message to the transit object referenced by the given object ID.
 ///
@@ -10974,8 +11775,7 @@ pub fn walletobjects_transitobject_addmessage_execute(
 
 pub fn walletobjects_transitobject_addmessage(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &AddMessageRequest,
+    args: &WalletobjectsTransitobjectAddmessageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TransitObjectAddMessageResponse>, ApiError>,
@@ -10984,7 +11784,8 @@ pub fn walletobjects_transitobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitobject_addmessage_builder(client, resourceId, body)?;
+    let builder =
+        walletobjects_transitobject_addmessage_builder(client, &args.resourceId, &args.body)?;
     walletobjects_transitobject_addmessage_execute(builder)
 }
 
@@ -11080,6 +11881,13 @@ pub fn walletobjects_transitobject_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_transitobject_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitobjectGetArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+}
+
 /// GET walletobjects/v1/transitObject/{resourceId}
 /// Returns the transit object with the given object ID.
 ///
@@ -11092,14 +11900,14 @@ pub fn walletobjects_transitobject_get_execute(
 
 pub fn walletobjects_transitobject_get(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    args: &WalletobjectsTransitobjectGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitobject_get_builder(client, resourceId)?;
+    let builder = walletobjects_transitobject_get_builder(client, &args.resourceId)?;
     walletobjects_transitobject_get_execute(builder)
 }
 
@@ -11194,6 +12002,13 @@ pub fn walletobjects_transitobject_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_transitobject_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitobjectInsertArgs {
+    /// Request body.
+    pub body: TransitObject,
+}
+
 /// GET walletobjects/v1/transitObject
 /// Inserts an transit object with the given ID and properties.
 ///
@@ -11206,14 +12021,14 @@ pub fn walletobjects_transitobject_insert_execute(
 
 pub fn walletobjects_transitobject_insert(
     client: &SimpleHttpClient,
-    body: &TransitObject,
+    args: &WalletobjectsTransitobjectInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitobject_insert_builder(client, body)?;
+    let builder = walletobjects_transitobject_insert_builder(client, &args.body)?;
     walletobjects_transitobject_insert_execute(builder)
 }
 
@@ -11325,6 +12140,17 @@ pub fn walletobjects_transitobject_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_transitobject_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitobjectListArgs {
+    /// Query parameter: classId
+    pub classId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: token
+    pub token: Option<String>,
+}
+
 /// GET walletobjects/v1/transitObject
 /// Returns a list of all transit objects for a given issuer ID.
 ///
@@ -11337,16 +12163,19 @@ pub fn walletobjects_transitobject_list_execute(
 
 pub fn walletobjects_transitobject_list(
     client: &SimpleHttpClient,
-    classId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
+    args: &WalletobjectsTransitobjectListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransitObjectListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitobject_list_builder(client, classId, maxResults, token)?;
+    let builder = walletobjects_transitobject_list_builder(
+        client,
+        args.classId.as_deref(),
+        args.maxResults,
+        args.token.as_deref(),
+    )?;
     walletobjects_transitobject_list_execute(builder)
 }
 
@@ -11445,6 +12274,15 @@ pub fn walletobjects_transitobject_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_transitobject_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitobjectPatchArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: TransitObject,
+}
+
 /// GET walletobjects/v1/transitObject/{resourceId}
 /// Updates the transit object referenced by the given object ID. This method supports patch semantics.
 ///
@@ -11457,15 +12295,14 @@ pub fn walletobjects_transitobject_patch_execute(
 
 pub fn walletobjects_transitobject_patch(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &TransitObject,
+    args: &WalletobjectsTransitobjectPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitobject_patch_builder(client, resourceId, body)?;
+    let builder = walletobjects_transitobject_patch_builder(client, &args.resourceId, &args.body)?;
     walletobjects_transitobject_patch_execute(builder)
 }
 
@@ -11564,6 +12401,15 @@ pub fn walletobjects_transitobject_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_transitobject_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsTransitobjectUpdateArgs {
+    /// Path parameter: resourceId
+    pub resourceId: String,
+    /// Request body.
+    pub body: TransitObject,
+}
+
 /// GET walletobjects/v1/transitObject/{resourceId}
 /// Updates the transit object referenced by the given object ID.
 ///
@@ -11576,15 +12422,14 @@ pub fn walletobjects_transitobject_update_execute(
 
 pub fn walletobjects_transitobject_update(
     client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &TransitObject,
+    args: &WalletobjectsTransitobjectUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitobject_update_builder(client, resourceId, body)?;
+    let builder = walletobjects_transitobject_update_builder(client, &args.resourceId, &args.body)?;
     walletobjects_transitobject_update_execute(builder)
 }
 
@@ -11683,6 +12528,13 @@ pub fn walletobjects_walletobjects_v1_private_content_set_pass_update_notice_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`walletobjects_walletobjects_v1_private_content_set_pass_update_notice`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WalletobjectsWalletobjectsV1PrivateContentSetPassUpdateNoticeArgs {
+    /// Request body.
+    pub body: SetPassUpdateNoticeRequest,
+}
+
 /// GET walletobjects/v1/privateContent/setPassUpdateNotice
 /// Provide Google with information about awaiting private pass update. This will allow Google to provide the update notification to the device that currently holds this pass.
 ///
@@ -11695,7 +12547,7 @@ pub fn walletobjects_walletobjects_v1_private_content_set_pass_update_notice_exe
 
 pub fn walletobjects_walletobjects_v1_private_content_set_pass_update_notice(
     client: &SimpleHttpClient,
-    body: &SetPassUpdateNoticeRequest,
+    args: &WalletobjectsWalletobjectsV1PrivateContentSetPassUpdateNoticeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SetPassUpdateNoticeResponse>, ApiError>,
@@ -11705,7 +12557,7 @@ pub fn walletobjects_walletobjects_v1_private_content_set_pass_update_notice(
     ApiError,
 > {
     let builder = walletobjects_walletobjects_v1_private_content_set_pass_update_notice_builder(
-        client, body,
+        client, &args.body,
     )?;
     walletobjects_walletobjects_v1_private_content_set_pass_update_notice_execute(builder)
 }

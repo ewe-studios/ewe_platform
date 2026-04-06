@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn clouddeploy_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn clouddeploy_projects_locations_get_execute(
 
 pub fn clouddeploy_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ClouddeployProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = clouddeploy_projects_locations_get_builder(client, name)?;
+    let builder = clouddeploy_projects_locations_get_builder(client, &args.name)?;
     clouddeploy_projects_locations_get_execute(builder)
 }
 
@@ -217,6 +226,13 @@ pub fn clouddeploy_projects_locations_get_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_get_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsGetConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/config
 /// Gets the configuration for a location.
 ///
@@ -229,12 +245,12 @@ pub fn clouddeploy_projects_locations_get_config_execute(
 
 pub fn clouddeploy_projects_locations_get_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ClouddeployProjectsLocationsGetConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Config>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = clouddeploy_projects_locations_get_config_builder(client, name)?;
+    let builder = clouddeploy_projects_locations_get_config_builder(client, &args.name)?;
     clouddeploy_projects_locations_get_config_execute(builder)
 }
 
@@ -354,6 +370,21 @@ pub fn clouddeploy_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -366,11 +397,7 @@ pub fn clouddeploy_projects_locations_list_execute(
 
 pub fn clouddeploy_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClouddeployProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -379,11 +406,11 @@ pub fn clouddeploy_projects_locations_list(
 > {
     let builder = clouddeploy_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     clouddeploy_projects_locations_list_execute(builder)
 }
@@ -501,6 +528,21 @@ pub fn clouddeploy_projects_locations_custom_target_types_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_custom_target_types_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsCustomTargetTypesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: customTargetTypeId
+    pub customTargetTypeId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: CustomTargetType,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/customTargetTypes
 /// Creates a new CustomTargetType in a given project and location.
 ///
@@ -513,22 +555,18 @@ pub fn clouddeploy_projects_locations_custom_target_types_create_execute(
 
 pub fn clouddeploy_projects_locations_custom_target_types_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    customTargetTypeId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &CustomTargetType,
+    args: &ClouddeployProjectsLocationsCustomTargetTypesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_custom_target_types_create_builder(
         client,
-        parent,
-        customTargetTypeId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.customTargetTypeId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     clouddeploy_projects_locations_custom_target_types_create_execute(builder)
 }
@@ -647,6 +685,21 @@ pub fn clouddeploy_projects_locations_custom_target_types_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_custom_target_types_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsCustomTargetTypesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/customTargetTypes/{customTargetTypesId}
 /// Deletes a single CustomTargetType.
 ///
@@ -659,22 +712,18 @@ pub fn clouddeploy_projects_locations_custom_target_types_delete_execute(
 
 pub fn clouddeploy_projects_locations_custom_target_types_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &ClouddeployProjectsLocationsCustomTargetTypesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_custom_target_types_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     clouddeploy_projects_locations_custom_target_types_delete_execute(builder)
 }
@@ -771,6 +820,13 @@ pub fn clouddeploy_projects_locations_custom_target_types_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_custom_target_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsCustomTargetTypesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/customTargetTypes/{customTargetTypesId}
 /// Gets details of a single CustomTargetType.
 ///
@@ -783,14 +839,15 @@ pub fn clouddeploy_projects_locations_custom_target_types_get_execute(
 
 pub fn clouddeploy_projects_locations_custom_target_types_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ClouddeployProjectsLocationsCustomTargetTypesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomTargetType>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = clouddeploy_projects_locations_custom_target_types_get_builder(client, name)?;
+    let builder =
+        clouddeploy_projects_locations_custom_target_types_get_builder(client, &args.name)?;
     clouddeploy_projects_locations_custom_target_types_get_execute(builder)
 }
 
@@ -896,6 +953,15 @@ pub fn clouddeploy_projects_locations_custom_target_types_get_iam_policy_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_custom_target_types_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsCustomTargetTypesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/customTargetTypes/{customTargetTypesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -908,16 +974,15 @@ pub fn clouddeploy_projects_locations_custom_target_types_get_iam_policy_execute
 
 pub fn clouddeploy_projects_locations_custom_target_types_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ClouddeployProjectsLocationsCustomTargetTypesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_custom_target_types_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     clouddeploy_projects_locations_custom_target_types_get_iam_policy_execute(builder)
 }
@@ -1040,6 +1105,21 @@ pub fn clouddeploy_projects_locations_custom_target_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_custom_target_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsCustomTargetTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/customTargetTypes
 /// Lists CustomTargetTypes in a given project and location.
 ///
@@ -1052,11 +1132,7 @@ pub fn clouddeploy_projects_locations_custom_target_types_list_execute(
 
 pub fn clouddeploy_projects_locations_custom_target_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClouddeployProjectsLocationsCustomTargetTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCustomTargetTypesResponse>, ApiError>,
@@ -1066,7 +1142,12 @@ pub fn clouddeploy_projects_locations_custom_target_types_list(
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_custom_target_types_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     clouddeploy_projects_locations_custom_target_types_list_execute(builder)
 }
@@ -1188,6 +1269,23 @@ pub fn clouddeploy_projects_locations_custom_target_types_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_custom_target_types_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsCustomTargetTypesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: CustomTargetType,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/customTargetTypes/{customTargetTypesId}
 /// Updates a single CustomTargetType.
 ///
@@ -1200,24 +1298,19 @@ pub fn clouddeploy_projects_locations_custom_target_types_patch_execute(
 
 pub fn clouddeploy_projects_locations_custom_target_types_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &CustomTargetType,
+    args: &ClouddeployProjectsLocationsCustomTargetTypesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_custom_target_types_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     clouddeploy_projects_locations_custom_target_types_patch_execute(builder)
 }
@@ -1315,6 +1408,15 @@ pub fn clouddeploy_projects_locations_custom_target_types_set_iam_policy_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_custom_target_types_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsCustomTargetTypesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/customTargetTypes/{customTargetTypesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1327,14 +1429,15 @@ pub fn clouddeploy_projects_locations_custom_target_types_set_iam_policy_execute
 
 pub fn clouddeploy_projects_locations_custom_target_types_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ClouddeployProjectsLocationsCustomTargetTypesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_custom_target_types_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     clouddeploy_projects_locations_custom_target_types_set_iam_policy_execute(builder)
 }
@@ -1452,6 +1555,21 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deliveryPipelineId
+    pub deliveryPipelineId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: DeliveryPipeline,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines
 /// Creates a new DeliveryPipeline in a given project and location.
 ///
@@ -1464,22 +1582,18 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_create_execute(
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    deliveryPipelineId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &DeliveryPipeline,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_create_builder(
         client,
-        parent,
-        deliveryPipelineId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.deliveryPipelineId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     clouddeploy_projects_locations_delivery_pipelines_create_execute(builder)
 }
@@ -1602,6 +1716,23 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}
 /// Deletes a single DeliveryPipeline.
 ///
@@ -1614,24 +1745,19 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_delete_execute(
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    force: Option<bool>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        force,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.force,
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     clouddeploy_projects_locations_delivery_pipelines_delete_execute(builder)
 }
@@ -1728,6 +1854,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}
 /// Gets details of a single DeliveryPipeline.
 ///
@@ -1740,14 +1873,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_get_execute(
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeliveryPipeline>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = clouddeploy_projects_locations_delivery_pipelines_get_builder(client, name)?;
+    let builder =
+        clouddeploy_projects_locations_delivery_pipelines_get_builder(client, &args.name)?;
     clouddeploy_projects_locations_delivery_pipelines_get_execute(builder)
 }
 
@@ -1853,6 +1987,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1865,16 +2008,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_get_iam_policy_execute(
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     clouddeploy_projects_locations_delivery_pipelines_get_iam_policy_execute(builder)
 }
@@ -1997,6 +2139,21 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines
 /// Lists DeliveryPipelines in a given project and location.
 ///
@@ -2009,11 +2166,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_list_execute(
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDeliveryPipelinesResponse>, ApiError>,
@@ -2023,7 +2176,12 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_list(
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     clouddeploy_projects_locations_delivery_pipelines_list_execute(builder)
 }
@@ -2145,6 +2303,23 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: DeliveryPipeline,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}
 /// Updates the parameters of a single DeliveryPipeline.
 ///
@@ -2157,24 +2332,19 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_patch_execute(
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &DeliveryPipeline,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     clouddeploy_projects_locations_delivery_pipelines_patch_execute(builder)
 }
@@ -2274,6 +2444,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_rollback_target_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_rollback_target`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesRollbackTargetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RollbackTargetRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}:rollbackTarget
 /// Creates a Rollout to roll back the specified target.
 ///
@@ -2286,8 +2465,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_rollback_target_execute
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_rollback_target(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RollbackTargetRequest,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesRollbackTargetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RollbackTargetResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2295,7 +2473,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_rollback_target(
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_rollback_target_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     clouddeploy_projects_locations_delivery_pipelines_rollback_target_execute(builder)
 }
@@ -2393,6 +2571,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -2405,14 +2592,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_set_iam_policy_execute(
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     clouddeploy_projects_locations_delivery_pipelines_set_iam_policy_execute(builder)
 }
@@ -2514,6 +2702,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_test_iam_permissions_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2526,8 +2723,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_test_iam_permissions_ex
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2537,7 +2733,9 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_test_iam_permissions(
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     clouddeploy_projects_locations_delivery_pipelines_test_iam_permissions_execute(builder)
 }
@@ -2639,6 +2837,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_cancel_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_automation_runs_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesAutomationRunsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelAutomationRunRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automationRuns/{automationRunsId}:cancel
 /// Cancels an AutomationRun. The state of the AutomationRun after cancelling is CANCELLED. CancelAutomationRun can be called on AutomationRun in the state IN_PROGRESS and `PENDING`; AutomationRun in a different state returns an FAILED_PRECONDITION error.
 ///
@@ -2651,8 +2858,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_cancel_
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelAutomationRunRequest,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesAutomationRunsCancelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CancelAutomationRunResponse>, ApiError>,
@@ -2662,7 +2868,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_cancel(
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_automation_runs_cancel_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     clouddeploy_projects_locations_delivery_pipelines_automation_runs_cancel_execute(builder)
 }
@@ -2759,6 +2965,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_automation_runs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesAutomationRunsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automationRuns/{automationRunsId}
 /// Gets details of a single AutomationRun.
 ///
@@ -2771,7 +2984,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_get_exe
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesAutomationRunsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutomationRun>, ApiError>, P = ApiPending>
         + Send
@@ -2779,7 +2992,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_get(
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_automation_runs_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     clouddeploy_projects_locations_delivery_pipelines_automation_runs_get_execute(builder)
 }
@@ -2902,6 +3115,21 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_automation_runs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesAutomationRunsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automationRuns
 /// Lists AutomationRuns in a given project and location.
 ///
@@ -2914,11 +3142,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_list_ex
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesAutomationRunsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAutomationRunsResponse>, ApiError>,
@@ -2928,7 +3152,12 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automation_runs_list(
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_automation_runs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     clouddeploy_projects_locations_delivery_pipelines_automation_runs_list_execute(builder)
 }
@@ -3046,6 +3275,21 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_create_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_automations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesAutomationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: automationId
+    pub automationId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Automation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automations
 /// Creates a new Automation in a given project and location.
 ///
@@ -3058,22 +3302,18 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_create_exec
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_automations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    automationId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Automation,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesAutomationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_automations_create_builder(
         client,
-        parent,
-        automationId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.automationId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     clouddeploy_projects_locations_delivery_pipelines_automations_create_execute(builder)
 }
@@ -3192,6 +3432,21 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_delete_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_automations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesAutomationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automations/{automationsId}
 /// Deletes a single Automation resource.
 ///
@@ -3204,22 +3459,18 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_delete_exec
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_automations_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesAutomationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_automations_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     clouddeploy_projects_locations_delivery_pipelines_automations_delete_execute(builder)
 }
@@ -3314,6 +3565,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_automations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesAutomationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automations/{automationsId}
 /// Gets details of a single Automation.
 ///
@@ -3326,13 +3584,14 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_get_execute
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_automations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesAutomationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Automation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        clouddeploy_projects_locations_delivery_pipelines_automations_get_builder(client, name)?;
+    let builder = clouddeploy_projects_locations_delivery_pipelines_automations_get_builder(
+        client, &args.name,
+    )?;
     clouddeploy_projects_locations_delivery_pipelines_automations_get_execute(builder)
 }
 
@@ -3452,6 +3711,21 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_automations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesAutomationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automations
 /// Lists Automations in a given project and location.
 ///
@@ -3464,11 +3738,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_list_execut
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_automations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesAutomationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAutomationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3476,7 +3746,12 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_list(
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_automations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     clouddeploy_projects_locations_delivery_pipelines_automations_list_execute(builder)
 }
@@ -3598,6 +3873,23 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_patch_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_automations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesAutomationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Automation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/automations/{automationsId}
 /// Updates the parameters of a single Automation resource.
 ///
@@ -3610,24 +3902,19 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_automations_patch_execu
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_automations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Automation,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesAutomationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_automations_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     clouddeploy_projects_locations_delivery_pipelines_automations_patch_execute(builder)
 }
@@ -3727,6 +4014,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_abandon_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_releases_abandon`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesReleasesAbandonArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AbandonReleaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}:abandon
 /// Abandons a Release in the Delivery Pipeline.
 ///
@@ -3739,8 +4035,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_abandon_execut
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_releases_abandon(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AbandonReleaseRequest,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesAbandonArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AbandonReleaseResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3748,7 +4043,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_abandon(
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_releases_abandon_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     clouddeploy_projects_locations_delivery_pipelines_releases_abandon_execute(builder)
 }
@@ -3870,6 +4165,23 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_releases_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesReleasesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: overrideDeployPolicy
+    pub overrideDeployPolicy: Option<String>,
+    /// Query parameter: releaseId
+    pub releaseId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Release,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases
 /// Creates a new Release in a given project and location.
 ///
@@ -3882,24 +4194,19 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_create_execute
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_releases_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    overrideDeployPolicy: Option<&str>,
-    releaseId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Release,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_releases_create_builder(
         client,
-        parent,
-        overrideDeployPolicy,
-        releaseId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.overrideDeployPolicy.as_deref(),
+        args.releaseId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     clouddeploy_projects_locations_delivery_pipelines_releases_create_execute(builder)
 }
@@ -3994,6 +4301,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_releases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesReleasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}
 /// Gets details of a single Release.
 ///
@@ -4006,13 +4320,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_get_execute(
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_releases_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        clouddeploy_projects_locations_delivery_pipelines_releases_get_builder(client, name)?;
+        clouddeploy_projects_locations_delivery_pipelines_releases_get_builder(client, &args.name)?;
     clouddeploy_projects_locations_delivery_pipelines_releases_get_execute(builder)
 }
 
@@ -4132,6 +4446,21 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_releases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesReleasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases
 /// Lists Releases in a given project and location.
 ///
@@ -4144,11 +4473,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_list_execute(
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_releases_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListReleasesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4156,7 +4481,12 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_list(
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_releases_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     clouddeploy_projects_locations_delivery_pipelines_releases_list_execute(builder)
 }
@@ -4256,6 +4586,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_advan
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_advance`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsAdvanceArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AdvanceRolloutRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}:advance
 /// Advances a Rollout in a given project and location.
 ///
@@ -4268,8 +4607,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_advan
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_advance(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AdvanceRolloutRequest,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsAdvanceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdvanceRolloutResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4278,7 +4616,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_advan
 > {
     let builder =
         clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_advance_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_advance_execute(builder)
 }
@@ -4378,6 +4716,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_appro
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_approve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsApproveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ApproveRolloutRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}:approve
 /// Approves a Rollout.
 ///
@@ -4390,8 +4737,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_appro
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_approve(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ApproveRolloutRequest,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsApproveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApproveRolloutResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4400,7 +4746,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_appro
 > {
     let builder =
         clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_approve_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_approve_execute(builder)
 }
@@ -4500,6 +4846,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_cance
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelRolloutRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}:cancel
 /// Cancels a Rollout in a given project and location.
 ///
@@ -4512,8 +4867,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_cance
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelRolloutRequest,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CancelRolloutResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4522,7 +4876,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_cance
 > {
     let builder =
         clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_cancel_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_cancel_execute(builder)
 }
@@ -4648,6 +5002,25 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_creat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: overrideDeployPolicy
+    pub overrideDeployPolicy: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: rolloutId
+    pub rolloutId: Option<String>,
+    /// Query parameter: startingPhaseId
+    pub startingPhaseId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Rollout,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts
 /// Creates a new Rollout in a given project and location.
 ///
@@ -4660,13 +5033,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_creat
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    overrideDeployPolicy: Option<&str>,
-    requestId: Option<&str>,
-    rolloutId: Option<&str>,
-    startingPhaseId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Rollout,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -4674,13 +5041,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_creat
     let builder =
         clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_create_builder(
             client,
-            parent,
-            overrideDeployPolicy,
-            requestId,
-            rolloutId,
-            startingPhaseId,
-            validateOnly,
-            body,
+            &args.parent,
+            args.overrideDeployPolicy.as_deref(),
+            args.requestId.as_deref(),
+            args.rolloutId.as_deref(),
+            args.startingPhaseId.as_deref(),
+            args.validateOnly,
+            &args.body,
         )?;
     clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_create_execute(builder)
 }
@@ -4775,6 +5142,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_get_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}
 /// Gets details of a single Rollout.
 ///
@@ -4787,13 +5161,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_get_e
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Rollout>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_get_execute(builder)
 }
@@ -4893,6 +5267,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_ignor
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_ignore_job`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsIgnoreJobArgs {
+    /// Path parameter: rollout
+    pub rollout: String,
+    /// Request body.
+    pub body: IgnoreJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}:ignoreJob
 /// Ignores the specified Job in a Rollout.
 ///
@@ -4905,8 +5288,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_ignor
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_ignore_job(
     client: &SimpleHttpClient,
-    rollout: &str,
-    body: &IgnoreJobRequest,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsIgnoreJobArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IgnoreJobResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4915,7 +5297,9 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_ignor
 > {
     let builder =
         clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_ignore_job_builder(
-            client, rollout, body,
+            client,
+            &args.rollout,
+            &args.body,
         )?;
     clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_ignore_job_execute(builder)
 }
@@ -5036,6 +5420,21 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_list_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts
 /// Lists Rollouts in a given project and location.
 ///
@@ -5048,11 +5447,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_list_
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRolloutsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5060,7 +5455,12 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_list(
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_list_execute(builder)
 }
@@ -5160,6 +5560,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_retry
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_retry_job`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsRetryJobArgs {
+    /// Path parameter: rollout
+    pub rollout: String,
+    /// Request body.
+    pub body: RetryJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}:retryJob
 /// Retries the specified Job in a Rollout.
 ///
@@ -5172,8 +5581,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_retry
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_retry_job(
     client: &SimpleHttpClient,
-    rollout: &str,
-    body: &RetryJobRequest,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsRetryJobArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RetryJobResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5182,7 +5590,9 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_retry
 > {
     let builder =
         clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_retry_job_builder(
-            client, rollout, body,
+            client,
+            &args.rollout,
+            &args.body,
         )?;
     clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_retry_job_execute(builder)
 }
@@ -5277,6 +5687,13 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_r
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsJobRunsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}/jobRuns/{jobRunsId}
 /// Gets details of a single JobRun.
 ///
@@ -5289,14 +5706,14 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_r
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsJobRunsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<JobRun>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_get_execute(
         builder,
@@ -5419,6 +5836,21 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_r
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsJobRunsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}/jobRuns
 /// Lists JobRuns in a given project and location.
 ///
@@ -5431,11 +5863,7 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_r
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsJobRunsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListJobRunsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5444,7 +5872,12 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_r
 > {
     let builder =
         clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_list_builder(
-            client, parent, filter, orderBy, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_list_execute(
         builder,
@@ -5546,6 +5979,15 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_r
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_terminate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsJobRunsTerminateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: TerminateJobRunRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deliveryPipelines/{deliveryPipelinesId}/releases/{releasesId}/rollouts/{rolloutsId}/jobRuns/{jobRunsId}:terminate
 /// Terminates a Job Run in a given project and location.
 ///
@@ -5558,15 +6000,14 @@ pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_r
 
 pub fn clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_terminate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &TerminateJobRunRequest,
+    args: &ClouddeployProjectsLocationsDeliveryPipelinesReleasesRolloutsJobRunsTerminateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TerminateJobRunResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_terminate_builder(client, name, body)?;
+    let builder = clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_terminate_builder(client, &args.name, &args.body)?;
     clouddeploy_projects_locations_delivery_pipelines_releases_rollouts_job_runs_terminate_execute(
         builder,
     )
@@ -5685,6 +6126,21 @@ pub fn clouddeploy_projects_locations_deploy_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_deploy_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeployPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deployPolicyId
+    pub deployPolicyId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: DeployPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployPolicies
 /// Creates a new DeployPolicy in a given project and location.
 ///
@@ -5697,22 +6153,18 @@ pub fn clouddeploy_projects_locations_deploy_policies_create_execute(
 
 pub fn clouddeploy_projects_locations_deploy_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    deployPolicyId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &DeployPolicy,
+    args: &ClouddeployProjectsLocationsDeployPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_deploy_policies_create_builder(
         client,
-        parent,
-        deployPolicyId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.deployPolicyId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     clouddeploy_projects_locations_deploy_policies_create_execute(builder)
 }
@@ -5831,6 +6283,21 @@ pub fn clouddeploy_projects_locations_deploy_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_deploy_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeployPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployPolicies/{deployPoliciesId}
 /// Deletes a single DeployPolicy.
 ///
@@ -5843,22 +6310,18 @@ pub fn clouddeploy_projects_locations_deploy_policies_delete_execute(
 
 pub fn clouddeploy_projects_locations_deploy_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &ClouddeployProjectsLocationsDeployPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_deploy_policies_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     clouddeploy_projects_locations_deploy_policies_delete_execute(builder)
 }
@@ -5955,6 +6418,13 @@ pub fn clouddeploy_projects_locations_deploy_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_deploy_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeployPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployPolicies/{deployPoliciesId}
 /// Gets details of a single DeployPolicy.
 ///
@@ -5967,14 +6437,14 @@ pub fn clouddeploy_projects_locations_deploy_policies_get_execute(
 
 pub fn clouddeploy_projects_locations_deploy_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ClouddeployProjectsLocationsDeployPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeployPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = clouddeploy_projects_locations_deploy_policies_get_builder(client, name)?;
+    let builder = clouddeploy_projects_locations_deploy_policies_get_builder(client, &args.name)?;
     clouddeploy_projects_locations_deploy_policies_get_execute(builder)
 }
 
@@ -6080,6 +6550,15 @@ pub fn clouddeploy_projects_locations_deploy_policies_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_deploy_policies_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeployPoliciesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployPolicies/{deployPoliciesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -6092,16 +6571,15 @@ pub fn clouddeploy_projects_locations_deploy_policies_get_iam_policy_execute(
 
 pub fn clouddeploy_projects_locations_deploy_policies_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ClouddeployProjectsLocationsDeployPoliciesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_deploy_policies_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     clouddeploy_projects_locations_deploy_policies_get_iam_policy_execute(builder)
 }
@@ -6224,6 +6702,21 @@ pub fn clouddeploy_projects_locations_deploy_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_deploy_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeployPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployPolicies
 /// Lists DeployPolicies in a given project and location.
 ///
@@ -6236,11 +6729,7 @@ pub fn clouddeploy_projects_locations_deploy_policies_list_execute(
 
 pub fn clouddeploy_projects_locations_deploy_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClouddeployProjectsLocationsDeployPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDeployPoliciesResponse>, ApiError>,
@@ -6250,7 +6739,12 @@ pub fn clouddeploy_projects_locations_deploy_policies_list(
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_deploy_policies_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     clouddeploy_projects_locations_deploy_policies_list_execute(builder)
 }
@@ -6372,6 +6866,23 @@ pub fn clouddeploy_projects_locations_deploy_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_deploy_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeployPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: DeployPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployPolicies/{deployPoliciesId}
 /// Updates the parameters of a single DeployPolicy.
 ///
@@ -6384,24 +6895,19 @@ pub fn clouddeploy_projects_locations_deploy_policies_patch_execute(
 
 pub fn clouddeploy_projects_locations_deploy_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &DeployPolicy,
+    args: &ClouddeployProjectsLocationsDeployPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_deploy_policies_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     clouddeploy_projects_locations_deploy_policies_patch_execute(builder)
 }
@@ -6499,6 +7005,15 @@ pub fn clouddeploy_projects_locations_deploy_policies_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_deploy_policies_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsDeployPoliciesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployPolicies/{deployPoliciesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -6511,14 +7026,15 @@ pub fn clouddeploy_projects_locations_deploy_policies_set_iam_policy_execute(
 
 pub fn clouddeploy_projects_locations_deploy_policies_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ClouddeployProjectsLocationsDeployPoliciesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_deploy_policies_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     clouddeploy_projects_locations_deploy_policies_set_iam_policy_execute(builder)
 }
@@ -6616,6 +7132,15 @@ pub fn clouddeploy_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -6628,13 +7153,13 @@ pub fn clouddeploy_projects_locations_operations_cancel_execute(
 
 pub fn clouddeploy_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ClouddeployProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = clouddeploy_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        clouddeploy_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     clouddeploy_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -6728,6 +7253,13 @@ pub fn clouddeploy_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -6740,12 +7272,12 @@ pub fn clouddeploy_projects_locations_operations_delete_execute(
 
 pub fn clouddeploy_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ClouddeployProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = clouddeploy_projects_locations_operations_delete_builder(client, name)?;
+    let builder = clouddeploy_projects_locations_operations_delete_builder(client, &args.name)?;
     clouddeploy_projects_locations_operations_delete_execute(builder)
 }
 
@@ -6839,6 +7371,13 @@ pub fn clouddeploy_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -6851,12 +7390,12 @@ pub fn clouddeploy_projects_locations_operations_get_execute(
 
 pub fn clouddeploy_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ClouddeployProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = clouddeploy_projects_locations_operations_get_builder(client, name)?;
+    let builder = clouddeploy_projects_locations_operations_get_builder(client, &args.name)?;
     clouddeploy_projects_locations_operations_get_execute(builder)
 }
 
@@ -6976,6 +7515,21 @@ pub fn clouddeploy_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -6988,11 +7542,7 @@ pub fn clouddeploy_projects_locations_operations_list_execute(
 
 pub fn clouddeploy_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ClouddeployProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7001,11 +7551,11 @@ pub fn clouddeploy_projects_locations_operations_list(
 > {
     let builder = clouddeploy_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     clouddeploy_projects_locations_operations_list_execute(builder)
 }
@@ -7123,6 +7673,21 @@ pub fn clouddeploy_projects_locations_targets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_targets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsTargetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: targetId
+    pub targetId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Target,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/targets
 /// Creates a new Target in a given project and location.
 ///
@@ -7135,22 +7700,18 @@ pub fn clouddeploy_projects_locations_targets_create_execute(
 
 pub fn clouddeploy_projects_locations_targets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    targetId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Target,
+    args: &ClouddeployProjectsLocationsTargetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_targets_create_builder(
         client,
-        parent,
-        requestId,
-        targetId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.targetId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     clouddeploy_projects_locations_targets_create_execute(builder)
 }
@@ -7269,6 +7830,21 @@ pub fn clouddeploy_projects_locations_targets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_targets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsTargetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/targets/{targetsId}
 /// Deletes a single Target.
 ///
@@ -7281,22 +7857,18 @@ pub fn clouddeploy_projects_locations_targets_delete_execute(
 
 pub fn clouddeploy_projects_locations_targets_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &ClouddeployProjectsLocationsTargetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_targets_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     clouddeploy_projects_locations_targets_delete_execute(builder)
 }
@@ -7391,6 +7963,13 @@ pub fn clouddeploy_projects_locations_targets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_targets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsTargetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/targets/{targetsId}
 /// Gets details of a single Target.
 ///
@@ -7403,12 +7982,12 @@ pub fn clouddeploy_projects_locations_targets_get_execute(
 
 pub fn clouddeploy_projects_locations_targets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ClouddeployProjectsLocationsTargetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Target>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = clouddeploy_projects_locations_targets_get_builder(client, name)?;
+    let builder = clouddeploy_projects_locations_targets_get_builder(client, &args.name)?;
     clouddeploy_projects_locations_targets_get_execute(builder)
 }
 
@@ -7514,6 +8093,15 @@ pub fn clouddeploy_projects_locations_targets_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_targets_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsTargetsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/targets/{targetsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -7526,16 +8114,15 @@ pub fn clouddeploy_projects_locations_targets_get_iam_policy_execute(
 
 pub fn clouddeploy_projects_locations_targets_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ClouddeployProjectsLocationsTargetsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_targets_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     clouddeploy_projects_locations_targets_get_iam_policy_execute(builder)
 }
@@ -7656,6 +8243,21 @@ pub fn clouddeploy_projects_locations_targets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_targets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsTargetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/targets
 /// Lists Targets in a given project and location.
 ///
@@ -7668,11 +8270,7 @@ pub fn clouddeploy_projects_locations_targets_list_execute(
 
 pub fn clouddeploy_projects_locations_targets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ClouddeployProjectsLocationsTargetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTargetsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7680,7 +8278,12 @@ pub fn clouddeploy_projects_locations_targets_list(
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_targets_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     clouddeploy_projects_locations_targets_list_execute(builder)
 }
@@ -7802,6 +8405,23 @@ pub fn clouddeploy_projects_locations_targets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_targets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsTargetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Target,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/targets/{targetsId}
 /// Updates the parameters of a single Target.
 ///
@@ -7814,24 +8434,19 @@ pub fn clouddeploy_projects_locations_targets_patch_execute(
 
 pub fn clouddeploy_projects_locations_targets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Target,
+    args: &ClouddeployProjectsLocationsTargetsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_targets_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     clouddeploy_projects_locations_targets_patch_execute(builder)
 }
@@ -7929,6 +8544,15 @@ pub fn clouddeploy_projects_locations_targets_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_targets_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsTargetsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/targets/{targetsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -7941,14 +8565,16 @@ pub fn clouddeploy_projects_locations_targets_set_iam_policy_execute(
 
 pub fn clouddeploy_projects_locations_targets_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ClouddeployProjectsLocationsTargetsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        clouddeploy_projects_locations_targets_set_iam_policy_builder(client, resource, body)?;
+    let builder = clouddeploy_projects_locations_targets_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     clouddeploy_projects_locations_targets_set_iam_policy_execute(builder)
 }
 
@@ -8049,6 +8675,15 @@ pub fn clouddeploy_projects_locations_targets_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`clouddeploy_projects_locations_targets_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ClouddeployProjectsLocationsTargetsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/targets/{targetsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -8061,8 +8696,7 @@ pub fn clouddeploy_projects_locations_targets_test_iam_permissions_execute(
 
 pub fn clouddeploy_projects_locations_targets_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ClouddeployProjectsLocationsTargetsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -8072,7 +8706,9 @@ pub fn clouddeploy_projects_locations_targets_test_iam_permissions(
     ApiError,
 > {
     let builder = clouddeploy_projects_locations_targets_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     clouddeploy_projects_locations_targets_test_iam_permissions_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/accessType:check
 /// Gets the access type of the token.
@@ -107,6 +109,13 @@ pub fn dataportability_access_type_check_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataportability_access_type_check`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataportabilityAccessTypeCheckArgs {
+    /// Request body.
+    pub body: CheckAccessTypeRequest,
+}
+
 /// GET v1/accessType:check
 /// Gets the access type of the token.
 ///
@@ -119,14 +128,14 @@ pub fn dataportability_access_type_check_execute(
 
 pub fn dataportability_access_type_check(
     client: &SimpleHttpClient,
-    body: &CheckAccessTypeRequest,
+    args: &DataportabilityAccessTypeCheckArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CheckAccessTypeResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dataportability_access_type_check_builder(client, body)?;
+    let builder = dataportability_access_type_check_builder(client, &args.body)?;
     dataportability_access_type_check_execute(builder)
 }
 
@@ -227,6 +236,15 @@ pub fn dataportability_archive_jobs_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataportability_archive_jobs_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataportabilityArchiveJobsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelPortabilityArchiveRequest,
+}
+
 /// GET v1/archiveJobs/{archiveJobsId}:cancel
 /// Cancels a Portability Archive job.
 ///
@@ -239,8 +257,7 @@ pub fn dataportability_archive_jobs_cancel_execute(
 
 pub fn dataportability_archive_jobs_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelPortabilityArchiveRequest,
+    args: &DataportabilityArchiveJobsCancelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CancelPortabilityArchiveResponse>, ApiError>,
@@ -249,7 +266,7 @@ pub fn dataportability_archive_jobs_cancel(
         + 'static,
     ApiError,
 > {
-    let builder = dataportability_archive_jobs_cancel_builder(client, name, body)?;
+    let builder = dataportability_archive_jobs_cancel_builder(client, &args.name, &args.body)?;
     dataportability_archive_jobs_cancel_execute(builder)
 }
 
@@ -345,6 +362,13 @@ pub fn dataportability_archive_jobs_get_portability_archive_state_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataportability_archive_jobs_get_portability_archive_state`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataportabilityArchiveJobsGetPortabilityArchiveStateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/archiveJobs/{archiveJobsId}/portabilityArchiveState
 /// Retrieves the state of an Archive job for the Portability API.
 ///
@@ -357,14 +381,15 @@ pub fn dataportability_archive_jobs_get_portability_archive_state_execute(
 
 pub fn dataportability_archive_jobs_get_portability_archive_state(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataportabilityArchiveJobsGetPortabilityArchiveStateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PortabilityArchiveState>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dataportability_archive_jobs_get_portability_archive_state_builder(client, name)?;
+    let builder =
+        dataportability_archive_jobs_get_portability_archive_state_builder(client, &args.name)?;
     dataportability_archive_jobs_get_portability_archive_state_execute(builder)
 }
 
@@ -465,6 +490,15 @@ pub fn dataportability_archive_jobs_retry_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataportability_archive_jobs_retry`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataportabilityArchiveJobsRetryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RetryPortabilityArchiveRequest,
+}
+
 /// GET v1/archiveJobs/{archiveJobsId}:retry
 /// Retries a failed Portability Archive job.
 ///
@@ -477,8 +511,7 @@ pub fn dataportability_archive_jobs_retry_execute(
 
 pub fn dataportability_archive_jobs_retry(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RetryPortabilityArchiveRequest,
+    args: &DataportabilityArchiveJobsRetryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RetryPortabilityArchiveResponse>, ApiError>,
@@ -487,7 +520,7 @@ pub fn dataportability_archive_jobs_retry(
         + 'static,
     ApiError,
 > {
-    let builder = dataportability_archive_jobs_retry_builder(client, name, body)?;
+    let builder = dataportability_archive_jobs_retry_builder(client, &args.name, &args.body)?;
     dataportability_archive_jobs_retry_execute(builder)
 }
 
@@ -580,6 +613,13 @@ pub fn dataportability_authorization_reset_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataportability_authorization_reset`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataportabilityAuthorizationResetArgs {
+    /// Request body.
+    pub body: ResetAuthorizationRequest,
+}
+
 /// GET v1/authorization:reset
 /// Revokes OAuth tokens and resets exhausted scopes for a `user/project` pair. This method allows you to initiate a request after a new consent is granted. This method also indicates that previous archives can be garbage collected. You should call this method when all jobs are complete and all archives are downloaded. Do not call it only when you start a new job.
 ///
@@ -592,12 +632,12 @@ pub fn dataportability_authorization_reset_execute(
 
 pub fn dataportability_authorization_reset(
     client: &SimpleHttpClient,
-    body: &ResetAuthorizationRequest,
+    args: &DataportabilityAuthorizationResetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataportability_authorization_reset_builder(client, body)?;
+    let builder = dataportability_authorization_reset_builder(client, &args.body)?;
     dataportability_authorization_reset_execute(builder)
 }
 
@@ -694,6 +734,13 @@ pub fn dataportability_portability_archive_initiate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataportability_portability_archive_initiate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataportabilityPortabilityArchiveInitiateArgs {
+    /// Request body.
+    pub body: InitiatePortabilityArchiveRequest,
+}
+
 /// GET v1/portabilityArchive:initiate
 /// Initiates a new Archive job for the Portability API.
 ///
@@ -706,7 +753,7 @@ pub fn dataportability_portability_archive_initiate_execute(
 
 pub fn dataportability_portability_archive_initiate(
     client: &SimpleHttpClient,
-    body: &InitiatePortabilityArchiveRequest,
+    args: &DataportabilityPortabilityArchiveInitiateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<InitiatePortabilityArchiveResponse>, ApiError>,
@@ -715,6 +762,6 @@ pub fn dataportability_portability_archive_initiate(
         + 'static,
     ApiError,
 > {
-    let builder = dataportability_portability_archive_initiate_builder(client, body)?;
+    let builder = dataportability_portability_archive_initiate_builder(client, &args.body)?;
     dataportability_portability_archive_initiate_execute(builder)
 }

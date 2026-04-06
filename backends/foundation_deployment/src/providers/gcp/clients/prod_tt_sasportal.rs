@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1alpha1/customers/{customersId}
 /// Returns a requested customer.
@@ -108,6 +110,13 @@ pub fn prod_tt_sasportal_customers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/customers/{customersId}
 /// Returns a requested customer.
 ///
@@ -120,14 +129,14 @@ pub fn prod_tt_sasportal_customers_get_execute(
 
 pub fn prod_tt_sasportal_customers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalCustomersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalCustomer>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_get_builder(client, name)?;
+    let builder = prod_tt_sasportal_customers_get_builder(client, &args.name)?;
     prod_tt_sasportal_customers_get_execute(builder)
 }
 
@@ -237,6 +246,15 @@ pub fn prod_tt_sasportal_customers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/customers
 /// Returns a list of requested customers.
 ///
@@ -249,8 +267,7 @@ pub fn prod_tt_sasportal_customers_list_execute(
 
 pub fn prod_tt_sasportal_customers_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ProdTtSasportalCustomersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalListCustomersResponse>, ApiError>,
@@ -259,7 +276,8 @@ pub fn prod_tt_sasportal_customers_list(
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_list_builder(client, pageSize, pageToken)?;
+    let builder =
+        prod_tt_sasportal_customers_list_builder(client, args.pageSize, args.pageToken.as_deref())?;
     prod_tt_sasportal_customers_list_execute(builder)
 }
 
@@ -588,6 +606,13 @@ pub fn prod_tt_sasportal_customers_migrate_organization_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_migrate_organization`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersMigrateOrganizationArgs {
+    /// Request body.
+    pub body: SasPortalMigrateOrganizationRequest,
+}
+
 /// GET v1alpha1/customers:migrateOrganization
 /// Migrates a SAS organization to the cloud. This will create GCP projects for each deployment and associate them. The SAS Organization is linked to the gcp project that called the command. `go/sas-legacy-customer-migration`
 ///
@@ -600,14 +625,14 @@ pub fn prod_tt_sasportal_customers_migrate_organization_execute(
 
 pub fn prod_tt_sasportal_customers_migrate_organization(
     client: &SimpleHttpClient,
-    body: &SasPortalMigrateOrganizationRequest,
+    args: &ProdTtSasportalCustomersMigrateOrganizationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_migrate_organization_builder(client, body)?;
+    let builder = prod_tt_sasportal_customers_migrate_organization_builder(client, &args.body)?;
     prod_tt_sasportal_customers_migrate_organization_execute(builder)
 }
 
@@ -718,6 +743,17 @@ pub fn prod_tt_sasportal_customers_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SasPortalCustomer,
+}
+
 /// GET v1alpha1/customers/{customersId}
 /// Updates an existing customer.
 ///
@@ -730,16 +766,19 @@ pub fn prod_tt_sasportal_customers_patch_execute(
 
 pub fn prod_tt_sasportal_customers_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SasPortalCustomer,
+    args: &ProdTtSasportalCustomersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalCustomer>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_patch_builder(client, name, updateMask, body)?;
+    let builder = prod_tt_sasportal_customers_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     prod_tt_sasportal_customers_patch_execute(builder)
 }
 
@@ -837,6 +876,13 @@ pub fn prod_tt_sasportal_customers_provision_deployment_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_provision_deployment`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersProvisionDeploymentArgs {
+    /// Request body.
+    pub body: SasPortalProvisionDeploymentRequest,
+}
+
 /// GET v1alpha1/customers:provisionDeployment
 /// Creates a new SAS deployment through the GCP workflow. Creates a SAS organization if an organization match is not found.
 ///
@@ -849,7 +895,7 @@ pub fn prod_tt_sasportal_customers_provision_deployment_execute(
 
 pub fn prod_tt_sasportal_customers_provision_deployment(
     client: &SimpleHttpClient,
-    body: &SasPortalProvisionDeploymentRequest,
+    args: &ProdTtSasportalCustomersProvisionDeploymentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalProvisionDeploymentResponse>, ApiError>,
@@ -858,7 +904,7 @@ pub fn prod_tt_sasportal_customers_provision_deployment(
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_provision_deployment_builder(client, body)?;
+    let builder = prod_tt_sasportal_customers_provision_deployment_builder(client, &args.body)?;
     prod_tt_sasportal_customers_provision_deployment_execute(builder)
 }
 
@@ -954,6 +1000,13 @@ pub fn prod_tt_sasportal_customers_setup_sas_analytics_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_setup_sas_analytics`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersSetupSasAnalyticsArgs {
+    /// Request body.
+    pub body: SasPortalSetupSasAnalyticsRequest,
+}
+
 /// GET v1alpha1/customers:setupSasAnalytics
 /// Setups the a GCP Project to receive SAS Analytics messages via GCP P`ub/Sub` with a subscription to BigQuery. All the P`ub/Sub` topics and BigQuery tables are created automatically as part of this service.
 ///
@@ -966,14 +1019,14 @@ pub fn prod_tt_sasportal_customers_setup_sas_analytics_execute(
 
 pub fn prod_tt_sasportal_customers_setup_sas_analytics(
     client: &SimpleHttpClient,
-    body: &SasPortalSetupSasAnalyticsRequest,
+    args: &ProdTtSasportalCustomersSetupSasAnalyticsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_setup_sas_analytics_builder(client, body)?;
+    let builder = prod_tt_sasportal_customers_setup_sas_analytics_builder(client, &args.body)?;
     prod_tt_sasportal_customers_setup_sas_analytics_execute(builder)
 }
 
@@ -1072,6 +1125,15 @@ pub fn prod_tt_sasportal_customers_deployments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalDeployment,
+}
+
 /// GET v1alpha1/customers/{customersId}/deployments
 /// Creates a new deployment.
 ///
@@ -1084,15 +1146,15 @@ pub fn prod_tt_sasportal_customers_deployments_create_execute(
 
 pub fn prod_tt_sasportal_customers_deployments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalDeployment,
+    args: &ProdTtSasportalCustomersDeploymentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_deployments_create_builder(client, parent, body)?;
+    let builder =
+        prod_tt_sasportal_customers_deployments_create_builder(client, &args.parent, &args.body)?;
     prod_tt_sasportal_customers_deployments_create_execute(builder)
 }
 
@@ -1188,6 +1250,13 @@ pub fn prod_tt_sasportal_customers_deployments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}
 /// Deletes a deployment.
 ///
@@ -1200,14 +1269,14 @@ pub fn prod_tt_sasportal_customers_deployments_delete_execute(
 
 pub fn prod_tt_sasportal_customers_deployments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalCustomersDeploymentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_deployments_delete_builder(client, name)?;
+    let builder = prod_tt_sasportal_customers_deployments_delete_builder(client, &args.name)?;
     prod_tt_sasportal_customers_deployments_delete_execute(builder)
 }
 
@@ -1303,6 +1372,13 @@ pub fn prod_tt_sasportal_customers_deployments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}
 /// Returns a requested deployment.
 ///
@@ -1315,14 +1391,14 @@ pub fn prod_tt_sasportal_customers_deployments_get_execute(
 
 pub fn prod_tt_sasportal_customers_deployments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalCustomersDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_deployments_get_builder(client, name)?;
+    let builder = prod_tt_sasportal_customers_deployments_get_builder(client, &args.name)?;
     prod_tt_sasportal_customers_deployments_get_execute(builder)
 }
 
@@ -1440,6 +1516,19 @@ pub fn prod_tt_sasportal_customers_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/customers/{customersId}/deployments
 /// Lists deployments.
 ///
@@ -1452,10 +1541,7 @@ pub fn prod_tt_sasportal_customers_deployments_list_execute(
 
 pub fn prod_tt_sasportal_customers_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ProdTtSasportalCustomersDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalListDeploymentsResponse>, ApiError>,
@@ -1465,7 +1551,11 @@ pub fn prod_tt_sasportal_customers_deployments_list(
     ApiError,
 > {
     let builder = prod_tt_sasportal_customers_deployments_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     prod_tt_sasportal_customers_deployments_list_execute(builder)
 }
@@ -1565,6 +1655,15 @@ pub fn prod_tt_sasportal_customers_deployments_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_deployments_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDeploymentsMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SasPortalMoveDeploymentRequest,
+}
+
 /// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}:move
 /// Moves a deployment under another node or customer.
 ///
@@ -1577,15 +1676,15 @@ pub fn prod_tt_sasportal_customers_deployments_move_execute(
 
 pub fn prod_tt_sasportal_customers_deployments_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SasPortalMoveDeploymentRequest,
+    args: &ProdTtSasportalCustomersDeploymentsMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_deployments_move_builder(client, name, body)?;
+    let builder =
+        prod_tt_sasportal_customers_deployments_move_builder(client, &args.name, &args.body)?;
     prod_tt_sasportal_customers_deployments_move_execute(builder)
 }
 
@@ -1696,6 +1795,17 @@ pub fn prod_tt_sasportal_customers_deployments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDeploymentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SasPortalDeployment,
+}
+
 /// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}
 /// Updates an existing deployment.
 ///
@@ -1708,17 +1818,19 @@ pub fn prod_tt_sasportal_customers_deployments_patch_execute(
 
 pub fn prod_tt_sasportal_customers_deployments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SasPortalDeployment,
+    args: &ProdTtSasportalCustomersDeploymentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        prod_tt_sasportal_customers_deployments_patch_builder(client, name, updateMask, body)?;
+    let builder = prod_tt_sasportal_customers_deployments_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     prod_tt_sasportal_customers_deployments_patch_execute(builder)
 }
 
@@ -1817,6 +1929,15 @@ pub fn prod_tt_sasportal_customers_deployments_devices_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_deployments_devices_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDeploymentsDevicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalDevice,
+}
+
 /// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices
 /// Creates a device under a node or customer.
 ///
@@ -1829,16 +1950,18 @@ pub fn prod_tt_sasportal_customers_deployments_devices_create_execute(
 
 pub fn prod_tt_sasportal_customers_deployments_devices_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalDevice,
+    args: &ProdTtSasportalCustomersDeploymentsDevicesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        prod_tt_sasportal_customers_deployments_devices_create_builder(client, parent, body)?;
+    let builder = prod_tt_sasportal_customers_deployments_devices_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     prod_tt_sasportal_customers_deployments_devices_create_execute(builder)
 }
 
@@ -1937,6 +2060,15 @@ pub fn prod_tt_sasportal_customers_deployments_devices_create_signed_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_deployments_devices_create_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDeploymentsDevicesCreateSignedArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalCreateSignedDeviceRequest,
+}
+
 /// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices:createSigned
 /// Creates a signed device under a node or customer.
 ///
@@ -1949,8 +2081,7 @@ pub fn prod_tt_sasportal_customers_deployments_devices_create_signed_execute(
 
 pub fn prod_tt_sasportal_customers_deployments_devices_create_signed(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalCreateSignedDeviceRequest,
+    args: &ProdTtSasportalCustomersDeploymentsDevicesCreateSignedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
@@ -1958,7 +2089,9 @@ pub fn prod_tt_sasportal_customers_deployments_devices_create_signed(
     ApiError,
 > {
     let builder = prod_tt_sasportal_customers_deployments_devices_create_signed_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     prod_tt_sasportal_customers_deployments_devices_create_signed_execute(builder)
 }
@@ -2077,6 +2210,19 @@ pub fn prod_tt_sasportal_customers_deployments_devices_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_deployments_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDeploymentsDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/customers/{customersId}/deployments/{deploymentsId}/devices
 /// Lists devices under a node or customer.
 ///
@@ -2089,10 +2235,7 @@ pub fn prod_tt_sasportal_customers_deployments_devices_list_execute(
 
 pub fn prod_tt_sasportal_customers_deployments_devices_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ProdTtSasportalCustomersDeploymentsDevicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
@@ -2102,7 +2245,11 @@ pub fn prod_tt_sasportal_customers_deployments_devices_list(
     ApiError,
 > {
     let builder = prod_tt_sasportal_customers_deployments_devices_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     prod_tt_sasportal_customers_deployments_devices_list_execute(builder)
 }
@@ -2202,6 +2349,15 @@ pub fn prod_tt_sasportal_customers_devices_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_devices_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDevicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalDevice,
+}
+
 /// GET v1alpha1/customers/{customersId}/devices
 /// Creates a device under a node or customer.
 ///
@@ -2214,15 +2370,15 @@ pub fn prod_tt_sasportal_customers_devices_create_execute(
 
 pub fn prod_tt_sasportal_customers_devices_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalDevice,
+    args: &ProdTtSasportalCustomersDevicesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_devices_create_builder(client, parent, body)?;
+    let builder =
+        prod_tt_sasportal_customers_devices_create_builder(client, &args.parent, &args.body)?;
     prod_tt_sasportal_customers_devices_create_execute(builder)
 }
 
@@ -2321,6 +2477,15 @@ pub fn prod_tt_sasportal_customers_devices_create_signed_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_devices_create_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDevicesCreateSignedArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalCreateSignedDeviceRequest,
+}
+
 /// GET v1alpha1/customers/{customersId}/devices:createSigned
 /// Creates a signed device under a node or customer.
 ///
@@ -2333,15 +2498,18 @@ pub fn prod_tt_sasportal_customers_devices_create_signed_execute(
 
 pub fn prod_tt_sasportal_customers_devices_create_signed(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalCreateSignedDeviceRequest,
+    args: &ProdTtSasportalCustomersDevicesCreateSignedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_devices_create_signed_builder(client, parent, body)?;
+    let builder = prod_tt_sasportal_customers_devices_create_signed_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     prod_tt_sasportal_customers_devices_create_signed_execute(builder)
 }
 
@@ -2437,6 +2605,13 @@ pub fn prod_tt_sasportal_customers_devices_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_devices_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDevicesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/customers/{customersId}/devices/{devicesId}
 /// Deletes a device.
 ///
@@ -2449,14 +2624,14 @@ pub fn prod_tt_sasportal_customers_devices_delete_execute(
 
 pub fn prod_tt_sasportal_customers_devices_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalCustomersDevicesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_devices_delete_builder(client, name)?;
+    let builder = prod_tt_sasportal_customers_devices_delete_builder(client, &args.name)?;
     prod_tt_sasportal_customers_devices_delete_execute(builder)
 }
 
@@ -2552,6 +2727,13 @@ pub fn prod_tt_sasportal_customers_devices_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/customers/{customersId}/devices/{devicesId}
 /// Gets details about a device.
 ///
@@ -2564,14 +2746,14 @@ pub fn prod_tt_sasportal_customers_devices_get_execute(
 
 pub fn prod_tt_sasportal_customers_devices_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalCustomersDevicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_devices_get_builder(client, name)?;
+    let builder = prod_tt_sasportal_customers_devices_get_builder(client, &args.name)?;
     prod_tt_sasportal_customers_devices_get_execute(builder)
 }
 
@@ -2689,6 +2871,19 @@ pub fn prod_tt_sasportal_customers_devices_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/customers/{customersId}/devices
 /// Lists devices under a node or customer.
 ///
@@ -2701,10 +2896,7 @@ pub fn prod_tt_sasportal_customers_devices_list_execute(
 
 pub fn prod_tt_sasportal_customers_devices_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ProdTtSasportalCustomersDevicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
@@ -2714,7 +2906,11 @@ pub fn prod_tt_sasportal_customers_devices_list(
     ApiError,
 > {
     let builder = prod_tt_sasportal_customers_devices_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     prod_tt_sasportal_customers_devices_list_execute(builder)
 }
@@ -2814,6 +3010,15 @@ pub fn prod_tt_sasportal_customers_devices_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_devices_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDevicesMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SasPortalMoveDeviceRequest,
+}
+
 /// GET v1alpha1/customers/{customersId}/devices/{devicesId}:move
 /// Moves a device under another node or customer.
 ///
@@ -2826,15 +3031,14 @@ pub fn prod_tt_sasportal_customers_devices_move_execute(
 
 pub fn prod_tt_sasportal_customers_devices_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SasPortalMoveDeviceRequest,
+    args: &ProdTtSasportalCustomersDevicesMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_devices_move_builder(client, name, body)?;
+    let builder = prod_tt_sasportal_customers_devices_move_builder(client, &args.name, &args.body)?;
     prod_tt_sasportal_customers_devices_move_execute(builder)
 }
 
@@ -2945,6 +3149,17 @@ pub fn prod_tt_sasportal_customers_devices_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_devices_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDevicesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SasPortalDevice,
+}
+
 /// GET v1alpha1/customers/{customersId}/devices/{devicesId}
 /// Updates a device.
 ///
@@ -2957,17 +3172,19 @@ pub fn prod_tt_sasportal_customers_devices_patch_execute(
 
 pub fn prod_tt_sasportal_customers_devices_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SasPortalDevice,
+    args: &ProdTtSasportalCustomersDevicesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        prod_tt_sasportal_customers_devices_patch_builder(client, name, updateMask, body)?;
+    let builder = prod_tt_sasportal_customers_devices_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     prod_tt_sasportal_customers_devices_patch_execute(builder)
 }
 
@@ -3066,6 +3283,15 @@ pub fn prod_tt_sasportal_customers_devices_sign_device_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_devices_sign_device`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDevicesSignDeviceArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SasPortalSignDeviceRequest,
+}
+
 /// GET v1alpha1/customers/{customersId}/devices/{devicesId}:signDevice
 /// Signs a device.
 ///
@@ -3078,15 +3304,15 @@ pub fn prod_tt_sasportal_customers_devices_sign_device_execute(
 
 pub fn prod_tt_sasportal_customers_devices_sign_device(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SasPortalSignDeviceRequest,
+    args: &ProdTtSasportalCustomersDevicesSignDeviceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_devices_sign_device_builder(client, name, body)?;
+    let builder =
+        prod_tt_sasportal_customers_devices_sign_device_builder(client, &args.name, &args.body)?;
     prod_tt_sasportal_customers_devices_sign_device_execute(builder)
 }
 
@@ -3185,6 +3411,15 @@ pub fn prod_tt_sasportal_customers_devices_update_signed_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_devices_update_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersDevicesUpdateSignedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SasPortalUpdateSignedDeviceRequest,
+}
+
 /// GET v1alpha1/customers/{customersId}/devices/{devicesId}:updateSigned
 /// Updates a signed device.
 ///
@@ -3197,15 +3432,15 @@ pub fn prod_tt_sasportal_customers_devices_update_signed_execute(
 
 pub fn prod_tt_sasportal_customers_devices_update_signed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SasPortalUpdateSignedDeviceRequest,
+    args: &ProdTtSasportalCustomersDevicesUpdateSignedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_devices_update_signed_builder(client, name, body)?;
+    let builder =
+        prod_tt_sasportal_customers_devices_update_signed_builder(client, &args.name, &args.body)?;
     prod_tt_sasportal_customers_devices_update_signed_execute(builder)
 }
 
@@ -3304,6 +3539,15 @@ pub fn prod_tt_sasportal_customers_nodes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_nodes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersNodesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalNode,
+}
+
 /// GET v1alpha1/customers/{customersId}/nodes
 /// Creates a new node.
 ///
@@ -3316,15 +3560,15 @@ pub fn prod_tt_sasportal_customers_nodes_create_execute(
 
 pub fn prod_tt_sasportal_customers_nodes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalNode,
+    args: &ProdTtSasportalCustomersNodesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_nodes_create_builder(client, parent, body)?;
+    let builder =
+        prod_tt_sasportal_customers_nodes_create_builder(client, &args.parent, &args.body)?;
     prod_tt_sasportal_customers_nodes_create_execute(builder)
 }
 
@@ -3420,6 +3664,13 @@ pub fn prod_tt_sasportal_customers_nodes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_nodes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersNodesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/customers/{customersId}/nodes/{nodesId}
 /// Deletes a node.
 ///
@@ -3432,14 +3683,14 @@ pub fn prod_tt_sasportal_customers_nodes_delete_execute(
 
 pub fn prod_tt_sasportal_customers_nodes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalCustomersNodesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_nodes_delete_builder(client, name)?;
+    let builder = prod_tt_sasportal_customers_nodes_delete_builder(client, &args.name)?;
     prod_tt_sasportal_customers_nodes_delete_execute(builder)
 }
 
@@ -3535,6 +3786,13 @@ pub fn prod_tt_sasportal_customers_nodes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_nodes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersNodesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/customers/{customersId}/nodes/{nodesId}
 /// Returns a requested node.
 ///
@@ -3547,14 +3805,14 @@ pub fn prod_tt_sasportal_customers_nodes_get_execute(
 
 pub fn prod_tt_sasportal_customers_nodes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalCustomersNodesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_nodes_get_builder(client, name)?;
+    let builder = prod_tt_sasportal_customers_nodes_get_builder(client, &args.name)?;
     prod_tt_sasportal_customers_nodes_get_execute(builder)
 }
 
@@ -3672,6 +3930,19 @@ pub fn prod_tt_sasportal_customers_nodes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/customers/{customersId}/nodes
 /// Lists nodes.
 ///
@@ -3684,10 +3955,7 @@ pub fn prod_tt_sasportal_customers_nodes_list_execute(
 
 pub fn prod_tt_sasportal_customers_nodes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ProdTtSasportalCustomersNodesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
@@ -3697,7 +3965,11 @@ pub fn prod_tt_sasportal_customers_nodes_list(
     ApiError,
 > {
     let builder = prod_tt_sasportal_customers_nodes_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     prod_tt_sasportal_customers_nodes_list_execute(builder)
 }
@@ -3797,6 +4069,15 @@ pub fn prod_tt_sasportal_customers_nodes_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_nodes_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersNodesMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SasPortalMoveNodeRequest,
+}
+
 /// GET v1alpha1/customers/{customersId}/nodes/{nodesId}:move
 /// Moves a node under another node or customer.
 ///
@@ -3809,15 +4090,14 @@ pub fn prod_tt_sasportal_customers_nodes_move_execute(
 
 pub fn prod_tt_sasportal_customers_nodes_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SasPortalMoveNodeRequest,
+    args: &ProdTtSasportalCustomersNodesMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_nodes_move_builder(client, name, body)?;
+    let builder = prod_tt_sasportal_customers_nodes_move_builder(client, &args.name, &args.body)?;
     prod_tt_sasportal_customers_nodes_move_execute(builder)
 }
 
@@ -3928,6 +4208,17 @@ pub fn prod_tt_sasportal_customers_nodes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_nodes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersNodesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SasPortalNode,
+}
+
 /// GET v1alpha1/customers/{customersId}/nodes/{nodesId}
 /// Updates an existing node.
 ///
@@ -3940,16 +4231,19 @@ pub fn prod_tt_sasportal_customers_nodes_patch_execute(
 
 pub fn prod_tt_sasportal_customers_nodes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SasPortalNode,
+    args: &ProdTtSasportalCustomersNodesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_nodes_patch_builder(client, name, updateMask, body)?;
+    let builder = prod_tt_sasportal_customers_nodes_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     prod_tt_sasportal_customers_nodes_patch_execute(builder)
 }
 
@@ -4048,6 +4342,15 @@ pub fn prod_tt_sasportal_customers_nodes_deployments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_nodes_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersNodesDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalDeployment,
+}
+
 /// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/deployments
 /// Creates a new deployment.
 ///
@@ -4060,16 +4363,18 @@ pub fn prod_tt_sasportal_customers_nodes_deployments_create_execute(
 
 pub fn prod_tt_sasportal_customers_nodes_deployments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalDeployment,
+    args: &ProdTtSasportalCustomersNodesDeploymentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        prod_tt_sasportal_customers_nodes_deployments_create_builder(client, parent, body)?;
+    let builder = prod_tt_sasportal_customers_nodes_deployments_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     prod_tt_sasportal_customers_nodes_deployments_create_execute(builder)
 }
 
@@ -4187,6 +4492,19 @@ pub fn prod_tt_sasportal_customers_nodes_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_nodes_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersNodesDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/deployments
 /// Lists deployments.
 ///
@@ -4199,10 +4517,7 @@ pub fn prod_tt_sasportal_customers_nodes_deployments_list_execute(
 
 pub fn prod_tt_sasportal_customers_nodes_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ProdTtSasportalCustomersNodesDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalListDeploymentsResponse>, ApiError>,
@@ -4212,7 +4527,11 @@ pub fn prod_tt_sasportal_customers_nodes_deployments_list(
     ApiError,
 > {
     let builder = prod_tt_sasportal_customers_nodes_deployments_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     prod_tt_sasportal_customers_nodes_deployments_list_execute(builder)
 }
@@ -4312,6 +4631,15 @@ pub fn prod_tt_sasportal_customers_nodes_devices_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_nodes_devices_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersNodesDevicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalDevice,
+}
+
 /// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/devices
 /// Creates a device under a node or customer.
 ///
@@ -4324,15 +4652,15 @@ pub fn prod_tt_sasportal_customers_nodes_devices_create_execute(
 
 pub fn prod_tt_sasportal_customers_nodes_devices_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalDevice,
+    args: &ProdTtSasportalCustomersNodesDevicesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_nodes_devices_create_builder(client, parent, body)?;
+    let builder =
+        prod_tt_sasportal_customers_nodes_devices_create_builder(client, &args.parent, &args.body)?;
     prod_tt_sasportal_customers_nodes_devices_create_execute(builder)
 }
 
@@ -4431,6 +4759,15 @@ pub fn prod_tt_sasportal_customers_nodes_devices_create_signed_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_nodes_devices_create_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersNodesDevicesCreateSignedArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalCreateSignedDeviceRequest,
+}
+
 /// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/devices:createSigned
 /// Creates a signed device under a node or customer.
 ///
@@ -4443,16 +4780,18 @@ pub fn prod_tt_sasportal_customers_nodes_devices_create_signed_execute(
 
 pub fn prod_tt_sasportal_customers_nodes_devices_create_signed(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalCreateSignedDeviceRequest,
+    args: &ProdTtSasportalCustomersNodesDevicesCreateSignedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        prod_tt_sasportal_customers_nodes_devices_create_signed_builder(client, parent, body)?;
+    let builder = prod_tt_sasportal_customers_nodes_devices_create_signed_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     prod_tt_sasportal_customers_nodes_devices_create_signed_execute(builder)
 }
 
@@ -4570,6 +4909,19 @@ pub fn prod_tt_sasportal_customers_nodes_devices_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_nodes_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersNodesDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/devices
 /// Lists devices under a node or customer.
 ///
@@ -4582,10 +4934,7 @@ pub fn prod_tt_sasportal_customers_nodes_devices_list_execute(
 
 pub fn prod_tt_sasportal_customers_nodes_devices_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ProdTtSasportalCustomersNodesDevicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
@@ -4595,7 +4944,11 @@ pub fn prod_tt_sasportal_customers_nodes_devices_list(
     ApiError,
 > {
     let builder = prod_tt_sasportal_customers_nodes_devices_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     prod_tt_sasportal_customers_nodes_devices_list_execute(builder)
 }
@@ -4695,6 +5048,15 @@ pub fn prod_tt_sasportal_customers_nodes_nodes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_nodes_nodes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersNodesNodesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalNode,
+}
+
 /// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/nodes
 /// Creates a new node.
 ///
@@ -4707,15 +5069,15 @@ pub fn prod_tt_sasportal_customers_nodes_nodes_create_execute(
 
 pub fn prod_tt_sasportal_customers_nodes_nodes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalNode,
+    args: &ProdTtSasportalCustomersNodesNodesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_customers_nodes_nodes_create_builder(client, parent, body)?;
+    let builder =
+        prod_tt_sasportal_customers_nodes_nodes_create_builder(client, &args.parent, &args.body)?;
     prod_tt_sasportal_customers_nodes_nodes_create_execute(builder)
 }
 
@@ -4833,6 +5195,19 @@ pub fn prod_tt_sasportal_customers_nodes_nodes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_customers_nodes_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalCustomersNodesNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/customers/{customersId}/nodes/{nodesId}/nodes
 /// Lists nodes.
 ///
@@ -4845,10 +5220,7 @@ pub fn prod_tt_sasportal_customers_nodes_nodes_list_execute(
 
 pub fn prod_tt_sasportal_customers_nodes_nodes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ProdTtSasportalCustomersNodesNodesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
@@ -4858,7 +5230,11 @@ pub fn prod_tt_sasportal_customers_nodes_nodes_list(
     ApiError,
 > {
     let builder = prod_tt_sasportal_customers_nodes_nodes_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     prod_tt_sasportal_customers_nodes_nodes_list_execute(builder)
 }
@@ -4955,6 +5331,13 @@ pub fn prod_tt_sasportal_deployments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/deployments/{deploymentsId}
 /// Returns a requested deployment.
 ///
@@ -4967,14 +5350,14 @@ pub fn prod_tt_sasportal_deployments_get_execute(
 
 pub fn prod_tt_sasportal_deployments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_deployments_get_builder(client, name)?;
+    let builder = prod_tt_sasportal_deployments_get_builder(client, &args.name)?;
     prod_tt_sasportal_deployments_get_execute(builder)
 }
 
@@ -5070,6 +5453,13 @@ pub fn prod_tt_sasportal_deployments_devices_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_deployments_devices_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalDeploymentsDevicesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
 /// Deletes a device.
 ///
@@ -5082,14 +5472,14 @@ pub fn prod_tt_sasportal_deployments_devices_delete_execute(
 
 pub fn prod_tt_sasportal_deployments_devices_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalDeploymentsDevicesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_deployments_devices_delete_builder(client, name)?;
+    let builder = prod_tt_sasportal_deployments_devices_delete_builder(client, &args.name)?;
     prod_tt_sasportal_deployments_devices_delete_execute(builder)
 }
 
@@ -5185,6 +5575,13 @@ pub fn prod_tt_sasportal_deployments_devices_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_deployments_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalDeploymentsDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
 /// Gets details about a device.
 ///
@@ -5197,14 +5594,14 @@ pub fn prod_tt_sasportal_deployments_devices_get_execute(
 
 pub fn prod_tt_sasportal_deployments_devices_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalDeploymentsDevicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_deployments_devices_get_builder(client, name)?;
+    let builder = prod_tt_sasportal_deployments_devices_get_builder(client, &args.name)?;
     prod_tt_sasportal_deployments_devices_get_execute(builder)
 }
 
@@ -5303,6 +5700,15 @@ pub fn prod_tt_sasportal_deployments_devices_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_deployments_devices_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalDeploymentsDevicesMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SasPortalMoveDeviceRequest,
+}
+
 /// GET v1alpha1/deployments/{deploymentsId}/devices/{devicesId}:move
 /// Moves a device under another node or customer.
 ///
@@ -5315,15 +5721,15 @@ pub fn prod_tt_sasportal_deployments_devices_move_execute(
 
 pub fn prod_tt_sasportal_deployments_devices_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SasPortalMoveDeviceRequest,
+    args: &ProdTtSasportalDeploymentsDevicesMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_deployments_devices_move_builder(client, name, body)?;
+    let builder =
+        prod_tt_sasportal_deployments_devices_move_builder(client, &args.name, &args.body)?;
     prod_tt_sasportal_deployments_devices_move_execute(builder)
 }
 
@@ -5434,6 +5840,17 @@ pub fn prod_tt_sasportal_deployments_devices_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_deployments_devices_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalDeploymentsDevicesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SasPortalDevice,
+}
+
 /// GET v1alpha1/deployments/{deploymentsId}/devices/{devicesId}
 /// Updates a device.
 ///
@@ -5446,17 +5863,19 @@ pub fn prod_tt_sasportal_deployments_devices_patch_execute(
 
 pub fn prod_tt_sasportal_deployments_devices_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SasPortalDevice,
+    args: &ProdTtSasportalDeploymentsDevicesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        prod_tt_sasportal_deployments_devices_patch_builder(client, name, updateMask, body)?;
+    let builder = prod_tt_sasportal_deployments_devices_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     prod_tt_sasportal_deployments_devices_patch_execute(builder)
 }
 
@@ -5555,6 +5974,15 @@ pub fn prod_tt_sasportal_deployments_devices_sign_device_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_deployments_devices_sign_device`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalDeploymentsDevicesSignDeviceArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SasPortalSignDeviceRequest,
+}
+
 /// GET v1alpha1/deployments/{deploymentsId}/devices/{devicesId}:signDevice
 /// Signs a device.
 ///
@@ -5567,15 +5995,15 @@ pub fn prod_tt_sasportal_deployments_devices_sign_device_execute(
 
 pub fn prod_tt_sasportal_deployments_devices_sign_device(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SasPortalSignDeviceRequest,
+    args: &ProdTtSasportalDeploymentsDevicesSignDeviceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_deployments_devices_sign_device_builder(client, name, body)?;
+    let builder =
+        prod_tt_sasportal_deployments_devices_sign_device_builder(client, &args.name, &args.body)?;
     prod_tt_sasportal_deployments_devices_sign_device_execute(builder)
 }
 
@@ -5674,6 +6102,15 @@ pub fn prod_tt_sasportal_deployments_devices_update_signed_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_deployments_devices_update_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalDeploymentsDevicesUpdateSignedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SasPortalUpdateSignedDeviceRequest,
+}
+
 /// GET v1alpha1/deployments/{deploymentsId}/devices/{devicesId}:updateSigned
 /// Updates a signed device.
 ///
@@ -5686,15 +6123,16 @@ pub fn prod_tt_sasportal_deployments_devices_update_signed_execute(
 
 pub fn prod_tt_sasportal_deployments_devices_update_signed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SasPortalUpdateSignedDeviceRequest,
+    args: &ProdTtSasportalDeploymentsDevicesUpdateSignedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_deployments_devices_update_signed_builder(client, name, body)?;
+    let builder = prod_tt_sasportal_deployments_devices_update_signed_builder(
+        client, &args.name, &args.body,
+    )?;
     prod_tt_sasportal_deployments_devices_update_signed_execute(builder)
 }
 
@@ -5792,6 +6230,13 @@ pub fn prod_tt_sasportal_installer_generate_secret_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_installer_generate_secret`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalInstallerGenerateSecretArgs {
+    /// Request body.
+    pub body: SasPortalGenerateSecretRequest,
+}
+
 /// GET v1alpha1/installer:generateSecret
 /// Generates a secret to be used with the ValidateInstaller.
 ///
@@ -5804,7 +6249,7 @@ pub fn prod_tt_sasportal_installer_generate_secret_execute(
 
 pub fn prod_tt_sasportal_installer_generate_secret(
     client: &SimpleHttpClient,
-    body: &SasPortalGenerateSecretRequest,
+    args: &ProdTtSasportalInstallerGenerateSecretArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalGenerateSecretResponse>, ApiError>,
@@ -5813,7 +6258,7 @@ pub fn prod_tt_sasportal_installer_generate_secret(
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_installer_generate_secret_builder(client, body)?;
+    let builder = prod_tt_sasportal_installer_generate_secret_builder(client, &args.body)?;
     prod_tt_sasportal_installer_generate_secret_execute(builder)
 }
 
@@ -5910,6 +6355,13 @@ pub fn prod_tt_sasportal_installer_validate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_installer_validate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalInstallerValidateArgs {
+    /// Request body.
+    pub body: SasPortalValidateInstallerRequest,
+}
+
 /// GET v1alpha1/installer:validate
 /// Validates the identity of a Certified Professional Installer (CPI).
 ///
@@ -5922,7 +6374,7 @@ pub fn prod_tt_sasportal_installer_validate_execute(
 
 pub fn prod_tt_sasportal_installer_validate(
     client: &SimpleHttpClient,
-    body: &SasPortalValidateInstallerRequest,
+    args: &ProdTtSasportalInstallerValidateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalValidateInstallerResponse>, ApiError>,
@@ -5931,7 +6383,7 @@ pub fn prod_tt_sasportal_installer_validate(
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_installer_validate_builder(client, body)?;
+    let builder = prod_tt_sasportal_installer_validate_builder(client, &args.body)?;
     prod_tt_sasportal_installer_validate_execute(builder)
 }
 
@@ -6027,6 +6479,13 @@ pub fn prod_tt_sasportal_nodes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/nodes/{nodesId}
 /// Returns a requested node.
 ///
@@ -6039,14 +6498,14 @@ pub fn prod_tt_sasportal_nodes_get_execute(
 
 pub fn prod_tt_sasportal_nodes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalNodesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_get_builder(client, name)?;
+    let builder = prod_tt_sasportal_nodes_get_builder(client, &args.name)?;
     prod_tt_sasportal_nodes_get_execute(builder)
 }
 
@@ -6142,6 +6601,13 @@ pub fn prod_tt_sasportal_nodes_deployments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
 /// Deletes a deployment.
 ///
@@ -6154,14 +6620,14 @@ pub fn prod_tt_sasportal_nodes_deployments_delete_execute(
 
 pub fn prod_tt_sasportal_nodes_deployments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalNodesDeploymentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_deployments_delete_builder(client, name)?;
+    let builder = prod_tt_sasportal_nodes_deployments_delete_builder(client, &args.name)?;
     prod_tt_sasportal_nodes_deployments_delete_execute(builder)
 }
 
@@ -6257,6 +6723,13 @@ pub fn prod_tt_sasportal_nodes_deployments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
 /// Returns a requested deployment.
 ///
@@ -6269,14 +6742,14 @@ pub fn prod_tt_sasportal_nodes_deployments_get_execute(
 
 pub fn prod_tt_sasportal_nodes_deployments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalNodesDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_deployments_get_builder(client, name)?;
+    let builder = prod_tt_sasportal_nodes_deployments_get_builder(client, &args.name)?;
     prod_tt_sasportal_nodes_deployments_get_execute(builder)
 }
 
@@ -6394,6 +6867,19 @@ pub fn prod_tt_sasportal_nodes_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/deployments
 /// Lists deployments.
 ///
@@ -6406,10 +6892,7 @@ pub fn prod_tt_sasportal_nodes_deployments_list_execute(
 
 pub fn prod_tt_sasportal_nodes_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ProdTtSasportalNodesDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalListDeploymentsResponse>, ApiError>,
@@ -6419,7 +6902,11 @@ pub fn prod_tt_sasportal_nodes_deployments_list(
     ApiError,
 > {
     let builder = prod_tt_sasportal_nodes_deployments_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     prod_tt_sasportal_nodes_deployments_list_execute(builder)
 }
@@ -6519,6 +7006,15 @@ pub fn prod_tt_sasportal_nodes_deployments_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_deployments_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDeploymentsMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SasPortalMoveDeploymentRequest,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}:move
 /// Moves a deployment under another node or customer.
 ///
@@ -6531,15 +7027,14 @@ pub fn prod_tt_sasportal_nodes_deployments_move_execute(
 
 pub fn prod_tt_sasportal_nodes_deployments_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SasPortalMoveDeploymentRequest,
+    args: &ProdTtSasportalNodesDeploymentsMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_deployments_move_builder(client, name, body)?;
+    let builder = prod_tt_sasportal_nodes_deployments_move_builder(client, &args.name, &args.body)?;
     prod_tt_sasportal_nodes_deployments_move_execute(builder)
 }
 
@@ -6650,6 +7145,17 @@ pub fn prod_tt_sasportal_nodes_deployments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDeploymentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SasPortalDeployment,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}
 /// Updates an existing deployment.
 ///
@@ -6662,17 +7168,19 @@ pub fn prod_tt_sasportal_nodes_deployments_patch_execute(
 
 pub fn prod_tt_sasportal_nodes_deployments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SasPortalDeployment,
+    args: &ProdTtSasportalNodesDeploymentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        prod_tt_sasportal_nodes_deployments_patch_builder(client, name, updateMask, body)?;
+    let builder = prod_tt_sasportal_nodes_deployments_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     prod_tt_sasportal_nodes_deployments_patch_execute(builder)
 }
 
@@ -6771,6 +7279,15 @@ pub fn prod_tt_sasportal_nodes_deployments_devices_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_deployments_devices_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDeploymentsDevicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalDevice,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices
 /// Creates a device under a node or customer.
 ///
@@ -6783,15 +7300,18 @@ pub fn prod_tt_sasportal_nodes_deployments_devices_create_execute(
 
 pub fn prod_tt_sasportal_nodes_deployments_devices_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalDevice,
+    args: &ProdTtSasportalNodesDeploymentsDevicesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_deployments_devices_create_builder(client, parent, body)?;
+    let builder = prod_tt_sasportal_nodes_deployments_devices_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     prod_tt_sasportal_nodes_deployments_devices_create_execute(builder)
 }
 
@@ -6890,6 +7410,15 @@ pub fn prod_tt_sasportal_nodes_deployments_devices_create_signed_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_deployments_devices_create_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDeploymentsDevicesCreateSignedArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalCreateSignedDeviceRequest,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices:createSigned
 /// Creates a signed device under a node or customer.
 ///
@@ -6902,16 +7431,18 @@ pub fn prod_tt_sasportal_nodes_deployments_devices_create_signed_execute(
 
 pub fn prod_tt_sasportal_nodes_deployments_devices_create_signed(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalCreateSignedDeviceRequest,
+    args: &ProdTtSasportalNodesDeploymentsDevicesCreateSignedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        prod_tt_sasportal_nodes_deployments_devices_create_signed_builder(client, parent, body)?;
+    let builder = prod_tt_sasportal_nodes_deployments_devices_create_signed_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     prod_tt_sasportal_nodes_deployments_devices_create_signed_execute(builder)
 }
 
@@ -7029,6 +7560,19 @@ pub fn prod_tt_sasportal_nodes_deployments_devices_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_deployments_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDeploymentsDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/deployments/{deploymentsId}/devices
 /// Lists devices under a node or customer.
 ///
@@ -7041,10 +7585,7 @@ pub fn prod_tt_sasportal_nodes_deployments_devices_list_execute(
 
 pub fn prod_tt_sasportal_nodes_deployments_devices_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ProdTtSasportalNodesDeploymentsDevicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
@@ -7054,7 +7595,11 @@ pub fn prod_tt_sasportal_nodes_deployments_devices_list(
     ApiError,
 > {
     let builder = prod_tt_sasportal_nodes_deployments_devices_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     prod_tt_sasportal_nodes_deployments_devices_list_execute(builder)
 }
@@ -7154,6 +7699,15 @@ pub fn prod_tt_sasportal_nodes_devices_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_devices_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDevicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalDevice,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/devices
 /// Creates a device under a node or customer.
 ///
@@ -7166,15 +7720,14 @@ pub fn prod_tt_sasportal_nodes_devices_create_execute(
 
 pub fn prod_tt_sasportal_nodes_devices_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalDevice,
+    args: &ProdTtSasportalNodesDevicesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_devices_create_builder(client, parent, body)?;
+    let builder = prod_tt_sasportal_nodes_devices_create_builder(client, &args.parent, &args.body)?;
     prod_tt_sasportal_nodes_devices_create_execute(builder)
 }
 
@@ -7273,6 +7826,15 @@ pub fn prod_tt_sasportal_nodes_devices_create_signed_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_devices_create_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDevicesCreateSignedArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalCreateSignedDeviceRequest,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/devices:createSigned
 /// Creates a signed device under a node or customer.
 ///
@@ -7285,15 +7847,15 @@ pub fn prod_tt_sasportal_nodes_devices_create_signed_execute(
 
 pub fn prod_tt_sasportal_nodes_devices_create_signed(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalCreateSignedDeviceRequest,
+    args: &ProdTtSasportalNodesDevicesCreateSignedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_devices_create_signed_builder(client, parent, body)?;
+    let builder =
+        prod_tt_sasportal_nodes_devices_create_signed_builder(client, &args.parent, &args.body)?;
     prod_tt_sasportal_nodes_devices_create_signed_execute(builder)
 }
 
@@ -7389,6 +7951,13 @@ pub fn prod_tt_sasportal_nodes_devices_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_devices_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDevicesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/devices/{devicesId}
 /// Deletes a device.
 ///
@@ -7401,14 +7970,14 @@ pub fn prod_tt_sasportal_nodes_devices_delete_execute(
 
 pub fn prod_tt_sasportal_nodes_devices_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalNodesDevicesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_devices_delete_builder(client, name)?;
+    let builder = prod_tt_sasportal_nodes_devices_delete_builder(client, &args.name)?;
     prod_tt_sasportal_nodes_devices_delete_execute(builder)
 }
 
@@ -7504,6 +8073,13 @@ pub fn prod_tt_sasportal_nodes_devices_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/devices/{devicesId}
 /// Gets details about a device.
 ///
@@ -7516,14 +8092,14 @@ pub fn prod_tt_sasportal_nodes_devices_get_execute(
 
 pub fn prod_tt_sasportal_nodes_devices_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalNodesDevicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_devices_get_builder(client, name)?;
+    let builder = prod_tt_sasportal_nodes_devices_get_builder(client, &args.name)?;
     prod_tt_sasportal_nodes_devices_get_execute(builder)
 }
 
@@ -7641,6 +8217,19 @@ pub fn prod_tt_sasportal_nodes_devices_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/devices
 /// Lists devices under a node or customer.
 ///
@@ -7653,10 +8242,7 @@ pub fn prod_tt_sasportal_nodes_devices_list_execute(
 
 pub fn prod_tt_sasportal_nodes_devices_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ProdTtSasportalNodesDevicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
@@ -7665,8 +8251,13 @@ pub fn prod_tt_sasportal_nodes_devices_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        prod_tt_sasportal_nodes_devices_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = prod_tt_sasportal_nodes_devices_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     prod_tt_sasportal_nodes_devices_list_execute(builder)
 }
 
@@ -7765,6 +8356,15 @@ pub fn prod_tt_sasportal_nodes_devices_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_devices_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDevicesMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SasPortalMoveDeviceRequest,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/devices/{devicesId}:move
 /// Moves a device under another node or customer.
 ///
@@ -7777,15 +8377,14 @@ pub fn prod_tt_sasportal_nodes_devices_move_execute(
 
 pub fn prod_tt_sasportal_nodes_devices_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SasPortalMoveDeviceRequest,
+    args: &ProdTtSasportalNodesDevicesMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_devices_move_builder(client, name, body)?;
+    let builder = prod_tt_sasportal_nodes_devices_move_builder(client, &args.name, &args.body)?;
     prod_tt_sasportal_nodes_devices_move_execute(builder)
 }
 
@@ -7896,6 +8495,17 @@ pub fn prod_tt_sasportal_nodes_devices_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_devices_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDevicesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SasPortalDevice,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/devices/{devicesId}
 /// Updates a device.
 ///
@@ -7908,16 +8518,19 @@ pub fn prod_tt_sasportal_nodes_devices_patch_execute(
 
 pub fn prod_tt_sasportal_nodes_devices_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SasPortalDevice,
+    args: &ProdTtSasportalNodesDevicesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_devices_patch_builder(client, name, updateMask, body)?;
+    let builder = prod_tt_sasportal_nodes_devices_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     prod_tt_sasportal_nodes_devices_patch_execute(builder)
 }
 
@@ -8016,6 +8629,15 @@ pub fn prod_tt_sasportal_nodes_devices_sign_device_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_devices_sign_device`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDevicesSignDeviceArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SasPortalSignDeviceRequest,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/devices/{devicesId}:signDevice
 /// Signs a device.
 ///
@@ -8028,15 +8650,15 @@ pub fn prod_tt_sasportal_nodes_devices_sign_device_execute(
 
 pub fn prod_tt_sasportal_nodes_devices_sign_device(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SasPortalSignDeviceRequest,
+    args: &ProdTtSasportalNodesDevicesSignDeviceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_devices_sign_device_builder(client, name, body)?;
+    let builder =
+        prod_tt_sasportal_nodes_devices_sign_device_builder(client, &args.name, &args.body)?;
     prod_tt_sasportal_nodes_devices_sign_device_execute(builder)
 }
 
@@ -8135,6 +8757,15 @@ pub fn prod_tt_sasportal_nodes_devices_update_signed_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_devices_update_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesDevicesUpdateSignedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SasPortalUpdateSignedDeviceRequest,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/devices/{devicesId}:updateSigned
 /// Updates a signed device.
 ///
@@ -8147,15 +8778,15 @@ pub fn prod_tt_sasportal_nodes_devices_update_signed_execute(
 
 pub fn prod_tt_sasportal_nodes_devices_update_signed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SasPortalUpdateSignedDeviceRequest,
+    args: &ProdTtSasportalNodesDevicesUpdateSignedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_devices_update_signed_builder(client, name, body)?;
+    let builder =
+        prod_tt_sasportal_nodes_devices_update_signed_builder(client, &args.name, &args.body)?;
     prod_tt_sasportal_nodes_devices_update_signed_execute(builder)
 }
 
@@ -8254,6 +8885,15 @@ pub fn prod_tt_sasportal_nodes_nodes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_nodes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesNodesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalNode,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/nodes
 /// Creates a new node.
 ///
@@ -8266,15 +8906,14 @@ pub fn prod_tt_sasportal_nodes_nodes_create_execute(
 
 pub fn prod_tt_sasportal_nodes_nodes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalNode,
+    args: &ProdTtSasportalNodesNodesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_nodes_create_builder(client, parent, body)?;
+    let builder = prod_tt_sasportal_nodes_nodes_create_builder(client, &args.parent, &args.body)?;
     prod_tt_sasportal_nodes_nodes_create_execute(builder)
 }
 
@@ -8370,6 +9009,13 @@ pub fn prod_tt_sasportal_nodes_nodes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_nodes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesNodesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
 /// Deletes a node.
 ///
@@ -8382,14 +9028,14 @@ pub fn prod_tt_sasportal_nodes_nodes_delete_execute(
 
 pub fn prod_tt_sasportal_nodes_nodes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalNodesNodesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_nodes_delete_builder(client, name)?;
+    let builder = prod_tt_sasportal_nodes_nodes_delete_builder(client, &args.name)?;
     prod_tt_sasportal_nodes_nodes_delete_execute(builder)
 }
 
@@ -8485,6 +9131,13 @@ pub fn prod_tt_sasportal_nodes_nodes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_nodes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesNodesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
 /// Returns a requested node.
 ///
@@ -8497,14 +9150,14 @@ pub fn prod_tt_sasportal_nodes_nodes_get_execute(
 
 pub fn prod_tt_sasportal_nodes_nodes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ProdTtSasportalNodesNodesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_nodes_get_builder(client, name)?;
+    let builder = prod_tt_sasportal_nodes_nodes_get_builder(client, &args.name)?;
     prod_tt_sasportal_nodes_nodes_get_execute(builder)
 }
 
@@ -8622,6 +9275,19 @@ pub fn prod_tt_sasportal_nodes_nodes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/nodes
 /// Lists nodes.
 ///
@@ -8634,10 +9300,7 @@ pub fn prod_tt_sasportal_nodes_nodes_list_execute(
 
 pub fn prod_tt_sasportal_nodes_nodes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ProdTtSasportalNodesNodesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
@@ -8646,8 +9309,13 @@ pub fn prod_tt_sasportal_nodes_nodes_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        prod_tt_sasportal_nodes_nodes_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = prod_tt_sasportal_nodes_nodes_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     prod_tt_sasportal_nodes_nodes_list_execute(builder)
 }
 
@@ -8746,6 +9414,15 @@ pub fn prod_tt_sasportal_nodes_nodes_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_nodes_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesNodesMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SasPortalMoveNodeRequest,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}:move
 /// Moves a node under another node or customer.
 ///
@@ -8758,15 +9435,14 @@ pub fn prod_tt_sasportal_nodes_nodes_move_execute(
 
 pub fn prod_tt_sasportal_nodes_nodes_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SasPortalMoveNodeRequest,
+    args: &ProdTtSasportalNodesNodesMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalOperation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_nodes_move_builder(client, name, body)?;
+    let builder = prod_tt_sasportal_nodes_nodes_move_builder(client, &args.name, &args.body)?;
     prod_tt_sasportal_nodes_nodes_move_execute(builder)
 }
 
@@ -8877,6 +9553,17 @@ pub fn prod_tt_sasportal_nodes_nodes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_nodes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesNodesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SasPortalNode,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}
 /// Updates an existing node.
 ///
@@ -8889,16 +9576,19 @@ pub fn prod_tt_sasportal_nodes_nodes_patch_execute(
 
 pub fn prod_tt_sasportal_nodes_nodes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SasPortalNode,
+    args: &ProdTtSasportalNodesNodesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_nodes_patch_builder(client, name, updateMask, body)?;
+    let builder = prod_tt_sasportal_nodes_nodes_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     prod_tt_sasportal_nodes_nodes_patch_execute(builder)
 }
 
@@ -8997,6 +9687,15 @@ pub fn prod_tt_sasportal_nodes_nodes_deployments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_nodes_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesNodesDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalDeployment,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/deployments
 /// Creates a new deployment.
 ///
@@ -9009,15 +9708,15 @@ pub fn prod_tt_sasportal_nodes_nodes_deployments_create_execute(
 
 pub fn prod_tt_sasportal_nodes_nodes_deployments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalDeployment,
+    args: &ProdTtSasportalNodesNodesDeploymentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDeployment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_nodes_deployments_create_builder(client, parent, body)?;
+    let builder =
+        prod_tt_sasportal_nodes_nodes_deployments_create_builder(client, &args.parent, &args.body)?;
     prod_tt_sasportal_nodes_nodes_deployments_create_execute(builder)
 }
 
@@ -9135,6 +9834,19 @@ pub fn prod_tt_sasportal_nodes_nodes_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_nodes_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesNodesDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/deployments
 /// Lists deployments.
 ///
@@ -9147,10 +9859,7 @@ pub fn prod_tt_sasportal_nodes_nodes_deployments_list_execute(
 
 pub fn prod_tt_sasportal_nodes_nodes_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ProdTtSasportalNodesNodesDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalListDeploymentsResponse>, ApiError>,
@@ -9160,7 +9869,11 @@ pub fn prod_tt_sasportal_nodes_nodes_deployments_list(
     ApiError,
 > {
     let builder = prod_tt_sasportal_nodes_nodes_deployments_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     prod_tt_sasportal_nodes_nodes_deployments_list_execute(builder)
 }
@@ -9260,6 +9973,15 @@ pub fn prod_tt_sasportal_nodes_nodes_devices_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_nodes_devices_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesNodesDevicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalDevice,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices
 /// Creates a device under a node or customer.
 ///
@@ -9272,15 +9994,15 @@ pub fn prod_tt_sasportal_nodes_nodes_devices_create_execute(
 
 pub fn prod_tt_sasportal_nodes_nodes_devices_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalDevice,
+    args: &ProdTtSasportalNodesNodesDevicesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_nodes_devices_create_builder(client, parent, body)?;
+    let builder =
+        prod_tt_sasportal_nodes_nodes_devices_create_builder(client, &args.parent, &args.body)?;
     prod_tt_sasportal_nodes_nodes_devices_create_execute(builder)
 }
 
@@ -9379,6 +10101,15 @@ pub fn prod_tt_sasportal_nodes_nodes_devices_create_signed_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_nodes_devices_create_signed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesNodesDevicesCreateSignedArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalCreateSignedDeviceRequest,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices:createSigned
 /// Creates a signed device under a node or customer.
 ///
@@ -9391,16 +10122,18 @@ pub fn prod_tt_sasportal_nodes_nodes_devices_create_signed_execute(
 
 pub fn prod_tt_sasportal_nodes_nodes_devices_create_signed(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalCreateSignedDeviceRequest,
+    args: &ProdTtSasportalNodesNodesDevicesCreateSignedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalDevice>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        prod_tt_sasportal_nodes_nodes_devices_create_signed_builder(client, parent, body)?;
+    let builder = prod_tt_sasportal_nodes_nodes_devices_create_signed_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     prod_tt_sasportal_nodes_nodes_devices_create_signed_execute(builder)
 }
 
@@ -9518,6 +10251,19 @@ pub fn prod_tt_sasportal_nodes_nodes_devices_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_nodes_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesNodesDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/devices
 /// Lists devices under a node or customer.
 ///
@@ -9530,10 +10276,7 @@ pub fn prod_tt_sasportal_nodes_nodes_devices_list_execute(
 
 pub fn prod_tt_sasportal_nodes_nodes_devices_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ProdTtSasportalNodesNodesDevicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalListDevicesResponse>, ApiError>,
@@ -9543,7 +10286,11 @@ pub fn prod_tt_sasportal_nodes_nodes_devices_list(
     ApiError,
 > {
     let builder = prod_tt_sasportal_nodes_nodes_devices_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     prod_tt_sasportal_nodes_nodes_devices_list_execute(builder)
 }
@@ -9643,6 +10390,15 @@ pub fn prod_tt_sasportal_nodes_nodes_nodes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_nodes_nodes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesNodesNodesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SasPortalNode,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/nodes
 /// Creates a new node.
 ///
@@ -9655,15 +10411,15 @@ pub fn prod_tt_sasportal_nodes_nodes_nodes_create_execute(
 
 pub fn prod_tt_sasportal_nodes_nodes_nodes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SasPortalNode,
+    args: &ProdTtSasportalNodesNodesNodesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalNode>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_nodes_nodes_nodes_create_builder(client, parent, body)?;
+    let builder =
+        prod_tt_sasportal_nodes_nodes_nodes_create_builder(client, &args.parent, &args.body)?;
     prod_tt_sasportal_nodes_nodes_nodes_create_execute(builder)
 }
 
@@ -9781,6 +10537,19 @@ pub fn prod_tt_sasportal_nodes_nodes_nodes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_nodes_nodes_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalNodesNodesNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/nodes/{nodesId}/nodes/{nodesId1}/nodes
 /// Lists nodes.
 ///
@@ -9793,10 +10562,7 @@ pub fn prod_tt_sasportal_nodes_nodes_nodes_list_execute(
 
 pub fn prod_tt_sasportal_nodes_nodes_nodes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ProdTtSasportalNodesNodesNodesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalListNodesResponse>, ApiError>,
@@ -9806,7 +10572,11 @@ pub fn prod_tt_sasportal_nodes_nodes_nodes_list(
     ApiError,
 > {
     let builder = prod_tt_sasportal_nodes_nodes_nodes_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     prod_tt_sasportal_nodes_nodes_nodes_list_execute(builder)
 }
@@ -9902,6 +10672,13 @@ pub fn prod_tt_sasportal_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalPoliciesGetArgs {
+    /// Request body.
+    pub body: SasPortalGetPolicyRequest,
+}
+
 /// GET v1alpha1/policies:get
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -9914,14 +10691,14 @@ pub fn prod_tt_sasportal_policies_get_execute(
 
 pub fn prod_tt_sasportal_policies_get(
     client: &SimpleHttpClient,
-    body: &SasPortalGetPolicyRequest,
+    args: &ProdTtSasportalPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_policies_get_builder(client, body)?;
+    let builder = prod_tt_sasportal_policies_get_builder(client, &args.body)?;
     prod_tt_sasportal_policies_get_execute(builder)
 }
 
@@ -10016,6 +10793,13 @@ pub fn prod_tt_sasportal_policies_set_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_policies_set`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalPoliciesSetArgs {
+    /// Request body.
+    pub body: SasPortalSetPolicyRequest,
+}
+
 /// GET v1alpha1/policies:set
 /// Sets the access control policy on the specified resource. Replaces any existing policy.
 ///
@@ -10028,14 +10812,14 @@ pub fn prod_tt_sasportal_policies_set_execute(
 
 pub fn prod_tt_sasportal_policies_set(
     client: &SimpleHttpClient,
-    body: &SasPortalSetPolicyRequest,
+    args: &ProdTtSasportalPoliciesSetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SasPortalPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_policies_set_builder(client, body)?;
+    let builder = prod_tt_sasportal_policies_set_builder(client, &args.body)?;
     prod_tt_sasportal_policies_set_execute(builder)
 }
 
@@ -10132,6 +10916,13 @@ pub fn prod_tt_sasportal_policies_test_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`prod_tt_sasportal_policies_test`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ProdTtSasportalPoliciesTestArgs {
+    /// Request body.
+    pub body: SasPortalTestPermissionsRequest,
+}
+
 /// GET v1alpha1/policies:test
 /// Returns permissions that a caller has on the specified resource.
 ///
@@ -10144,7 +10935,7 @@ pub fn prod_tt_sasportal_policies_test_execute(
 
 pub fn prod_tt_sasportal_policies_test(
     client: &SimpleHttpClient,
-    body: &SasPortalTestPermissionsRequest,
+    args: &ProdTtSasportalPoliciesTestArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SasPortalTestPermissionsResponse>, ApiError>,
@@ -10153,6 +10944,6 @@ pub fn prod_tt_sasportal_policies_test(
         + 'static,
     ApiError,
 > {
-    let builder = prod_tt_sasportal_policies_test_builder(client, body)?;
+    let builder = prod_tt_sasportal_policies_test_builder(client, &args.body)?;
     prod_tt_sasportal_policies_test_execute(builder)
 }

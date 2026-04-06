@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET webResource/{id}
 /// Relinquish ownership of a website or domain.
@@ -103,6 +105,13 @@ pub fn site_verification_web_resource_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`site_verification_web_resource_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SiteVerificationWebResourceDeleteArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET webResource/{id}
 /// Relinquish ownership of a website or domain.
 ///
@@ -115,12 +124,12 @@ pub fn site_verification_web_resource_delete_execute(
 
 pub fn site_verification_web_resource_delete(
     client: &SimpleHttpClient,
-    id: &str,
+    args: &SiteVerificationWebResourceDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = site_verification_web_resource_delete_builder(client, id)?;
+    let builder = site_verification_web_resource_delete_builder(client, &args.id)?;
     site_verification_web_resource_delete_execute(builder)
 }
 
@@ -218,6 +227,13 @@ pub fn site_verification_web_resource_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`site_verification_web_resource_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SiteVerificationWebResourceGetArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET webResource/{id}
 /// Get the most current data for a website or domain.
 ///
@@ -230,7 +246,7 @@ pub fn site_verification_web_resource_get_execute(
 
 pub fn site_verification_web_resource_get(
     client: &SimpleHttpClient,
-    id: &str,
+    args: &SiteVerificationWebResourceGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
@@ -239,7 +255,7 @@ pub fn site_verification_web_resource_get(
         + 'static,
     ApiError,
 > {
-    let builder = site_verification_web_resource_get_builder(client, id)?;
+    let builder = site_verification_web_resource_get_builder(client, &args.id)?;
     site_verification_web_resource_get_execute(builder)
 }
 
@@ -337,6 +353,13 @@ pub fn site_verification_web_resource_get_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`site_verification_web_resource_get_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SiteVerificationWebResourceGetTokenArgs {
+    /// Request body.
+    pub body: SiteVerificationWebResourceGettokenRequest,
+}
+
 /// GET token
 /// Get a verification token for placing on a website or domain.
 ///
@@ -349,7 +372,7 @@ pub fn site_verification_web_resource_get_token_execute(
 
 pub fn site_verification_web_resource_get_token(
     client: &SimpleHttpClient,
-    body: &SiteVerificationWebResourceGettokenRequest,
+    args: &SiteVerificationWebResourceGetTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SiteVerificationWebResourceGettokenResponse>, ApiError>,
@@ -358,7 +381,7 @@ pub fn site_verification_web_resource_get_token(
         + 'static,
     ApiError,
 > {
-    let builder = site_verification_web_resource_get_token_builder(client, body)?;
+    let builder = site_verification_web_resource_get_token_builder(client, &args.body)?;
     site_verification_web_resource_get_token_execute(builder)
 }
 
@@ -459,6 +482,15 @@ pub fn site_verification_web_resource_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`site_verification_web_resource_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SiteVerificationWebResourceInsertArgs {
+    /// Path parameter: verificationMethod
+    pub verificationMethod: String,
+    /// Request body.
+    pub body: SiteVerificationWebResourceResource,
+}
+
 /// GET webResource
 /// Attempt verification of a website or domain.
 ///
@@ -471,8 +503,7 @@ pub fn site_verification_web_resource_insert_execute(
 
 pub fn site_verification_web_resource_insert(
     client: &SimpleHttpClient,
-    verificationMethod: &str,
-    body: &SiteVerificationWebResourceResource,
+    args: &SiteVerificationWebResourceInsertArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
@@ -481,7 +512,11 @@ pub fn site_verification_web_resource_insert(
         + 'static,
     ApiError,
 > {
-    let builder = site_verification_web_resource_insert_builder(client, verificationMethod, body)?;
+    let builder = site_verification_web_resource_insert_builder(
+        client,
+        &args.verificationMethod,
+        &args.body,
+    )?;
     site_verification_web_resource_insert_execute(builder)
 }
 
@@ -697,6 +732,15 @@ pub fn site_verification_web_resource_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`site_verification_web_resource_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SiteVerificationWebResourcePatchArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: SiteVerificationWebResourceResource,
+}
+
 /// GET webResource/{id}
 /// Modify the list of owners for your website or domain. This method supports patch semantics.
 ///
@@ -709,8 +753,7 @@ pub fn site_verification_web_resource_patch_execute(
 
 pub fn site_verification_web_resource_patch(
     client: &SimpleHttpClient,
-    id: &str,
-    body: &SiteVerificationWebResourceResource,
+    args: &SiteVerificationWebResourcePatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
@@ -719,7 +762,7 @@ pub fn site_verification_web_resource_patch(
         + 'static,
     ApiError,
 > {
-    let builder = site_verification_web_resource_patch_builder(client, id, body)?;
+    let builder = site_verification_web_resource_patch_builder(client, &args.id, &args.body)?;
     site_verification_web_resource_patch_execute(builder)
 }
 
@@ -820,6 +863,15 @@ pub fn site_verification_web_resource_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`site_verification_web_resource_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SiteVerificationWebResourceUpdateArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: SiteVerificationWebResourceResource,
+}
+
 /// GET webResource/{id}
 /// Modify the list of owners for your website or domain.
 ///
@@ -832,8 +884,7 @@ pub fn site_verification_web_resource_update_execute(
 
 pub fn site_verification_web_resource_update(
     client: &SimpleHttpClient,
-    id: &str,
-    body: &SiteVerificationWebResourceResource,
+    args: &SiteVerificationWebResourceUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SiteVerificationWebResourceResource>, ApiError>,
@@ -842,6 +893,6 @@ pub fn site_verification_web_resource_update(
         + 'static,
     ApiError,
 > {
-    let builder = site_verification_web_resource_update_builder(client, id, body)?;
+    let builder = site_verification_web_resource_update_builder(client, &args.id, &args.body)?;
     site_verification_web_resource_update_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectId}:allocateIds
 /// Allocates IDs for the given keys, which is useful for referencing an entity before it is inserted.
@@ -111,6 +113,15 @@ pub fn datastore_projects_allocate_ids_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_allocate_ids`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsAllocateIdsArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Request body.
+    pub body: AllocateIdsRequest,
+}
+
 /// GET v1/projects/{projectId}:allocateIds
 /// Allocates IDs for the given keys, which is useful for referencing an entity before it is inserted.
 ///
@@ -123,15 +134,14 @@ pub fn datastore_projects_allocate_ids_execute(
 
 pub fn datastore_projects_allocate_ids(
     client: &SimpleHttpClient,
-    projectId: &str,
-    body: &AllocateIdsRequest,
+    args: &DatastoreProjectsAllocateIdsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AllocateIdsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_allocate_ids_builder(client, projectId, body)?;
+    let builder = datastore_projects_allocate_ids_builder(client, &args.projectId, &args.body)?;
     datastore_projects_allocate_ids_execute(builder)
 }
 
@@ -230,6 +240,15 @@ pub fn datastore_projects_begin_transaction_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_begin_transaction`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsBeginTransactionArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Request body.
+    pub body: BeginTransactionRequest,
+}
+
 /// GET v1/projects/{projectId}:beginTransaction
 /// Begins a new transaction.
 ///
@@ -242,15 +261,15 @@ pub fn datastore_projects_begin_transaction_execute(
 
 pub fn datastore_projects_begin_transaction(
     client: &SimpleHttpClient,
-    projectId: &str,
-    body: &BeginTransactionRequest,
+    args: &DatastoreProjectsBeginTransactionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BeginTransactionResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_begin_transaction_builder(client, projectId, body)?;
+    let builder =
+        datastore_projects_begin_transaction_builder(client, &args.projectId, &args.body)?;
     datastore_projects_begin_transaction_execute(builder)
 }
 
@@ -349,6 +368,15 @@ pub fn datastore_projects_commit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_commit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsCommitArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Request body.
+    pub body: CommitRequest,
+}
+
 /// GET v1/projects/{projectId}:commit
 /// Commits a transaction, optionally creating, deleting or modifying some entities.
 ///
@@ -361,15 +389,14 @@ pub fn datastore_projects_commit_execute(
 
 pub fn datastore_projects_commit(
     client: &SimpleHttpClient,
-    projectId: &str,
-    body: &CommitRequest,
+    args: &DatastoreProjectsCommitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CommitResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_commit_builder(client, projectId, body)?;
+    let builder = datastore_projects_commit_builder(client, &args.projectId, &args.body)?;
     datastore_projects_commit_execute(builder)
 }
 
@@ -470,6 +497,15 @@ pub fn datastore_projects_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsExportArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Request body.
+    pub body: GoogleDatastoreAdminV1ExportEntitiesRequest,
+}
+
 /// GET v1/projects/{projectId}:export
 /// Exports a copy of all or a subset of entities from Google Cloud Datastore to another storage system, such as Google Cloud Storage. Recent updates to entities may not be reflected in the export. The export occurs in the background and its progress can be monitored and managed via the Operation resource that is created. The output of an export may only be used once the associated operation is done. If an export operation is cancelled before completion it may leave partial data behind in Google Cloud Storage.
 ///
@@ -482,8 +518,7 @@ pub fn datastore_projects_export_execute(
 
 pub fn datastore_projects_export(
     client: &SimpleHttpClient,
-    projectId: &str,
-    body: &GoogleDatastoreAdminV1ExportEntitiesRequest,
+    args: &DatastoreProjectsExportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -492,7 +527,7 @@ pub fn datastore_projects_export(
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_export_builder(client, projectId, body)?;
+    let builder = datastore_projects_export_builder(client, &args.projectId, &args.body)?;
     datastore_projects_export_execute(builder)
 }
 
@@ -593,6 +628,15 @@ pub fn datastore_projects_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsImportArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Request body.
+    pub body: GoogleDatastoreAdminV1ImportEntitiesRequest,
+}
+
 /// GET v1/projects/{projectId}:import
 /// Imports entities into Google Cloud Datastore. Existing entities with the same key are overwritten. The import occurs in the background and its progress can be monitored and managed via the Operation resource that is created. If an ImportEntities operation is cancelled, it is possible that a subset of the data has already been imported to Cloud Datastore.
 ///
@@ -605,8 +649,7 @@ pub fn datastore_projects_import_execute(
 
 pub fn datastore_projects_import(
     client: &SimpleHttpClient,
-    projectId: &str,
-    body: &GoogleDatastoreAdminV1ImportEntitiesRequest,
+    args: &DatastoreProjectsImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -615,7 +658,7 @@ pub fn datastore_projects_import(
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_import_builder(client, projectId, body)?;
+    let builder = datastore_projects_import_builder(client, &args.projectId, &args.body)?;
     datastore_projects_import_execute(builder)
 }
 
@@ -714,6 +757,15 @@ pub fn datastore_projects_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsLookupArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Request body.
+    pub body: LookupRequest,
+}
+
 /// GET v1/projects/{projectId}:lookup
 /// Looks up entities by key.
 ///
@@ -726,15 +778,14 @@ pub fn datastore_projects_lookup_execute(
 
 pub fn datastore_projects_lookup(
     client: &SimpleHttpClient,
-    projectId: &str,
-    body: &LookupRequest,
+    args: &DatastoreProjectsLookupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LookupResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_lookup_builder(client, projectId, body)?;
+    let builder = datastore_projects_lookup_builder(client, &args.projectId, &args.body)?;
     datastore_projects_lookup_execute(builder)
 }
 
@@ -833,6 +884,15 @@ pub fn datastore_projects_reserve_ids_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_reserve_ids`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsReserveIdsArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Request body.
+    pub body: ReserveIdsRequest,
+}
+
 /// GET v1/projects/{projectId}:reserveIds
 /// Prevents the supplied keys' IDs from being auto-allocated by Cloud Datastore.
 ///
@@ -845,15 +905,14 @@ pub fn datastore_projects_reserve_ids_execute(
 
 pub fn datastore_projects_reserve_ids(
     client: &SimpleHttpClient,
-    projectId: &str,
-    body: &ReserveIdsRequest,
+    args: &DatastoreProjectsReserveIdsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReserveIdsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_reserve_ids_builder(client, projectId, body)?;
+    let builder = datastore_projects_reserve_ids_builder(client, &args.projectId, &args.body)?;
     datastore_projects_reserve_ids_execute(builder)
 }
 
@@ -952,6 +1011,15 @@ pub fn datastore_projects_rollback_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_rollback`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsRollbackArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Request body.
+    pub body: RollbackRequest,
+}
+
 /// GET v1/projects/{projectId}:rollback
 /// Rolls back a transaction.
 ///
@@ -964,15 +1032,14 @@ pub fn datastore_projects_rollback_execute(
 
 pub fn datastore_projects_rollback(
     client: &SimpleHttpClient,
-    projectId: &str,
-    body: &RollbackRequest,
+    args: &DatastoreProjectsRollbackArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RollbackResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_rollback_builder(client, projectId, body)?;
+    let builder = datastore_projects_rollback_builder(client, &args.projectId, &args.body)?;
     datastore_projects_rollback_execute(builder)
 }
 
@@ -1073,6 +1140,15 @@ pub fn datastore_projects_run_aggregation_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_run_aggregation_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsRunAggregationQueryArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Request body.
+    pub body: RunAggregationQueryRequest,
+}
+
 /// GET v1/projects/{projectId}:runAggregationQuery
 /// Runs an aggregation query.
 ///
@@ -1085,8 +1161,7 @@ pub fn datastore_projects_run_aggregation_query_execute(
 
 pub fn datastore_projects_run_aggregation_query(
     client: &SimpleHttpClient,
-    projectId: &str,
-    body: &RunAggregationQueryRequest,
+    args: &DatastoreProjectsRunAggregationQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RunAggregationQueryResponse>, ApiError>,
@@ -1095,7 +1170,8 @@ pub fn datastore_projects_run_aggregation_query(
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_run_aggregation_query_builder(client, projectId, body)?;
+    let builder =
+        datastore_projects_run_aggregation_query_builder(client, &args.projectId, &args.body)?;
     datastore_projects_run_aggregation_query_execute(builder)
 }
 
@@ -1194,6 +1270,15 @@ pub fn datastore_projects_run_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_run_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsRunQueryArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Request body.
+    pub body: RunQueryRequest,
+}
+
 /// GET v1/projects/{projectId}:runQuery
 /// Queries for entities.
 ///
@@ -1206,15 +1291,14 @@ pub fn datastore_projects_run_query_execute(
 
 pub fn datastore_projects_run_query(
     client: &SimpleHttpClient,
-    projectId: &str,
-    body: &RunQueryRequest,
+    args: &DatastoreProjectsRunQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RunQueryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_run_query_builder(client, projectId, body)?;
+    let builder = datastore_projects_run_query_builder(client, &args.projectId, &args.body)?;
     datastore_projects_run_query_execute(builder)
 }
 
@@ -1315,6 +1399,15 @@ pub fn datastore_projects_indexes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_indexes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsIndexesCreateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Request body.
+    pub body: GoogleDatastoreAdminV1Index,
+}
+
 /// GET v1/projects/{projectId}/indexes
 /// Creates the specified index. A newly created index's initial state is CREATING. On completion of the returned google.longrunning.Operation, the state will be READY. If the index already exists, the call will return an ALREADY_EXISTS status. During index creation, the process could result in an error, in which case the index will move to the `ERROR` state. The process can be recovered by fixing the data that caused the error, removing the index with delete, then re-creating the index with create. Indexes with a single property cannot be created.
 ///
@@ -1327,8 +1420,7 @@ pub fn datastore_projects_indexes_create_execute(
 
 pub fn datastore_projects_indexes_create(
     client: &SimpleHttpClient,
-    projectId: &str,
-    body: &GoogleDatastoreAdminV1Index,
+    args: &DatastoreProjectsIndexesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1337,7 +1429,7 @@ pub fn datastore_projects_indexes_create(
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_indexes_create_builder(client, projectId, body)?;
+    let builder = datastore_projects_indexes_create_builder(client, &args.projectId, &args.body)?;
     datastore_projects_indexes_create_execute(builder)
 }
 
@@ -1436,6 +1528,15 @@ pub fn datastore_projects_indexes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_indexes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsIndexesDeleteArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: indexId
+    pub indexId: String,
+}
+
 /// GET v1/projects/{projectId}/indexes/{indexId}
 /// Deletes an existing index. An index can only be deleted if it is in a READY or `ERROR` state. On successful execution of the request, the index will be in a DELETING state. And on completion of the returned google.longrunning.Operation, the index will be removed. During index deletion, the process could result in an error, in which case the index will move to the `ERROR` state. The process can be recovered by fixing the data that caused the error, followed by calling delete again.
 ///
@@ -1448,8 +1549,7 @@ pub fn datastore_projects_indexes_delete_execute(
 
 pub fn datastore_projects_indexes_delete(
     client: &SimpleHttpClient,
-    projectId: &str,
-    indexId: &str,
+    args: &DatastoreProjectsIndexesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1458,7 +1558,8 @@ pub fn datastore_projects_indexes_delete(
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_indexes_delete_builder(client, projectId, indexId)?;
+    let builder =
+        datastore_projects_indexes_delete_builder(client, &args.projectId, &args.indexId)?;
     datastore_projects_indexes_delete_execute(builder)
 }
 
@@ -1557,6 +1658,15 @@ pub fn datastore_projects_indexes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_indexes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsIndexesGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: indexId
+    pub indexId: String,
+}
+
 /// GET v1/projects/{projectId}/indexes/{indexId}
 /// Gets an index.
 ///
@@ -1569,8 +1679,7 @@ pub fn datastore_projects_indexes_get_execute(
 
 pub fn datastore_projects_indexes_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    indexId: &str,
+    args: &DatastoreProjectsIndexesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleDatastoreAdminV1Index>, ApiError>,
@@ -1579,7 +1688,7 @@ pub fn datastore_projects_indexes_get(
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_indexes_get_builder(client, projectId, indexId)?;
+    let builder = datastore_projects_indexes_get_builder(client, &args.projectId, &args.indexId)?;
     datastore_projects_indexes_get_execute(builder)
 }
 
@@ -1697,6 +1806,19 @@ pub fn datastore_projects_indexes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_indexes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsIndexesListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectId}/indexes
 /// Lists the indexes that match the specified filters. Datastore uses an eventually consistent query to fetch the list of indexes and may occasionally return stale results.
 ///
@@ -1709,10 +1831,7 @@ pub fn datastore_projects_indexes_list_execute(
 
 pub fn datastore_projects_indexes_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatastoreProjectsIndexesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleDatastoreAdminV1ListIndexesResponse>, ApiError>,
@@ -1721,8 +1840,13 @@ pub fn datastore_projects_indexes_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        datastore_projects_indexes_list_builder(client, projectId, filter, pageSize, pageToken)?;
+    let builder = datastore_projects_indexes_list_builder(
+        client,
+        &args.projectId,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     datastore_projects_indexes_list_execute(builder)
 }
 
@@ -1816,6 +1940,13 @@ pub fn datastore_projects_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1828,12 +1959,12 @@ pub fn datastore_projects_operations_cancel_execute(
 
 pub fn datastore_projects_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatastoreProjectsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_operations_cancel_builder(client, name)?;
+    let builder = datastore_projects_operations_cancel_builder(client, &args.name)?;
     datastore_projects_operations_cancel_execute(builder)
 }
 
@@ -1927,6 +2058,13 @@ pub fn datastore_projects_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1939,12 +2077,12 @@ pub fn datastore_projects_operations_delete_execute(
 
 pub fn datastore_projects_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatastoreProjectsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_operations_delete_builder(client, name)?;
+    let builder = datastore_projects_operations_delete_builder(client, &args.name)?;
     datastore_projects_operations_delete_execute(builder)
 }
 
@@ -2042,6 +2180,13 @@ pub fn datastore_projects_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2054,7 +2199,7 @@ pub fn datastore_projects_operations_get_execute(
 
 pub fn datastore_projects_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatastoreProjectsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2063,7 +2208,7 @@ pub fn datastore_projects_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = datastore_projects_operations_get_builder(client, name)?;
+    let builder = datastore_projects_operations_get_builder(client, &args.name)?;
     datastore_projects_operations_get_execute(builder)
 }
 
@@ -2186,6 +2331,21 @@ pub fn datastore_projects_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datastore_projects_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatastoreProjectsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -2198,11 +2358,7 @@ pub fn datastore_projects_operations_list_execute(
 
 pub fn datastore_projects_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DatastoreProjectsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -2213,11 +2369,11 @@ pub fn datastore_projects_operations_list(
 > {
     let builder = datastore_projects_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     datastore_projects_operations_list_execute(builder)
 }

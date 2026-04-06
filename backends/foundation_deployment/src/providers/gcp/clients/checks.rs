@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1alpha/accounts/{accountsId}/apps/{appsId}
 /// Gets an app.
@@ -110,6 +112,13 @@ pub fn checks_accounts_apps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`checks_accounts_apps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChecksAccountsAppsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/accounts/{accountsId}/apps/{appsId}
 /// Gets an app.
 ///
@@ -122,7 +131,7 @@ pub fn checks_accounts_apps_get_execute(
 
 pub fn checks_accounts_apps_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChecksAccountsAppsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChecksAccountV1alphaApp>, ApiError>,
@@ -131,7 +140,7 @@ pub fn checks_accounts_apps_get(
         + 'static,
     ApiError,
 > {
-    let builder = checks_accounts_apps_get_builder(client, name)?;
+    let builder = checks_accounts_apps_get_builder(client, &args.name)?;
     checks_accounts_apps_get_execute(builder)
 }
 
@@ -246,6 +255,17 @@ pub fn checks_accounts_apps_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`checks_accounts_apps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChecksAccountsAppsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha/accounts/{accountsId}/apps
 /// Lists the apps under the given account.
 ///
@@ -258,9 +278,7 @@ pub fn checks_accounts_apps_list_execute(
 
 pub fn checks_accounts_apps_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ChecksAccountsAppsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChecksAccountV1alphaListAppsResponse>, ApiError>,
@@ -269,7 +287,12 @@ pub fn checks_accounts_apps_list(
         + 'static,
     ApiError,
 > {
-    let builder = checks_accounts_apps_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = checks_accounts_apps_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     checks_accounts_apps_list_execute(builder)
 }
 
@@ -366,6 +389,15 @@ pub fn checks_accounts_apps_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`checks_accounts_apps_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChecksAccountsAppsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1alpha/accounts/{accountsId}/apps/{appsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -378,13 +410,12 @@ pub fn checks_accounts_apps_operations_cancel_execute(
 
 pub fn checks_accounts_apps_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ChecksAccountsAppsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = checks_accounts_apps_operations_cancel_builder(client, name, body)?;
+    let builder = checks_accounts_apps_operations_cancel_builder(client, &args.name, &args.body)?;
     checks_accounts_apps_operations_cancel_execute(builder)
 }
 
@@ -478,6 +509,13 @@ pub fn checks_accounts_apps_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`checks_accounts_apps_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChecksAccountsAppsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/accounts/{accountsId}/apps/{appsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -490,12 +528,12 @@ pub fn checks_accounts_apps_operations_delete_execute(
 
 pub fn checks_accounts_apps_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChecksAccountsAppsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = checks_accounts_apps_operations_delete_builder(client, name)?;
+    let builder = checks_accounts_apps_operations_delete_builder(client, &args.name)?;
     checks_accounts_apps_operations_delete_execute(builder)
 }
 
@@ -589,6 +627,13 @@ pub fn checks_accounts_apps_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`checks_accounts_apps_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChecksAccountsAppsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/accounts/{accountsId}/apps/{appsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -601,12 +646,12 @@ pub fn checks_accounts_apps_operations_get_execute(
 
 pub fn checks_accounts_apps_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChecksAccountsAppsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = checks_accounts_apps_operations_get_builder(client, name)?;
+    let builder = checks_accounts_apps_operations_get_builder(client, &args.name)?;
     checks_accounts_apps_operations_get_execute(builder)
 }
 
@@ -726,6 +771,21 @@ pub fn checks_accounts_apps_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`checks_accounts_apps_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChecksAccountsAppsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1alpha/accounts/{accountsId}/apps/{appsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -738,11 +798,7 @@ pub fn checks_accounts_apps_operations_list_execute(
 
 pub fn checks_accounts_apps_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ChecksAccountsAppsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -751,11 +807,11 @@ pub fn checks_accounts_apps_operations_list(
 > {
     let builder = checks_accounts_apps_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     checks_accounts_apps_operations_list_execute(builder)
 }
@@ -853,6 +909,15 @@ pub fn checks_accounts_apps_operations_wait_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`checks_accounts_apps_operations_wait`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChecksAccountsAppsOperationsWaitArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: WaitOperationRequest,
+}
+
 /// GET v1alpha/accounts/{accountsId}/apps/{appsId}/operations/{operationsId}:wait
 /// Waits until the specified long-running operation is done or reaches at most a specified timeout, returning the latest state. If the operation is already done, the latest state is immediately returned. If the timeout specified is greater than the default HTTP/RPC timeout, the HTTP/RPC timeout is used. If the server does not support this method, it returns google.rpc.Code.UNIMPLEMENTED. Note that this method is on a best-effort basis. It may return the latest state before the specified timeout (including immediately), meaning even an immediate response is no guarantee that the operation is done.
 ///
@@ -865,13 +930,12 @@ pub fn checks_accounts_apps_operations_wait_execute(
 
 pub fn checks_accounts_apps_operations_wait(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &WaitOperationRequest,
+    args: &ChecksAccountsAppsOperationsWaitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = checks_accounts_apps_operations_wait_builder(client, name, body)?;
+    let builder = checks_accounts_apps_operations_wait_builder(client, &args.name, &args.body)?;
     checks_accounts_apps_operations_wait_execute(builder)
 }
 
@@ -981,6 +1045,15 @@ pub fn checks_accounts_apps_reports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`checks_accounts_apps_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChecksAccountsAppsReportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: checksFilter
+    pub checksFilter: Option<String>,
+}
+
 /// GET v1alpha/accounts/{accountsId}/apps/{appsId}/reports/{reportsId}
 /// Gets a report. By default, only the name and results_uri fields are returned. You can include other fields by listing them in the fields URL query parameter. For example, ?fields=name,checks will return the name and checks fields.
 ///
@@ -993,8 +1066,7 @@ pub fn checks_accounts_apps_reports_get_execute(
 
 pub fn checks_accounts_apps_reports_get(
     client: &SimpleHttpClient,
-    name: &str,
-    checksFilter: Option<&str>,
+    args: &ChecksAccountsAppsReportsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChecksReportV1alphaReport>, ApiError>,
@@ -1003,7 +1075,8 @@ pub fn checks_accounts_apps_reports_get(
         + 'static,
     ApiError,
 > {
-    let builder = checks_accounts_apps_reports_get_builder(client, name, checksFilter)?;
+    let builder =
+        checks_accounts_apps_reports_get_builder(client, &args.name, args.checksFilter.as_deref())?;
     checks_accounts_apps_reports_get_execute(builder)
 }
 
@@ -1126,6 +1199,21 @@ pub fn checks_accounts_apps_reports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`checks_accounts_apps_reports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChecksAccountsAppsReportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: checksFilter
+    pub checksFilter: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha/accounts/{accountsId}/apps/{appsId}/reports
 /// Lists reports for the specified app. By default, only the name and results_uri fields are returned. You can include other fields by listing them in the fields URL query parameter. For example, ?fields=reports(name,checks) will return the name and checks fields.
 ///
@@ -1138,11 +1226,7 @@ pub fn checks_accounts_apps_reports_list_execute(
 
 pub fn checks_accounts_apps_reports_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    checksFilter: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ChecksAccountsAppsReportsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChecksReportV1alphaListReportsResponse>, ApiError>,
@@ -1153,11 +1237,11 @@ pub fn checks_accounts_apps_reports_list(
 > {
     let builder = checks_accounts_apps_reports_list_builder(
         client,
-        parent,
-        checksFilter,
-        filter,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.checksFilter.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     checks_accounts_apps_reports_list_execute(builder)
 }
@@ -1252,6 +1336,13 @@ pub fn checks_accounts_repos_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`checks_accounts_repos_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChecksAccountsReposOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/accounts/{accountsId}/repos/{reposId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1264,12 +1355,12 @@ pub fn checks_accounts_repos_operations_get_execute(
 
 pub fn checks_accounts_repos_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChecksAccountsReposOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = checks_accounts_repos_operations_get_builder(client, name)?;
+    let builder = checks_accounts_repos_operations_get_builder(client, &args.name)?;
     checks_accounts_repos_operations_get_execute(builder)
 }
 
@@ -1366,6 +1457,15 @@ pub fn checks_accounts_repos_scans_generate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`checks_accounts_repos_scans_generate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChecksAccountsReposScansGenerateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleChecksRepoScanV1alphaGenerateScanRequest,
+}
+
 /// GET v1alpha/accounts/{accountsId}/repos/{reposId}/scans:generate
 /// Uploads the results of local Code Compliance analysis and generates a scan of privacy issues. Returns a google.longrunning.Operation containing analysis and findings.
 ///
@@ -1378,13 +1478,12 @@ pub fn checks_accounts_repos_scans_generate_execute(
 
 pub fn checks_accounts_repos_scans_generate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleChecksRepoScanV1alphaGenerateScanRequest,
+    args: &ChecksAccountsReposScansGenerateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = checks_accounts_repos_scans_generate_builder(client, parent, body)?;
+    let builder = checks_accounts_repos_scans_generate_builder(client, &args.parent, &args.body)?;
     checks_accounts_repos_scans_generate_execute(builder)
 }
 
@@ -1482,6 +1581,13 @@ pub fn checks_accounts_repos_scans_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`checks_accounts_repos_scans_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChecksAccountsReposScansGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/accounts/{accountsId}/repos/{reposId}/scans/{scansId}
 /// Gets a repo scan. By default, only the name and results_uri fields are returned. You can include other fields by listing them in the fields URL query parameter. For example, ?fields=name,sources will return the name and sources fields.
 ///
@@ -1494,7 +1600,7 @@ pub fn checks_accounts_repos_scans_get_execute(
 
 pub fn checks_accounts_repos_scans_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChecksAccountsReposScansGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChecksRepoScanV1alphaRepoScan>, ApiError>,
@@ -1503,7 +1609,7 @@ pub fn checks_accounts_repos_scans_get(
         + 'static,
     ApiError,
 > {
-    let builder = checks_accounts_repos_scans_get_builder(client, name)?;
+    let builder = checks_accounts_repos_scans_get_builder(client, &args.name)?;
     checks_accounts_repos_scans_get_execute(builder)
 }
 
@@ -1622,6 +1728,19 @@ pub fn checks_accounts_repos_scans_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`checks_accounts_repos_scans_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChecksAccountsReposScansListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha/accounts/{accountsId}/repos/{reposId}/scans
 /// Lists repo scans for the specified repo.
 ///
@@ -1634,10 +1753,7 @@ pub fn checks_accounts_repos_scans_list_execute(
 
 pub fn checks_accounts_repos_scans_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ChecksAccountsReposScansListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChecksRepoScanV1alphaListRepoScansResponse>, ApiError>,
@@ -1646,8 +1762,13 @@ pub fn checks_accounts_repos_scans_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        checks_accounts_repos_scans_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = checks_accounts_repos_scans_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     checks_accounts_repos_scans_list_execute(builder)
 }
 
@@ -1745,6 +1866,13 @@ pub fn checks_aisafety_classify_content_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`checks_aisafety_classify_content`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChecksAisafetyClassifyContentArgs {
+    /// Request body.
+    pub body: GoogleChecksAisafetyV1alphaClassifyContentRequest,
+}
+
 /// GET v1alpha/aisafety:classifyContent
 /// Analyze a piece of content with the provided set of policies.
 ///
@@ -1757,7 +1885,7 @@ pub fn checks_aisafety_classify_content_execute(
 
 pub fn checks_aisafety_classify_content(
     client: &SimpleHttpClient,
-    body: &GoogleChecksAisafetyV1alphaClassifyContentRequest,
+    args: &ChecksAisafetyClassifyContentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChecksAisafetyV1alphaClassifyContentResponse>, ApiError>,
@@ -1766,7 +1894,7 @@ pub fn checks_aisafety_classify_content(
         + 'static,
     ApiError,
 > {
-    let builder = checks_aisafety_classify_content_builder(client, body)?;
+    let builder = checks_aisafety_classify_content_builder(client, &args.body)?;
     checks_aisafety_classify_content_execute(builder)
 }
 
@@ -1863,6 +1991,15 @@ pub fn checks_media_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`checks_media_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChecksMediaUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleChecksReportV1alphaAnalyzeUploadRequest,
+}
+
 /// GET v1alpha/accounts/{accountsId}/apps/{appsId}/reports:analyzeUpload
 /// Analyzes the uploaded app bundle and returns a google.longrunning.Operation containing the generated Report. ## Example (upload only) Send a regular POST request with the header X-Goog-Upload-Protocol: raw.  POST <https://checks.googleapis.`com/upload/v1alpha/{parent`=accounts/*/apps/*}/reports:`analyzeUpload`> HTTP/1.1 X-Goog-Upload-Protocol: raw Content-Length: Content-Type: `application/octet-stream`  ## Example (upload with metadata) Send a multipart POST request where the first body part contains the metadata JSON and the second body part contains the binary upload. Include the header X-Goog-Upload-Protocol: multipart.  POST <https://checks.googleapis.`com/upload/v1alpha/{parent`=accounts/*/apps/*}/reports:`analyzeUpload`> HTTP/1.1 X-Goog-Upload-Protocol: multipart Content-Length: ? Content-Type: `multipart/related`; boundary=BOUNDARY --BOUNDARY Content-Type: `application/json` {"code_reference_id":"db5bcc20f94055fb5bc08cbb9b0e7a5530308786"} --BOUNDARY --BOUNDARY--  *Note:* Metadata-only requests are not supported.
 ///
@@ -1875,12 +2012,11 @@ pub fn checks_media_upload_execute(
 
 pub fn checks_media_upload(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleChecksReportV1alphaAnalyzeUploadRequest,
+    args: &ChecksMediaUploadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = checks_media_upload_builder(client, parent, body)?;
+    let builder = checks_media_upload_builder(client, &args.parent, &args.body)?;
     checks_media_upload_execute(builder)
 }

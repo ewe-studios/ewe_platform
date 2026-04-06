@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/agentUsers/{agentUsersId}
 /// Unlinks the given third-party user from your smart home Action. All data related to this user will be deleted. For more details on how users link their accounts, see [fulfillment and authentication](<https://developers.home.google.`com/cloud-to-cloud/primer/fulfillment`>). The third-party user's identity is passed in via the agent_user_id (see DeleteAgentUserRequest). This request must be authorized using service account credentials from your Actions console project.
@@ -118,6 +120,15 @@ pub fn homegraph_agent_users_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`homegraph_agent_users_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HomegraphAgentUsersDeleteArgs {
+    /// Path parameter: agentUserId
+    pub agentUserId: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/agentUsers/{agentUsersId}
 /// Unlinks the given third-party user from your smart home Action. All data related to this user will be deleted. For more details on how users link their accounts, see [fulfillment and authentication](<https://developers.home.google.`com/cloud-to-cloud/primer/fulfillment`>). The third-party user's identity is passed in via the agent_user_id (see DeleteAgentUserRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
@@ -130,13 +141,13 @@ pub fn homegraph_agent_users_delete_execute(
 
 pub fn homegraph_agent_users_delete(
     client: &SimpleHttpClient,
-    agentUserId: &str,
-    requestId: Option<&str>,
+    args: &HomegraphAgentUsersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = homegraph_agent_users_delete_builder(client, agentUserId, requestId)?;
+    let builder =
+        homegraph_agent_users_delete_builder(client, &args.agentUserId, args.requestId.as_deref())?;
     homegraph_agent_users_delete_execute(builder)
 }
 
@@ -231,6 +242,13 @@ pub fn homegraph_devices_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`homegraph_devices_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HomegraphDevicesQueryArgs {
+    /// Request body.
+    pub body: QueryRequest,
+}
+
 /// GET v1/devices:query
 /// Gets the current states in Home Graph for the given set of the third-party user's devices. The third-party user's identity is passed in via the agent_user_id (see QueryRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
@@ -243,14 +261,14 @@ pub fn homegraph_devices_query_execute(
 
 pub fn homegraph_devices_query(
     client: &SimpleHttpClient,
-    body: &QueryRequest,
+    args: &HomegraphDevicesQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = homegraph_devices_query_builder(client, body)?;
+    let builder = homegraph_devices_query_builder(client, &args.body)?;
     homegraph_devices_query_execute(builder)
 }
 
@@ -347,6 +365,13 @@ pub fn homegraph_devices_report_state_and_notification_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`homegraph_devices_report_state_and_notification`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HomegraphDevicesReportStateAndNotificationArgs {
+    /// Request body.
+    pub body: ReportStateAndNotificationRequest,
+}
+
 /// GET v1/devices:reportStateAndNotification
 /// Reports device state and optionally sends device notifications. Called by your smart home Action when the state of a third-party device changes or you need to send a notification about the device. See [Implement Report State](<https://developers.home.google.`com/cloud-to-cloud/integration/report-state`>) for more information. This method updates the device state according to its declared [traits](<https://developers.home.google.`com/cloud-to-cloud/primer/device-types-and-traits`>). Publishing a new state value outside of these traits will result in an INVALID_ARGUMENT error response. The third-party user's identity is passed in via the agent_user_id (see ReportStateAndNotificationRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
@@ -359,7 +384,7 @@ pub fn homegraph_devices_report_state_and_notification_execute(
 
 pub fn homegraph_devices_report_state_and_notification(
     client: &SimpleHttpClient,
-    body: &ReportStateAndNotificationRequest,
+    args: &HomegraphDevicesReportStateAndNotificationArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ReportStateAndNotificationResponse>, ApiError>,
@@ -368,7 +393,7 @@ pub fn homegraph_devices_report_state_and_notification(
         + 'static,
     ApiError,
 > {
-    let builder = homegraph_devices_report_state_and_notification_builder(client, body)?;
+    let builder = homegraph_devices_report_state_and_notification_builder(client, &args.body)?;
     homegraph_devices_report_state_and_notification_execute(builder)
 }
 
@@ -465,6 +490,13 @@ pub fn homegraph_devices_request_sync_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`homegraph_devices_request_sync`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HomegraphDevicesRequestSyncArgs {
+    /// Request body.
+    pub body: RequestSyncDevicesRequest,
+}
+
 /// GET v1/devices:requestSync
 /// Requests Google to send an action.devices.SYNC [intent](<https://developers.home.google.`com/cloud-to-cloud/intents/sync`>) to your smart home Action to update device metadata for the given user. The third-party user's identity is passed via the agent_user_id (see RequestSyncDevicesRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
@@ -477,7 +509,7 @@ pub fn homegraph_devices_request_sync_execute(
 
 pub fn homegraph_devices_request_sync(
     client: &SimpleHttpClient,
-    body: &RequestSyncDevicesRequest,
+    args: &HomegraphDevicesRequestSyncArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RequestSyncDevicesResponse>, ApiError>,
@@ -486,7 +518,7 @@ pub fn homegraph_devices_request_sync(
         + 'static,
     ApiError,
 > {
-    let builder = homegraph_devices_request_sync_builder(client, body)?;
+    let builder = homegraph_devices_request_sync_builder(client, &args.body)?;
     homegraph_devices_request_sync_execute(builder)
 }
 
@@ -581,6 +613,13 @@ pub fn homegraph_devices_sync_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`homegraph_devices_sync`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HomegraphDevicesSyncArgs {
+    /// Request body.
+    pub body: SyncRequest,
+}
+
 /// GET v1/devices:sync
 /// Gets all the devices associated with the given third-party user. The third-party user's identity is passed in via the agent_user_id (see SyncRequest). This request must be authorized using service account credentials from your Actions console project.
 ///
@@ -593,13 +632,13 @@ pub fn homegraph_devices_sync_execute(
 
 pub fn homegraph_devices_sync(
     client: &SimpleHttpClient,
-    body: &SyncRequest,
+    args: &HomegraphDevicesSyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SyncResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = homegraph_devices_sync_builder(client, body)?;
+    let builder = homegraph_devices_sync_builder(client, &args.body)?;
     homegraph_devices_sync_execute(builder)
 }

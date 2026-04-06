@@ -158,7 +158,7 @@ pub struct Components {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct Schema {
-    #[serde(default)]
+    #[serde(default, deserialize_with = "deserialize_type_field")]
     #[serde(rename = "type")]
     pub schema_type: Option<String>,
     #[serde(default)]
@@ -187,6 +187,47 @@ pub struct Schema {
     /// Enum values for string enums.
     #[serde(default, rename = "enum")]
     pub enum_values: Option<Vec<Value>>,
+    /// OpenAPI 3.1.0 const field (e.g., "const": "compute-service")
+    #[serde(default)]
+    pub const_value: Option<Value>,
+}
+
+/// Deserialize the `type` field which can be a string or an array of strings.
+///
+/// OpenAPI 3.0 uses `"type": "string"`.
+/// OpenAPI 3.1 uses `"type": ["string", "null"]` for nullable types.
+///
+/// For arrays, we extract the non-null type (e.g., ["string", "null"] -> "string").
+fn deserialize_type_field<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum TypeField {
+        String(String),
+        Array(Vec<String>),
+    }
+
+    let opt = Option::<TypeField>::deserialize(deserializer)?;
+    Ok(match opt {
+        Some(TypeField::String(s)) => Some(s),
+        Some(TypeField::Array(arr)) => {
+            // For nullable types like ["string", "null"], extract the non-null type
+            let non_null: Vec<&String> = arr.iter().filter(|s| s != &"null").collect();
+            if non_null.len() == 1 {
+                Some(non_null[0].clone())
+            } else if non_null.is_empty() {
+                None
+            } else {
+                // Multiple non-null types - use the first one (shouldn't happen in practice)
+                Some(non_null[0].clone())
+            }
+        }
+        None => None,
+    })
 }
 
 // ---------------------------------------------------------------------------

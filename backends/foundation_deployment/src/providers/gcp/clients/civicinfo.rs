@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET civicinfo/v2/divisionsByAddress
 /// Lookup OCDIDs and names for divisions related to an address.
@@ -119,6 +121,13 @@ pub fn civicinfo_divisions_query_division_by_address_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`civicinfo_divisions_query_division_by_address`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CivicinfoDivisionsQueryDivisionByAddressArgs {
+    /// Query parameter: address
+    pub address: Option<String>,
+}
+
 /// GET civicinfo/v2/divisionsByAddress
 /// Lookup OCDIDs and names for divisions related to an address.
 ///
@@ -131,7 +140,7 @@ pub fn civicinfo_divisions_query_division_by_address_execute(
 
 pub fn civicinfo_divisions_query_division_by_address(
     client: &SimpleHttpClient,
-    address: Option<&str>,
+    args: &CivicinfoDivisionsQueryDivisionByAddressArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CivicinfoApiprotosV2DivisionByAddressResponse>, ApiError>,
@@ -140,7 +149,8 @@ pub fn civicinfo_divisions_query_division_by_address(
         + 'static,
     ApiError,
 > {
-    let builder = civicinfo_divisions_query_division_by_address_builder(client, address)?;
+    let builder =
+        civicinfo_divisions_query_division_by_address_builder(client, args.address.as_deref())?;
     civicinfo_divisions_query_division_by_address_execute(builder)
 }
 
@@ -247,6 +257,13 @@ pub fn civicinfo_divisions_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`civicinfo_divisions_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CivicinfoDivisionsSearchArgs {
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET civicinfo/v2/divisions
 /// Searches for political divisions by their natural name or OCD ID.
 ///
@@ -259,7 +276,7 @@ pub fn civicinfo_divisions_search_execute(
 
 pub fn civicinfo_divisions_search(
     client: &SimpleHttpClient,
-    query: Option<&str>,
+    args: &CivicinfoDivisionsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CivicinfoApiprotosV2DivisionSearchResponse>, ApiError>,
@@ -268,7 +285,7 @@ pub fn civicinfo_divisions_search(
         + 'static,
     ApiError,
 > {
-    let builder = civicinfo_divisions_search_builder(client, query)?;
+    let builder = civicinfo_divisions_search_builder(client, args.query.as_deref())?;
     civicinfo_divisions_search_execute(builder)
 }
 
@@ -375,6 +392,13 @@ pub fn civicinfo_elections_election_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`civicinfo_elections_election_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CivicinfoElectionsElectionQueryArgs {
+    /// Query parameter: productionDataOnly
+    pub productionDataOnly: Option<bool>,
+}
+
 /// GET civicinfo/v2/elections
 /// List of available elections to query.
 ///
@@ -387,7 +411,7 @@ pub fn civicinfo_elections_election_query_execute(
 
 pub fn civicinfo_elections_election_query(
     client: &SimpleHttpClient,
-    productionDataOnly: Option<bool>,
+    args: &CivicinfoElectionsElectionQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CivicinfoApiprotosV2ElectionsQueryResponse>, ApiError>,
@@ -396,7 +420,7 @@ pub fn civicinfo_elections_election_query(
         + 'static,
     ApiError,
 > {
-    let builder = civicinfo_elections_election_query_builder(client, productionDataOnly)?;
+    let builder = civicinfo_elections_election_query_builder(client, args.productionDataOnly)?;
     civicinfo_elections_election_query_execute(builder)
 }
 
@@ -518,6 +542,21 @@ pub fn civicinfo_elections_voter_info_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`civicinfo_elections_voter_info_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CivicinfoElectionsVoterInfoQueryArgs {
+    /// Query parameter: address
+    pub address: Option<String>,
+    /// Query parameter: electionId
+    pub electionId: Option<String>,
+    /// Query parameter: officialOnly
+    pub officialOnly: Option<bool>,
+    /// Query parameter: productionDataOnly
+    pub productionDataOnly: Option<bool>,
+    /// Query parameter: returnAllAvailableData
+    pub returnAllAvailableData: Option<bool>,
+}
+
 /// GET civicinfo/v2/voterinfo
 /// Looks up information relevant to a voter based on the voter's registered address.
 ///
@@ -530,11 +569,7 @@ pub fn civicinfo_elections_voter_info_query_execute(
 
 pub fn civicinfo_elections_voter_info_query(
     client: &SimpleHttpClient,
-    address: Option<&str>,
-    electionId: Option<&str>,
-    officialOnly: Option<bool>,
-    productionDataOnly: Option<bool>,
-    returnAllAvailableData: Option<bool>,
+    args: &CivicinfoElectionsVoterInfoQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CivicinfoApiprotosV2VoterInfoResponse>, ApiError>,
@@ -545,11 +580,11 @@ pub fn civicinfo_elections_voter_info_query(
 > {
     let builder = civicinfo_elections_voter_info_query_builder(
         client,
-        address,
-        electionId,
-        officialOnly,
-        productionDataOnly,
-        returnAllAvailableData,
+        args.address.as_deref(),
+        args.electionId.as_deref(),
+        args.officialOnly,
+        args.productionDataOnly,
+        args.returnAllAvailableData,
     )?;
     civicinfo_elections_voter_info_query_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn cloudlocationfinder_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudlocationfinder_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudlocationfinderProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn cloudlocationfinder_projects_locations_get_execute(
 
 pub fn cloudlocationfinder_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudlocationfinderProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudlocationfinder_projects_locations_get_builder(client, name)?;
+    let builder = cloudlocationfinder_projects_locations_get_builder(client, &args.name)?;
     cloudlocationfinder_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn cloudlocationfinder_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudlocationfinder_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudlocationfinderProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn cloudlocationfinder_projects_locations_list_execute(
 
 pub fn cloudlocationfinder_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudlocationfinderProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn cloudlocationfinder_projects_locations_list(
 > {
     let builder = cloudlocationfinder_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudlocationfinder_projects_locations_list_execute(builder)
 }
@@ -369,6 +389,13 @@ pub fn cloudlocationfinder_projects_locations_cloud_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudlocationfinder_projects_locations_cloud_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudlocationfinderProjectsLocationsCloudLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudLocations/{cloudLocationsId}
 /// Retrieves a resource containing information about a cloud location.
 ///
@@ -381,14 +408,15 @@ pub fn cloudlocationfinder_projects_locations_cloud_locations_get_execute(
 
 pub fn cloudlocationfinder_projects_locations_cloud_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudlocationfinderProjectsLocationsCloudLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CloudLocation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudlocationfinder_projects_locations_cloud_locations_get_builder(client, name)?;
+    let builder =
+        cloudlocationfinder_projects_locations_cloud_locations_get_builder(client, &args.name)?;
     cloudlocationfinder_projects_locations_cloud_locations_get_execute(builder)
 }
 
@@ -506,6 +534,19 @@ pub fn cloudlocationfinder_projects_locations_cloud_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudlocationfinder_projects_locations_cloud_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudlocationfinderProjectsLocationsCloudLocationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudLocations
 /// Lists cloud locations under a given project and location.
 ///
@@ -518,10 +559,7 @@ pub fn cloudlocationfinder_projects_locations_cloud_locations_list_execute(
 
 pub fn cloudlocationfinder_projects_locations_cloud_locations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudlocationfinderProjectsLocationsCloudLocationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCloudLocationsResponse>, ApiError>,
@@ -531,7 +569,11 @@ pub fn cloudlocationfinder_projects_locations_cloud_locations_list(
     ApiError,
 > {
     let builder = cloudlocationfinder_projects_locations_cloud_locations_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudlocationfinder_projects_locations_cloud_locations_list_execute(builder)
 }
@@ -654,6 +696,21 @@ pub fn cloudlocationfinder_projects_locations_cloud_locations_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudlocationfinder_projects_locations_cloud_locations_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudlocationfinderProjectsLocationsCloudLocationsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: sourceCloudLocation
+    pub sourceCloudLocation: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudLocations:search
 /// Searches for cloud locations from a given source location.
 ///
@@ -666,11 +723,7 @@ pub fn cloudlocationfinder_projects_locations_cloud_locations_search_execute(
 
 pub fn cloudlocationfinder_projects_locations_cloud_locations_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
-    sourceCloudLocation: Option<&str>,
+    args: &CloudlocationfinderProjectsLocationsCloudLocationsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchCloudLocationsResponse>, ApiError>,
@@ -681,11 +734,11 @@ pub fn cloudlocationfinder_projects_locations_cloud_locations_search(
 > {
     let builder = cloudlocationfinder_projects_locations_cloud_locations_search_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        query,
-        sourceCloudLocation,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
+        args.sourceCloudLocation.as_deref(),
     )?;
     cloudlocationfinder_projects_locations_cloud_locations_search_execute(builder)
 }

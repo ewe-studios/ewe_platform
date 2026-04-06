@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/organizations/{organizationsId}/protectedResources:search
 /// Returns metadata about the resources protected by the given Cloud KMS CryptoKey in the given Cloud `organization/project`.
@@ -138,6 +140,21 @@ pub fn kmsinventory_organizations_protected_resources_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`kmsinventory_organizations_protected_resources_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct KmsinventoryOrganizationsProtectedResourcesSearchArgs {
+    /// Path parameter: scope
+    pub scope: String,
+    /// Query parameter: cryptoKey
+    pub cryptoKey: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resourceTypes
+    pub resourceTypes: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/protectedResources:search
 /// Returns metadata about the resources protected by the given Cloud KMS CryptoKey in the given Cloud `organization/project`.
 ///
@@ -150,11 +167,7 @@ pub fn kmsinventory_organizations_protected_resources_search_execute(
 
 pub fn kmsinventory_organizations_protected_resources_search(
     client: &SimpleHttpClient,
-    scope: &str,
-    cryptoKey: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    resourceTypes: Option<&str>,
+    args: &KmsinventoryOrganizationsProtectedResourcesSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -168,11 +181,11 @@ pub fn kmsinventory_organizations_protected_resources_search(
 > {
     let builder = kmsinventory_organizations_protected_resources_search_builder(
         client,
-        scope,
-        cryptoKey,
-        pageSize,
-        pageToken,
-        resourceTypes,
+        &args.scope,
+        args.cryptoKey.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.resourceTypes.as_deref(),
     )?;
     kmsinventory_organizations_protected_resources_search_execute(builder)
 }
@@ -288,6 +301,17 @@ pub fn kmsinventory_projects_crypto_keys_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`kmsinventory_projects_crypto_keys_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct KmsinventoryProjectsCryptoKeysListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/cryptoKeys
 /// Returns cryptographic keys managed by Cloud KMS in a given Cloud project. Note that this data is sourced from snapshots, meaning it may not completely reflect the actual state of key metadata at call time.
 ///
@@ -300,9 +324,7 @@ pub fn kmsinventory_projects_crypto_keys_list_execute(
 
 pub fn kmsinventory_projects_crypto_keys_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &KmsinventoryProjectsCryptoKeysListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudKmsInventoryV1ListCryptoKeysResponse>, ApiError>,
@@ -311,8 +333,12 @@ pub fn kmsinventory_projects_crypto_keys_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        kmsinventory_projects_crypto_keys_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = kmsinventory_projects_crypto_keys_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     kmsinventory_projects_crypto_keys_list_execute(builder)
 }
 
@@ -423,6 +449,15 @@ pub fn kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resou
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct KmsinventoryProjectsLocationsKeyRingsCryptoKeysGetProtectedResourcesSummaryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: fallbackScope
+    pub fallbackScope: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/protectedResourcesSummary
 /// Returns aggregate information about the resources protected by the given Cloud KMS CryptoKey. By default, summary of resources within the same Cloud organization as the key will be returned, which requires the KMS organization service account to be configured(refer <https://docs.cloud.google.`com/kms/docs/view-key-usage`#required-roles>). If the KMS organization service account is not configured or key's project is not part of an organization, set fallback_scope to FALLBACK_SCOPE_PROJECT to retrieve a summary of protected resources within the key's project.
 ///
@@ -435,8 +470,7 @@ pub fn kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resou
 
 pub fn kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary(
     client: &SimpleHttpClient,
-    name: &str,
-    fallbackScope: Option<&str>,
+    args: &KmsinventoryProjectsLocationsKeyRingsCryptoKeysGetProtectedResourcesSummaryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudKmsInventoryV1ProtectedResourcesSummary>, ApiError>,
@@ -445,7 +479,7 @@ pub fn kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resou
         + 'static,
     ApiError,
 > {
-    let builder = kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_builder(client, name, fallbackScope)?;
+    let builder = kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_builder(client, &args.name, args.fallbackScope.as_deref())?;
     kmsinventory_projects_locations_key_rings_crypto_keys_get_protected_resources_summary_execute(
         builder,
     )
@@ -573,6 +607,21 @@ pub fn kmsinventory_projects_protected_resources_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`kmsinventory_projects_protected_resources_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct KmsinventoryProjectsProtectedResourcesSearchArgs {
+    /// Path parameter: scope
+    pub scope: String,
+    /// Query parameter: cryptoKey
+    pub cryptoKey: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resourceTypes
+    pub resourceTypes: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/protectedResources:search
 /// Returns metadata about the resources protected by the given Cloud KMS CryptoKey in the given Cloud `organization/project`.
 ///
@@ -585,11 +634,7 @@ pub fn kmsinventory_projects_protected_resources_search_execute(
 
 pub fn kmsinventory_projects_protected_resources_search(
     client: &SimpleHttpClient,
-    scope: &str,
-    cryptoKey: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    resourceTypes: Option<&str>,
+    args: &KmsinventoryProjectsProtectedResourcesSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -603,11 +648,11 @@ pub fn kmsinventory_projects_protected_resources_search(
 > {
     let builder = kmsinventory_projects_protected_resources_search_builder(
         client,
-        scope,
-        cryptoKey,
-        pageSize,
-        pageToken,
-        resourceTypes,
+        &args.scope,
+        args.cryptoKey.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.resourceTypes.as_deref(),
     )?;
     kmsinventory_projects_protected_resources_search_execute(builder)
 }

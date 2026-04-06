@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET userprofiles/{userprofilesId}/accountActiveAdSummaries/{accountActiveAdSummariesId}
 /// Gets the account's active ad summary by account ID.
@@ -110,6 +112,15 @@ pub fn dfareporting_account_active_ad_summaries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_account_active_ad_summaries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAccountActiveAdSummariesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: summaryAccountId
+    pub summaryAccountId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/accountActiveAdSummaries/{accountActiveAdSummariesId}
 /// Gets the account's active ad summary by account ID.
 ///
@@ -122,16 +133,18 @@ pub fn dfareporting_account_active_ad_summaries_get_execute(
 
 pub fn dfareporting_account_active_ad_summaries_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    summaryAccountId: &str,
+    args: &DfareportingAccountActiveAdSummariesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountActiveAdSummary>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_account_active_ad_summaries_get_builder(client, profileId, summaryAccountId)?;
+    let builder = dfareporting_account_active_ad_summaries_get_builder(
+        client,
+        &args.profileId,
+        &args.summaryAccountId,
+    )?;
     dfareporting_account_active_ad_summaries_get_execute(builder)
 }
 
@@ -229,6 +242,15 @@ pub fn dfareporting_account_permission_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_account_permission_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAccountPermissionGroupsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/accountPermissionGroups/{accountPermissionGroupsId}
 /// Gets one account permission group by ID.
 ///
@@ -241,15 +263,15 @@ pub fn dfareporting_account_permission_groups_get_execute(
 
 pub fn dfareporting_account_permission_groups_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingAccountPermissionGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountPermissionGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_permission_groups_get_builder(client, profileId, id)?;
+    let builder =
+        dfareporting_account_permission_groups_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_account_permission_groups_get_execute(builder)
 }
 
@@ -347,6 +369,13 @@ pub fn dfareporting_account_permission_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_account_permission_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAccountPermissionGroupsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/accountPermissionGroups
 /// Retrieves the list of account permission groups.
 ///
@@ -359,7 +388,7 @@ pub fn dfareporting_account_permission_groups_list_execute(
 
 pub fn dfareporting_account_permission_groups_list(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingAccountPermissionGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccountPermissionGroupsListResponse>, ApiError>,
@@ -368,7 +397,7 @@ pub fn dfareporting_account_permission_groups_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_permission_groups_list_builder(client, profileId)?;
+    let builder = dfareporting_account_permission_groups_list_builder(client, &args.profileId)?;
     dfareporting_account_permission_groups_list_execute(builder)
 }
 
@@ -465,6 +494,15 @@ pub fn dfareporting_account_permissions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_account_permissions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAccountPermissionsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/accountPermissions/{accountPermissionsId}
 /// Gets one account permission by ID.
 ///
@@ -477,15 +515,14 @@ pub fn dfareporting_account_permissions_get_execute(
 
 pub fn dfareporting_account_permissions_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingAccountPermissionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountPermission>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_permissions_get_builder(client, profileId, id)?;
+    let builder = dfareporting_account_permissions_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_account_permissions_get_execute(builder)
 }
 
@@ -583,6 +620,13 @@ pub fn dfareporting_account_permissions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_account_permissions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAccountPermissionsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/accountPermissions
 /// Retrieves the list of account permissions.
 ///
@@ -595,7 +639,7 @@ pub fn dfareporting_account_permissions_list_execute(
 
 pub fn dfareporting_account_permissions_list(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingAccountPermissionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccountPermissionsListResponse>, ApiError>,
@@ -604,7 +648,7 @@ pub fn dfareporting_account_permissions_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_permissions_list_builder(client, profileId)?;
+    let builder = dfareporting_account_permissions_list_builder(client, &args.profileId)?;
     dfareporting_account_permissions_list_execute(builder)
 }
 
@@ -702,6 +746,15 @@ pub fn dfareporting_account_user_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_account_user_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAccountUserProfilesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{profileId}/accountUserProfiles/{accountUserProfilesId}
 /// Gets one account user profile by ID.
 ///
@@ -714,15 +767,15 @@ pub fn dfareporting_account_user_profiles_get_execute(
 
 pub fn dfareporting_account_user_profiles_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingAccountUserProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountUserProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_user_profiles_get_builder(client, profileId, id)?;
+    let builder =
+        dfareporting_account_user_profiles_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_account_user_profiles_get_execute(builder)
 }
 
@@ -821,6 +874,15 @@ pub fn dfareporting_account_user_profiles_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_account_user_profiles_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAccountUserProfilesInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: AccountUserProfile,
+}
+
 /// GET userprofiles/{userprofilesId}/accountUserProfiles
 /// Inserts a new account user profile.
 ///
@@ -833,15 +895,15 @@ pub fn dfareporting_account_user_profiles_insert_execute(
 
 pub fn dfareporting_account_user_profiles_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &AccountUserProfile,
+    args: &DfareportingAccountUserProfilesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountUserProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_user_profiles_insert_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_account_user_profiles_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_account_user_profiles_insert_execute(builder)
 }
 
@@ -983,6 +1045,31 @@ pub fn dfareporting_account_user_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_account_user_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAccountUserProfilesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: active
+    pub active: Option<bool>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+    /// Query parameter: subaccountId
+    pub subaccountId: Option<String>,
+    /// Query parameter: userRoleId
+    pub userRoleId: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/accountUserProfiles
 /// Retrieves a list of account user profiles, possibly filtered. This method supports paging.
 ///
@@ -995,16 +1082,7 @@ pub fn dfareporting_account_user_profiles_list_execute(
 
 pub fn dfareporting_account_user_profiles_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    active: Option<bool>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    subaccountId: Option<&str>,
-    userRoleId: Option<&str>,
+    args: &DfareportingAccountUserProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccountUserProfilesListResponse>, ApiError>,
@@ -1015,16 +1093,16 @@ pub fn dfareporting_account_user_profiles_list(
 > {
     let builder = dfareporting_account_user_profiles_list_builder(
         client,
-        profileId,
-        active,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
-        subaccountId,
-        userRoleId,
+        &args.profileId,
+        args.active,
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
+        args.subaccountId.as_deref(),
+        args.userRoleId.as_deref(),
     )?;
     dfareporting_account_user_profiles_list_execute(builder)
 }
@@ -1125,6 +1203,17 @@ pub fn dfareporting_account_user_profiles_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_account_user_profiles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAccountUserProfilesPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: AccountUserProfile,
+}
+
 /// GET userprofiles/{userprofilesId}/accountUserProfiles
 /// Updates an existing account user profile. This method supports patch semantics.
 ///
@@ -1137,16 +1226,19 @@ pub fn dfareporting_account_user_profiles_patch_execute(
 
 pub fn dfareporting_account_user_profiles_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &AccountUserProfile,
+    args: &DfareportingAccountUserProfilesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountUserProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_user_profiles_patch_builder(client, profileId, id, body)?;
+    let builder = dfareporting_account_user_profiles_patch_builder(
+        client,
+        &args.profileId,
+        &args.id,
+        &args.body,
+    )?;
     dfareporting_account_user_profiles_patch_execute(builder)
 }
 
@@ -1245,6 +1337,15 @@ pub fn dfareporting_account_user_profiles_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_account_user_profiles_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAccountUserProfilesUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: AccountUserProfile,
+}
+
 /// GET userprofiles/{userprofilesId}/accountUserProfiles
 /// Updates an existing account user profile.
 ///
@@ -1257,15 +1358,15 @@ pub fn dfareporting_account_user_profiles_update_execute(
 
 pub fn dfareporting_account_user_profiles_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &AccountUserProfile,
+    args: &DfareportingAccountUserProfilesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountUserProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_account_user_profiles_update_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_account_user_profiles_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_account_user_profiles_update_execute(builder)
 }
 
@@ -1360,6 +1461,15 @@ pub fn dfareporting_accounts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_accounts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAccountsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/accounts/{accountsId}
 /// Gets one account by ID.
 ///
@@ -1372,13 +1482,12 @@ pub fn dfareporting_accounts_get_execute(
 
 pub fn dfareporting_accounts_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingAccountsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_accounts_get_builder(client, profileId, id)?;
+    let builder = dfareporting_accounts_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_accounts_get_execute(builder)
 }
 
@@ -1510,6 +1619,27 @@ pub fn dfareporting_accounts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAccountsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: active
+    pub active: Option<bool>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/accounts
 /// Retrieves the list of accounts, possibly filtered. This method supports paging.
 ///
@@ -1522,14 +1652,7 @@ pub fn dfareporting_accounts_list_execute(
 
 pub fn dfareporting_accounts_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    active: Option<bool>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingAccountsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountsListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1538,14 +1661,14 @@ pub fn dfareporting_accounts_list(
 > {
     let builder = dfareporting_accounts_list_builder(
         client,
-        profileId,
-        active,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
+        &args.profileId,
+        args.active,
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_accounts_list_execute(builder)
 }
@@ -1644,6 +1767,17 @@ pub fn dfareporting_accounts_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_accounts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAccountsPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: Account,
+}
+
 /// GET userprofiles/{userprofilesId}/accounts
 /// Updates an existing account. This method supports patch semantics.
 ///
@@ -1656,14 +1790,13 @@ pub fn dfareporting_accounts_patch_execute(
 
 pub fn dfareporting_accounts_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Account,
+    args: &DfareportingAccountsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_accounts_patch_builder(client, profileId, id, body)?;
+    let builder =
+        dfareporting_accounts_patch_builder(client, &args.profileId, &args.id, &args.body)?;
     dfareporting_accounts_patch_execute(builder)
 }
 
@@ -1760,6 +1893,15 @@ pub fn dfareporting_accounts_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_accounts_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAccountsUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Account,
+}
+
 /// GET userprofiles/{userprofilesId}/accounts
 /// Updates an existing account.
 ///
@@ -1772,13 +1914,12 @@ pub fn dfareporting_accounts_update_execute(
 
 pub fn dfareporting_accounts_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Account,
+    args: &DfareportingAccountsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_accounts_update_builder(client, profileId, body)?;
+    let builder = dfareporting_accounts_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_accounts_update_execute(builder)
 }
 
@@ -1873,6 +2014,15 @@ pub fn dfareporting_ads_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_ads_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/ads/{adsId}
 /// Gets one ad by ID.
 ///
@@ -1885,13 +2035,12 @@ pub fn dfareporting_ads_get_execute(
 
 pub fn dfareporting_ads_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingAdsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_ads_get_builder(client, profileId, id)?;
+    let builder = dfareporting_ads_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_ads_get_execute(builder)
 }
 
@@ -1988,6 +2137,15 @@ pub fn dfareporting_ads_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_ads_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdsInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Ad,
+}
+
 /// GET userprofiles/{userprofilesId}/ads
 /// Inserts a new ad.
 ///
@@ -2000,13 +2158,12 @@ pub fn dfareporting_ads_insert_execute(
 
 pub fn dfareporting_ads_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Ad,
+    args: &DfareportingAdsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_ads_insert_builder(client, profileId, body)?;
+    let builder = dfareporting_ads_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_ads_insert_execute(builder)
 }
 
@@ -2202,6 +2359,59 @@ pub fn dfareporting_ads_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_ads_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: active
+    pub active: Option<bool>,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: archived
+    pub archived: Option<bool>,
+    /// Query parameter: audienceSegmentIds
+    pub audienceSegmentIds: Option<String>,
+    /// Query parameter: campaignIds
+    pub campaignIds: Option<String>,
+    /// Query parameter: compatibility
+    pub compatibility: Option<String>,
+    /// Query parameter: creativeIds
+    pub creativeIds: Option<String>,
+    /// Query parameter: creativeOptimizationConfigurationIds
+    pub creativeOptimizationConfigurationIds: Option<String>,
+    /// Query parameter: dynamicClickTracker
+    pub dynamicClickTracker: Option<bool>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: landingPageIds
+    pub landingPageIds: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: overriddenEventTagId
+    pub overriddenEventTagId: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: placementIds
+    pub placementIds: Option<String>,
+    /// Query parameter: remarketingListIds
+    pub remarketingListIds: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sizeIds
+    pub sizeIds: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+    /// Query parameter: sslCompliant
+    pub sslCompliant: Option<bool>,
+    /// Query parameter: sslRequired
+    pub sslRequired: Option<bool>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/ads
 /// Retrieves a list of ads, possibly filtered. This method supports paging.
 ///
@@ -2214,30 +2424,7 @@ pub fn dfareporting_ads_list_execute(
 
 pub fn dfareporting_ads_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    active: Option<bool>,
-    advertiserId: Option<&str>,
-    archived: Option<bool>,
-    audienceSegmentIds: Option<&str>,
-    campaignIds: Option<&str>,
-    compatibility: Option<&str>,
-    creativeIds: Option<&str>,
-    creativeOptimizationConfigurationIds: Option<&str>,
-    dynamicClickTracker: Option<bool>,
-    ids: Option<&str>,
-    landingPageIds: Option<&str>,
-    maxResults: Option<i32>,
-    overriddenEventTagId: Option<&str>,
-    pageToken: Option<&str>,
-    placementIds: Option<&str>,
-    remarketingListIds: Option<&str>,
-    searchString: Option<&str>,
-    sizeIds: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    sslCompliant: Option<bool>,
-    sslRequired: Option<bool>,
-    type_rs: Option<&str>,
+    args: &DfareportingAdsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdsListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2246,30 +2433,30 @@ pub fn dfareporting_ads_list(
 > {
     let builder = dfareporting_ads_list_builder(
         client,
-        profileId,
-        active,
-        advertiserId,
-        archived,
-        audienceSegmentIds,
-        campaignIds,
-        compatibility,
-        creativeIds,
-        creativeOptimizationConfigurationIds,
-        dynamicClickTracker,
-        ids,
-        landingPageIds,
-        maxResults,
-        overriddenEventTagId,
-        pageToken,
-        placementIds,
-        remarketingListIds,
-        searchString,
-        sizeIds,
-        sortField,
-        sortOrder,
-        sslCompliant,
-        sslRequired,
-        type_rs,
+        &args.profileId,
+        args.active,
+        args.advertiserId.as_deref(),
+        args.archived,
+        args.audienceSegmentIds.as_deref(),
+        args.campaignIds.as_deref(),
+        args.compatibility.as_deref(),
+        args.creativeIds.as_deref(),
+        args.creativeOptimizationConfigurationIds.as_deref(),
+        args.dynamicClickTracker,
+        args.ids.as_deref(),
+        args.landingPageIds.as_deref(),
+        args.maxResults,
+        args.overriddenEventTagId.as_deref(),
+        args.pageToken.as_deref(),
+        args.placementIds.as_deref(),
+        args.remarketingListIds.as_deref(),
+        args.searchString.as_deref(),
+        args.sizeIds.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
+        args.sslCompliant,
+        args.sslRequired,
+        args.type_rs.as_deref(),
     )?;
     dfareporting_ads_list_execute(builder)
 }
@@ -2368,6 +2555,17 @@ pub fn dfareporting_ads_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_ads_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdsPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: Ad,
+}
+
 /// GET userprofiles/{userprofilesId}/ads
 /// Updates an existing ad. This method supports patch semantics.
 ///
@@ -2380,14 +2578,12 @@ pub fn dfareporting_ads_patch_execute(
 
 pub fn dfareporting_ads_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Ad,
+    args: &DfareportingAdsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_ads_patch_builder(client, profileId, id, body)?;
+    let builder = dfareporting_ads_patch_builder(client, &args.profileId, &args.id, &args.body)?;
     dfareporting_ads_patch_execute(builder)
 }
 
@@ -2484,6 +2680,15 @@ pub fn dfareporting_ads_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_ads_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdsUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Ad,
+}
+
 /// GET userprofiles/{userprofilesId}/ads
 /// Updates an existing ad.
 ///
@@ -2496,13 +2701,12 @@ pub fn dfareporting_ads_update_execute(
 
 pub fn dfareporting_ads_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Ad,
+    args: &DfareportingAdsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Ad>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_ads_update_builder(client, profileId, body)?;
+    let builder = dfareporting_ads_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_ads_update_execute(builder)
 }
 
@@ -2594,6 +2798,15 @@ pub fn dfareporting_advertiser_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertiser_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertiserGroupsDeleteArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/advertiserGroups/{advertiserGroupsId}
 /// Deletes an existing advertiser group.
 ///
@@ -2606,13 +2819,12 @@ pub fn dfareporting_advertiser_groups_delete_execute(
 
 pub fn dfareporting_advertiser_groups_delete(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingAdvertiserGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertiser_groups_delete_builder(client, profileId, id)?;
+    let builder = dfareporting_advertiser_groups_delete_builder(client, &args.profileId, &args.id)?;
     dfareporting_advertiser_groups_delete_execute(builder)
 }
 
@@ -2709,6 +2921,15 @@ pub fn dfareporting_advertiser_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertiser_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertiserGroupsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/advertiserGroups/{advertiserGroupsId}
 /// Gets one advertiser group by ID.
 ///
@@ -2721,15 +2942,14 @@ pub fn dfareporting_advertiser_groups_get_execute(
 
 pub fn dfareporting_advertiser_groups_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingAdvertiserGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdvertiserGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertiser_groups_get_builder(client, profileId, id)?;
+    let builder = dfareporting_advertiser_groups_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_advertiser_groups_get_execute(builder)
 }
 
@@ -2828,6 +3048,15 @@ pub fn dfareporting_advertiser_groups_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertiser_groups_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertiserGroupsInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: AdvertiserGroup,
+}
+
 /// GET userprofiles/{userprofilesId}/advertiserGroups
 /// Inserts a new advertiser group.
 ///
@@ -2840,15 +3069,15 @@ pub fn dfareporting_advertiser_groups_insert_execute(
 
 pub fn dfareporting_advertiser_groups_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &AdvertiserGroup,
+    args: &DfareportingAdvertiserGroupsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdvertiserGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertiser_groups_insert_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_advertiser_groups_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_advertiser_groups_insert_execute(builder)
 }
 
@@ -2978,6 +3207,25 @@ pub fn dfareporting_advertiser_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertiser_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertiserGroupsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/advertiserGroups
 /// Retrieves a list of advertiser groups, possibly filtered. This method supports paging.
 ///
@@ -2990,13 +3238,7 @@ pub fn dfareporting_advertiser_groups_list_execute(
 
 pub fn dfareporting_advertiser_groups_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingAdvertiserGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AdvertiserGroupsListResponse>, ApiError>,
@@ -3007,13 +3249,13 @@ pub fn dfareporting_advertiser_groups_list(
 > {
     let builder = dfareporting_advertiser_groups_list_builder(
         client,
-        profileId,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
+        &args.profileId,
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_advertiser_groups_list_execute(builder)
 }
@@ -3114,6 +3356,17 @@ pub fn dfareporting_advertiser_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertiser_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertiserGroupsPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: AdvertiserGroup,
+}
+
 /// GET userprofiles/{userprofilesId}/advertiserGroups
 /// Updates an existing advertiser group. This method supports patch semantics.
 ///
@@ -3126,16 +3379,19 @@ pub fn dfareporting_advertiser_groups_patch_execute(
 
 pub fn dfareporting_advertiser_groups_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &AdvertiserGroup,
+    args: &DfareportingAdvertiserGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdvertiserGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertiser_groups_patch_builder(client, profileId, id, body)?;
+    let builder = dfareporting_advertiser_groups_patch_builder(
+        client,
+        &args.profileId,
+        &args.id,
+        &args.body,
+    )?;
     dfareporting_advertiser_groups_patch_execute(builder)
 }
 
@@ -3234,6 +3490,15 @@ pub fn dfareporting_advertiser_groups_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertiser_groups_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertiserGroupsUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: AdvertiserGroup,
+}
+
 /// GET userprofiles/{userprofilesId}/advertiserGroups
 /// Updates an existing advertiser group.
 ///
@@ -3246,15 +3511,15 @@ pub fn dfareporting_advertiser_groups_update_execute(
 
 pub fn dfareporting_advertiser_groups_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &AdvertiserGroup,
+    args: &DfareportingAdvertiserGroupsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdvertiserGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertiser_groups_update_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_advertiser_groups_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_advertiser_groups_update_execute(builder)
 }
 
@@ -3374,6 +3639,21 @@ pub fn dfareporting_advertiser_invoices_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertiser_invoices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertiserInvoicesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: issueMonth
+    pub issueMonth: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/advertisers/{advertisersId}/invoices
 /// Retrieves a list of invoices for a particular issue month. The api only works if the billing profile invoice level is set to either advertiser or campaign non-consolidated invoice level.
 ///
@@ -3386,11 +3666,7 @@ pub fn dfareporting_advertiser_invoices_list_execute(
 
 pub fn dfareporting_advertiser_invoices_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: &str,
-    issueMonth: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DfareportingAdvertiserInvoicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AdvertiserInvoicesListResponse>, ApiError>,
@@ -3401,11 +3677,11 @@ pub fn dfareporting_advertiser_invoices_list(
 > {
     let builder = dfareporting_advertiser_invoices_list_builder(
         client,
-        profileId,
-        advertiserId,
-        issueMonth,
-        maxResults,
-        pageToken,
+        &args.profileId,
+        &args.advertiserId,
+        args.issueMonth.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
     )?;
     dfareporting_advertiser_invoices_list_execute(builder)
 }
@@ -3502,6 +3778,15 @@ pub fn dfareporting_advertiser_landing_pages_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertiser_landing_pages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertiserLandingPagesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/advertiserLandingPages/{advertiserLandingPagesId}
 /// Gets one landing page by ID.
 ///
@@ -3514,13 +3799,13 @@ pub fn dfareporting_advertiser_landing_pages_get_execute(
 
 pub fn dfareporting_advertiser_landing_pages_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingAdvertiserLandingPagesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertiser_landing_pages_get_builder(client, profileId, id)?;
+    let builder =
+        dfareporting_advertiser_landing_pages_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_advertiser_landing_pages_get_execute(builder)
 }
 
@@ -3617,6 +3902,15 @@ pub fn dfareporting_advertiser_landing_pages_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertiser_landing_pages_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertiserLandingPagesInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: LandingPage,
+}
+
 /// GET userprofiles/{userprofilesId}/advertiserLandingPages
 /// Inserts a new landing page.
 ///
@@ -3629,13 +3923,13 @@ pub fn dfareporting_advertiser_landing_pages_insert_execute(
 
 pub fn dfareporting_advertiser_landing_pages_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &LandingPage,
+    args: &DfareportingAdvertiserLandingPagesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertiser_landing_pages_insert_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_advertiser_landing_pages_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_advertiser_landing_pages_insert_execute(builder)
 }
 
@@ -3781,6 +4075,33 @@ pub fn dfareporting_advertiser_landing_pages_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertiser_landing_pages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertiserLandingPagesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: advertiserIds
+    pub advertiserIds: Option<String>,
+    /// Query parameter: archived
+    pub archived: Option<bool>,
+    /// Query parameter: campaignIds
+    pub campaignIds: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+    /// Query parameter: subaccountId
+    pub subaccountId: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/advertiserLandingPages
 /// Retrieves a list of landing pages.
 ///
@@ -3793,17 +4114,7 @@ pub fn dfareporting_advertiser_landing_pages_list_execute(
 
 pub fn dfareporting_advertiser_landing_pages_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserIds: Option<&str>,
-    archived: Option<bool>,
-    campaignIds: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    subaccountId: Option<&str>,
+    args: &DfareportingAdvertiserLandingPagesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AdvertiserLandingPagesListResponse>, ApiError>,
@@ -3814,17 +4125,17 @@ pub fn dfareporting_advertiser_landing_pages_list(
 > {
     let builder = dfareporting_advertiser_landing_pages_list_builder(
         client,
-        profileId,
-        advertiserIds,
-        archived,
-        campaignIds,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
-        subaccountId,
+        &args.profileId,
+        args.advertiserIds.as_deref(),
+        args.archived,
+        args.campaignIds.as_deref(),
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
+        args.subaccountId.as_deref(),
     )?;
     dfareporting_advertiser_landing_pages_list_execute(builder)
 }
@@ -3924,6 +4235,17 @@ pub fn dfareporting_advertiser_landing_pages_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertiser_landing_pages_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertiserLandingPagesPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: LandingPage,
+}
+
 /// GET userprofiles/{userprofilesId}/advertiserLandingPages
 /// Updates an existing landing page. This method supports patch semantics.
 ///
@@ -3936,14 +4258,17 @@ pub fn dfareporting_advertiser_landing_pages_patch_execute(
 
 pub fn dfareporting_advertiser_landing_pages_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &LandingPage,
+    args: &DfareportingAdvertiserLandingPagesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertiser_landing_pages_patch_builder(client, profileId, id, body)?;
+    let builder = dfareporting_advertiser_landing_pages_patch_builder(
+        client,
+        &args.profileId,
+        &args.id,
+        &args.body,
+    )?;
     dfareporting_advertiser_landing_pages_patch_execute(builder)
 }
 
@@ -4040,6 +4365,15 @@ pub fn dfareporting_advertiser_landing_pages_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertiser_landing_pages_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertiserLandingPagesUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: LandingPage,
+}
+
 /// GET userprofiles/{userprofilesId}/advertiserLandingPages
 /// Updates an existing landing page.
 ///
@@ -4052,13 +4386,13 @@ pub fn dfareporting_advertiser_landing_pages_update_execute(
 
 pub fn dfareporting_advertiser_landing_pages_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &LandingPage,
+    args: &DfareportingAdvertiserLandingPagesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LandingPage>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertiser_landing_pages_update_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_advertiser_landing_pages_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_advertiser_landing_pages_update_execute(builder)
 }
 
@@ -4153,6 +4487,15 @@ pub fn dfareporting_advertisers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertisers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertisersGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/advertisers/{advertisersId}
 /// Gets one advertiser by ID.
 ///
@@ -4165,13 +4508,12 @@ pub fn dfareporting_advertisers_get_execute(
 
 pub fn dfareporting_advertisers_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingAdvertisersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertisers_get_builder(client, profileId, id)?;
+    let builder = dfareporting_advertisers_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_advertisers_get_execute(builder)
 }
 
@@ -4268,6 +4610,15 @@ pub fn dfareporting_advertisers_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertisers_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertisersInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Advertiser,
+}
+
 /// GET userprofiles/{userprofilesId}/advertisers
 /// Inserts a new advertiser.
 ///
@@ -4280,13 +4631,12 @@ pub fn dfareporting_advertisers_insert_execute(
 
 pub fn dfareporting_advertisers_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Advertiser,
+    args: &DfareportingAdvertisersInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertisers_insert_builder(client, profileId, body)?;
+    let builder = dfareporting_advertisers_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_advertisers_insert_execute(builder)
 }
 
@@ -4438,6 +4788,37 @@ pub fn dfareporting_advertisers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertisers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertisersListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: advertiserGroupIds
+    pub advertiserGroupIds: Option<String>,
+    /// Query parameter: floodlightConfigurationIds
+    pub floodlightConfigurationIds: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: includeAdvertisersWithoutGroupsOnly
+    pub includeAdvertisersWithoutGroupsOnly: Option<bool>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: onlyParent
+    pub onlyParent: Option<bool>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+    /// Query parameter: status
+    pub status: Option<String>,
+    /// Query parameter: subaccountId
+    pub subaccountId: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/advertisers
 /// Retrieves a list of advertisers, possibly filtered. This method supports paging.
 ///
@@ -4450,19 +4831,7 @@ pub fn dfareporting_advertisers_list_execute(
 
 pub fn dfareporting_advertisers_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserGroupIds: Option<&str>,
-    floodlightConfigurationIds: Option<&str>,
-    ids: Option<&str>,
-    includeAdvertisersWithoutGroupsOnly: Option<bool>,
-    maxResults: Option<i32>,
-    onlyParent: Option<bool>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    status: Option<&str>,
-    subaccountId: Option<&str>,
+    args: &DfareportingAdvertisersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdvertisersListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4471,19 +4840,19 @@ pub fn dfareporting_advertisers_list(
 > {
     let builder = dfareporting_advertisers_list_builder(
         client,
-        profileId,
-        advertiserGroupIds,
-        floodlightConfigurationIds,
-        ids,
-        includeAdvertisersWithoutGroupsOnly,
-        maxResults,
-        onlyParent,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
-        status,
-        subaccountId,
+        &args.profileId,
+        args.advertiserGroupIds.as_deref(),
+        args.floodlightConfigurationIds.as_deref(),
+        args.ids.as_deref(),
+        args.includeAdvertisersWithoutGroupsOnly,
+        args.maxResults,
+        args.onlyParent,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
+        args.status.as_deref(),
+        args.subaccountId.as_deref(),
     )?;
     dfareporting_advertisers_list_execute(builder)
 }
@@ -4582,6 +4951,17 @@ pub fn dfareporting_advertisers_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertisers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertisersPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: Advertiser,
+}
+
 /// GET userprofiles/{userprofilesId}/advertisers
 /// Updates an existing advertiser. This method supports patch semantics.
 ///
@@ -4594,14 +4974,13 @@ pub fn dfareporting_advertisers_patch_execute(
 
 pub fn dfareporting_advertisers_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Advertiser,
+    args: &DfareportingAdvertisersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertisers_patch_builder(client, profileId, id, body)?;
+    let builder =
+        dfareporting_advertisers_patch_builder(client, &args.profileId, &args.id, &args.body)?;
     dfareporting_advertisers_patch_execute(builder)
 }
 
@@ -4698,6 +5077,15 @@ pub fn dfareporting_advertisers_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_advertisers_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingAdvertisersUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Advertiser,
+}
+
 /// GET userprofiles/{userprofilesId}/advertisers
 /// Updates an existing advertiser.
 ///
@@ -4710,13 +5098,12 @@ pub fn dfareporting_advertisers_update_execute(
 
 pub fn dfareporting_advertisers_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Advertiser,
+    args: &DfareportingAdvertisersUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_advertisers_update_builder(client, profileId, body)?;
+    let builder = dfareporting_advertisers_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_advertisers_update_execute(builder)
 }
 
@@ -4817,6 +5204,17 @@ pub fn dfareporting_billing_assignments_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_billing_assignments_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingBillingAssignmentsInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: billingProfileId
+    pub billingProfileId: String,
+    /// Request body.
+    pub body: BillingAssignment,
+}
+
 /// GET userprofiles/{userprofilesId}/billingProfiles/{billingProfilesId}/billingAssignments
 /// Inserts a new billing assignment and returns the new assignment. Only one of advertiser_id or campaign_id is support per request. If the new assignment has no effect (assigning a campaign to the parent advertiser billing profile or assigning an advertiser to the account billing profile), no assignment will be returned.
 ///
@@ -4829,17 +5227,19 @@ pub fn dfareporting_billing_assignments_insert_execute(
 
 pub fn dfareporting_billing_assignments_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    billingProfileId: &str,
-    body: &BillingAssignment,
+    args: &DfareportingBillingAssignmentsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BillingAssignment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_billing_assignments_insert_builder(client, profileId, billingProfileId, body)?;
+    let builder = dfareporting_billing_assignments_insert_builder(
+        client,
+        &args.profileId,
+        &args.billingProfileId,
+        &args.body,
+    )?;
     dfareporting_billing_assignments_insert_execute(builder)
 }
 
@@ -4939,6 +5339,15 @@ pub fn dfareporting_billing_assignments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_billing_assignments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingBillingAssignmentsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: billingProfileId
+    pub billingProfileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/billingProfiles/{billingProfilesId}/billingAssignments
 /// Retrieves a list of billing assignments.
 ///
@@ -4951,8 +5360,7 @@ pub fn dfareporting_billing_assignments_list_execute(
 
 pub fn dfareporting_billing_assignments_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    billingProfileId: &str,
+    args: &DfareportingBillingAssignmentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BillingAssignmentsListResponse>, ApiError>,
@@ -4961,8 +5369,11 @@ pub fn dfareporting_billing_assignments_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_billing_assignments_list_builder(client, profileId, billingProfileId)?;
+    let builder = dfareporting_billing_assignments_list_builder(
+        client,
+        &args.profileId,
+        &args.billingProfileId,
+    )?;
     dfareporting_billing_assignments_list_execute(builder)
 }
 
@@ -5059,6 +5470,15 @@ pub fn dfareporting_billing_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_billing_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingBillingProfilesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/billingProfiles/{billingProfilesId}
 /// Gets one billing profile by ID.
 ///
@@ -5071,15 +5491,14 @@ pub fn dfareporting_billing_profiles_get_execute(
 
 pub fn dfareporting_billing_profiles_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingBillingProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BillingProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_billing_profiles_get_builder(client, profileId, id)?;
+    let builder = dfareporting_billing_profiles_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_billing_profiles_get_execute(builder)
 }
 
@@ -5225,6 +5644,33 @@ pub fn dfareporting_billing_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_billing_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingBillingProfilesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: currency_code
+    pub currency_code: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: onlySuggestion
+    pub onlySuggestion: Option<bool>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+    /// Query parameter: status
+    pub status: Option<String>,
+    /// Query parameter: subaccountIds
+    pub subaccountIds: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/billingProfiles
 /// Retrieves a list of billing profiles, possibly filtered. This method supports paging.
 ///
@@ -5237,17 +5683,7 @@ pub fn dfareporting_billing_profiles_list_execute(
 
 pub fn dfareporting_billing_profiles_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    currency_code: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    name: Option<&str>,
-    onlySuggestion: Option<bool>,
-    pageToken: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    status: Option<&str>,
-    subaccountIds: Option<&str>,
+    args: &DfareportingBillingProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BillingProfilesListResponse>, ApiError>,
@@ -5258,17 +5694,17 @@ pub fn dfareporting_billing_profiles_list(
 > {
     let builder = dfareporting_billing_profiles_list_builder(
         client,
-        profileId,
-        currency_code,
-        ids,
-        maxResults,
-        name,
-        onlySuggestion,
-        pageToken,
-        sortField,
-        sortOrder,
-        status,
-        subaccountIds,
+        &args.profileId,
+        args.currency_code.as_deref(),
+        args.ids.as_deref(),
+        args.maxResults,
+        args.name.as_deref(),
+        args.onlySuggestion,
+        args.pageToken.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
+        args.status.as_deref(),
+        args.subaccountIds.as_deref(),
     )?;
     dfareporting_billing_profiles_list_execute(builder)
 }
@@ -5368,6 +5804,15 @@ pub fn dfareporting_billing_profiles_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_billing_profiles_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingBillingProfilesUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: BillingProfile,
+}
+
 /// GET userprofiles/{userprofilesId}/billingProfiles
 /// Updates an existing billing profile.
 ///
@@ -5380,15 +5825,15 @@ pub fn dfareporting_billing_profiles_update_execute(
 
 pub fn dfareporting_billing_profiles_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &BillingProfile,
+    args: &DfareportingBillingProfilesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BillingProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_billing_profiles_update_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_billing_profiles_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_billing_profiles_update_execute(builder)
 }
 
@@ -5486,6 +5931,15 @@ pub fn dfareporting_billing_rates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_billing_rates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingBillingRatesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: billingProfileId
+    pub billingProfileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/billingProfiles/{billingProfilesId}/billingRates
 /// Retrieves a list of billing rates. This method supports paging.
 ///
@@ -5498,15 +5952,15 @@ pub fn dfareporting_billing_rates_list_execute(
 
 pub fn dfareporting_billing_rates_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    billingProfileId: &str,
+    args: &DfareportingBillingRatesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BillingRatesListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_billing_rates_list_builder(client, profileId, billingProfileId)?;
+    let builder =
+        dfareporting_billing_rates_list_builder(client, &args.profileId, &args.billingProfileId)?;
     dfareporting_billing_rates_list_execute(builder)
 }
 
@@ -5602,6 +6056,13 @@ pub fn dfareporting_browsers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_browsers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingBrowsersListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/browsers
 /// Retrieves a list of browsers.
 ///
@@ -5614,14 +6075,14 @@ pub fn dfareporting_browsers_list_execute(
 
 pub fn dfareporting_browsers_list(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingBrowsersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BrowsersListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_browsers_list_builder(client, profileId)?;
+    let builder = dfareporting_browsers_list_builder(client, &args.profileId)?;
     dfareporting_browsers_list_execute(builder)
 }
 
@@ -5724,6 +6185,17 @@ pub fn dfareporting_campaign_creative_associations_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_campaign_creative_associations_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCampaignCreativeAssociationsInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: campaignId
+    pub campaignId: String,
+    /// Request body.
+    pub body: CampaignCreativeAssociation,
+}
+
 /// GET userprofiles/{userprofilesId}/campaigns/{campaignsId}/campaignCreativeAssociations
 /// Associates a creative with the specified campaign. This method creates a default ad with dimensions matching the creative in the campaign if such a default ad does not exist already.
 ///
@@ -5736,9 +6208,7 @@ pub fn dfareporting_campaign_creative_associations_insert_execute(
 
 pub fn dfareporting_campaign_creative_associations_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    campaignId: &str,
-    body: &CampaignCreativeAssociation,
+    args: &DfareportingCampaignCreativeAssociationsInsertArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CampaignCreativeAssociation>, ApiError>,
@@ -5748,7 +6218,10 @@ pub fn dfareporting_campaign_creative_associations_insert(
     ApiError,
 > {
     let builder = dfareporting_campaign_creative_associations_insert_builder(
-        client, profileId, campaignId, body,
+        client,
+        &args.profileId,
+        &args.campaignId,
+        &args.body,
     )?;
     dfareporting_campaign_creative_associations_insert_execute(builder)
 }
@@ -5869,6 +6342,21 @@ pub fn dfareporting_campaign_creative_associations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_campaign_creative_associations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCampaignCreativeAssociationsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: campaignId
+    pub campaignId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/campaigns/{campaignsId}/campaignCreativeAssociations
 /// Retrieves the list of creative IDs associated with the specified campaign. This method supports paging.
 ///
@@ -5881,11 +6369,7 @@ pub fn dfareporting_campaign_creative_associations_list_execute(
 
 pub fn dfareporting_campaign_creative_associations_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    campaignId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingCampaignCreativeAssociationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CampaignCreativeAssociationsListResponse>, ApiError>,
@@ -5895,7 +6379,12 @@ pub fn dfareporting_campaign_creative_associations_list(
     ApiError,
 > {
     let builder = dfareporting_campaign_creative_associations_list_builder(
-        client, profileId, campaignId, maxResults, pageToken, sortOrder,
+        client,
+        &args.profileId,
+        &args.campaignId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_campaign_creative_associations_list_execute(builder)
 }
@@ -5991,6 +6480,15 @@ pub fn dfareporting_campaigns_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_campaigns_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCampaignsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/campaigns/{campaignsId}
 /// Gets one campaign by ID.
 ///
@@ -6003,13 +6501,12 @@ pub fn dfareporting_campaigns_get_execute(
 
 pub fn dfareporting_campaigns_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingCampaignsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_campaigns_get_builder(client, profileId, id)?;
+    let builder = dfareporting_campaigns_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_campaigns_get_execute(builder)
 }
 
@@ -6106,6 +6603,15 @@ pub fn dfareporting_campaigns_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_campaigns_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCampaignsInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Campaign,
+}
+
 /// GET userprofiles/{userprofilesId}/campaigns
 /// Inserts a new campaign.
 ///
@@ -6118,13 +6624,12 @@ pub fn dfareporting_campaigns_insert_execute(
 
 pub fn dfareporting_campaigns_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Campaign,
+    args: &DfareportingCampaignsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_campaigns_insert_builder(client, profileId, body)?;
+    let builder = dfareporting_campaigns_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_campaigns_insert_execute(builder)
 }
 
@@ -6280,6 +6785,39 @@ pub fn dfareporting_campaigns_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_campaigns_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCampaignsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: advertiserGroupIds
+    pub advertiserGroupIds: Option<String>,
+    /// Query parameter: advertiserIds
+    pub advertiserIds: Option<String>,
+    /// Query parameter: archived
+    pub archived: Option<bool>,
+    /// Query parameter: atLeastOneOptimizationActivity
+    pub atLeastOneOptimizationActivity: Option<bool>,
+    /// Query parameter: excludedIds
+    pub excludedIds: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: overriddenEventTagId
+    pub overriddenEventTagId: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+    /// Query parameter: subaccountId
+    pub subaccountId: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/campaigns
 /// Retrieves a list of campaigns, possibly filtered. This method supports paging.
 ///
@@ -6292,20 +6830,7 @@ pub fn dfareporting_campaigns_list_execute(
 
 pub fn dfareporting_campaigns_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserGroupIds: Option<&str>,
-    advertiserIds: Option<&str>,
-    archived: Option<bool>,
-    atLeastOneOptimizationActivity: Option<bool>,
-    excludedIds: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    overriddenEventTagId: Option<&str>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    subaccountId: Option<&str>,
+    args: &DfareportingCampaignsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CampaignsListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6314,20 +6839,20 @@ pub fn dfareporting_campaigns_list(
 > {
     let builder = dfareporting_campaigns_list_builder(
         client,
-        profileId,
-        advertiserGroupIds,
-        advertiserIds,
-        archived,
-        atLeastOneOptimizationActivity,
-        excludedIds,
-        ids,
-        maxResults,
-        overriddenEventTagId,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
-        subaccountId,
+        &args.profileId,
+        args.advertiserGroupIds.as_deref(),
+        args.advertiserIds.as_deref(),
+        args.archived,
+        args.atLeastOneOptimizationActivity,
+        args.excludedIds.as_deref(),
+        args.ids.as_deref(),
+        args.maxResults,
+        args.overriddenEventTagId.as_deref(),
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
+        args.subaccountId.as_deref(),
     )?;
     dfareporting_campaigns_list_execute(builder)
 }
@@ -6426,6 +6951,17 @@ pub fn dfareporting_campaigns_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_campaigns_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCampaignsPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: Campaign,
+}
+
 /// GET userprofiles/{userprofilesId}/campaigns
 /// Updates an existing campaign. This method supports patch semantics.
 ///
@@ -6438,14 +6974,13 @@ pub fn dfareporting_campaigns_patch_execute(
 
 pub fn dfareporting_campaigns_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Campaign,
+    args: &DfareportingCampaignsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_campaigns_patch_builder(client, profileId, id, body)?;
+    let builder =
+        dfareporting_campaigns_patch_builder(client, &args.profileId, &args.id, &args.body)?;
     dfareporting_campaigns_patch_execute(builder)
 }
 
@@ -6542,6 +7077,15 @@ pub fn dfareporting_campaigns_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_campaigns_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCampaignsUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Campaign,
+}
+
 /// GET userprofiles/{userprofilesId}/campaigns
 /// Updates an existing campaign.
 ///
@@ -6554,13 +7098,12 @@ pub fn dfareporting_campaigns_update_execute(
 
 pub fn dfareporting_campaigns_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Campaign,
+    args: &DfareportingCampaignsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_campaigns_update_builder(client, profileId, body)?;
+    let builder = dfareporting_campaigns_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_campaigns_update_execute(builder)
 }
 
@@ -6655,6 +7198,15 @@ pub fn dfareporting_change_logs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_change_logs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingChangeLogsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/changeLogs/{changeLogsId}
 /// Gets one change log by ID.
 ///
@@ -6667,13 +7219,12 @@ pub fn dfareporting_change_logs_get_execute(
 
 pub fn dfareporting_change_logs_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingChangeLogsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ChangeLog>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_change_logs_get_builder(client, profileId, id)?;
+    let builder = dfareporting_change_logs_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_change_logs_get_execute(builder)
 }
 
@@ -6817,6 +7368,33 @@ pub fn dfareporting_change_logs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_change_logs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingChangeLogsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: action
+    pub action: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxChangeTime
+    pub maxChangeTime: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: minChangeTime
+    pub minChangeTime: Option<String>,
+    /// Query parameter: objectIds
+    pub objectIds: Option<String>,
+    /// Query parameter: objectType
+    pub objectType: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: userProfileIds
+    pub userProfileIds: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/changeLogs
 /// Retrieves a list of change logs. This method supports paging.
 ///
@@ -6829,17 +7407,7 @@ pub fn dfareporting_change_logs_list_execute(
 
 pub fn dfareporting_change_logs_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    action: Option<&str>,
-    ids: Option<&str>,
-    maxChangeTime: Option<&str>,
-    maxResults: Option<i32>,
-    minChangeTime: Option<&str>,
-    objectIds: Option<&str>,
-    objectType: Option<&str>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    userProfileIds: Option<&str>,
+    args: &DfareportingChangeLogsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ChangeLogsListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6848,17 +7416,17 @@ pub fn dfareporting_change_logs_list(
 > {
     let builder = dfareporting_change_logs_list_builder(
         client,
-        profileId,
-        action,
-        ids,
-        maxChangeTime,
-        maxResults,
-        minChangeTime,
-        objectIds,
-        objectType,
-        pageToken,
-        searchString,
-        userProfileIds,
+        &args.profileId,
+        args.action.as_deref(),
+        args.ids.as_deref(),
+        args.maxChangeTime.as_deref(),
+        args.maxResults,
+        args.minChangeTime.as_deref(),
+        args.objectIds.as_deref(),
+        args.objectType.as_deref(),
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.userProfileIds.as_deref(),
     )?;
     dfareporting_change_logs_list_execute(builder)
 }
@@ -6979,6 +7547,21 @@ pub fn dfareporting_cities_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_cities_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCitiesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: countryDartIds
+    pub countryDartIds: Option<String>,
+    /// Query parameter: dartIds
+    pub dartIds: Option<String>,
+    /// Query parameter: namePrefix
+    pub namePrefix: Option<String>,
+    /// Query parameter: regionDartIds
+    pub regionDartIds: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/cities
 /// Retrieves a list of cities, possibly filtered.
 ///
@@ -6991,11 +7574,7 @@ pub fn dfareporting_cities_list_execute(
 
 pub fn dfareporting_cities_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    countryDartIds: Option<&str>,
-    dartIds: Option<&str>,
-    namePrefix: Option<&str>,
-    regionDartIds: Option<&str>,
+    args: &DfareportingCitiesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CitiesListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7004,11 +7583,11 @@ pub fn dfareporting_cities_list(
 > {
     let builder = dfareporting_cities_list_builder(
         client,
-        profileId,
-        countryDartIds,
-        dartIds,
-        namePrefix,
-        regionDartIds,
+        &args.profileId,
+        args.countryDartIds.as_deref(),
+        args.dartIds.as_deref(),
+        args.namePrefix.as_deref(),
+        args.regionDartIds.as_deref(),
     )?;
     dfareporting_cities_list_execute(builder)
 }
@@ -7106,6 +7685,15 @@ pub fn dfareporting_connection_types_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_connection_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingConnectionTypesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/connectionTypes/{connectionTypesId}
 /// Gets one connection type by ID.
 ///
@@ -7118,15 +7706,14 @@ pub fn dfareporting_connection_types_get_execute(
 
 pub fn dfareporting_connection_types_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingConnectionTypesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConnectionType>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_connection_types_get_builder(client, profileId, id)?;
+    let builder = dfareporting_connection_types_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_connection_types_get_execute(builder)
 }
 
@@ -7224,6 +7811,13 @@ pub fn dfareporting_connection_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_connection_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingConnectionTypesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/connectionTypes
 /// Retrieves a list of connection types.
 ///
@@ -7236,7 +7830,7 @@ pub fn dfareporting_connection_types_list_execute(
 
 pub fn dfareporting_connection_types_list(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingConnectionTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ConnectionTypesListResponse>, ApiError>,
@@ -7245,7 +7839,7 @@ pub fn dfareporting_connection_types_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_connection_types_list_builder(client, profileId)?;
+    let builder = dfareporting_connection_types_list_builder(client, &args.profileId)?;
     dfareporting_connection_types_list_execute(builder)
 }
 
@@ -7337,6 +7931,15 @@ pub fn dfareporting_content_categories_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_content_categories_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingContentCategoriesDeleteArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/contentCategories/{contentCategoriesId}
 /// Deletes an existing content category.
 ///
@@ -7349,13 +7952,13 @@ pub fn dfareporting_content_categories_delete_execute(
 
 pub fn dfareporting_content_categories_delete(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingContentCategoriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_content_categories_delete_builder(client, profileId, id)?;
+    let builder =
+        dfareporting_content_categories_delete_builder(client, &args.profileId, &args.id)?;
     dfareporting_content_categories_delete_execute(builder)
 }
 
@@ -7452,6 +8055,15 @@ pub fn dfareporting_content_categories_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_content_categories_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingContentCategoriesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/contentCategories/{contentCategoriesId}
 /// Gets one content category by ID.
 ///
@@ -7464,15 +8076,14 @@ pub fn dfareporting_content_categories_get_execute(
 
 pub fn dfareporting_content_categories_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingContentCategoriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContentCategory>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_content_categories_get_builder(client, profileId, id)?;
+    let builder = dfareporting_content_categories_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_content_categories_get_execute(builder)
 }
 
@@ -7571,6 +8182,15 @@ pub fn dfareporting_content_categories_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_content_categories_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingContentCategoriesInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: ContentCategory,
+}
+
 /// GET userprofiles/{userprofilesId}/contentCategories
 /// Inserts a new content category.
 ///
@@ -7583,15 +8203,15 @@ pub fn dfareporting_content_categories_insert_execute(
 
 pub fn dfareporting_content_categories_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &ContentCategory,
+    args: &DfareportingContentCategoriesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContentCategory>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_content_categories_insert_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_content_categories_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_content_categories_insert_execute(builder)
 }
 
@@ -7721,6 +8341,25 @@ pub fn dfareporting_content_categories_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_content_categories_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingContentCategoriesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/contentCategories
 /// Retrieves a list of content categories, possibly filtered. This method supports paging.
 ///
@@ -7733,13 +8372,7 @@ pub fn dfareporting_content_categories_list_execute(
 
 pub fn dfareporting_content_categories_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingContentCategoriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ContentCategoriesListResponse>, ApiError>,
@@ -7750,13 +8383,13 @@ pub fn dfareporting_content_categories_list(
 > {
     let builder = dfareporting_content_categories_list_builder(
         client,
-        profileId,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
+        &args.profileId,
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_content_categories_list_execute(builder)
 }
@@ -7857,6 +8490,17 @@ pub fn dfareporting_content_categories_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_content_categories_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingContentCategoriesPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: ContentCategory,
+}
+
 /// GET userprofiles/{userprofilesId}/contentCategories
 /// Updates an existing content category. This method supports patch semantics.
 ///
@@ -7869,16 +8513,19 @@ pub fn dfareporting_content_categories_patch_execute(
 
 pub fn dfareporting_content_categories_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &ContentCategory,
+    args: &DfareportingContentCategoriesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContentCategory>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_content_categories_patch_builder(client, profileId, id, body)?;
+    let builder = dfareporting_content_categories_patch_builder(
+        client,
+        &args.profileId,
+        &args.id,
+        &args.body,
+    )?;
     dfareporting_content_categories_patch_execute(builder)
 }
 
@@ -7977,6 +8624,15 @@ pub fn dfareporting_content_categories_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_content_categories_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingContentCategoriesUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: ContentCategory,
+}
+
 /// GET userprofiles/{userprofilesId}/contentCategories
 /// Updates an existing content category.
 ///
@@ -7989,15 +8645,15 @@ pub fn dfareporting_content_categories_update_execute(
 
 pub fn dfareporting_content_categories_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &ContentCategory,
+    args: &DfareportingContentCategoriesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContentCategory>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_content_categories_update_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_content_categories_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_content_categories_update_execute(builder)
 }
 
@@ -8098,6 +8754,15 @@ pub fn dfareporting_conversions_batchinsert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_conversions_batchinsert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingConversionsBatchinsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: ConversionsBatchInsertRequest,
+}
+
 /// GET userprofiles/{profileId}/conversions/batchinsert
 /// Inserts conversions.
 ///
@@ -8110,8 +8775,7 @@ pub fn dfareporting_conversions_batchinsert_execute(
 
 pub fn dfareporting_conversions_batchinsert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &ConversionsBatchInsertRequest,
+    args: &DfareportingConversionsBatchinsertArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ConversionsBatchInsertResponse>, ApiError>,
@@ -8120,7 +8784,8 @@ pub fn dfareporting_conversions_batchinsert(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_conversions_batchinsert_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_conversions_batchinsert_builder(client, &args.profileId, &args.body)?;
     dfareporting_conversions_batchinsert_execute(builder)
 }
 
@@ -8221,6 +8886,15 @@ pub fn dfareporting_conversions_batchupdate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_conversions_batchupdate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingConversionsBatchupdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: ConversionsBatchUpdateRequest,
+}
+
 /// GET userprofiles/{profileId}/conversions/batchupdate
 /// Updates existing conversions.
 ///
@@ -8233,8 +8907,7 @@ pub fn dfareporting_conversions_batchupdate_execute(
 
 pub fn dfareporting_conversions_batchupdate(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &ConversionsBatchUpdateRequest,
+    args: &DfareportingConversionsBatchupdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ConversionsBatchUpdateResponse>, ApiError>,
@@ -8243,7 +8916,8 @@ pub fn dfareporting_conversions_batchupdate(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_conversions_batchupdate_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_conversions_batchupdate_builder(client, &args.profileId, &args.body)?;
     dfareporting_conversions_batchupdate_execute(builder)
 }
 
@@ -8338,6 +9012,15 @@ pub fn dfareporting_countries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_countries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCountriesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: dartId
+    pub dartId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/countries/{countriesId}
 /// Gets one country by ID.
 ///
@@ -8350,13 +9033,12 @@ pub fn dfareporting_countries_get_execute(
 
 pub fn dfareporting_countries_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    dartId: &str,
+    args: &DfareportingCountriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Country>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_countries_get_builder(client, profileId, dartId)?;
+    let builder = dfareporting_countries_get_builder(client, &args.profileId, &args.dartId)?;
     dfareporting_countries_get_execute(builder)
 }
 
@@ -8452,6 +9134,13 @@ pub fn dfareporting_countries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_countries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCountriesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/countries
 /// Retrieves a list of countries.
 ///
@@ -8464,14 +9153,14 @@ pub fn dfareporting_countries_list_execute(
 
 pub fn dfareporting_countries_list(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingCountriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CountriesListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_countries_list_builder(client, profileId)?;
+    let builder = dfareporting_countries_list_builder(client, &args.profileId)?;
     dfareporting_countries_list_execute(builder)
 }
 
@@ -8572,6 +9261,17 @@ pub fn dfareporting_creative_assets_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_assets_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeAssetsInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: CreativeAssetMetadata,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeAssets/{creativeAssetsId}/creativeAssets
 /// Inserts a new creative asset.
 ///
@@ -8584,17 +9284,19 @@ pub fn dfareporting_creative_assets_insert_execute(
 
 pub fn dfareporting_creative_assets_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: &str,
-    body: &CreativeAssetMetadata,
+    args: &DfareportingCreativeAssetsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreativeAssetMetadata>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_creative_assets_insert_builder(client, profileId, advertiserId, body)?;
+    let builder = dfareporting_creative_assets_insert_builder(
+        client,
+        &args.profileId,
+        &args.advertiserId,
+        &args.body,
+    )?;
     dfareporting_creative_assets_insert_execute(builder)
 }
 
@@ -8689,6 +9391,17 @@ pub fn dfareporting_creative_field_values_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_field_values_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeFieldValuesDeleteArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: creativeFieldId
+    pub creativeFieldId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues/{creativeFieldValuesId}
 /// Deletes an existing creative field value.
 ///
@@ -8701,15 +9414,17 @@ pub fn dfareporting_creative_field_values_delete_execute(
 
 pub fn dfareporting_creative_field_values_delete(
     client: &SimpleHttpClient,
-    profileId: &str,
-    creativeFieldId: &str,
-    id: &str,
+    args: &DfareportingCreativeFieldValuesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_creative_field_values_delete_builder(client, profileId, creativeFieldId, id)?;
+    let builder = dfareporting_creative_field_values_delete_builder(
+        client,
+        &args.profileId,
+        &args.creativeFieldId,
+        &args.id,
+    )?;
     dfareporting_creative_field_values_delete_execute(builder)
 }
 
@@ -8809,6 +9524,17 @@ pub fn dfareporting_creative_field_values_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_field_values_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeFieldValuesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: creativeFieldId
+    pub creativeFieldId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues/{creativeFieldValuesId}
 /// Gets one creative field value by ID.
 ///
@@ -8821,17 +9547,19 @@ pub fn dfareporting_creative_field_values_get_execute(
 
 pub fn dfareporting_creative_field_values_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    creativeFieldId: &str,
-    id: &str,
+    args: &DfareportingCreativeFieldValuesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreativeFieldValue>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_creative_field_values_get_builder(client, profileId, creativeFieldId, id)?;
+    let builder = dfareporting_creative_field_values_get_builder(
+        client,
+        &args.profileId,
+        &args.creativeFieldId,
+        &args.id,
+    )?;
     dfareporting_creative_field_values_get_execute(builder)
 }
 
@@ -8932,6 +9660,17 @@ pub fn dfareporting_creative_field_values_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_field_values_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeFieldValuesInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: creativeFieldId
+    pub creativeFieldId: String,
+    /// Request body.
+    pub body: CreativeFieldValue,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
 /// Inserts a new creative field value.
 ///
@@ -8944,9 +9683,7 @@ pub fn dfareporting_creative_field_values_insert_execute(
 
 pub fn dfareporting_creative_field_values_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    creativeFieldId: &str,
-    body: &CreativeFieldValue,
+    args: &DfareportingCreativeFieldValuesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreativeFieldValue>, ApiError>, P = ApiPending>
         + Send
@@ -8955,9 +9692,9 @@ pub fn dfareporting_creative_field_values_insert(
 > {
     let builder = dfareporting_creative_field_values_insert_builder(
         client,
-        profileId,
-        creativeFieldId,
-        body,
+        &args.profileId,
+        &args.creativeFieldId,
+        &args.body,
     )?;
     dfareporting_creative_field_values_insert_execute(builder)
 }
@@ -9090,6 +9827,27 @@ pub fn dfareporting_creative_field_values_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_field_values_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeFieldValuesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: creativeFieldId
+    pub creativeFieldId: String,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
 /// Retrieves a list of creative field values, possibly filtered. This method supports paging.
 ///
@@ -9102,14 +9860,7 @@ pub fn dfareporting_creative_field_values_list_execute(
 
 pub fn dfareporting_creative_field_values_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    creativeFieldId: &str,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingCreativeFieldValuesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CreativeFieldValuesListResponse>, ApiError>,
@@ -9120,14 +9871,14 @@ pub fn dfareporting_creative_field_values_list(
 > {
     let builder = dfareporting_creative_field_values_list_builder(
         client,
-        profileId,
-        creativeFieldId,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
+        &args.profileId,
+        &args.creativeFieldId,
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_creative_field_values_list_execute(builder)
 }
@@ -9231,6 +9982,19 @@ pub fn dfareporting_creative_field_values_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_field_values_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeFieldValuesPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: creativeFieldId
+    pub creativeFieldId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: CreativeFieldValue,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
 /// Updates an existing creative field value. This method supports patch semantics.
 ///
@@ -9243,10 +10007,7 @@ pub fn dfareporting_creative_field_values_patch_execute(
 
 pub fn dfareporting_creative_field_values_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    creativeFieldId: &str,
-    id: &str,
-    body: &CreativeFieldValue,
+    args: &DfareportingCreativeFieldValuesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreativeFieldValue>, ApiError>, P = ApiPending>
         + Send
@@ -9255,10 +10016,10 @@ pub fn dfareporting_creative_field_values_patch(
 > {
     let builder = dfareporting_creative_field_values_patch_builder(
         client,
-        profileId,
-        creativeFieldId,
-        id,
-        body,
+        &args.profileId,
+        &args.creativeFieldId,
+        &args.id,
+        &args.body,
     )?;
     dfareporting_creative_field_values_patch_execute(builder)
 }
@@ -9360,6 +10121,17 @@ pub fn dfareporting_creative_field_values_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_field_values_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeFieldValuesUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: creativeFieldId
+    pub creativeFieldId: String,
+    /// Request body.
+    pub body: CreativeFieldValue,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}/creativeFieldValues
 /// Updates an existing creative field value.
 ///
@@ -9372,9 +10144,7 @@ pub fn dfareporting_creative_field_values_update_execute(
 
 pub fn dfareporting_creative_field_values_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    creativeFieldId: &str,
-    body: &CreativeFieldValue,
+    args: &DfareportingCreativeFieldValuesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreativeFieldValue>, ApiError>, P = ApiPending>
         + Send
@@ -9383,9 +10153,9 @@ pub fn dfareporting_creative_field_values_update(
 > {
     let builder = dfareporting_creative_field_values_update_builder(
         client,
-        profileId,
-        creativeFieldId,
-        body,
+        &args.profileId,
+        &args.creativeFieldId,
+        &args.body,
     )?;
     dfareporting_creative_field_values_update_execute(builder)
 }
@@ -9478,6 +10248,15 @@ pub fn dfareporting_creative_fields_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_fields_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeFieldsDeleteArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}
 /// Deletes an existing creative field.
 ///
@@ -9490,13 +10269,12 @@ pub fn dfareporting_creative_fields_delete_execute(
 
 pub fn dfareporting_creative_fields_delete(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingCreativeFieldsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creative_fields_delete_builder(client, profileId, id)?;
+    let builder = dfareporting_creative_fields_delete_builder(client, &args.profileId, &args.id)?;
     dfareporting_creative_fields_delete_execute(builder)
 }
 
@@ -9593,6 +10371,15 @@ pub fn dfareporting_creative_fields_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_fields_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeFieldsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeFields/{creativeFieldsId}
 /// Gets one creative field by ID.
 ///
@@ -9605,15 +10392,14 @@ pub fn dfareporting_creative_fields_get_execute(
 
 pub fn dfareporting_creative_fields_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingCreativeFieldsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreativeField>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creative_fields_get_builder(client, profileId, id)?;
+    let builder = dfareporting_creative_fields_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_creative_fields_get_execute(builder)
 }
 
@@ -9712,6 +10498,15 @@ pub fn dfareporting_creative_fields_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_fields_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeFieldsInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: CreativeField,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeFields
 /// Inserts a new creative field.
 ///
@@ -9724,15 +10519,14 @@ pub fn dfareporting_creative_fields_insert_execute(
 
 pub fn dfareporting_creative_fields_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &CreativeField,
+    args: &DfareportingCreativeFieldsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreativeField>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creative_fields_insert_builder(client, profileId, body)?;
+    let builder = dfareporting_creative_fields_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_creative_fields_insert_execute(builder)
 }
 
@@ -9866,6 +10660,27 @@ pub fn dfareporting_creative_fields_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_fields_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeFieldsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: advertiserIds
+    pub advertiserIds: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeFields
 /// Retrieves a list of creative fields, possibly filtered. This method supports paging.
 ///
@@ -9878,14 +10693,7 @@ pub fn dfareporting_creative_fields_list_execute(
 
 pub fn dfareporting_creative_fields_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserIds: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingCreativeFieldsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CreativeFieldsListResponse>, ApiError>,
@@ -9896,14 +10704,14 @@ pub fn dfareporting_creative_fields_list(
 > {
     let builder = dfareporting_creative_fields_list_builder(
         client,
-        profileId,
-        advertiserIds,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
+        &args.profileId,
+        args.advertiserIds.as_deref(),
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_creative_fields_list_execute(builder)
 }
@@ -10004,6 +10812,17 @@ pub fn dfareporting_creative_fields_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_fields_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeFieldsPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: CreativeField,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeFields
 /// Updates an existing creative field. This method supports patch semantics.
 ///
@@ -10016,16 +10835,15 @@ pub fn dfareporting_creative_fields_patch_execute(
 
 pub fn dfareporting_creative_fields_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &CreativeField,
+    args: &DfareportingCreativeFieldsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreativeField>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creative_fields_patch_builder(client, profileId, id, body)?;
+    let builder =
+        dfareporting_creative_fields_patch_builder(client, &args.profileId, &args.id, &args.body)?;
     dfareporting_creative_fields_patch_execute(builder)
 }
 
@@ -10124,6 +10942,15 @@ pub fn dfareporting_creative_fields_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_fields_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeFieldsUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: CreativeField,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeFields
 /// Updates an existing creative field.
 ///
@@ -10136,15 +10963,14 @@ pub fn dfareporting_creative_fields_update_execute(
 
 pub fn dfareporting_creative_fields_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &CreativeField,
+    args: &DfareportingCreativeFieldsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreativeField>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creative_fields_update_builder(client, profileId, body)?;
+    let builder = dfareporting_creative_fields_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_creative_fields_update_execute(builder)
 }
 
@@ -10241,6 +11067,15 @@ pub fn dfareporting_creative_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeGroupsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeGroups/{creativeGroupsId}
 /// Gets one creative group by ID.
 ///
@@ -10253,15 +11088,14 @@ pub fn dfareporting_creative_groups_get_execute(
 
 pub fn dfareporting_creative_groups_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingCreativeGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreativeGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creative_groups_get_builder(client, profileId, id)?;
+    let builder = dfareporting_creative_groups_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_creative_groups_get_execute(builder)
 }
 
@@ -10360,6 +11194,15 @@ pub fn dfareporting_creative_groups_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_groups_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeGroupsInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: CreativeGroup,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeGroups
 /// Inserts a new creative group.
 ///
@@ -10372,15 +11215,14 @@ pub fn dfareporting_creative_groups_insert_execute(
 
 pub fn dfareporting_creative_groups_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &CreativeGroup,
+    args: &DfareportingCreativeGroupsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreativeGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creative_groups_insert_builder(client, profileId, body)?;
+    let builder = dfareporting_creative_groups_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_creative_groups_insert_execute(builder)
 }
 
@@ -10518,6 +11360,29 @@ pub fn dfareporting_creative_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeGroupsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: advertiserIds
+    pub advertiserIds: Option<String>,
+    /// Query parameter: groupNumber
+    pub groupNumber: Option<i32>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeGroups
 /// Retrieves a list of creative groups, possibly filtered. This method supports paging.
 ///
@@ -10530,15 +11395,7 @@ pub fn dfareporting_creative_groups_list_execute(
 
 pub fn dfareporting_creative_groups_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserIds: Option<&str>,
-    groupNumber: Option<i32>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingCreativeGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CreativeGroupsListResponse>, ApiError>,
@@ -10549,15 +11406,15 @@ pub fn dfareporting_creative_groups_list(
 > {
     let builder = dfareporting_creative_groups_list_builder(
         client,
-        profileId,
-        advertiserIds,
-        groupNumber,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
+        &args.profileId,
+        args.advertiserIds.as_deref(),
+        args.groupNumber,
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_creative_groups_list_execute(builder)
 }
@@ -10658,6 +11515,17 @@ pub fn dfareporting_creative_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeGroupsPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: CreativeGroup,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeGroups
 /// Updates an existing creative group. This method supports patch semantics.
 ///
@@ -10670,16 +11538,15 @@ pub fn dfareporting_creative_groups_patch_execute(
 
 pub fn dfareporting_creative_groups_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &CreativeGroup,
+    args: &DfareportingCreativeGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreativeGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creative_groups_patch_builder(client, profileId, id, body)?;
+    let builder =
+        dfareporting_creative_groups_patch_builder(client, &args.profileId, &args.id, &args.body)?;
     dfareporting_creative_groups_patch_execute(builder)
 }
 
@@ -10778,6 +11645,15 @@ pub fn dfareporting_creative_groups_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creative_groups_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativeGroupsUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: CreativeGroup,
+}
+
 /// GET userprofiles/{userprofilesId}/creativeGroups
 /// Updates an existing creative group.
 ///
@@ -10790,15 +11666,14 @@ pub fn dfareporting_creative_groups_update_execute(
 
 pub fn dfareporting_creative_groups_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &CreativeGroup,
+    args: &DfareportingCreativeGroupsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreativeGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creative_groups_update_builder(client, profileId, body)?;
+    let builder = dfareporting_creative_groups_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_creative_groups_update_execute(builder)
 }
 
@@ -10893,6 +11768,15 @@ pub fn dfareporting_creatives_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creatives_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/creatives/{creativesId}
 /// Gets one creative by ID.
 ///
@@ -10905,13 +11789,12 @@ pub fn dfareporting_creatives_get_execute(
 
 pub fn dfareporting_creatives_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingCreativesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creatives_get_builder(client, profileId, id)?;
+    let builder = dfareporting_creatives_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_creatives_get_execute(builder)
 }
 
@@ -11008,6 +11891,15 @@ pub fn dfareporting_creatives_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creatives_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativesInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Creative,
+}
+
 /// GET userprofiles/{userprofilesId}/creatives
 /// Inserts a new creative.
 ///
@@ -11020,13 +11912,12 @@ pub fn dfareporting_creatives_insert_execute(
 
 pub fn dfareporting_creatives_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Creative,
+    args: &DfareportingCreativesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creatives_insert_builder(client, profileId, body)?;
+    let builder = dfareporting_creatives_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_creatives_insert_execute(builder)
 }
 
@@ -11194,6 +12085,45 @@ pub fn dfareporting_creatives_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creatives_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: active
+    pub active: Option<bool>,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: archived
+    pub archived: Option<bool>,
+    /// Query parameter: campaignId
+    pub campaignId: Option<String>,
+    /// Query parameter: companionCreativeIds
+    pub companionCreativeIds: Option<String>,
+    /// Query parameter: creativeFieldIds
+    pub creativeFieldIds: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: renderingIds
+    pub renderingIds: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sizeIds
+    pub sizeIds: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+    /// Query parameter: studioCreativeId
+    pub studioCreativeId: Option<String>,
+    /// Query parameter: types
+    pub types: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/creatives
 /// Retrieves a list of creatives, possibly filtered. This method supports paging.
 ///
@@ -11206,23 +12136,7 @@ pub fn dfareporting_creatives_list_execute(
 
 pub fn dfareporting_creatives_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    active: Option<bool>,
-    advertiserId: Option<&str>,
-    archived: Option<bool>,
-    campaignId: Option<&str>,
-    companionCreativeIds: Option<&str>,
-    creativeFieldIds: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    renderingIds: Option<&str>,
-    searchString: Option<&str>,
-    sizeIds: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    studioCreativeId: Option<&str>,
-    types: Option<&str>,
+    args: &DfareportingCreativesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreativesListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -11231,23 +12145,23 @@ pub fn dfareporting_creatives_list(
 > {
     let builder = dfareporting_creatives_list_builder(
         client,
-        profileId,
-        active,
-        advertiserId,
-        archived,
-        campaignId,
-        companionCreativeIds,
-        creativeFieldIds,
-        ids,
-        maxResults,
-        pageToken,
-        renderingIds,
-        searchString,
-        sizeIds,
-        sortField,
-        sortOrder,
-        studioCreativeId,
-        types,
+        &args.profileId,
+        args.active,
+        args.advertiserId.as_deref(),
+        args.archived,
+        args.campaignId.as_deref(),
+        args.companionCreativeIds.as_deref(),
+        args.creativeFieldIds.as_deref(),
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.renderingIds.as_deref(),
+        args.searchString.as_deref(),
+        args.sizeIds.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
+        args.studioCreativeId.as_deref(),
+        args.types.as_deref(),
     )?;
     dfareporting_creatives_list_execute(builder)
 }
@@ -11346,6 +12260,17 @@ pub fn dfareporting_creatives_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creatives_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativesPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: Creative,
+}
+
 /// GET userprofiles/{userprofilesId}/creatives
 /// Updates an existing creative. This method supports patch semantics.
 ///
@@ -11358,14 +12283,13 @@ pub fn dfareporting_creatives_patch_execute(
 
 pub fn dfareporting_creatives_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Creative,
+    args: &DfareportingCreativesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creatives_patch_builder(client, profileId, id, body)?;
+    let builder =
+        dfareporting_creatives_patch_builder(client, &args.profileId, &args.id, &args.body)?;
     dfareporting_creatives_patch_execute(builder)
 }
 
@@ -11462,6 +12386,15 @@ pub fn dfareporting_creatives_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_creatives_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingCreativesUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Creative,
+}
+
 /// GET userprofiles/{userprofilesId}/creatives
 /// Updates an existing creative.
 ///
@@ -11474,13 +12407,12 @@ pub fn dfareporting_creatives_update_execute(
 
 pub fn dfareporting_creatives_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Creative,
+    args: &DfareportingCreativesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_creatives_update_builder(client, profileId, body)?;
+    let builder = dfareporting_creatives_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_creatives_update_execute(builder)
 }
 
@@ -11595,6 +12527,19 @@ pub fn dfareporting_dimension_values_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_dimension_values_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDimensionValuesQueryArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Request body.
+    pub body: DimensionValueRequest,
+}
+
 /// GET userprofiles/{profileId}/dimensionvalues/query
 /// Retrieves list of report dimension values for a list of filters.
 ///
@@ -11607,10 +12552,7 @@ pub fn dfareporting_dimension_values_query_execute(
 
 pub fn dfareporting_dimension_values_query(
     client: &SimpleHttpClient,
-    profileId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    body: &DimensionValueRequest,
+    args: &DfareportingDimensionValuesQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DimensionValueList>, ApiError>, P = ApiPending>
         + Send
@@ -11618,7 +12560,11 @@ pub fn dfareporting_dimension_values_query(
     ApiError,
 > {
     let builder = dfareporting_dimension_values_query_builder(
-        client, profileId, maxResults, pageToken, body,
+        client,
+        &args.profileId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        &args.body,
     )?;
     dfareporting_dimension_values_query_execute(builder)
 }
@@ -11716,6 +12662,15 @@ pub fn dfareporting_directory_sites_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_directory_sites_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDirectorySitesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/directorySites/{directorySitesId}
 /// Gets one directory site by ID.
 ///
@@ -11728,15 +12683,14 @@ pub fn dfareporting_directory_sites_get_execute(
 
 pub fn dfareporting_directory_sites_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingDirectorySitesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DirectorySite>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_directory_sites_get_builder(client, profileId, id)?;
+    let builder = dfareporting_directory_sites_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_directory_sites_get_execute(builder)
 }
 
@@ -11835,6 +12789,15 @@ pub fn dfareporting_directory_sites_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_directory_sites_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDirectorySitesInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: DirectorySite,
+}
+
 /// GET userprofiles/{userprofilesId}/directorySites
 /// Inserts a new directory site.
 ///
@@ -11847,15 +12810,14 @@ pub fn dfareporting_directory_sites_insert_execute(
 
 pub fn dfareporting_directory_sites_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &DirectorySite,
+    args: &DfareportingDirectorySitesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DirectorySite>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_directory_sites_insert_builder(client, profileId, body)?;
+    let builder = dfareporting_directory_sites_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_directory_sites_insert_execute(builder)
 }
 
@@ -12005,6 +12967,35 @@ pub fn dfareporting_directory_sites_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_directory_sites_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDirectorySitesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: acceptsInStreamVideoPlacements
+    pub acceptsInStreamVideoPlacements: Option<bool>,
+    /// Query parameter: acceptsInterstitialPlacements
+    pub acceptsInterstitialPlacements: Option<bool>,
+    /// Query parameter: acceptsPublisherPaidPlacements
+    pub acceptsPublisherPaidPlacements: Option<bool>,
+    /// Query parameter: active
+    pub active: Option<bool>,
+    /// Query parameter: dfpNetworkCode
+    pub dfpNetworkCode: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/directorySites
 /// Retrieves a list of directory sites, possibly filtered. This method supports paging.
 ///
@@ -12017,18 +13008,7 @@ pub fn dfareporting_directory_sites_list_execute(
 
 pub fn dfareporting_directory_sites_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    acceptsInStreamVideoPlacements: Option<bool>,
-    acceptsInterstitialPlacements: Option<bool>,
-    acceptsPublisherPaidPlacements: Option<bool>,
-    active: Option<bool>,
-    dfpNetworkCode: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingDirectorySitesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DirectorySitesListResponse>, ApiError>,
@@ -12039,18 +13019,18 @@ pub fn dfareporting_directory_sites_list(
 > {
     let builder = dfareporting_directory_sites_list_builder(
         client,
-        profileId,
-        acceptsInStreamVideoPlacements,
-        acceptsInterstitialPlacements,
-        acceptsPublisherPaidPlacements,
-        active,
-        dfpNetworkCode,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
+        &args.profileId,
+        args.acceptsInStreamVideoPlacements,
+        args.acceptsInterstitialPlacements,
+        args.acceptsPublisherPaidPlacements,
+        args.active,
+        args.dfpNetworkCode.as_deref(),
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_directory_sites_list_execute(builder)
 }
@@ -12145,6 +13125,13 @@ pub fn dfareporting_dynamic_feeds_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_dynamic_feeds_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDynamicFeedsGetArgs {
+    /// Path parameter: dynamicFeedId
+    pub dynamicFeedId: String,
+}
+
 /// GET studio/dynamicFeeds/{dynamicFeedsId}
 /// Gets a dynamic feed by ID.
 ///
@@ -12157,12 +13144,12 @@ pub fn dfareporting_dynamic_feeds_get_execute(
 
 pub fn dfareporting_dynamic_feeds_get(
     client: &SimpleHttpClient,
-    dynamicFeedId: &str,
+    args: &DfareportingDynamicFeedsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DynamicFeed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_feeds_get_builder(client, dynamicFeedId)?;
+    let builder = dfareporting_dynamic_feeds_get_builder(client, &args.dynamicFeedId)?;
     dfareporting_dynamic_feeds_get_execute(builder)
 }
 
@@ -12255,6 +13242,13 @@ pub fn dfareporting_dynamic_feeds_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_dynamic_feeds_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDynamicFeedsInsertArgs {
+    /// Request body.
+    pub body: DynamicFeedsInsertRequest,
+}
+
 /// GET studio/dynamicFeeds
 /// Inserts a new dynamic feed.
 ///
@@ -12267,12 +13261,12 @@ pub fn dfareporting_dynamic_feeds_insert_execute(
 
 pub fn dfareporting_dynamic_feeds_insert(
     client: &SimpleHttpClient,
-    body: &DynamicFeedsInsertRequest,
+    args: &DfareportingDynamicFeedsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DynamicFeed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_feeds_insert_builder(client, body)?;
+    let builder = dfareporting_dynamic_feeds_insert_builder(client, &args.body)?;
     dfareporting_dynamic_feeds_insert_execute(builder)
 }
 
@@ -12366,6 +13360,13 @@ pub fn dfareporting_dynamic_feeds_retransform_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_dynamic_feeds_retransform`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDynamicFeedsRetransformArgs {
+    /// Path parameter: dynamicFeedId
+    pub dynamicFeedId: String,
+}
+
 /// GET studio/dynamicFeeds/{dynamicFeedsId}/retransform
 /// Retransforms a dynamic feed. Only draft feeds can be retransformed (i.e. the feed has not been published).
 ///
@@ -12378,12 +13379,12 @@ pub fn dfareporting_dynamic_feeds_retransform_execute(
 
 pub fn dfareporting_dynamic_feeds_retransform(
     client: &SimpleHttpClient,
-    dynamicFeedId: &str,
+    args: &DfareportingDynamicFeedsRetransformArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DynamicFeed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_feeds_retransform_builder(client, dynamicFeedId)?;
+    let builder = dfareporting_dynamic_feeds_retransform_builder(client, &args.dynamicFeedId)?;
     dfareporting_dynamic_feeds_retransform_execute(builder)
 }
 
@@ -12476,6 +13477,13 @@ pub fn dfareporting_dynamic_feeds_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_dynamic_feeds_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDynamicFeedsUpdateArgs {
+    /// Request body.
+    pub body: DynamicFeed,
+}
+
 /// GET studio/dynamicFeeds
 /// Updates a new dynamic feed. For draft feeds, only Element can be updated. For published feeds, only FeedSchedule can be updated. Other fields will be ignored.
 ///
@@ -12488,12 +13496,12 @@ pub fn dfareporting_dynamic_feeds_update_execute(
 
 pub fn dfareporting_dynamic_feeds_update(
     client: &SimpleHttpClient,
-    body: &DynamicFeed,
+    args: &DfareportingDynamicFeedsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DynamicFeed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_feeds_update_builder(client, body)?;
+    let builder = dfareporting_dynamic_feeds_update_builder(client, &args.body)?;
     dfareporting_dynamic_feeds_update_execute(builder)
 }
 
@@ -12591,6 +13599,13 @@ pub fn dfareporting_dynamic_profiles_generate_code_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_dynamic_profiles_generate_code`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDynamicProfilesGenerateCodeArgs {
+    /// Path parameter: dynamicProfileId
+    pub dynamicProfileId: String,
+}
+
 /// GET studio/dynamicProfiles/{dynamicProfilesId}/generateCode
 /// Generates code for a dynamic profile, which will need unescaping.
 ///
@@ -12603,7 +13618,7 @@ pub fn dfareporting_dynamic_profiles_generate_code_execute(
 
 pub fn dfareporting_dynamic_profiles_generate_code(
     client: &SimpleHttpClient,
-    dynamicProfileId: &str,
+    args: &DfareportingDynamicProfilesGenerateCodeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DynamicProfileGenerateCodeResponse>, ApiError>,
@@ -12612,7 +13627,8 @@ pub fn dfareporting_dynamic_profiles_generate_code(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_profiles_generate_code_builder(client, dynamicProfileId)?;
+    let builder =
+        dfareporting_dynamic_profiles_generate_code_builder(client, &args.dynamicProfileId)?;
     dfareporting_dynamic_profiles_generate_code_execute(builder)
 }
 
@@ -12708,6 +13724,13 @@ pub fn dfareporting_dynamic_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_dynamic_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDynamicProfilesGetArgs {
+    /// Path parameter: dynamicProfileId
+    pub dynamicProfileId: String,
+}
+
 /// GET studio/dynamicProfiles/{dynamicProfilesId}
 /// Gets a dynamic profile by ID.
 ///
@@ -12720,14 +13743,14 @@ pub fn dfareporting_dynamic_profiles_get_execute(
 
 pub fn dfareporting_dynamic_profiles_get(
     client: &SimpleHttpClient,
-    dynamicProfileId: &str,
+    args: &DfareportingDynamicProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DynamicProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_profiles_get_builder(client, dynamicProfileId)?;
+    let builder = dfareporting_dynamic_profiles_get_builder(client, &args.dynamicProfileId)?;
     dfareporting_dynamic_profiles_get_execute(builder)
 }
 
@@ -12823,6 +13846,13 @@ pub fn dfareporting_dynamic_profiles_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_dynamic_profiles_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDynamicProfilesInsertArgs {
+    /// Request body.
+    pub body: DynamicProfile,
+}
+
 /// GET studio/dynamicProfiles
 /// Inserts a new dynamic profile.
 ///
@@ -12835,14 +13865,14 @@ pub fn dfareporting_dynamic_profiles_insert_execute(
 
 pub fn dfareporting_dynamic_profiles_insert(
     client: &SimpleHttpClient,
-    body: &DynamicProfile,
+    args: &DfareportingDynamicProfilesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DynamicProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_profiles_insert_builder(client, body)?;
+    let builder = dfareporting_dynamic_profiles_insert_builder(client, &args.body)?;
     dfareporting_dynamic_profiles_insert_execute(builder)
 }
 
@@ -12933,6 +13963,13 @@ pub fn dfareporting_dynamic_profiles_publish_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_dynamic_profiles_publish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDynamicProfilesPublishArgs {
+    /// Path parameter: dynamicProfileId
+    pub dynamicProfileId: String,
+}
+
 /// GET studio/dynamicProfiles/{dynamicProfilesId}/publish
 /// Publish for a dynamic profile.
 ///
@@ -12945,12 +13982,12 @@ pub fn dfareporting_dynamic_profiles_publish_execute(
 
 pub fn dfareporting_dynamic_profiles_publish(
     client: &SimpleHttpClient,
-    dynamicProfileId: &str,
+    args: &DfareportingDynamicProfilesPublishArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_profiles_publish_builder(client, dynamicProfileId)?;
+    let builder = dfareporting_dynamic_profiles_publish_builder(client, &args.dynamicProfileId)?;
     dfareporting_dynamic_profiles_publish_execute(builder)
 }
 
@@ -13046,6 +14083,13 @@ pub fn dfareporting_dynamic_profiles_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_dynamic_profiles_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDynamicProfilesUpdateArgs {
+    /// Request body.
+    pub body: DynamicProfile,
+}
+
 /// GET studio/dynamicProfiles
 /// Updates an existing dynamic profile.
 ///
@@ -13058,14 +14102,14 @@ pub fn dfareporting_dynamic_profiles_update_execute(
 
 pub fn dfareporting_dynamic_profiles_update(
     client: &SimpleHttpClient,
-    body: &DynamicProfile,
+    args: &DfareportingDynamicProfilesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DynamicProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_profiles_update_builder(client, body)?;
+    let builder = dfareporting_dynamic_profiles_update_builder(client, &args.body)?;
     dfareporting_dynamic_profiles_update_execute(builder)
 }
 
@@ -13162,6 +14206,19 @@ pub fn dfareporting_dynamic_targeting_keys_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_dynamic_targeting_keys_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDynamicTargetingKeysDeleteArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: objectId
+    pub objectId: String,
+    /// Path parameter: name
+    pub name: String,
+    /// Path parameter: objectType
+    pub objectType: String,
+}
+
 /// GET userprofiles/{userprofilesId}/dynamicTargetingKeys/{dynamicTargetingKeysId}
 /// Deletes an existing dynamic targeting key.
 ///
@@ -13174,16 +14231,17 @@ pub fn dfareporting_dynamic_targeting_keys_delete_execute(
 
 pub fn dfareporting_dynamic_targeting_keys_delete(
     client: &SimpleHttpClient,
-    profileId: &str,
-    objectId: &str,
-    name: &str,
-    objectType: &str,
+    args: &DfareportingDynamicTargetingKeysDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dfareporting_dynamic_targeting_keys_delete_builder(
-        client, profileId, objectId, name, objectType,
+        client,
+        &args.profileId,
+        &args.objectId,
+        &args.name,
+        &args.objectType,
     )?;
     dfareporting_dynamic_targeting_keys_delete_execute(builder)
 }
@@ -13283,6 +14341,15 @@ pub fn dfareporting_dynamic_targeting_keys_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_dynamic_targeting_keys_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDynamicTargetingKeysInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: DynamicTargetingKey,
+}
+
 /// GET userprofiles/{userprofilesId}/dynamicTargetingKeys
 /// Inserts a new dynamic targeting key. Keys must be created at the advertiser level before being assigned to the advertiser's ads, creatives, or placements. There is a maximum of 1000 keys per advertiser, out of which a maximum of 20 keys can be assigned per ad, creative, or placement.
 ///
@@ -13295,15 +14362,15 @@ pub fn dfareporting_dynamic_targeting_keys_insert_execute(
 
 pub fn dfareporting_dynamic_targeting_keys_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &DynamicTargetingKey,
+    args: &DfareportingDynamicTargetingKeysInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DynamicTargetingKey>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_dynamic_targeting_keys_insert_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_dynamic_targeting_keys_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_dynamic_targeting_keys_insert_execute(builder)
 }
 
@@ -13425,6 +14492,21 @@ pub fn dfareporting_dynamic_targeting_keys_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_dynamic_targeting_keys_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingDynamicTargetingKeysListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: names
+    pub names: Option<String>,
+    /// Query parameter: objectId
+    pub objectId: Option<String>,
+    /// Query parameter: objectType
+    pub objectType: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/dynamicTargetingKeys
 /// Retrieves a list of dynamic targeting keys.
 ///
@@ -13437,11 +14519,7 @@ pub fn dfareporting_dynamic_targeting_keys_list_execute(
 
 pub fn dfareporting_dynamic_targeting_keys_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: Option<&str>,
-    names: Option<&str>,
-    objectId: Option<&str>,
-    objectType: Option<&str>,
+    args: &DfareportingDynamicTargetingKeysListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DynamicTargetingKeysListResponse>, ApiError>,
@@ -13452,11 +14530,11 @@ pub fn dfareporting_dynamic_targeting_keys_list(
 > {
     let builder = dfareporting_dynamic_targeting_keys_list_builder(
         client,
-        profileId,
-        advertiserId,
-        names,
-        objectId,
-        objectType,
+        &args.profileId,
+        args.advertiserId.as_deref(),
+        args.names.as_deref(),
+        args.objectId.as_deref(),
+        args.objectType.as_deref(),
     )?;
     dfareporting_dynamic_targeting_keys_list_execute(builder)
 }
@@ -13549,6 +14627,15 @@ pub fn dfareporting_event_tags_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_event_tags_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingEventTagsDeleteArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/eventTags/{eventTagsId}
 /// Deletes an existing event tag.
 ///
@@ -13561,13 +14648,12 @@ pub fn dfareporting_event_tags_delete_execute(
 
 pub fn dfareporting_event_tags_delete(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingEventTagsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_event_tags_delete_builder(client, profileId, id)?;
+    let builder = dfareporting_event_tags_delete_builder(client, &args.profileId, &args.id)?;
     dfareporting_event_tags_delete_execute(builder)
 }
 
@@ -13662,6 +14748,15 @@ pub fn dfareporting_event_tags_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_event_tags_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingEventTagsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/eventTags/{eventTagsId}
 /// Gets one event tag by ID.
 ///
@@ -13674,13 +14769,12 @@ pub fn dfareporting_event_tags_get_execute(
 
 pub fn dfareporting_event_tags_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingEventTagsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_event_tags_get_builder(client, profileId, id)?;
+    let builder = dfareporting_event_tags_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_event_tags_get_execute(builder)
 }
 
@@ -13777,6 +14871,15 @@ pub fn dfareporting_event_tags_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_event_tags_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingEventTagsInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: EventTag,
+}
+
 /// GET userprofiles/{userprofilesId}/eventTags
 /// Inserts a new event tag.
 ///
@@ -13789,13 +14892,12 @@ pub fn dfareporting_event_tags_insert_execute(
 
 pub fn dfareporting_event_tags_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &EventTag,
+    args: &DfareportingEventTagsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_event_tags_insert_builder(client, profileId, body)?;
+    let builder = dfareporting_event_tags_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_event_tags_insert_execute(builder)
 }
 
@@ -13939,6 +15041,33 @@ pub fn dfareporting_event_tags_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_event_tags_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingEventTagsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: adId
+    pub adId: Option<String>,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: campaignId
+    pub campaignId: Option<String>,
+    /// Query parameter: definitionsOnly
+    pub definitionsOnly: Option<bool>,
+    /// Query parameter: enabled
+    pub enabled: Option<bool>,
+    /// Query parameter: eventTagTypes
+    pub eventTagTypes: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/eventTags
 /// Retrieves a list of event tags, possibly filtered.
 ///
@@ -13951,17 +15080,7 @@ pub fn dfareporting_event_tags_list_execute(
 
 pub fn dfareporting_event_tags_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    adId: Option<&str>,
-    advertiserId: Option<&str>,
-    campaignId: Option<&str>,
-    definitionsOnly: Option<bool>,
-    enabled: Option<bool>,
-    eventTagTypes: Option<&str>,
-    ids: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingEventTagsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTagsListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -13970,17 +15089,17 @@ pub fn dfareporting_event_tags_list(
 > {
     let builder = dfareporting_event_tags_list_builder(
         client,
-        profileId,
-        adId,
-        advertiserId,
-        campaignId,
-        definitionsOnly,
-        enabled,
-        eventTagTypes,
-        ids,
-        searchString,
-        sortField,
-        sortOrder,
+        &args.profileId,
+        args.adId.as_deref(),
+        args.advertiserId.as_deref(),
+        args.campaignId.as_deref(),
+        args.definitionsOnly,
+        args.enabled,
+        args.eventTagTypes.as_deref(),
+        args.ids.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_event_tags_list_execute(builder)
 }
@@ -14079,6 +15198,17 @@ pub fn dfareporting_event_tags_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_event_tags_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingEventTagsPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: EventTag,
+}
+
 /// GET userprofiles/{userprofilesId}/eventTags
 /// Updates an existing event tag. This method supports patch semantics.
 ///
@@ -14091,14 +15221,13 @@ pub fn dfareporting_event_tags_patch_execute(
 
 pub fn dfareporting_event_tags_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &EventTag,
+    args: &DfareportingEventTagsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_event_tags_patch_builder(client, profileId, id, body)?;
+    let builder =
+        dfareporting_event_tags_patch_builder(client, &args.profileId, &args.id, &args.body)?;
     dfareporting_event_tags_patch_execute(builder)
 }
 
@@ -14195,6 +15324,15 @@ pub fn dfareporting_event_tags_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_event_tags_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingEventTagsUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: EventTag,
+}
+
 /// GET userprofiles/{userprofilesId}/eventTags
 /// Updates an existing event tag.
 ///
@@ -14207,13 +15345,12 @@ pub fn dfareporting_event_tags_update_execute(
 
 pub fn dfareporting_event_tags_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &EventTag,
+    args: &DfareportingEventTagsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EventTag>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_event_tags_update_builder(client, profileId, body)?;
+    let builder = dfareporting_event_tags_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_event_tags_update_execute(builder)
 }
 
@@ -14308,6 +15445,15 @@ pub fn dfareporting_files_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_files_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFilesGetArgs {
+    /// Path parameter: reportId
+    pub reportId: String,
+    /// Path parameter: fileId
+    pub fileId: String,
+}
+
 /// GET reports/{reportId}/files/{fileId}
 /// Retrieves a report file by its report ID and file ID. This method supports media download.
 ///
@@ -14320,13 +15466,12 @@ pub fn dfareporting_files_get_execute(
 
 pub fn dfareporting_files_get(
     client: &SimpleHttpClient,
-    reportId: &str,
-    fileId: &str,
+    args: &DfareportingFilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_files_get_builder(client, reportId, fileId)?;
+    let builder = dfareporting_files_get_builder(client, &args.reportId, &args.fileId)?;
     dfareporting_files_get_execute(builder)
 }
 
@@ -14448,6 +15593,23 @@ pub fn dfareporting_files_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_files_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFilesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: scope
+    pub scope: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{profileId}/files
 /// Lists files for a user profile.
 ///
@@ -14460,18 +15622,19 @@ pub fn dfareporting_files_list_execute(
 
 pub fn dfareporting_files_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    scope: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingFilesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FileList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dfareporting_files_list_builder(
-        client, profileId, maxResults, pageToken, scope, sortField, sortOrder,
+        client,
+        &args.profileId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.scope.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_files_list_execute(builder)
 }
@@ -14565,6 +15728,15 @@ pub fn dfareporting_floodlight_activities_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_activities_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightActivitiesDeleteArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightActivities/{floodlightActivitiesId}
 /// Deletes an existing floodlight activity.
 ///
@@ -14577,13 +15749,13 @@ pub fn dfareporting_floodlight_activities_delete_execute(
 
 pub fn dfareporting_floodlight_activities_delete(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingFloodlightActivitiesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_activities_delete_builder(client, profileId, id)?;
+    let builder =
+        dfareporting_floodlight_activities_delete_builder(client, &args.profileId, &args.id)?;
     dfareporting_floodlight_activities_delete_execute(builder)
 }
 
@@ -14694,6 +15866,15 @@ pub fn dfareporting_floodlight_activities_generatetag_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_activities_generatetag`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightActivitiesGeneratetagArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: floodlightActivityId
+    pub floodlightActivityId: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightActivities/generatetag
 /// Generates a tag for a floodlight activity.
 ///
@@ -14706,8 +15887,7 @@ pub fn dfareporting_floodlight_activities_generatetag_execute(
 
 pub fn dfareporting_floodlight_activities_generatetag(
     client: &SimpleHttpClient,
-    profileId: &str,
-    floodlightActivityId: Option<&str>,
+    args: &DfareportingFloodlightActivitiesGeneratetagArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FloodlightActivitiesGenerateTagResponse>, ApiError>,
@@ -14718,8 +15898,8 @@ pub fn dfareporting_floodlight_activities_generatetag(
 > {
     let builder = dfareporting_floodlight_activities_generatetag_builder(
         client,
-        profileId,
-        floodlightActivityId,
+        &args.profileId,
+        args.floodlightActivityId.as_deref(),
     )?;
     dfareporting_floodlight_activities_generatetag_execute(builder)
 }
@@ -14818,6 +15998,15 @@ pub fn dfareporting_floodlight_activities_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_activities_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightActivitiesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightActivities/{floodlightActivitiesId}
 /// Gets one floodlight activity by ID.
 ///
@@ -14830,15 +16019,15 @@ pub fn dfareporting_floodlight_activities_get_execute(
 
 pub fn dfareporting_floodlight_activities_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingFloodlightActivitiesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FloodlightActivity>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_activities_get_builder(client, profileId, id)?;
+    let builder =
+        dfareporting_floodlight_activities_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_floodlight_activities_get_execute(builder)
 }
 
@@ -14937,6 +16126,15 @@ pub fn dfareporting_floodlight_activities_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_activities_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightActivitiesInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: FloodlightActivity,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightActivities
 /// Inserts a new floodlight activity.
 ///
@@ -14949,15 +16147,15 @@ pub fn dfareporting_floodlight_activities_insert_execute(
 
 pub fn dfareporting_floodlight_activities_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &FloodlightActivity,
+    args: &DfareportingFloodlightActivitiesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FloodlightActivity>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_activities_insert_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_floodlight_activities_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_floodlight_activities_insert_execute(builder)
 }
 
@@ -15115,6 +16313,39 @@ pub fn dfareporting_floodlight_activities_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_activities_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightActivitiesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: floodlightActivityGroupIds
+    pub floodlightActivityGroupIds: Option<String>,
+    /// Query parameter: floodlightActivityGroupName
+    pub floodlightActivityGroupName: Option<String>,
+    /// Query parameter: floodlightActivityGroupTagString
+    pub floodlightActivityGroupTagString: Option<String>,
+    /// Query parameter: floodlightActivityGroupType
+    pub floodlightActivityGroupType: Option<String>,
+    /// Query parameter: floodlightConfigurationId
+    pub floodlightConfigurationId: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+    /// Query parameter: tagString
+    pub tagString: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightActivities
 /// Retrieves a list of floodlight activities, possibly filtered. This method supports paging.
 ///
@@ -15127,20 +16358,7 @@ pub fn dfareporting_floodlight_activities_list_execute(
 
 pub fn dfareporting_floodlight_activities_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: Option<&str>,
-    floodlightActivityGroupIds: Option<&str>,
-    floodlightActivityGroupName: Option<&str>,
-    floodlightActivityGroupTagString: Option<&str>,
-    floodlightActivityGroupType: Option<&str>,
-    floodlightConfigurationId: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    tagString: Option<&str>,
+    args: &DfareportingFloodlightActivitiesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FloodlightActivitiesListResponse>, ApiError>,
@@ -15151,20 +16369,20 @@ pub fn dfareporting_floodlight_activities_list(
 > {
     let builder = dfareporting_floodlight_activities_list_builder(
         client,
-        profileId,
-        advertiserId,
-        floodlightActivityGroupIds,
-        floodlightActivityGroupName,
-        floodlightActivityGroupTagString,
-        floodlightActivityGroupType,
-        floodlightConfigurationId,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
-        tagString,
+        &args.profileId,
+        args.advertiserId.as_deref(),
+        args.floodlightActivityGroupIds.as_deref(),
+        args.floodlightActivityGroupName.as_deref(),
+        args.floodlightActivityGroupTagString.as_deref(),
+        args.floodlightActivityGroupType.as_deref(),
+        args.floodlightConfigurationId.as_deref(),
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
+        args.tagString.as_deref(),
     )?;
     dfareporting_floodlight_activities_list_execute(builder)
 }
@@ -15265,6 +16483,17 @@ pub fn dfareporting_floodlight_activities_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_activities_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightActivitiesPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: FloodlightActivity,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightActivities
 /// Updates an existing floodlight activity. This method supports patch semantics.
 ///
@@ -15277,16 +16506,19 @@ pub fn dfareporting_floodlight_activities_patch_execute(
 
 pub fn dfareporting_floodlight_activities_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &FloodlightActivity,
+    args: &DfareportingFloodlightActivitiesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FloodlightActivity>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_activities_patch_builder(client, profileId, id, body)?;
+    let builder = dfareporting_floodlight_activities_patch_builder(
+        client,
+        &args.profileId,
+        &args.id,
+        &args.body,
+    )?;
     dfareporting_floodlight_activities_patch_execute(builder)
 }
 
@@ -15385,6 +16617,15 @@ pub fn dfareporting_floodlight_activities_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_activities_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightActivitiesUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: FloodlightActivity,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightActivities
 /// Updates an existing floodlight activity.
 ///
@@ -15397,15 +16638,15 @@ pub fn dfareporting_floodlight_activities_update_execute(
 
 pub fn dfareporting_floodlight_activities_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &FloodlightActivity,
+    args: &DfareportingFloodlightActivitiesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FloodlightActivity>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_activities_update_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_floodlight_activities_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_floodlight_activities_update_execute(builder)
 }
 
@@ -15503,6 +16744,15 @@ pub fn dfareporting_floodlight_activity_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_activity_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightActivityGroupsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightActivityGroups/{floodlightActivityGroupsId}
 /// Gets one floodlight activity group by ID.
 ///
@@ -15515,15 +16765,15 @@ pub fn dfareporting_floodlight_activity_groups_get_execute(
 
 pub fn dfareporting_floodlight_activity_groups_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingFloodlightActivityGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FloodlightActivityGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_activity_groups_get_builder(client, profileId, id)?;
+    let builder =
+        dfareporting_floodlight_activity_groups_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_floodlight_activity_groups_get_execute(builder)
 }
 
@@ -15622,6 +16872,15 @@ pub fn dfareporting_floodlight_activity_groups_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_activity_groups_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightActivityGroupsInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: FloodlightActivityGroup,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightActivityGroups
 /// Inserts a new floodlight activity group.
 ///
@@ -15634,15 +16893,18 @@ pub fn dfareporting_floodlight_activity_groups_insert_execute(
 
 pub fn dfareporting_floodlight_activity_groups_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &FloodlightActivityGroup,
+    args: &DfareportingFloodlightActivityGroupsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FloodlightActivityGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_activity_groups_insert_builder(client, profileId, body)?;
+    let builder = dfareporting_floodlight_activity_groups_insert_builder(
+        client,
+        &args.profileId,
+        &args.body,
+    )?;
     dfareporting_floodlight_activity_groups_insert_execute(builder)
 }
 
@@ -15784,6 +17046,31 @@ pub fn dfareporting_floodlight_activity_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_activity_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightActivityGroupsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: floodlightConfigurationId
+    pub floodlightConfigurationId: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightActivityGroups
 /// Retrieves a list of floodlight activity groups, possibly filtered. This method supports paging.
 ///
@@ -15796,16 +17083,7 @@ pub fn dfareporting_floodlight_activity_groups_list_execute(
 
 pub fn dfareporting_floodlight_activity_groups_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: Option<&str>,
-    floodlightConfigurationId: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    type_rs: Option<&str>,
+    args: &DfareportingFloodlightActivityGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FloodlightActivityGroupsListResponse>, ApiError>,
@@ -15816,16 +17094,16 @@ pub fn dfareporting_floodlight_activity_groups_list(
 > {
     let builder = dfareporting_floodlight_activity_groups_list_builder(
         client,
-        profileId,
-        advertiserId,
-        floodlightConfigurationId,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
-        type_rs,
+        &args.profileId,
+        args.advertiserId.as_deref(),
+        args.floodlightConfigurationId.as_deref(),
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
+        args.type_rs.as_deref(),
     )?;
     dfareporting_floodlight_activity_groups_list_execute(builder)
 }
@@ -15927,6 +17205,17 @@ pub fn dfareporting_floodlight_activity_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_activity_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightActivityGroupsPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: FloodlightActivityGroup,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightActivityGroups
 /// Updates an existing floodlight activity group. This method supports patch semantics.
 ///
@@ -15939,17 +17228,19 @@ pub fn dfareporting_floodlight_activity_groups_patch_execute(
 
 pub fn dfareporting_floodlight_activity_groups_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &FloodlightActivityGroup,
+    args: &DfareportingFloodlightActivityGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FloodlightActivityGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_floodlight_activity_groups_patch_builder(client, profileId, id, body)?;
+    let builder = dfareporting_floodlight_activity_groups_patch_builder(
+        client,
+        &args.profileId,
+        &args.id,
+        &args.body,
+    )?;
     dfareporting_floodlight_activity_groups_patch_execute(builder)
 }
 
@@ -16048,6 +17339,15 @@ pub fn dfareporting_floodlight_activity_groups_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_activity_groups_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightActivityGroupsUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: FloodlightActivityGroup,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightActivityGroups
 /// Updates an existing floodlight activity group.
 ///
@@ -16060,15 +17360,18 @@ pub fn dfareporting_floodlight_activity_groups_update_execute(
 
 pub fn dfareporting_floodlight_activity_groups_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &FloodlightActivityGroup,
+    args: &DfareportingFloodlightActivityGroupsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FloodlightActivityGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_activity_groups_update_builder(client, profileId, body)?;
+    let builder = dfareporting_floodlight_activity_groups_update_builder(
+        client,
+        &args.profileId,
+        &args.body,
+    )?;
     dfareporting_floodlight_activity_groups_update_execute(builder)
 }
 
@@ -16166,6 +17469,15 @@ pub fn dfareporting_floodlight_configurations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_configurations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightConfigurationsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightConfigurations/{floodlightConfigurationsId}
 /// Gets one floodlight configuration by ID.
 ///
@@ -16178,15 +17490,15 @@ pub fn dfareporting_floodlight_configurations_get_execute(
 
 pub fn dfareporting_floodlight_configurations_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingFloodlightConfigurationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FloodlightConfiguration>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_configurations_get_builder(client, profileId, id)?;
+    let builder =
+        dfareporting_floodlight_configurations_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_floodlight_configurations_get_execute(builder)
 }
 
@@ -16296,6 +17608,15 @@ pub fn dfareporting_floodlight_configurations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_configurations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightConfigurationsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightConfigurations
 /// Retrieves a list of floodlight configurations, possibly filtered.
 ///
@@ -16308,8 +17629,7 @@ pub fn dfareporting_floodlight_configurations_list_execute(
 
 pub fn dfareporting_floodlight_configurations_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    ids: Option<&str>,
+    args: &DfareportingFloodlightConfigurationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FloodlightConfigurationsListResponse>, ApiError>,
@@ -16318,7 +17638,11 @@ pub fn dfareporting_floodlight_configurations_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_configurations_list_builder(client, profileId, ids)?;
+    let builder = dfareporting_floodlight_configurations_list_builder(
+        client,
+        &args.profileId,
+        args.ids.as_deref(),
+    )?;
     dfareporting_floodlight_configurations_list_execute(builder)
 }
 
@@ -16419,6 +17743,17 @@ pub fn dfareporting_floodlight_configurations_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_configurations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightConfigurationsPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: FloodlightConfiguration,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightConfigurations
 /// Updates an existing floodlight configuration. This method supports patch semantics.
 ///
@@ -16431,17 +17766,19 @@ pub fn dfareporting_floodlight_configurations_patch_execute(
 
 pub fn dfareporting_floodlight_configurations_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &FloodlightConfiguration,
+    args: &DfareportingFloodlightConfigurationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FloodlightConfiguration>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_floodlight_configurations_patch_builder(client, profileId, id, body)?;
+    let builder = dfareporting_floodlight_configurations_patch_builder(
+        client,
+        &args.profileId,
+        &args.id,
+        &args.body,
+    )?;
     dfareporting_floodlight_configurations_patch_execute(builder)
 }
 
@@ -16540,6 +17877,15 @@ pub fn dfareporting_floodlight_configurations_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_floodlight_configurations_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingFloodlightConfigurationsUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: FloodlightConfiguration,
+}
+
 /// GET userprofiles/{userprofilesId}/floodlightConfigurations
 /// Updates an existing floodlight configuration.
 ///
@@ -16552,15 +17898,15 @@ pub fn dfareporting_floodlight_configurations_update_execute(
 
 pub fn dfareporting_floodlight_configurations_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &FloodlightConfiguration,
+    args: &DfareportingFloodlightConfigurationsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FloodlightConfiguration>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_floodlight_configurations_update_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_floodlight_configurations_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_floodlight_configurations_update_execute(builder)
 }
 
@@ -16656,6 +18002,13 @@ pub fn dfareporting_languages_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_languages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingLanguagesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/languages
 /// Retrieves a list of languages.
 ///
@@ -16668,14 +18021,14 @@ pub fn dfareporting_languages_list_execute(
 
 pub fn dfareporting_languages_list(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingLanguagesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LanguagesListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_languages_list_builder(client, profileId)?;
+    let builder = dfareporting_languages_list_builder(client, &args.profileId)?;
     dfareporting_languages_list_execute(builder)
 }
 
@@ -16771,6 +18124,13 @@ pub fn dfareporting_metros_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_metros_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingMetrosListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/metros
 /// Retrieves a list of metros.
 ///
@@ -16783,14 +18143,14 @@ pub fn dfareporting_metros_list_execute(
 
 pub fn dfareporting_metros_list(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingMetrosListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MetrosListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_metros_list_builder(client, profileId)?;
+    let builder = dfareporting_metros_list_builder(client, &args.profileId)?;
     dfareporting_metros_list_execute(builder)
 }
 
@@ -16885,6 +18245,15 @@ pub fn dfareporting_mobile_apps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_mobile_apps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingMobileAppsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/mobileApps/{mobileAppsId}
 /// Gets one mobile app by ID.
 ///
@@ -16897,13 +18266,12 @@ pub fn dfareporting_mobile_apps_get_execute(
 
 pub fn dfareporting_mobile_apps_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingMobileAppsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MobileApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_mobile_apps_get_builder(client, profileId, id)?;
+    let builder = dfareporting_mobile_apps_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_mobile_apps_get_execute(builder)
 }
 
@@ -17027,6 +18395,23 @@ pub fn dfareporting_mobile_apps_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_mobile_apps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingMobileAppsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: directories
+    pub directories: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/mobileApps
 /// Retrieves list of available mobile apps.
 ///
@@ -17039,12 +18424,7 @@ pub fn dfareporting_mobile_apps_list_execute(
 
 pub fn dfareporting_mobile_apps_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    directories: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
+    args: &DfareportingMobileAppsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MobileAppsListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -17053,12 +18433,12 @@ pub fn dfareporting_mobile_apps_list(
 > {
     let builder = dfareporting_mobile_apps_list_builder(
         client,
-        profileId,
-        directories,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
+        &args.profileId,
+        args.directories.as_deref(),
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
     )?;
     dfareporting_mobile_apps_list_execute(builder)
 }
@@ -17156,6 +18536,15 @@ pub fn dfareporting_mobile_carriers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_mobile_carriers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingMobileCarriersGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/mobileCarriers/{mobileCarriersId}
 /// Gets one mobile carrier by ID.
 ///
@@ -17168,15 +18557,14 @@ pub fn dfareporting_mobile_carriers_get_execute(
 
 pub fn dfareporting_mobile_carriers_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingMobileCarriersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MobileCarrier>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_mobile_carriers_get_builder(client, profileId, id)?;
+    let builder = dfareporting_mobile_carriers_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_mobile_carriers_get_execute(builder)
 }
 
@@ -17274,6 +18662,13 @@ pub fn dfareporting_mobile_carriers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_mobile_carriers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingMobileCarriersListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/mobileCarriers
 /// Retrieves a list of mobile carriers.
 ///
@@ -17286,7 +18681,7 @@ pub fn dfareporting_mobile_carriers_list_execute(
 
 pub fn dfareporting_mobile_carriers_list(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingMobileCarriersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<MobileCarriersListResponse>, ApiError>,
@@ -17295,7 +18690,7 @@ pub fn dfareporting_mobile_carriers_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_mobile_carriers_list_builder(client, profileId)?;
+    let builder = dfareporting_mobile_carriers_list_builder(client, &args.profileId)?;
     dfareporting_mobile_carriers_list_execute(builder)
 }
 
@@ -17393,6 +18788,15 @@ pub fn dfareporting_operating_system_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_operating_system_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingOperatingSystemVersionsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/operatingSystemVersions/{operatingSystemVersionsId}
 /// Gets one operating system version by ID.
 ///
@@ -17405,15 +18809,15 @@ pub fn dfareporting_operating_system_versions_get_execute(
 
 pub fn dfareporting_operating_system_versions_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingOperatingSystemVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OperatingSystemVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_operating_system_versions_get_builder(client, profileId, id)?;
+    let builder =
+        dfareporting_operating_system_versions_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_operating_system_versions_get_execute(builder)
 }
 
@@ -17511,6 +18915,13 @@ pub fn dfareporting_operating_system_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_operating_system_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingOperatingSystemVersionsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/operatingSystemVersions
 /// Retrieves a list of operating system versions.
 ///
@@ -17523,7 +18934,7 @@ pub fn dfareporting_operating_system_versions_list_execute(
 
 pub fn dfareporting_operating_system_versions_list(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingOperatingSystemVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<OperatingSystemVersionsListResponse>, ApiError>,
@@ -17532,7 +18943,7 @@ pub fn dfareporting_operating_system_versions_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_operating_system_versions_list_builder(client, profileId)?;
+    let builder = dfareporting_operating_system_versions_list_builder(client, &args.profileId)?;
     dfareporting_operating_system_versions_list_execute(builder)
 }
 
@@ -17629,6 +19040,15 @@ pub fn dfareporting_operating_systems_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_operating_systems_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingOperatingSystemsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: dartId
+    pub dartId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/operatingSystems/{operatingSystemsId}
 /// Gets one operating system by DART ID.
 ///
@@ -17641,15 +19061,15 @@ pub fn dfareporting_operating_systems_get_execute(
 
 pub fn dfareporting_operating_systems_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    dartId: &str,
+    args: &DfareportingOperatingSystemsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OperatingSystem>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_operating_systems_get_builder(client, profileId, dartId)?;
+    let builder =
+        dfareporting_operating_systems_get_builder(client, &args.profileId, &args.dartId)?;
     dfareporting_operating_systems_get_execute(builder)
 }
 
@@ -17747,6 +19167,13 @@ pub fn dfareporting_operating_systems_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_operating_systems_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingOperatingSystemsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/operatingSystems
 /// Retrieves a list of operating systems.
 ///
@@ -17759,7 +19186,7 @@ pub fn dfareporting_operating_systems_list_execute(
 
 pub fn dfareporting_operating_systems_list(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingOperatingSystemsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<OperatingSystemsListResponse>, ApiError>,
@@ -17768,7 +19195,7 @@ pub fn dfareporting_operating_systems_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_operating_systems_list_builder(client, profileId)?;
+    let builder = dfareporting_operating_systems_list_builder(client, &args.profileId)?;
     dfareporting_operating_systems_list_execute(builder)
 }
 
@@ -17865,6 +19292,15 @@ pub fn dfareporting_placement_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placement_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementGroupsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/placementGroups/{placementGroupsId}
 /// Gets one placement group by ID.
 ///
@@ -17877,15 +19313,14 @@ pub fn dfareporting_placement_groups_get_execute(
 
 pub fn dfareporting_placement_groups_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingPlacementGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlacementGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placement_groups_get_builder(client, profileId, id)?;
+    let builder = dfareporting_placement_groups_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_placement_groups_get_execute(builder)
 }
 
@@ -17984,6 +19419,15 @@ pub fn dfareporting_placement_groups_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placement_groups_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementGroupsInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: PlacementGroup,
+}
+
 /// GET userprofiles/{userprofilesId}/placementGroups
 /// Inserts a new placement group.
 ///
@@ -17996,15 +19440,15 @@ pub fn dfareporting_placement_groups_insert_execute(
 
 pub fn dfareporting_placement_groups_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &PlacementGroup,
+    args: &DfareportingPlacementGroupsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlacementGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placement_groups_insert_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_placement_groups_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_placement_groups_insert_execute(builder)
 }
 
@@ -18186,6 +19630,51 @@ pub fn dfareporting_placement_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placement_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementGroupsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: activeStatus
+    pub activeStatus: Option<String>,
+    /// Query parameter: advertiserIds
+    pub advertiserIds: Option<String>,
+    /// Query parameter: campaignIds
+    pub campaignIds: Option<String>,
+    /// Query parameter: contentCategoryIds
+    pub contentCategoryIds: Option<String>,
+    /// Query parameter: directorySiteIds
+    pub directorySiteIds: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxEndDate
+    pub maxEndDate: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: maxStartDate
+    pub maxStartDate: Option<String>,
+    /// Query parameter: minEndDate
+    pub minEndDate: Option<String>,
+    /// Query parameter: minStartDate
+    pub minStartDate: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: placementGroupType
+    pub placementGroupType: Option<String>,
+    /// Query parameter: placementStrategyIds
+    pub placementStrategyIds: Option<String>,
+    /// Query parameter: pricingTypes
+    pub pricingTypes: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: siteIds
+    pub siteIds: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/placementGroups
 /// Retrieves a list of placement groups, possibly filtered. This method supports paging.
 ///
@@ -18198,26 +19687,7 @@ pub fn dfareporting_placement_groups_list_execute(
 
 pub fn dfareporting_placement_groups_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    activeStatus: Option<&str>,
-    advertiserIds: Option<&str>,
-    campaignIds: Option<&str>,
-    contentCategoryIds: Option<&str>,
-    directorySiteIds: Option<&str>,
-    ids: Option<&str>,
-    maxEndDate: Option<&str>,
-    maxResults: Option<i32>,
-    maxStartDate: Option<&str>,
-    minEndDate: Option<&str>,
-    minStartDate: Option<&str>,
-    pageToken: Option<&str>,
-    placementGroupType: Option<&str>,
-    placementStrategyIds: Option<&str>,
-    pricingTypes: Option<&str>,
-    searchString: Option<&str>,
-    siteIds: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingPlacementGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<PlacementGroupsListResponse>, ApiError>,
@@ -18228,26 +19698,26 @@ pub fn dfareporting_placement_groups_list(
 > {
     let builder = dfareporting_placement_groups_list_builder(
         client,
-        profileId,
-        activeStatus,
-        advertiserIds,
-        campaignIds,
-        contentCategoryIds,
-        directorySiteIds,
-        ids,
-        maxEndDate,
-        maxResults,
-        maxStartDate,
-        minEndDate,
-        minStartDate,
-        pageToken,
-        placementGroupType,
-        placementStrategyIds,
-        pricingTypes,
-        searchString,
-        siteIds,
-        sortField,
-        sortOrder,
+        &args.profileId,
+        args.activeStatus.as_deref(),
+        args.advertiserIds.as_deref(),
+        args.campaignIds.as_deref(),
+        args.contentCategoryIds.as_deref(),
+        args.directorySiteIds.as_deref(),
+        args.ids.as_deref(),
+        args.maxEndDate.as_deref(),
+        args.maxResults,
+        args.maxStartDate.as_deref(),
+        args.minEndDate.as_deref(),
+        args.minStartDate.as_deref(),
+        args.pageToken.as_deref(),
+        args.placementGroupType.as_deref(),
+        args.placementStrategyIds.as_deref(),
+        args.pricingTypes.as_deref(),
+        args.searchString.as_deref(),
+        args.siteIds.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_placement_groups_list_execute(builder)
 }
@@ -18348,6 +19818,17 @@ pub fn dfareporting_placement_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placement_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementGroupsPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: PlacementGroup,
+}
+
 /// GET userprofiles/{userprofilesId}/placementGroups
 /// Updates an existing placement group. This method supports patch semantics.
 ///
@@ -18360,16 +19841,15 @@ pub fn dfareporting_placement_groups_patch_execute(
 
 pub fn dfareporting_placement_groups_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &PlacementGroup,
+    args: &DfareportingPlacementGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlacementGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placement_groups_patch_builder(client, profileId, id, body)?;
+    let builder =
+        dfareporting_placement_groups_patch_builder(client, &args.profileId, &args.id, &args.body)?;
     dfareporting_placement_groups_patch_execute(builder)
 }
 
@@ -18468,6 +19948,15 @@ pub fn dfareporting_placement_groups_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placement_groups_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementGroupsUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: PlacementGroup,
+}
+
 /// GET userprofiles/{userprofilesId}/placementGroups
 /// Updates an existing placement group.
 ///
@@ -18480,15 +19969,15 @@ pub fn dfareporting_placement_groups_update_execute(
 
 pub fn dfareporting_placement_groups_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &PlacementGroup,
+    args: &DfareportingPlacementGroupsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlacementGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placement_groups_update_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_placement_groups_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_placement_groups_update_execute(builder)
 }
 
@@ -18581,6 +20070,15 @@ pub fn dfareporting_placement_strategies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placement_strategies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementStrategiesDeleteArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/placementStrategies/{placementStrategiesId}
 /// Deletes an existing placement strategy.
 ///
@@ -18593,13 +20091,13 @@ pub fn dfareporting_placement_strategies_delete_execute(
 
 pub fn dfareporting_placement_strategies_delete(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingPlacementStrategiesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placement_strategies_delete_builder(client, profileId, id)?;
+    let builder =
+        dfareporting_placement_strategies_delete_builder(client, &args.profileId, &args.id)?;
     dfareporting_placement_strategies_delete_execute(builder)
 }
 
@@ -18697,6 +20195,15 @@ pub fn dfareporting_placement_strategies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placement_strategies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementStrategiesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/placementStrategies/{placementStrategiesId}
 /// Gets one placement strategy by ID.
 ///
@@ -18709,15 +20216,14 @@ pub fn dfareporting_placement_strategies_get_execute(
 
 pub fn dfareporting_placement_strategies_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingPlacementStrategiesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlacementStrategy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placement_strategies_get_builder(client, profileId, id)?;
+    let builder = dfareporting_placement_strategies_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_placement_strategies_get_execute(builder)
 }
 
@@ -18816,6 +20322,15 @@ pub fn dfareporting_placement_strategies_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placement_strategies_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementStrategiesInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: PlacementStrategy,
+}
+
 /// GET userprofiles/{userprofilesId}/placementStrategies
 /// Inserts a new placement strategy.
 ///
@@ -18828,15 +20343,15 @@ pub fn dfareporting_placement_strategies_insert_execute(
 
 pub fn dfareporting_placement_strategies_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &PlacementStrategy,
+    args: &DfareportingPlacementStrategiesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlacementStrategy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placement_strategies_insert_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_placement_strategies_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_placement_strategies_insert_execute(builder)
 }
 
@@ -18966,6 +20481,25 @@ pub fn dfareporting_placement_strategies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placement_strategies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementStrategiesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/placementStrategies
 /// Retrieves a list of placement strategies, possibly filtered. This method supports paging.
 ///
@@ -18978,13 +20512,7 @@ pub fn dfareporting_placement_strategies_list_execute(
 
 pub fn dfareporting_placement_strategies_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingPlacementStrategiesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<PlacementStrategiesListResponse>, ApiError>,
@@ -18995,13 +20523,13 @@ pub fn dfareporting_placement_strategies_list(
 > {
     let builder = dfareporting_placement_strategies_list_builder(
         client,
-        profileId,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
+        &args.profileId,
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_placement_strategies_list_execute(builder)
 }
@@ -19102,6 +20630,17 @@ pub fn dfareporting_placement_strategies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placement_strategies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementStrategiesPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: PlacementStrategy,
+}
+
 /// GET userprofiles/{userprofilesId}/placementStrategies
 /// Updates an existing placement strategy. This method supports patch semantics.
 ///
@@ -19114,16 +20653,19 @@ pub fn dfareporting_placement_strategies_patch_execute(
 
 pub fn dfareporting_placement_strategies_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &PlacementStrategy,
+    args: &DfareportingPlacementStrategiesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlacementStrategy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placement_strategies_patch_builder(client, profileId, id, body)?;
+    let builder = dfareporting_placement_strategies_patch_builder(
+        client,
+        &args.profileId,
+        &args.id,
+        &args.body,
+    )?;
     dfareporting_placement_strategies_patch_execute(builder)
 }
 
@@ -19222,6 +20764,15 @@ pub fn dfareporting_placement_strategies_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placement_strategies_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementStrategiesUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: PlacementStrategy,
+}
+
 /// GET userprofiles/{userprofilesId}/placementStrategies
 /// Updates an existing placement strategy.
 ///
@@ -19234,15 +20785,15 @@ pub fn dfareporting_placement_strategies_update_execute(
 
 pub fn dfareporting_placement_strategies_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &PlacementStrategy,
+    args: &DfareportingPlacementStrategiesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlacementStrategy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placement_strategies_update_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_placement_strategies_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_placement_strategies_update_execute(builder)
 }
 
@@ -19372,6 +20923,25 @@ pub fn dfareporting_placements_generatetags_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placements_generatetags`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementsGeneratetagsArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: campaignId
+    pub campaignId: Option<String>,
+    /// Query parameter: placementIds
+    pub placementIds: Option<String>,
+    /// Query parameter: tagFormats
+    pub tagFormats: Option<String>,
+    /// Query parameter: tagProperties_dcDbmMacroIncluded
+    pub tagProperties_dcDbmMacroIncluded: Option<bool>,
+    /// Query parameter: tagProperties_gppMacrosIncluded
+    pub tagProperties_gppMacrosIncluded: Option<bool>,
+    /// Query parameter: tagProperties_tcfGdprMacrosIncluded
+    pub tagProperties_tcfGdprMacrosIncluded: Option<bool>,
+}
+
 /// GET userprofiles/{userprofilesId}/placements/generatetags
 /// Generates tags for a placement.
 ///
@@ -19384,13 +20954,7 @@ pub fn dfareporting_placements_generatetags_execute(
 
 pub fn dfareporting_placements_generatetags(
     client: &SimpleHttpClient,
-    profileId: &str,
-    campaignId: Option<&str>,
-    placementIds: Option<&str>,
-    tagFormats: Option<&str>,
-    tagProperties_dcDbmMacroIncluded: Option<bool>,
-    tagProperties_gppMacrosIncluded: Option<bool>,
-    tagProperties_tcfGdprMacrosIncluded: Option<bool>,
+    args: &DfareportingPlacementsGeneratetagsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<PlacementsGenerateTagsResponse>, ApiError>,
@@ -19401,13 +20965,13 @@ pub fn dfareporting_placements_generatetags(
 > {
     let builder = dfareporting_placements_generatetags_builder(
         client,
-        profileId,
-        campaignId,
-        placementIds,
-        tagFormats,
-        tagProperties_dcDbmMacroIncluded,
-        tagProperties_gppMacrosIncluded,
-        tagProperties_tcfGdprMacrosIncluded,
+        &args.profileId,
+        args.campaignId.as_deref(),
+        args.placementIds.as_deref(),
+        args.tagFormats.as_deref(),
+        args.tagProperties_dcDbmMacroIncluded,
+        args.tagProperties_gppMacrosIncluded,
+        args.tagProperties_tcfGdprMacrosIncluded,
     )?;
     dfareporting_placements_generatetags_execute(builder)
 }
@@ -19503,6 +21067,15 @@ pub fn dfareporting_placements_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placements_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/placements/{placementsId}
 /// Gets one placement by ID.
 ///
@@ -19515,13 +21088,12 @@ pub fn dfareporting_placements_get_execute(
 
 pub fn dfareporting_placements_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingPlacementsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placements_get_builder(client, profileId, id)?;
+    let builder = dfareporting_placements_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_placements_get_execute(builder)
 }
 
@@ -19618,6 +21190,15 @@ pub fn dfareporting_placements_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placements_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementsInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Placement,
+}
+
 /// GET userprofiles/{userprofilesId}/placements
 /// Inserts a new placement.
 ///
@@ -19630,13 +21211,12 @@ pub fn dfareporting_placements_insert_execute(
 
 pub fn dfareporting_placements_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Placement,
+    args: &DfareportingPlacementsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placements_insert_builder(client, profileId, body)?;
+    let builder = dfareporting_placements_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_placements_insert_execute(builder)
 }
 
@@ -19828,6 +21408,57 @@ pub fn dfareporting_placements_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placements_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: activeStatus
+    pub activeStatus: Option<String>,
+    /// Query parameter: advertiserIds
+    pub advertiserIds: Option<String>,
+    /// Query parameter: campaignIds
+    pub campaignIds: Option<String>,
+    /// Query parameter: compatibilities
+    pub compatibilities: Option<String>,
+    /// Query parameter: contentCategoryIds
+    pub contentCategoryIds: Option<String>,
+    /// Query parameter: directorySiteIds
+    pub directorySiteIds: Option<String>,
+    /// Query parameter: groupIds
+    pub groupIds: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxEndDate
+    pub maxEndDate: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: maxStartDate
+    pub maxStartDate: Option<String>,
+    /// Query parameter: minEndDate
+    pub minEndDate: Option<String>,
+    /// Query parameter: minStartDate
+    pub minStartDate: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: paymentSource
+    pub paymentSource: Option<String>,
+    /// Query parameter: placementStrategyIds
+    pub placementStrategyIds: Option<String>,
+    /// Query parameter: pricingTypes
+    pub pricingTypes: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: siteIds
+    pub siteIds: Option<String>,
+    /// Query parameter: sizeIds
+    pub sizeIds: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/placements
 /// Retrieves a list of placements, possibly filtered. This method supports paging.
 ///
@@ -19840,29 +21471,7 @@ pub fn dfareporting_placements_list_execute(
 
 pub fn dfareporting_placements_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    activeStatus: Option<&str>,
-    advertiserIds: Option<&str>,
-    campaignIds: Option<&str>,
-    compatibilities: Option<&str>,
-    contentCategoryIds: Option<&str>,
-    directorySiteIds: Option<&str>,
-    groupIds: Option<&str>,
-    ids: Option<&str>,
-    maxEndDate: Option<&str>,
-    maxResults: Option<i32>,
-    maxStartDate: Option<&str>,
-    minEndDate: Option<&str>,
-    minStartDate: Option<&str>,
-    pageToken: Option<&str>,
-    paymentSource: Option<&str>,
-    placementStrategyIds: Option<&str>,
-    pricingTypes: Option<&str>,
-    searchString: Option<&str>,
-    siteIds: Option<&str>,
-    sizeIds: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingPlacementsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlacementsListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -19871,29 +21480,29 @@ pub fn dfareporting_placements_list(
 > {
     let builder = dfareporting_placements_list_builder(
         client,
-        profileId,
-        activeStatus,
-        advertiserIds,
-        campaignIds,
-        compatibilities,
-        contentCategoryIds,
-        directorySiteIds,
-        groupIds,
-        ids,
-        maxEndDate,
-        maxResults,
-        maxStartDate,
-        minEndDate,
-        minStartDate,
-        pageToken,
-        paymentSource,
-        placementStrategyIds,
-        pricingTypes,
-        searchString,
-        siteIds,
-        sizeIds,
-        sortField,
-        sortOrder,
+        &args.profileId,
+        args.activeStatus.as_deref(),
+        args.advertiserIds.as_deref(),
+        args.campaignIds.as_deref(),
+        args.compatibilities.as_deref(),
+        args.contentCategoryIds.as_deref(),
+        args.directorySiteIds.as_deref(),
+        args.groupIds.as_deref(),
+        args.ids.as_deref(),
+        args.maxEndDate.as_deref(),
+        args.maxResults,
+        args.maxStartDate.as_deref(),
+        args.minEndDate.as_deref(),
+        args.minStartDate.as_deref(),
+        args.pageToken.as_deref(),
+        args.paymentSource.as_deref(),
+        args.placementStrategyIds.as_deref(),
+        args.pricingTypes.as_deref(),
+        args.searchString.as_deref(),
+        args.siteIds.as_deref(),
+        args.sizeIds.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_placements_list_execute(builder)
 }
@@ -19992,6 +21601,17 @@ pub fn dfareporting_placements_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placements_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementsPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: Placement,
+}
+
 /// GET userprofiles/{userprofilesId}/placements
 /// Updates an existing placement. This method supports patch semantics.
 ///
@@ -20004,14 +21624,13 @@ pub fn dfareporting_placements_patch_execute(
 
 pub fn dfareporting_placements_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Placement,
+    args: &DfareportingPlacementsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placements_patch_builder(client, profileId, id, body)?;
+    let builder =
+        dfareporting_placements_patch_builder(client, &args.profileId, &args.id, &args.body)?;
     dfareporting_placements_patch_execute(builder)
 }
 
@@ -20108,6 +21727,15 @@ pub fn dfareporting_placements_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_placements_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlacementsUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Placement,
+}
+
 /// GET userprofiles/{userprofilesId}/placements
 /// Updates an existing placement.
 ///
@@ -20120,13 +21748,12 @@ pub fn dfareporting_placements_update_execute(
 
 pub fn dfareporting_placements_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Placement,
+    args: &DfareportingPlacementsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Placement>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_placements_update_builder(client, profileId, body)?;
+    let builder = dfareporting_placements_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_placements_update_execute(builder)
 }
 
@@ -20223,6 +21850,15 @@ pub fn dfareporting_platform_types_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_platform_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlatformTypesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/platformTypes/{platformTypesId}
 /// Gets one platform type by ID.
 ///
@@ -20235,15 +21871,14 @@ pub fn dfareporting_platform_types_get_execute(
 
 pub fn dfareporting_platform_types_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingPlatformTypesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlatformType>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_platform_types_get_builder(client, profileId, id)?;
+    let builder = dfareporting_platform_types_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_platform_types_get_execute(builder)
 }
 
@@ -20339,6 +21974,13 @@ pub fn dfareporting_platform_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_platform_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPlatformTypesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/platformTypes
 /// Retrieves a list of platform types.
 ///
@@ -20351,14 +21993,14 @@ pub fn dfareporting_platform_types_list_execute(
 
 pub fn dfareporting_platform_types_list(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingPlatformTypesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlatformTypesListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_platform_types_list_builder(client, profileId)?;
+    let builder = dfareporting_platform_types_list_builder(client, &args.profileId)?;
     dfareporting_platform_types_list_execute(builder)
 }
 
@@ -20453,6 +22095,15 @@ pub fn dfareporting_postal_codes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_postal_codes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPostalCodesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: code
+    pub code: String,
+}
+
 /// GET userprofiles/{userprofilesId}/postalCodes/{postalCodesId}
 /// Gets one postal code by ID.
 ///
@@ -20465,13 +22116,12 @@ pub fn dfareporting_postal_codes_get_execute(
 
 pub fn dfareporting_postal_codes_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    code: &str,
+    args: &DfareportingPostalCodesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PostalCode>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_postal_codes_get_builder(client, profileId, code)?;
+    let builder = dfareporting_postal_codes_get_builder(client, &args.profileId, &args.code)?;
     dfareporting_postal_codes_get_execute(builder)
 }
 
@@ -20567,6 +22217,13 @@ pub fn dfareporting_postal_codes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_postal_codes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingPostalCodesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/postalCodes
 /// Retrieves a list of postal codes.
 ///
@@ -20579,14 +22236,14 @@ pub fn dfareporting_postal_codes_list_execute(
 
 pub fn dfareporting_postal_codes_list(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingPostalCodesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PostalCodesListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_postal_codes_list_builder(client, profileId)?;
+    let builder = dfareporting_postal_codes_list_builder(client, &args.profileId)?;
     dfareporting_postal_codes_list_execute(builder)
 }
 
@@ -20682,6 +22339,13 @@ pub fn dfareporting_regions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_regions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingRegionsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/regions
 /// Retrieves a list of regions.
 ///
@@ -20694,14 +22358,14 @@ pub fn dfareporting_regions_list_execute(
 
 pub fn dfareporting_regions_list(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingRegionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RegionsListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_regions_list_builder(client, profileId)?;
+    let builder = dfareporting_regions_list_builder(client, &args.profileId)?;
     dfareporting_regions_list_execute(builder)
 }
 
@@ -20799,6 +22463,15 @@ pub fn dfareporting_remarketing_list_shares_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_remarketing_list_shares_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingRemarketingListSharesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: remarketingListId
+    pub remarketingListId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/remarketingListShares/{remarketingListSharesId}
 /// Gets one remarketing list share by remarketing list ID.
 ///
@@ -20811,16 +22484,18 @@ pub fn dfareporting_remarketing_list_shares_get_execute(
 
 pub fn dfareporting_remarketing_list_shares_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    remarketingListId: &str,
+    args: &DfareportingRemarketingListSharesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemarketingListShare>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_remarketing_list_shares_get_builder(client, profileId, remarketingListId)?;
+    let builder = dfareporting_remarketing_list_shares_get_builder(
+        client,
+        &args.profileId,
+        &args.remarketingListId,
+    )?;
     dfareporting_remarketing_list_shares_get_execute(builder)
 }
 
@@ -20920,6 +22595,17 @@ pub fn dfareporting_remarketing_list_shares_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_remarketing_list_shares_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingRemarketingListSharesPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: RemarketingListShare,
+}
+
 /// GET userprofiles/{userprofilesId}/remarketingListShares
 /// Updates an existing remarketing list share. This method supports patch semantics.
 ///
@@ -20932,16 +22618,19 @@ pub fn dfareporting_remarketing_list_shares_patch_execute(
 
 pub fn dfareporting_remarketing_list_shares_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &RemarketingListShare,
+    args: &DfareportingRemarketingListSharesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemarketingListShare>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_remarketing_list_shares_patch_builder(client, profileId, id, body)?;
+    let builder = dfareporting_remarketing_list_shares_patch_builder(
+        client,
+        &args.profileId,
+        &args.id,
+        &args.body,
+    )?;
     dfareporting_remarketing_list_shares_patch_execute(builder)
 }
 
@@ -21040,6 +22729,15 @@ pub fn dfareporting_remarketing_list_shares_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_remarketing_list_shares_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingRemarketingListSharesUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: RemarketingListShare,
+}
+
 /// GET userprofiles/{userprofilesId}/remarketingListShares
 /// Updates an existing remarketing list share.
 ///
@@ -21052,15 +22750,15 @@ pub fn dfareporting_remarketing_list_shares_update_execute(
 
 pub fn dfareporting_remarketing_list_shares_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &RemarketingListShare,
+    args: &DfareportingRemarketingListSharesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemarketingListShare>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_remarketing_list_shares_update_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_remarketing_list_shares_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_remarketing_list_shares_update_execute(builder)
 }
 
@@ -21157,6 +22855,15 @@ pub fn dfareporting_remarketing_lists_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_remarketing_lists_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingRemarketingListsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/remarketingLists/{remarketingListsId}
 /// Gets one remarketing list by ID.
 ///
@@ -21169,15 +22876,14 @@ pub fn dfareporting_remarketing_lists_get_execute(
 
 pub fn dfareporting_remarketing_lists_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingRemarketingListsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemarketingList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_remarketing_lists_get_builder(client, profileId, id)?;
+    let builder = dfareporting_remarketing_lists_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_remarketing_lists_get_execute(builder)
 }
 
@@ -21276,6 +22982,15 @@ pub fn dfareporting_remarketing_lists_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_remarketing_lists_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingRemarketingListsInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: RemarketingList,
+}
+
 /// GET userprofiles/{userprofilesId}/remarketingLists
 /// Inserts a new remarketing list.
 ///
@@ -21288,15 +23003,15 @@ pub fn dfareporting_remarketing_lists_insert_execute(
 
 pub fn dfareporting_remarketing_lists_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &RemarketingList,
+    args: &DfareportingRemarketingListsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemarketingList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_remarketing_lists_insert_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_remarketing_lists_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_remarketing_lists_insert_execute(builder)
 }
 
@@ -21431,6 +23146,29 @@ pub fn dfareporting_remarketing_lists_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_remarketing_lists_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingRemarketingListsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: active
+    pub active: Option<bool>,
+    /// Query parameter: floodlightActivityId
+    pub floodlightActivityId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/remarketingLists
 /// Retrieves a list of remarketing lists, possibly filtered. This method supports paging.
 ///
@@ -21443,15 +23181,7 @@ pub fn dfareporting_remarketing_lists_list_execute(
 
 pub fn dfareporting_remarketing_lists_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: &str,
-    active: Option<bool>,
-    floodlightActivityId: Option<&str>,
-    maxResults: Option<i32>,
-    name: Option<&str>,
-    pageToken: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingRemarketingListsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RemarketingListsListResponse>, ApiError>,
@@ -21462,15 +23192,15 @@ pub fn dfareporting_remarketing_lists_list(
 > {
     let builder = dfareporting_remarketing_lists_list_builder(
         client,
-        profileId,
-        advertiserId,
-        active,
-        floodlightActivityId,
-        maxResults,
-        name,
-        pageToken,
-        sortField,
-        sortOrder,
+        &args.profileId,
+        &args.advertiserId,
+        args.active,
+        args.floodlightActivityId.as_deref(),
+        args.maxResults,
+        args.name.as_deref(),
+        args.pageToken.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_remarketing_lists_list_execute(builder)
 }
@@ -21571,6 +23301,17 @@ pub fn dfareporting_remarketing_lists_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_remarketing_lists_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingRemarketingListsPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: RemarketingList,
+}
+
 /// GET userprofiles/{userprofilesId}/remarketingLists
 /// Updates an existing remarketing list. This method supports patch semantics.
 ///
@@ -21583,16 +23324,19 @@ pub fn dfareporting_remarketing_lists_patch_execute(
 
 pub fn dfareporting_remarketing_lists_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &RemarketingList,
+    args: &DfareportingRemarketingListsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemarketingList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_remarketing_lists_patch_builder(client, profileId, id, body)?;
+    let builder = dfareporting_remarketing_lists_patch_builder(
+        client,
+        &args.profileId,
+        &args.id,
+        &args.body,
+    )?;
     dfareporting_remarketing_lists_patch_execute(builder)
 }
 
@@ -21691,6 +23435,15 @@ pub fn dfareporting_remarketing_lists_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_remarketing_lists_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingRemarketingListsUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: RemarketingList,
+}
+
 /// GET userprofiles/{userprofilesId}/remarketingLists
 /// Updates an existing remarketing list.
 ///
@@ -21703,15 +23456,15 @@ pub fn dfareporting_remarketing_lists_update_execute(
 
 pub fn dfareporting_remarketing_lists_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &RemarketingList,
+    args: &DfareportingRemarketingListsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemarketingList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_remarketing_lists_update_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_remarketing_lists_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_remarketing_lists_update_execute(builder)
 }
 
@@ -21803,6 +23556,15 @@ pub fn dfareporting_reports_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_reports_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingReportsDeleteArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: reportId
+    pub reportId: String,
+}
+
 /// GET userprofiles/{profileId}/reports/{reportId}
 /// Deletes a report by its ID.
 ///
@@ -21815,13 +23577,12 @@ pub fn dfareporting_reports_delete_execute(
 
 pub fn dfareporting_reports_delete(
     client: &SimpleHttpClient,
-    profileId: &str,
-    reportId: &str,
+    args: &DfareportingReportsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_reports_delete_builder(client, profileId, reportId)?;
+    let builder = dfareporting_reports_delete_builder(client, &args.profileId, &args.reportId)?;
     dfareporting_reports_delete_execute(builder)
 }
 
@@ -21916,6 +23677,15 @@ pub fn dfareporting_reports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingReportsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: reportId
+    pub reportId: String,
+}
+
 /// GET userprofiles/{profileId}/reports/{reportId}
 /// Retrieves a report by its ID.
 ///
@@ -21928,13 +23698,12 @@ pub fn dfareporting_reports_get_execute(
 
 pub fn dfareporting_reports_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    reportId: &str,
+    args: &DfareportingReportsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_reports_get_builder(client, profileId, reportId)?;
+    let builder = dfareporting_reports_get_builder(client, &args.profileId, &args.reportId)?;
     dfareporting_reports_get_execute(builder)
 }
 
@@ -22031,6 +23800,15 @@ pub fn dfareporting_reports_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_reports_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingReportsInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Report,
+}
+
 /// GET userprofiles/{profileId}/reports
 /// Creates a report.
 ///
@@ -22043,13 +23821,12 @@ pub fn dfareporting_reports_insert_execute(
 
 pub fn dfareporting_reports_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Report,
+    args: &DfareportingReportsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_reports_insert_builder(client, profileId, body)?;
+    let builder = dfareporting_reports_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_reports_insert_execute(builder)
 }
 
@@ -22171,6 +23948,23 @@ pub fn dfareporting_reports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_reports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingReportsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: scope
+    pub scope: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{profileId}/reports
 /// Retrieves list of reports.
 ///
@@ -22183,18 +23977,19 @@ pub fn dfareporting_reports_list_execute(
 
 pub fn dfareporting_reports_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    scope: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingReportsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReportList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dfareporting_reports_list_builder(
-        client, profileId, maxResults, pageToken, scope, sortField, sortOrder,
+        client,
+        &args.profileId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.scope.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_reports_list_execute(builder)
 }
@@ -22302,6 +24097,17 @@ pub fn dfareporting_reports_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_reports_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingReportsRunArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: reportId
+    pub reportId: String,
+    /// Query parameter: synchronous
+    pub synchronous: Option<bool>,
+}
+
 /// GET userprofiles/{profileId}/reports/{reportId}/run
 /// Runs a report.
 ///
@@ -22314,14 +24120,17 @@ pub fn dfareporting_reports_run_execute(
 
 pub fn dfareporting_reports_run(
     client: &SimpleHttpClient,
-    profileId: &str,
-    reportId: &str,
-    synchronous: Option<bool>,
+    args: &DfareportingReportsRunArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_reports_run_builder(client, profileId, reportId, synchronous)?;
+    let builder = dfareporting_reports_run_builder(
+        client,
+        &args.profileId,
+        &args.reportId,
+        args.synchronous,
+    )?;
     dfareporting_reports_run_execute(builder)
 }
 
@@ -22419,6 +24228,17 @@ pub fn dfareporting_reports_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_reports_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingReportsUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: reportId
+    pub reportId: String,
+    /// Request body.
+    pub body: Report,
+}
+
 /// GET userprofiles/{profileId}/reports/{reportId}
 /// Updates a report.
 ///
@@ -22431,14 +24251,13 @@ pub fn dfareporting_reports_update_execute(
 
 pub fn dfareporting_reports_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    reportId: &str,
-    body: &Report,
+    args: &DfareportingReportsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_reports_update_builder(client, profileId, reportId, body)?;
+    let builder =
+        dfareporting_reports_update_builder(client, &args.profileId, &args.reportId, &args.body)?;
     dfareporting_reports_update_execute(builder)
 }
 
@@ -22537,6 +24356,15 @@ pub fn dfareporting_reports_compatible_fields_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_reports_compatible_fields_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingReportsCompatibleFieldsQueryArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Report,
+}
+
 /// GET userprofiles/{profileId}/reports/compatiblefields/query
 /// Returns the fields that are compatible to be selected in the respective sections of a report criteria, given the fields already selected in the input report and user permissions.
 ///
@@ -22549,15 +24377,15 @@ pub fn dfareporting_reports_compatible_fields_query_execute(
 
 pub fn dfareporting_reports_compatible_fields_query(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Report,
+    args: &DfareportingReportsCompatibleFieldsQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CompatibleFields>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_reports_compatible_fields_query_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_reports_compatible_fields_query_builder(client, &args.profileId, &args.body)?;
     dfareporting_reports_compatible_fields_query_execute(builder)
 }
 
@@ -22653,6 +24481,17 @@ pub fn dfareporting_reports_files_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_reports_files_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingReportsFilesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: reportId
+    pub reportId: String,
+    /// Path parameter: fileId
+    pub fileId: String,
+}
+
 /// GET userprofiles/{profileId}/reports/{reportId}/files/{fileId}
 /// Retrieves a report file by its report ID and file ID. This method supports media download.
 ///
@@ -22665,14 +24504,17 @@ pub fn dfareporting_reports_files_get_execute(
 
 pub fn dfareporting_reports_files_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    reportId: &str,
-    fileId: &str,
+    args: &DfareportingReportsFilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_reports_files_get_builder(client, profileId, reportId, fileId)?;
+    let builder = dfareporting_reports_files_get_builder(
+        client,
+        &args.profileId,
+        &args.reportId,
+        &args.fileId,
+    )?;
     dfareporting_reports_files_get_execute(builder)
 }
 
@@ -22791,6 +24633,23 @@ pub fn dfareporting_reports_files_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_reports_files_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingReportsFilesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: reportId
+    pub reportId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{profileId}/reports/{reportId}/files
 /// Lists files for a report.
 ///
@@ -22803,18 +24662,19 @@ pub fn dfareporting_reports_files_list_execute(
 
 pub fn dfareporting_reports_files_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    reportId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingReportsFilesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FileList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dfareporting_reports_files_list_builder(
-        client, profileId, reportId, maxResults, pageToken, sortField, sortOrder,
+        client,
+        &args.profileId,
+        &args.reportId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_reports_files_list_execute(builder)
 }
@@ -22910,6 +24770,15 @@ pub fn dfareporting_sites_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_sites_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingSitesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/sites/{sitesId}
 /// Gets one site by ID.
 ///
@@ -22922,13 +24791,12 @@ pub fn dfareporting_sites_get_execute(
 
 pub fn dfareporting_sites_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingSitesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_sites_get_builder(client, profileId, id)?;
+    let builder = dfareporting_sites_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_sites_get_execute(builder)
 }
 
@@ -23025,6 +24893,15 @@ pub fn dfareporting_sites_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_sites_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingSitesInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Site,
+}
+
 /// GET userprofiles/{userprofilesId}/sites
 /// Inserts a new site.
 ///
@@ -23037,13 +24914,12 @@ pub fn dfareporting_sites_insert_execute(
 
 pub fn dfareporting_sites_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Site,
+    args: &DfareportingSitesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_sites_insert_builder(client, profileId, body)?;
+    let builder = dfareporting_sites_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_sites_insert_execute(builder)
 }
 
@@ -23207,6 +25083,43 @@ pub fn dfareporting_sites_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_sites_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingSitesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: acceptsInStreamVideoPlacements
+    pub acceptsInStreamVideoPlacements: Option<bool>,
+    /// Query parameter: acceptsInterstitialPlacements
+    pub acceptsInterstitialPlacements: Option<bool>,
+    /// Query parameter: acceptsPublisherPaidPlacements
+    pub acceptsPublisherPaidPlacements: Option<bool>,
+    /// Query parameter: adWordsSite
+    pub adWordsSite: Option<bool>,
+    /// Query parameter: approved
+    pub approved: Option<bool>,
+    /// Query parameter: campaignIds
+    pub campaignIds: Option<String>,
+    /// Query parameter: directorySiteIds
+    pub directorySiteIds: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+    /// Query parameter: subaccountId
+    pub subaccountId: Option<String>,
+    /// Query parameter: unmappedSite
+    pub unmappedSite: Option<bool>,
+}
+
 /// GET userprofiles/{userprofilesId}/sites
 /// Retrieves a list of sites, possibly filtered. This method supports paging.
 ///
@@ -23219,22 +25132,7 @@ pub fn dfareporting_sites_list_execute(
 
 pub fn dfareporting_sites_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    acceptsInStreamVideoPlacements: Option<bool>,
-    acceptsInterstitialPlacements: Option<bool>,
-    acceptsPublisherPaidPlacements: Option<bool>,
-    adWordsSite: Option<bool>,
-    approved: Option<bool>,
-    campaignIds: Option<&str>,
-    directorySiteIds: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    subaccountId: Option<&str>,
-    unmappedSite: Option<bool>,
+    args: &DfareportingSitesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SitesListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -23243,22 +25141,22 @@ pub fn dfareporting_sites_list(
 > {
     let builder = dfareporting_sites_list_builder(
         client,
-        profileId,
-        acceptsInStreamVideoPlacements,
-        acceptsInterstitialPlacements,
-        acceptsPublisherPaidPlacements,
-        adWordsSite,
-        approved,
-        campaignIds,
-        directorySiteIds,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
-        subaccountId,
-        unmappedSite,
+        &args.profileId,
+        args.acceptsInStreamVideoPlacements,
+        args.acceptsInterstitialPlacements,
+        args.acceptsPublisherPaidPlacements,
+        args.adWordsSite,
+        args.approved,
+        args.campaignIds.as_deref(),
+        args.directorySiteIds.as_deref(),
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
+        args.subaccountId.as_deref(),
+        args.unmappedSite,
     )?;
     dfareporting_sites_list_execute(builder)
 }
@@ -23357,6 +25255,17 @@ pub fn dfareporting_sites_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_sites_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingSitesPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: Site,
+}
+
 /// GET userprofiles/{userprofilesId}/sites
 /// Updates an existing site. This method supports patch semantics.
 ///
@@ -23369,14 +25278,12 @@ pub fn dfareporting_sites_patch_execute(
 
 pub fn dfareporting_sites_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Site,
+    args: &DfareportingSitesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_sites_patch_builder(client, profileId, id, body)?;
+    let builder = dfareporting_sites_patch_builder(client, &args.profileId, &args.id, &args.body)?;
     dfareporting_sites_patch_execute(builder)
 }
 
@@ -23473,6 +25380,15 @@ pub fn dfareporting_sites_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_sites_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingSitesUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Site,
+}
+
 /// GET userprofiles/{userprofilesId}/sites
 /// Updates an existing site.
 ///
@@ -23485,13 +25401,12 @@ pub fn dfareporting_sites_update_execute(
 
 pub fn dfareporting_sites_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Site,
+    args: &DfareportingSitesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_sites_update_builder(client, profileId, body)?;
+    let builder = dfareporting_sites_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_sites_update_execute(builder)
 }
 
@@ -23586,6 +25501,15 @@ pub fn dfareporting_sizes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_sizes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingSizesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/sizes/{sizesId}
 /// Gets one size by ID.
 ///
@@ -23598,13 +25522,12 @@ pub fn dfareporting_sizes_get_execute(
 
 pub fn dfareporting_sizes_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingSizesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Size>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_sizes_get_builder(client, profileId, id)?;
+    let builder = dfareporting_sizes_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_sizes_get_execute(builder)
 }
 
@@ -23701,6 +25624,15 @@ pub fn dfareporting_sizes_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_sizes_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingSizesInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Size,
+}
+
 /// GET userprofiles/{userprofilesId}/sizes
 /// Inserts a new size.
 ///
@@ -23713,13 +25645,12 @@ pub fn dfareporting_sizes_insert_execute(
 
 pub fn dfareporting_sizes_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Size,
+    args: &DfareportingSizesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Size>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_sizes_insert_builder(client, profileId, body)?;
+    let builder = dfareporting_sizes_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_sizes_insert_execute(builder)
 }
 
@@ -23839,6 +25770,21 @@ pub fn dfareporting_sizes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_sizes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingSizesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: height
+    pub height: Option<i32>,
+    /// Query parameter: iabStandard
+    pub iabStandard: Option<bool>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: width
+    pub width: Option<i32>,
+}
+
 /// GET userprofiles/{userprofilesId}/sizes
 /// Retrieves a list of sizes, possibly filtered. Retrieved sizes are globally unique and may include values not currently in use by your account. Due to this, the list of sizes returned by this method may differ from the list seen in the Trafficking UI.
 ///
@@ -23851,19 +25797,21 @@ pub fn dfareporting_sizes_list_execute(
 
 pub fn dfareporting_sizes_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    height: Option<i32>,
-    iabStandard: Option<bool>,
-    ids: Option<&str>,
-    width: Option<i32>,
+    args: &DfareportingSizesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SizesListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dfareporting_sizes_list_builder(client, profileId, height, iabStandard, ids, width)?;
+    let builder = dfareporting_sizes_list_builder(
+        client,
+        &args.profileId,
+        args.height,
+        args.iabStandard,
+        args.ids.as_deref(),
+        args.width,
+    )?;
     dfareporting_sizes_list_execute(builder)
 }
 
@@ -23960,6 +25908,13 @@ pub fn dfareporting_studio_creative_assets_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_studio_creative_assets_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingStudioCreativeAssetsInsertArgs {
+    /// Request body.
+    pub body: DfareportingStudioCreativeAssetsInsertRequest,
+}
+
 /// GET studio/creativeAssets
 /// Inserts a new studio creative asset.
 ///
@@ -23972,7 +25927,7 @@ pub fn dfareporting_studio_creative_assets_insert_execute(
 
 pub fn dfareporting_studio_creative_assets_insert(
     client: &SimpleHttpClient,
-    body: &DfareportingStudioCreativeAssetsInsertRequest,
+    args: &DfareportingStudioCreativeAssetsInsertArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<StudioCreativeAssetsResponse>, ApiError>,
@@ -23981,7 +25936,7 @@ pub fn dfareporting_studio_creative_assets_insert(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_studio_creative_assets_insert_builder(client, body)?;
+    let builder = dfareporting_studio_creative_assets_insert_builder(client, &args.body)?;
     dfareporting_studio_creative_assets_insert_execute(builder)
 }
 
@@ -24077,6 +26032,13 @@ pub fn dfareporting_studio_creatives_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_studio_creatives_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingStudioCreativesGetArgs {
+    /// Path parameter: studioCreativeId
+    pub studioCreativeId: String,
+}
+
 /// GET studio/creatives/{creativesId}
 /// Gets a studio creative by ID.
 ///
@@ -24089,14 +26051,14 @@ pub fn dfareporting_studio_creatives_get_execute(
 
 pub fn dfareporting_studio_creatives_get(
     client: &SimpleHttpClient,
-    studioCreativeId: &str,
+    args: &DfareportingStudioCreativesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StudioCreative>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_studio_creatives_get_builder(client, studioCreativeId)?;
+    let builder = dfareporting_studio_creatives_get_builder(client, &args.studioCreativeId)?;
     dfareporting_studio_creatives_get_execute(builder)
 }
 
@@ -24191,6 +26153,13 @@ pub fn dfareporting_studio_creatives_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_studio_creatives_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingStudioCreativesInsertArgs {
+    /// Request body.
+    pub body: StudioCreative,
+}
+
 /// GET studio/creatives
 /// Inserts a new studio creative.
 ///
@@ -24203,14 +26172,14 @@ pub fn dfareporting_studio_creatives_insert_execute(
 
 pub fn dfareporting_studio_creatives_insert(
     client: &SimpleHttpClient,
-    body: &StudioCreative,
+    args: &DfareportingStudioCreativesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StudioCreative>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_studio_creatives_insert_builder(client, body)?;
+    let builder = dfareporting_studio_creatives_insert_builder(client, &args.body)?;
     dfareporting_studio_creatives_insert_execute(builder)
 }
 
@@ -24301,6 +26270,13 @@ pub fn dfareporting_studio_creatives_publish_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_studio_creatives_publish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingStudioCreativesPublishArgs {
+    /// Path parameter: studioCreativeId
+    pub studioCreativeId: String,
+}
+
 /// GET studio/creatives/{creativesId}/publish
 /// Publish for a studio creative.
 ///
@@ -24313,12 +26289,12 @@ pub fn dfareporting_studio_creatives_publish_execute(
 
 pub fn dfareporting_studio_creatives_publish(
     client: &SimpleHttpClient,
-    studioCreativeId: &str,
+    args: &DfareportingStudioCreativesPublishArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_studio_creatives_publish_builder(client, studioCreativeId)?;
+    let builder = dfareporting_studio_creatives_publish_builder(client, &args.studioCreativeId)?;
     dfareporting_studio_creatives_publish_execute(builder)
 }
 
@@ -24413,6 +26389,15 @@ pub fn dfareporting_subaccounts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_subaccounts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingSubaccountsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/subaccounts/{subaccountsId}
 /// Gets one subaccount by ID.
 ///
@@ -24425,13 +26410,12 @@ pub fn dfareporting_subaccounts_get_execute(
 
 pub fn dfareporting_subaccounts_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingSubaccountsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_subaccounts_get_builder(client, profileId, id)?;
+    let builder = dfareporting_subaccounts_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_subaccounts_get_execute(builder)
 }
 
@@ -24528,6 +26512,15 @@ pub fn dfareporting_subaccounts_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_subaccounts_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingSubaccountsInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Subaccount,
+}
+
 /// GET userprofiles/{userprofilesId}/subaccounts
 /// Inserts a new subaccount.
 ///
@@ -24540,13 +26533,12 @@ pub fn dfareporting_subaccounts_insert_execute(
 
 pub fn dfareporting_subaccounts_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Subaccount,
+    args: &DfareportingSubaccountsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_subaccounts_insert_builder(client, profileId, body)?;
+    let builder = dfareporting_subaccounts_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_subaccounts_insert_execute(builder)
 }
 
@@ -24674,6 +26666,25 @@ pub fn dfareporting_subaccounts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_subaccounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingSubaccountsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/subaccounts
 /// Gets a list of subaccounts, possibly filtered. This method supports paging.
 ///
@@ -24686,13 +26697,7 @@ pub fn dfareporting_subaccounts_list_execute(
 
 pub fn dfareporting_subaccounts_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingSubaccountsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SubaccountsListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -24701,13 +26706,13 @@ pub fn dfareporting_subaccounts_list(
 > {
     let builder = dfareporting_subaccounts_list_builder(
         client,
-        profileId,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
+        &args.profileId,
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_subaccounts_list_execute(builder)
 }
@@ -24806,6 +26811,17 @@ pub fn dfareporting_subaccounts_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_subaccounts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingSubaccountsPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: Subaccount,
+}
+
 /// GET userprofiles/{userprofilesId}/subaccounts
 /// Updates an existing subaccount. This method supports patch semantics.
 ///
@@ -24818,14 +26834,13 @@ pub fn dfareporting_subaccounts_patch_execute(
 
 pub fn dfareporting_subaccounts_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &Subaccount,
+    args: &DfareportingSubaccountsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_subaccounts_patch_builder(client, profileId, id, body)?;
+    let builder =
+        dfareporting_subaccounts_patch_builder(client, &args.profileId, &args.id, &args.body)?;
     dfareporting_subaccounts_patch_execute(builder)
 }
 
@@ -24922,6 +26937,15 @@ pub fn dfareporting_subaccounts_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_subaccounts_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingSubaccountsUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: Subaccount,
+}
+
 /// GET userprofiles/{userprofilesId}/subaccounts
 /// Updates an existing subaccount.
 ///
@@ -24934,13 +26958,12 @@ pub fn dfareporting_subaccounts_update_execute(
 
 pub fn dfareporting_subaccounts_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &Subaccount,
+    args: &DfareportingSubaccountsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subaccount>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_subaccounts_update_builder(client, profileId, body)?;
+    let builder = dfareporting_subaccounts_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_subaccounts_update_execute(builder)
 }
 
@@ -25038,6 +27061,15 @@ pub fn dfareporting_targetable_remarketing_lists_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_targetable_remarketing_lists_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingTargetableRemarketingListsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/targetableRemarketingLists/{targetableRemarketingListsId}
 /// Gets one remarketing list by ID.
 ///
@@ -25050,15 +27082,15 @@ pub fn dfareporting_targetable_remarketing_lists_get_execute(
 
 pub fn dfareporting_targetable_remarketing_lists_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingTargetableRemarketingListsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TargetableRemarketingList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_targetable_remarketing_lists_get_builder(client, profileId, id)?;
+    let builder =
+        dfareporting_targetable_remarketing_lists_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_targetable_remarketing_lists_get_execute(builder)
 }
 
@@ -25190,6 +27222,27 @@ pub fn dfareporting_targetable_remarketing_lists_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_targetable_remarketing_lists_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingTargetableRemarketingListsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: active
+    pub active: Option<bool>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/targetableRemarketingLists
 /// Retrieves a list of targetable remarketing lists, possibly filtered. This method supports paging.
 ///
@@ -25202,14 +27255,7 @@ pub fn dfareporting_targetable_remarketing_lists_list_execute(
 
 pub fn dfareporting_targetable_remarketing_lists_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: &str,
-    active: Option<bool>,
-    maxResults: Option<i32>,
-    name: Option<&str>,
-    pageToken: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingTargetableRemarketingListsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TargetableRemarketingListsListResponse>, ApiError>,
@@ -25220,14 +27266,14 @@ pub fn dfareporting_targetable_remarketing_lists_list(
 > {
     let builder = dfareporting_targetable_remarketing_lists_list_builder(
         client,
-        profileId,
-        advertiserId,
-        active,
-        maxResults,
-        name,
-        pageToken,
-        sortField,
-        sortOrder,
+        &args.profileId,
+        &args.advertiserId,
+        args.active,
+        args.maxResults,
+        args.name.as_deref(),
+        args.pageToken.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_targetable_remarketing_lists_list_execute(builder)
 }
@@ -25325,6 +27371,15 @@ pub fn dfareporting_targeting_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_targeting_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingTargetingTemplatesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/targetingTemplates/{targetingTemplatesId}
 /// Gets one targeting template by ID.
 ///
@@ -25337,15 +27392,14 @@ pub fn dfareporting_targeting_templates_get_execute(
 
 pub fn dfareporting_targeting_templates_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingTargetingTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TargetingTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_targeting_templates_get_builder(client, profileId, id)?;
+    let builder = dfareporting_targeting_templates_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_targeting_templates_get_execute(builder)
 }
 
@@ -25444,6 +27498,15 @@ pub fn dfareporting_targeting_templates_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_targeting_templates_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingTargetingTemplatesInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: TargetingTemplate,
+}
+
 /// GET userprofiles/{userprofilesId}/targetingTemplates
 /// Inserts a new targeting template.
 ///
@@ -25456,15 +27519,15 @@ pub fn dfareporting_targeting_templates_insert_execute(
 
 pub fn dfareporting_targeting_templates_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &TargetingTemplate,
+    args: &DfareportingTargetingTemplatesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TargetingTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_targeting_templates_insert_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_targeting_templates_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_targeting_templates_insert_execute(builder)
 }
 
@@ -25598,6 +27661,27 @@ pub fn dfareporting_targeting_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_targeting_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingTargetingTemplatesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/targetingTemplates
 /// Retrieves a list of targeting templates, optionally filtered. This method supports paging.
 ///
@@ -25610,14 +27694,7 @@ pub fn dfareporting_targeting_templates_list_execute(
 
 pub fn dfareporting_targeting_templates_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    advertiserId: Option<&str>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DfareportingTargetingTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TargetingTemplatesListResponse>, ApiError>,
@@ -25628,14 +27705,14 @@ pub fn dfareporting_targeting_templates_list(
 > {
     let builder = dfareporting_targeting_templates_list_builder(
         client,
-        profileId,
-        advertiserId,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
+        &args.profileId,
+        args.advertiserId.as_deref(),
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dfareporting_targeting_templates_list_execute(builder)
 }
@@ -25736,6 +27813,17 @@ pub fn dfareporting_targeting_templates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_targeting_templates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingTargetingTemplatesPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: TargetingTemplate,
+}
+
 /// GET userprofiles/{userprofilesId}/targetingTemplates
 /// Updates an existing targeting template. This method supports patch semantics.
 ///
@@ -25748,16 +27836,19 @@ pub fn dfareporting_targeting_templates_patch_execute(
 
 pub fn dfareporting_targeting_templates_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &TargetingTemplate,
+    args: &DfareportingTargetingTemplatesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TargetingTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_targeting_templates_patch_builder(client, profileId, id, body)?;
+    let builder = dfareporting_targeting_templates_patch_builder(
+        client,
+        &args.profileId,
+        &args.id,
+        &args.body,
+    )?;
     dfareporting_targeting_templates_patch_execute(builder)
 }
 
@@ -25856,6 +27947,15 @@ pub fn dfareporting_targeting_templates_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_targeting_templates_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingTargetingTemplatesUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: TargetingTemplate,
+}
+
 /// GET userprofiles/{userprofilesId}/targetingTemplates
 /// Updates an existing targeting template.
 ///
@@ -25868,15 +27968,15 @@ pub fn dfareporting_targeting_templates_update_execute(
 
 pub fn dfareporting_targeting_templates_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &TargetingTemplate,
+    args: &DfareportingTargetingTemplatesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TargetingTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_targeting_templates_update_builder(client, profileId, body)?;
+    let builder =
+        dfareporting_targeting_templates_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_targeting_templates_update_execute(builder)
 }
 
@@ -25993,6 +28093,21 @@ pub fn dfareporting_tv_campaign_details_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_tv_campaign_details_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingTvCampaignDetailsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: accountId
+    pub accountId: Option<String>,
+    /// Query parameter: countryDartId
+    pub countryDartId: Option<String>,
+    /// Query parameter: tvDataProvider
+    pub tvDataProvider: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/tvCampaignDetails/{tvCampaignDetailsId}
 /// Gets one TvCampaignDetail by ID.
 ///
@@ -26005,11 +28120,7 @@ pub fn dfareporting_tv_campaign_details_get_execute(
 
 pub fn dfareporting_tv_campaign_details_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    accountId: Option<&str>,
-    countryDartId: Option<&str>,
-    tvDataProvider: Option<&str>,
+    args: &DfareportingTvCampaignDetailsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TvCampaignDetail>, ApiError>, P = ApiPending>
         + Send
@@ -26018,11 +28129,11 @@ pub fn dfareporting_tv_campaign_details_get(
 > {
     let builder = dfareporting_tv_campaign_details_get_builder(
         client,
-        profileId,
-        id,
-        accountId,
-        countryDartId,
-        tvDataProvider,
+        &args.profileId,
+        &args.id,
+        args.accountId.as_deref(),
+        args.countryDartId.as_deref(),
+        args.tvDataProvider.as_deref(),
     )?;
     dfareporting_tv_campaign_details_get_execute(builder)
 }
@@ -26145,6 +28256,21 @@ pub fn dfareporting_tv_campaign_summaries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_tv_campaign_summaries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingTvCampaignSummariesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: accountId
+    pub accountId: Option<String>,
+    /// Query parameter: countryDartId
+    pub countryDartId: Option<String>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: tvDataProvider
+    pub tvDataProvider: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/tvCampaignSummaries
 /// Retrieves a list of TV campaign summaries.
 ///
@@ -26157,11 +28283,7 @@ pub fn dfareporting_tv_campaign_summaries_list_execute(
 
 pub fn dfareporting_tv_campaign_summaries_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    accountId: Option<&str>,
-    countryDartId: Option<&str>,
-    name: Option<&str>,
-    tvDataProvider: Option<&str>,
+    args: &DfareportingTvCampaignSummariesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TvCampaignSummariesListResponse>, ApiError>,
@@ -26172,11 +28294,11 @@ pub fn dfareporting_tv_campaign_summaries_list(
 > {
     let builder = dfareporting_tv_campaign_summaries_list_builder(
         client,
-        profileId,
-        accountId,
-        countryDartId,
-        name,
-        tvDataProvider,
+        &args.profileId,
+        args.accountId.as_deref(),
+        args.countryDartId.as_deref(),
+        args.name.as_deref(),
+        args.tvDataProvider.as_deref(),
     )?;
     dfareporting_tv_campaign_summaries_list_execute(builder)
 }
@@ -26271,6 +28393,13 @@ pub fn dfareporting_user_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_user_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingUserProfilesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{profileId}
 /// Gets one user profile by ID.
 ///
@@ -26283,12 +28412,12 @@ pub fn dfareporting_user_profiles_get_execute(
 
 pub fn dfareporting_user_profiles_get(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingUserProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserProfile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_profiles_get_builder(client, profileId)?;
+    let builder = dfareporting_user_profiles_get_builder(client, &args.profileId)?;
     dfareporting_user_profiles_get_execute(builder)
 }
 
@@ -26496,6 +28625,15 @@ pub fn dfareporting_user_role_permission_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_user_role_permission_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingUserRolePermissionGroupsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/userRolePermissionGroups/{userRolePermissionGroupsId}
 /// Gets one user role permission group by ID.
 ///
@@ -26508,15 +28646,15 @@ pub fn dfareporting_user_role_permission_groups_get_execute(
 
 pub fn dfareporting_user_role_permission_groups_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingUserRolePermissionGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserRolePermissionGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_role_permission_groups_get_builder(client, profileId, id)?;
+    let builder =
+        dfareporting_user_role_permission_groups_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_user_role_permission_groups_get_execute(builder)
 }
 
@@ -26614,6 +28752,13 @@ pub fn dfareporting_user_role_permission_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_user_role_permission_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingUserRolePermissionGroupsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/userRolePermissionGroups
 /// Gets a list of all supported user role permission groups.
 ///
@@ -26626,7 +28771,7 @@ pub fn dfareporting_user_role_permission_groups_list_execute(
 
 pub fn dfareporting_user_role_permission_groups_list(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingUserRolePermissionGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UserRolePermissionGroupsListResponse>, ApiError>,
@@ -26635,7 +28780,7 @@ pub fn dfareporting_user_role_permission_groups_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_role_permission_groups_list_builder(client, profileId)?;
+    let builder = dfareporting_user_role_permission_groups_list_builder(client, &args.profileId)?;
     dfareporting_user_role_permission_groups_list_execute(builder)
 }
 
@@ -26733,6 +28878,15 @@ pub fn dfareporting_user_role_permissions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_user_role_permissions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingUserRolePermissionsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/userRolePermissions/{userRolePermissionsId}
 /// Gets one user role permission by ID.
 ///
@@ -26745,15 +28899,15 @@ pub fn dfareporting_user_role_permissions_get_execute(
 
 pub fn dfareporting_user_role_permissions_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingUserRolePermissionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserRolePermission>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_role_permissions_get_builder(client, profileId, id)?;
+    let builder =
+        dfareporting_user_role_permissions_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_user_role_permissions_get_execute(builder)
 }
 
@@ -26863,6 +29017,15 @@ pub fn dfareporting_user_role_permissions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_user_role_permissions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingUserRolePermissionsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/userRolePermissions
 /// Gets a list of user role permissions, possibly filtered.
 ///
@@ -26875,8 +29038,7 @@ pub fn dfareporting_user_role_permissions_list_execute(
 
 pub fn dfareporting_user_role_permissions_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    ids: Option<&str>,
+    args: &DfareportingUserRolePermissionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UserRolePermissionsListResponse>, ApiError>,
@@ -26885,7 +29047,11 @@ pub fn dfareporting_user_role_permissions_list(
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_role_permissions_list_builder(client, profileId, ids)?;
+    let builder = dfareporting_user_role_permissions_list_builder(
+        client,
+        &args.profileId,
+        args.ids.as_deref(),
+    )?;
     dfareporting_user_role_permissions_list_execute(builder)
 }
 
@@ -26977,6 +29143,15 @@ pub fn dfareporting_user_roles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_user_roles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingUserRolesDeleteArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/userRoles/{userRolesId}
 /// Deletes an existing user role.
 ///
@@ -26989,13 +29164,12 @@ pub fn dfareporting_user_roles_delete_execute(
 
 pub fn dfareporting_user_roles_delete(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingUserRolesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_roles_delete_builder(client, profileId, id)?;
+    let builder = dfareporting_user_roles_delete_builder(client, &args.profileId, &args.id)?;
     dfareporting_user_roles_delete_execute(builder)
 }
 
@@ -27090,6 +29264,15 @@ pub fn dfareporting_user_roles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_user_roles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingUserRolesGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/userRoles/{userRolesId}
 /// Gets one user role by ID.
 ///
@@ -27102,13 +29285,12 @@ pub fn dfareporting_user_roles_get_execute(
 
 pub fn dfareporting_user_roles_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingUserRolesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_roles_get_builder(client, profileId, id)?;
+    let builder = dfareporting_user_roles_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_user_roles_get_execute(builder)
 }
 
@@ -27205,6 +29387,15 @@ pub fn dfareporting_user_roles_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_user_roles_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingUserRolesInsertArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: UserRole,
+}
+
 /// GET userprofiles/{userprofilesId}/userRoles
 /// Inserts a new user role.
 ///
@@ -27217,13 +29408,12 @@ pub fn dfareporting_user_roles_insert_execute(
 
 pub fn dfareporting_user_roles_insert(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &UserRole,
+    args: &DfareportingUserRolesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_roles_insert_builder(client, profileId, body)?;
+    let builder = dfareporting_user_roles_insert_builder(client, &args.profileId, &args.body)?;
     dfareporting_user_roles_insert_execute(builder)
 }
 
@@ -27359,6 +29549,29 @@ pub fn dfareporting_user_roles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_user_roles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingUserRolesListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Query parameter: accountUserRoleOnly
+    pub accountUserRoleOnly: Option<bool>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: searchString
+    pub searchString: Option<String>,
+    /// Query parameter: sortField
+    pub sortField: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+    /// Query parameter: subaccountId
+    pub subaccountId: Option<String>,
+}
+
 /// GET userprofiles/{userprofilesId}/userRoles
 /// Retrieves a list of user roles, possibly filtered. This method supports paging.
 ///
@@ -27371,15 +29584,7 @@ pub fn dfareporting_user_roles_list_execute(
 
 pub fn dfareporting_user_roles_list(
     client: &SimpleHttpClient,
-    profileId: &str,
-    accountUserRoleOnly: Option<bool>,
-    ids: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    searchString: Option<&str>,
-    sortField: Option<&str>,
-    sortOrder: Option<&str>,
-    subaccountId: Option<&str>,
+    args: &DfareportingUserRolesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserRolesListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -27388,15 +29593,15 @@ pub fn dfareporting_user_roles_list(
 > {
     let builder = dfareporting_user_roles_list_builder(
         client,
-        profileId,
-        accountUserRoleOnly,
-        ids,
-        maxResults,
-        pageToken,
-        searchString,
-        sortField,
-        sortOrder,
-        subaccountId,
+        &args.profileId,
+        args.accountUserRoleOnly,
+        args.ids.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.searchString.as_deref(),
+        args.sortField.as_deref(),
+        args.sortOrder.as_deref(),
+        args.subaccountId.as_deref(),
     )?;
     dfareporting_user_roles_list_execute(builder)
 }
@@ -27495,6 +29700,17 @@ pub fn dfareporting_user_roles_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_user_roles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingUserRolesPatchArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: UserRole,
+}
+
 /// GET userprofiles/{userprofilesId}/userRoles
 /// Updates an existing user role. This method supports patch semantics.
 ///
@@ -27507,14 +29723,13 @@ pub fn dfareporting_user_roles_patch_execute(
 
 pub fn dfareporting_user_roles_patch(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
-    body: &UserRole,
+    args: &DfareportingUserRolesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_roles_patch_builder(client, profileId, id, body)?;
+    let builder =
+        dfareporting_user_roles_patch_builder(client, &args.profileId, &args.id, &args.body)?;
     dfareporting_user_roles_patch_execute(builder)
 }
 
@@ -27611,6 +29826,15 @@ pub fn dfareporting_user_roles_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_user_roles_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingUserRolesUpdateArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Request body.
+    pub body: UserRole,
+}
+
 /// GET userprofiles/{userprofilesId}/userRoles
 /// Updates an existing user role.
 ///
@@ -27623,13 +29847,12 @@ pub fn dfareporting_user_roles_update_execute(
 
 pub fn dfareporting_user_roles_update(
     client: &SimpleHttpClient,
-    profileId: &str,
-    body: &UserRole,
+    args: &DfareportingUserRolesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserRole>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_user_roles_update_builder(client, profileId, body)?;
+    let builder = dfareporting_user_roles_update_builder(client, &args.profileId, &args.body)?;
     dfareporting_user_roles_update_execute(builder)
 }
 
@@ -27724,6 +29947,15 @@ pub fn dfareporting_video_formats_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_video_formats_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingVideoFormatsGetArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET userprofiles/{userprofilesId}/videoFormats/{videoFormatsId}
 /// Gets one video format by ID.
 ///
@@ -27736,13 +29968,12 @@ pub fn dfareporting_video_formats_get_execute(
 
 pub fn dfareporting_video_formats_get(
     client: &SimpleHttpClient,
-    profileId: &str,
-    id: &str,
+    args: &DfareportingVideoFormatsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VideoFormat>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dfareporting_video_formats_get_builder(client, profileId, id)?;
+    let builder = dfareporting_video_formats_get_builder(client, &args.profileId, &args.id)?;
     dfareporting_video_formats_get_execute(builder)
 }
 
@@ -27838,6 +30069,13 @@ pub fn dfareporting_video_formats_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dfareporting_video_formats_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DfareportingVideoFormatsListArgs {
+    /// Path parameter: profileId
+    pub profileId: String,
+}
+
 /// GET userprofiles/{userprofilesId}/videoFormats
 /// Lists available video formats.
 ///
@@ -27850,13 +30088,13 @@ pub fn dfareporting_video_formats_list_execute(
 
 pub fn dfareporting_video_formats_list(
     client: &SimpleHttpClient,
-    profileId: &str,
+    args: &DfareportingVideoFormatsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VideoFormatsListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dfareporting_video_formats_list_builder(client, profileId)?;
+    let builder = dfareporting_video_formats_list_builder(client, &args.profileId)?;
     dfareporting_video_formats_list_execute(builder)
 }

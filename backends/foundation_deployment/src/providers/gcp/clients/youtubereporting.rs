@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/jobs
 /// Creates a job and returns it.
@@ -117,6 +119,15 @@ pub fn youtubereporting_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtubereporting_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubereportingJobsCreateArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Request body.
+    pub body: Job,
+}
+
 /// GET v1/jobs
 /// Creates a job and returns it.
 ///
@@ -129,13 +140,16 @@ pub fn youtubereporting_jobs_create_execute(
 
 pub fn youtubereporting_jobs_create(
     client: &SimpleHttpClient,
-    onBehalfOfContentOwner: Option<&str>,
-    body: &Job,
+    args: &YoutubereportingJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtubereporting_jobs_create_builder(client, onBehalfOfContentOwner, body)?;
+    let builder = youtubereporting_jobs_create_builder(
+        client,
+        args.onBehalfOfContentOwner.as_deref(),
+        &args.body,
+    )?;
     youtubereporting_jobs_create_execute(builder)
 }
 
@@ -238,6 +252,15 @@ pub fn youtubereporting_jobs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtubereporting_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubereportingJobsDeleteArgs {
+    /// Path parameter: jobId
+    pub jobId: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET v1/jobs/{jobId}
 /// Deletes a job.
 ///
@@ -250,13 +273,16 @@ pub fn youtubereporting_jobs_delete_execute(
 
 pub fn youtubereporting_jobs_delete(
     client: &SimpleHttpClient,
-    jobId: &str,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubereportingJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtubereporting_jobs_delete_builder(client, jobId, onBehalfOfContentOwner)?;
+    let builder = youtubereporting_jobs_delete_builder(
+        client,
+        &args.jobId,
+        args.onBehalfOfContentOwner.as_deref(),
+    )?;
     youtubereporting_jobs_delete_execute(builder)
 }
 
@@ -359,6 +385,15 @@ pub fn youtubereporting_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtubereporting_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubereportingJobsGetArgs {
+    /// Path parameter: jobId
+    pub jobId: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET v1/jobs/{jobId}
 /// Gets a job.
 ///
@@ -371,13 +406,16 @@ pub fn youtubereporting_jobs_get_execute(
 
 pub fn youtubereporting_jobs_get(
     client: &SimpleHttpClient,
-    jobId: &str,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubereportingJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtubereporting_jobs_get_builder(client, jobId, onBehalfOfContentOwner)?;
+    let builder = youtubereporting_jobs_get_builder(
+        client,
+        &args.jobId,
+        args.onBehalfOfContentOwner.as_deref(),
+    )?;
     youtubereporting_jobs_get_execute(builder)
 }
 
@@ -493,6 +531,19 @@ pub fn youtubereporting_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtubereporting_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubereportingJobsListArgs {
+    /// Query parameter: includeSystemManaged
+    pub includeSystemManaged: Option<bool>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/jobs
 /// Lists jobs.
 ///
@@ -505,10 +556,7 @@ pub fn youtubereporting_jobs_list_execute(
 
 pub fn youtubereporting_jobs_list(
     client: &SimpleHttpClient,
-    includeSystemManaged: Option<bool>,
-    onBehalfOfContentOwner: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &YoutubereportingJobsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -517,10 +565,10 @@ pub fn youtubereporting_jobs_list(
 > {
     let builder = youtubereporting_jobs_list_builder(
         client,
-        includeSystemManaged,
-        onBehalfOfContentOwner,
-        pageSize,
-        pageToken,
+        args.includeSystemManaged,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     youtubereporting_jobs_list_execute(builder)
 }
@@ -628,6 +676,17 @@ pub fn youtubereporting_jobs_reports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtubereporting_jobs_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubereportingJobsReportsGetArgs {
+    /// Path parameter: jobId
+    pub jobId: String,
+    /// Path parameter: reportId
+    pub reportId: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET v1/jobs/{jobId}/reports/{reportId}
 /// Gets the metadata of a specific report.
 ///
@@ -640,15 +699,17 @@ pub fn youtubereporting_jobs_reports_get_execute(
 
 pub fn youtubereporting_jobs_reports_get(
     client: &SimpleHttpClient,
-    jobId: &str,
-    reportId: &str,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubereportingJobsReportsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        youtubereporting_jobs_reports_get_builder(client, jobId, reportId, onBehalfOfContentOwner)?;
+    let builder = youtubereporting_jobs_reports_get_builder(
+        client,
+        &args.jobId,
+        &args.reportId,
+        args.onBehalfOfContentOwner.as_deref(),
+    )?;
     youtubereporting_jobs_reports_get_execute(builder)
 }
 
@@ -776,6 +837,25 @@ pub fn youtubereporting_jobs_reports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtubereporting_jobs_reports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubereportingJobsReportsListArgs {
+    /// Path parameter: jobId
+    pub jobId: String,
+    /// Query parameter: createdAfter
+    pub createdAfter: Option<String>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: startTimeAtOrAfter
+    pub startTimeAtOrAfter: Option<String>,
+    /// Query parameter: startTimeBefore
+    pub startTimeBefore: Option<String>,
+}
+
 /// GET v1/jobs/{jobId}/reports
 /// Lists reports created by a specific job. Returns NOT_FOUND if the job does not exist.
 ///
@@ -788,13 +868,7 @@ pub fn youtubereporting_jobs_reports_list_execute(
 
 pub fn youtubereporting_jobs_reports_list(
     client: &SimpleHttpClient,
-    jobId: &str,
-    createdAfter: Option<&str>,
-    onBehalfOfContentOwner: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    startTimeAtOrAfter: Option<&str>,
-    startTimeBefore: Option<&str>,
+    args: &YoutubereportingJobsReportsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListReportsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -803,13 +877,13 @@ pub fn youtubereporting_jobs_reports_list(
 > {
     let builder = youtubereporting_jobs_reports_list_builder(
         client,
-        jobId,
-        createdAfter,
-        onBehalfOfContentOwner,
-        pageSize,
-        pageToken,
-        startTimeAtOrAfter,
-        startTimeBefore,
+        &args.jobId,
+        args.createdAfter.as_deref(),
+        args.onBehalfOfContentOwner.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.startTimeAtOrAfter.as_deref(),
+        args.startTimeBefore.as_deref(),
     )?;
     youtubereporting_jobs_reports_list_execute(builder)
 }
@@ -904,6 +978,13 @@ pub fn youtubereporting_media_download_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtubereporting_media_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubereportingMediaDownloadArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+}
+
 /// GET v1/media/{mediaId}
 /// Method for media download. Download is supported on the URI /v1/`media/{`+name}?alt=media.
 ///
@@ -916,12 +997,12 @@ pub fn youtubereporting_media_download_execute(
 
 pub fn youtubereporting_media_download(
     client: &SimpleHttpClient,
-    resourceName: &str,
+    args: &YoutubereportingMediaDownloadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GdataMedia>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtubereporting_media_download_builder(client, resourceName)?;
+    let builder = youtubereporting_media_download_builder(client, &args.resourceName)?;
     youtubereporting_media_download_execute(builder)
 }
 
@@ -1037,6 +1118,19 @@ pub fn youtubereporting_report_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtubereporting_report_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubereportingReportTypesListArgs {
+    /// Query parameter: includeSystemManaged
+    pub includeSystemManaged: Option<bool>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/reportTypes
 /// Lists report types.
 ///
@@ -1049,10 +1143,7 @@ pub fn youtubereporting_report_types_list_execute(
 
 pub fn youtubereporting_report_types_list(
     client: &SimpleHttpClient,
-    includeSystemManaged: Option<bool>,
-    onBehalfOfContentOwner: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &YoutubereportingReportTypesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListReportTypesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1061,10 +1152,10 @@ pub fn youtubereporting_report_types_list(
 > {
     let builder = youtubereporting_report_types_list_builder(
         client,
-        includeSystemManaged,
-        onBehalfOfContentOwner,
-        pageSize,
-        pageToken,
+        args.includeSystemManaged,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     youtubereporting_report_types_list_execute(builder)
 }

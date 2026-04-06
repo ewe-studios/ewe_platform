@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/schemas/{schemasId}:commit
 /// Commits a new schema revision to an existing schema.
@@ -109,6 +111,15 @@ pub fn pubsub_projects_schemas_commit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_schemas_commit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSchemasCommitArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CommitSchemaRequest,
+}
+
 /// GET v1/projects/{projectsId}/schemas/{schemasId}:commit
 /// Commits a new schema revision to an existing schema.
 ///
@@ -121,13 +132,12 @@ pub fn pubsub_projects_schemas_commit_execute(
 
 pub fn pubsub_projects_schemas_commit(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CommitSchemaRequest,
+    args: &PubsubProjectsSchemasCommitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Schema>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_schemas_commit_builder(client, name, body)?;
+    let builder = pubsub_projects_schemas_commit_builder(client, &args.name, &args.body)?;
     pubsub_projects_schemas_commit_execute(builder)
 }
 
@@ -236,6 +246,17 @@ pub fn pubsub_projects_schemas_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_schemas_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSchemasCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: schemaId
+    pub schemaId: Option<String>,
+    /// Request body.
+    pub body: Schema,
+}
+
 /// GET v1/projects/{projectsId}/schemas
 /// Creates a schema.
 ///
@@ -248,14 +269,17 @@ pub fn pubsub_projects_schemas_create_execute(
 
 pub fn pubsub_projects_schemas_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    schemaId: Option<&str>,
-    body: &Schema,
+    args: &PubsubProjectsSchemasCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Schema>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_schemas_create_builder(client, parent, schemaId, body)?;
+    let builder = pubsub_projects_schemas_create_builder(
+        client,
+        &args.parent,
+        args.schemaId.as_deref(),
+        &args.body,
+    )?;
     pubsub_projects_schemas_create_execute(builder)
 }
 
@@ -349,6 +373,13 @@ pub fn pubsub_projects_schemas_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_schemas_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSchemasDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/schemas/{schemasId}
 /// Deletes a schema.
 ///
@@ -361,12 +392,12 @@ pub fn pubsub_projects_schemas_delete_execute(
 
 pub fn pubsub_projects_schemas_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PubsubProjectsSchemasDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_schemas_delete_builder(client, name)?;
+    let builder = pubsub_projects_schemas_delete_builder(client, &args.name)?;
     pubsub_projects_schemas_delete_execute(builder)
 }
 
@@ -472,6 +503,15 @@ pub fn pubsub_projects_schemas_delete_revision_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_schemas_delete_revision`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSchemasDeleteRevisionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: revisionId
+    pub revisionId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/schemas/{schemasId}:deleteRevision
 /// Deletes a specific schema revision.
 ///
@@ -484,13 +524,16 @@ pub fn pubsub_projects_schemas_delete_revision_execute(
 
 pub fn pubsub_projects_schemas_delete_revision(
     client: &SimpleHttpClient,
-    name: &str,
-    revisionId: Option<&str>,
+    args: &PubsubProjectsSchemasDeleteRevisionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Schema>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_schemas_delete_revision_builder(client, name, revisionId)?;
+    let builder = pubsub_projects_schemas_delete_revision_builder(
+        client,
+        &args.name,
+        args.revisionId.as_deref(),
+    )?;
     pubsub_projects_schemas_delete_revision_execute(builder)
 }
 
@@ -596,6 +639,15 @@ pub fn pubsub_projects_schemas_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_schemas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSchemasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/schemas/{schemasId}
 /// Gets a schema.
 ///
@@ -608,13 +660,12 @@ pub fn pubsub_projects_schemas_get_execute(
 
 pub fn pubsub_projects_schemas_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &PubsubProjectsSchemasGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Schema>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_schemas_get_builder(client, name, view)?;
+    let builder = pubsub_projects_schemas_get_builder(client, &args.name, args.view.as_deref())?;
     pubsub_projects_schemas_get_execute(builder)
 }
 
@@ -720,6 +771,15 @@ pub fn pubsub_projects_schemas_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_schemas_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSchemasGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/schemas/{schemasId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -732,16 +792,15 @@ pub fn pubsub_projects_schemas_get_iam_policy_execute(
 
 pub fn pubsub_projects_schemas_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &PubsubProjectsSchemasGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = pubsub_projects_schemas_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     pubsub_projects_schemas_get_iam_policy_execute(builder)
 }
@@ -858,6 +917,19 @@ pub fn pubsub_projects_schemas_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_schemas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSchemasListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/schemas
 /// Lists schemas in a project.
 ///
@@ -870,17 +942,20 @@ pub fn pubsub_projects_schemas_list_execute(
 
 pub fn pubsub_projects_schemas_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &PubsubProjectsSchemasListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSchemasResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_schemas_list_builder(client, parent, pageSize, pageToken, view)?;
+    let builder = pubsub_projects_schemas_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
+    )?;
     pubsub_projects_schemas_list_execute(builder)
 }
 
@@ -998,6 +1073,19 @@ pub fn pubsub_projects_schemas_list_revisions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_schemas_list_revisions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSchemasListRevisionsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/schemas/{schemasId}:listRevisions
 /// Lists all schema revisions for the named schema.
 ///
@@ -1010,10 +1098,7 @@ pub fn pubsub_projects_schemas_list_revisions_execute(
 
 pub fn pubsub_projects_schemas_list_revisions(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &PubsubProjectsSchemasListRevisionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSchemaRevisionsResponse>, ApiError>,
@@ -1022,8 +1107,13 @@ pub fn pubsub_projects_schemas_list_revisions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        pubsub_projects_schemas_list_revisions_builder(client, name, pageSize, pageToken, view)?;
+    let builder = pubsub_projects_schemas_list_revisions_builder(
+        client,
+        &args.name,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
+    )?;
     pubsub_projects_schemas_list_revisions_execute(builder)
 }
 
@@ -1120,6 +1210,15 @@ pub fn pubsub_projects_schemas_rollback_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_schemas_rollback`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSchemasRollbackArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RollbackSchemaRequest,
+}
+
 /// GET v1/projects/{projectsId}/schemas/{schemasId}:rollback
 /// Creates a new schema revision that is a copy of the provided revision_id.
 ///
@@ -1132,13 +1231,12 @@ pub fn pubsub_projects_schemas_rollback_execute(
 
 pub fn pubsub_projects_schemas_rollback(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RollbackSchemaRequest,
+    args: &PubsubProjectsSchemasRollbackArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Schema>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_schemas_rollback_builder(client, name, body)?;
+    let builder = pubsub_projects_schemas_rollback_builder(client, &args.name, &args.body)?;
     pubsub_projects_schemas_rollback_execute(builder)
 }
 
@@ -1235,6 +1333,15 @@ pub fn pubsub_projects_schemas_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_schemas_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSchemasSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/schemas/{schemasId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1247,13 +1354,13 @@ pub fn pubsub_projects_schemas_set_iam_policy_execute(
 
 pub fn pubsub_projects_schemas_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &PubsubProjectsSchemasSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_schemas_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        pubsub_projects_schemas_set_iam_policy_builder(client, &args.resource, &args.body)?;
     pubsub_projects_schemas_set_iam_policy_execute(builder)
 }
 
@@ -1354,6 +1461,15 @@ pub fn pubsub_projects_schemas_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_schemas_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSchemasTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/schemas/{schemasId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1366,8 +1482,7 @@ pub fn pubsub_projects_schemas_test_iam_permissions_execute(
 
 pub fn pubsub_projects_schemas_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &PubsubProjectsSchemasTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1376,7 +1491,8 @@ pub fn pubsub_projects_schemas_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_schemas_test_iam_permissions_builder(client, resource, body)?;
+    let builder =
+        pubsub_projects_schemas_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     pubsub_projects_schemas_test_iam_permissions_execute(builder)
 }
 
@@ -1475,6 +1591,15 @@ pub fn pubsub_projects_schemas_validate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_schemas_validate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSchemasValidateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ValidateSchemaRequest,
+}
+
 /// GET v1/projects/{projectsId}/schemas:validate
 /// Validates a schema.
 ///
@@ -1487,15 +1612,14 @@ pub fn pubsub_projects_schemas_validate_execute(
 
 pub fn pubsub_projects_schemas_validate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ValidateSchemaRequest,
+    args: &PubsubProjectsSchemasValidateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ValidateSchemaResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_schemas_validate_builder(client, parent, body)?;
+    let builder = pubsub_projects_schemas_validate_builder(client, &args.parent, &args.body)?;
     pubsub_projects_schemas_validate_execute(builder)
 }
 
@@ -1594,6 +1718,15 @@ pub fn pubsub_projects_schemas_validate_message_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_schemas_validate_message`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSchemasValidateMessageArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ValidateMessageRequest,
+}
+
 /// GET v1/projects/{projectsId}/schemas:validateMessage
 /// Validates a message against a schema.
 ///
@@ -1606,15 +1739,15 @@ pub fn pubsub_projects_schemas_validate_message_execute(
 
 pub fn pubsub_projects_schemas_validate_message(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ValidateMessageRequest,
+    args: &PubsubProjectsSchemasValidateMessageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ValidateMessageResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_schemas_validate_message_builder(client, parent, body)?;
+    let builder =
+        pubsub_projects_schemas_validate_message_builder(client, &args.parent, &args.body)?;
     pubsub_projects_schemas_validate_message_execute(builder)
 }
 
@@ -1711,6 +1844,15 @@ pub fn pubsub_projects_snapshots_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_snapshots_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSnapshotsCreateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CreateSnapshotRequest,
+}
+
 /// GET v1/projects/{projectsId}/snapshots/{snapshotsId}
 /// Creates a snapshot from the requested subscription. Snapshots are used in [Seek](<https://cloud.google.`com/pubsub/docs/replay-overview`>) operations, which allow you to manage message acknowledgments in bulk. That is, you can set the acknowledgment state of messages in an existing subscription to the state captured by a snapshot. If the snapshot already exists, returns ALREADY_EXISTS. If the requested subscription doesn't exist, returns NOT_FOUND. If the backlog in the subscription is too old -- and the resulting snapshot would expire in less than 1 hour -- then FAILED_PRECONDITION is returned. See also the Snapshot.expire_time field. If the name is not provided in the request, the server will assign a random name for this snapshot on the same project as the subscription, conforming to the [resource name format] (<https://cloud.google.`com/pubsub/docs/pubsub-basics`#resource_names>). The generated name is populated in the returned Snapshot object. Note that for REST API requests, you must specify a name in the request.
 ///
@@ -1723,13 +1865,12 @@ pub fn pubsub_projects_snapshots_create_execute(
 
 pub fn pubsub_projects_snapshots_create(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CreateSnapshotRequest,
+    args: &PubsubProjectsSnapshotsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_snapshots_create_builder(client, name, body)?;
+    let builder = pubsub_projects_snapshots_create_builder(client, &args.name, &args.body)?;
     pubsub_projects_snapshots_create_execute(builder)
 }
 
@@ -1823,6 +1964,13 @@ pub fn pubsub_projects_snapshots_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_snapshots_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSnapshotsDeleteArgs {
+    /// Path parameter: snapshot
+    pub snapshot: String,
+}
+
 /// GET v1/projects/{projectsId}/snapshots/{snapshotsId}
 /// Removes an existing snapshot. Snapshots are used in [Seek] (<https://cloud.google.`com/pubsub/docs/replay-overview`>) operations, which allow you to manage message acknowledgments in bulk. That is, you can set the acknowledgment state of messages in an existing subscription to the state captured by a snapshot. When the snapshot is deleted, all messages retained in the snapshot are immediately dropped. After a snapshot is deleted, a new one may be created with the same name, but the new one has no association with the old snapshot or its subscription, unless the same subscription is specified.
 ///
@@ -1835,12 +1983,12 @@ pub fn pubsub_projects_snapshots_delete_execute(
 
 pub fn pubsub_projects_snapshots_delete(
     client: &SimpleHttpClient,
-    snapshot: &str,
+    args: &PubsubProjectsSnapshotsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_snapshots_delete_builder(client, snapshot)?;
+    let builder = pubsub_projects_snapshots_delete_builder(client, &args.snapshot)?;
     pubsub_projects_snapshots_delete_execute(builder)
 }
 
@@ -1934,6 +2082,13 @@ pub fn pubsub_projects_snapshots_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_snapshots_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSnapshotsGetArgs {
+    /// Path parameter: snapshot
+    pub snapshot: String,
+}
+
 /// GET v1/projects/{projectsId}/snapshots/{snapshotsId}
 /// Gets the configuration details of a snapshot. Snapshots are used in [Seek](<https://cloud.google.`com/pubsub/docs/replay-overview`>) operations, which allow you to manage message acknowledgments in bulk. That is, you can set the acknowledgment state of messages in an existing subscription to the state captured by a snapshot.
 ///
@@ -1946,12 +2101,12 @@ pub fn pubsub_projects_snapshots_get_execute(
 
 pub fn pubsub_projects_snapshots_get(
     client: &SimpleHttpClient,
-    snapshot: &str,
+    args: &PubsubProjectsSnapshotsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_snapshots_get_builder(client, snapshot)?;
+    let builder = pubsub_projects_snapshots_get_builder(client, &args.snapshot)?;
     pubsub_projects_snapshots_get_execute(builder)
 }
 
@@ -2057,6 +2212,15 @@ pub fn pubsub_projects_snapshots_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_snapshots_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSnapshotsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/snapshots/{snapshotsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2069,16 +2233,15 @@ pub fn pubsub_projects_snapshots_get_iam_policy_execute(
 
 pub fn pubsub_projects_snapshots_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &PubsubProjectsSnapshotsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = pubsub_projects_snapshots_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     pubsub_projects_snapshots_get_iam_policy_execute(builder)
 }
@@ -2191,6 +2354,17 @@ pub fn pubsub_projects_snapshots_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_snapshots_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSnapshotsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/snapshots
 /// Lists the existing snapshots. Snapshots are used in [Seek]( <https://cloud.google.`com/pubsub/docs/replay-overview`>) operations, which allow you to manage message acknowledgments in bulk. That is, you can set the acknowledgment state of messages in an existing subscription to the state captured by a snapshot.
 ///
@@ -2203,16 +2377,19 @@ pub fn pubsub_projects_snapshots_list_execute(
 
 pub fn pubsub_projects_snapshots_list(
     client: &SimpleHttpClient,
-    project: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PubsubProjectsSnapshotsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSnapshotsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_snapshots_list_builder(client, project, pageSize, pageToken)?;
+    let builder = pubsub_projects_snapshots_list_builder(
+        client,
+        &args.project,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     pubsub_projects_snapshots_list_execute(builder)
 }
 
@@ -2309,6 +2486,15 @@ pub fn pubsub_projects_snapshots_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_snapshots_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSnapshotsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpdateSnapshotRequest,
+}
+
 /// GET v1/projects/{projectsId}/snapshots/{snapshotsId}
 /// Updates an existing snapshot by updating the fields specified in the update mask. Snapshots are used in [Seek](<https://cloud.google.`com/pubsub/docs/replay-overview`>) operations, which allow you to manage message acknowledgments in bulk. That is, you can set the acknowledgment state of messages in an existing subscription to the state captured by a snapshot.
 ///
@@ -2321,13 +2507,12 @@ pub fn pubsub_projects_snapshots_patch_execute(
 
 pub fn pubsub_projects_snapshots_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateSnapshotRequest,
+    args: &PubsubProjectsSnapshotsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_snapshots_patch_builder(client, name, body)?;
+    let builder = pubsub_projects_snapshots_patch_builder(client, &args.name, &args.body)?;
     pubsub_projects_snapshots_patch_execute(builder)
 }
 
@@ -2424,6 +2609,15 @@ pub fn pubsub_projects_snapshots_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_snapshots_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSnapshotsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/snapshots/{snapshotsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -2436,13 +2630,13 @@ pub fn pubsub_projects_snapshots_set_iam_policy_execute(
 
 pub fn pubsub_projects_snapshots_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &PubsubProjectsSnapshotsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_snapshots_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        pubsub_projects_snapshots_set_iam_policy_builder(client, &args.resource, &args.body)?;
     pubsub_projects_snapshots_set_iam_policy_execute(builder)
 }
 
@@ -2543,6 +2737,15 @@ pub fn pubsub_projects_snapshots_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_snapshots_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSnapshotsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/snapshots/{snapshotsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2555,8 +2758,7 @@ pub fn pubsub_projects_snapshots_test_iam_permissions_execute(
 
 pub fn pubsub_projects_snapshots_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &PubsubProjectsSnapshotsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2565,7 +2767,8 @@ pub fn pubsub_projects_snapshots_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_snapshots_test_iam_permissions_builder(client, resource, body)?;
+    let builder =
+        pubsub_projects_snapshots_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     pubsub_projects_snapshots_test_iam_permissions_execute(builder)
 }
 
@@ -2662,6 +2865,15 @@ pub fn pubsub_projects_subscriptions_acknowledge_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_subscriptions_acknowledge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSubscriptionsAcknowledgeArgs {
+    /// Path parameter: subscription
+    pub subscription: String,
+    /// Request body.
+    pub body: AcknowledgeRequest,
+}
+
 /// GET v1/projects/{projectsId}/subscriptions/{subscriptionsId}:acknowledge
 /// Acknowledges the messages associated with the ack_ids in the AcknowledgeRequest. The P`ub/Sub` system can remove the relevant messages from the subscription. Acknowledging a message whose ack deadline has expired may succeed, but such a message may be redelivered later. Acknowledging a message more than once will not result in an error.
 ///
@@ -2674,13 +2886,13 @@ pub fn pubsub_projects_subscriptions_acknowledge_execute(
 
 pub fn pubsub_projects_subscriptions_acknowledge(
     client: &SimpleHttpClient,
-    subscription: &str,
-    body: &AcknowledgeRequest,
+    args: &PubsubProjectsSubscriptionsAcknowledgeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_subscriptions_acknowledge_builder(client, subscription, body)?;
+    let builder =
+        pubsub_projects_subscriptions_acknowledge_builder(client, &args.subscription, &args.body)?;
     pubsub_projects_subscriptions_acknowledge_execute(builder)
 }
 
@@ -2779,6 +2991,15 @@ pub fn pubsub_projects_subscriptions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_subscriptions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSubscriptionsCreateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Subscription,
+}
+
 /// GET v1/projects/{projectsId}/subscriptions/{subscriptionsId}
 /// Creates a subscription to a given topic. See the [resource name rules] (<https://cloud.google.`com/pubsub/docs/pubsub-basics`#resource_names>). If the subscription already exists, returns ALREADY_EXISTS. If the corresponding topic doesn't exist, returns NOT_FOUND. If the name is not provided in the request, the server will assign a random name for this subscription on the same project as the topic, conforming to the [resource name format] (<https://cloud.google.`com/pubsub/docs/pubsub-basics`#resource_names>). The generated name is populated in the returned Subscription object. Note that for REST API requests, you must specify a name in the request.
 ///
@@ -2791,15 +3012,14 @@ pub fn pubsub_projects_subscriptions_create_execute(
 
 pub fn pubsub_projects_subscriptions_create(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &Subscription,
+    args: &PubsubProjectsSubscriptionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_subscriptions_create_builder(client, name, body)?;
+    let builder = pubsub_projects_subscriptions_create_builder(client, &args.name, &args.body)?;
     pubsub_projects_subscriptions_create_execute(builder)
 }
 
@@ -2893,6 +3113,13 @@ pub fn pubsub_projects_subscriptions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_subscriptions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSubscriptionsDeleteArgs {
+    /// Path parameter: subscription
+    pub subscription: String,
+}
+
 /// GET v1/projects/{projectsId}/subscriptions/{subscriptionsId}
 /// Deletes an existing subscription. All messages retained in the subscription are immediately dropped. Calls to Pull after deletion will return NOT_FOUND. After a subscription is deleted, a new one may be created with the same name, but the new one has no association with the old subscription or its topic unless the same topic is specified.
 ///
@@ -2905,12 +3132,12 @@ pub fn pubsub_projects_subscriptions_delete_execute(
 
 pub fn pubsub_projects_subscriptions_delete(
     client: &SimpleHttpClient,
-    subscription: &str,
+    args: &PubsubProjectsSubscriptionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_subscriptions_delete_builder(client, subscription)?;
+    let builder = pubsub_projects_subscriptions_delete_builder(client, &args.subscription)?;
     pubsub_projects_subscriptions_delete_execute(builder)
 }
 
@@ -3008,6 +3235,13 @@ pub fn pubsub_projects_subscriptions_detach_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_subscriptions_detach`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSubscriptionsDetachArgs {
+    /// Path parameter: subscription
+    pub subscription: String,
+}
+
 /// GET v1/projects/{projectsId}/subscriptions/{subscriptionsId}:detach
 /// Detaches a subscription from this topic. All messages retained in the subscription are dropped. Subsequent Pull and StreamingPull requests will return FAILED_PRECONDITION. If the subscription is a push subscription, pushes to the endpoint will stop.
 ///
@@ -3020,7 +3254,7 @@ pub fn pubsub_projects_subscriptions_detach_execute(
 
 pub fn pubsub_projects_subscriptions_detach(
     client: &SimpleHttpClient,
-    subscription: &str,
+    args: &PubsubProjectsSubscriptionsDetachArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DetachSubscriptionResponse>, ApiError>,
@@ -3029,7 +3263,7 @@ pub fn pubsub_projects_subscriptions_detach(
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_subscriptions_detach_builder(client, subscription)?;
+    let builder = pubsub_projects_subscriptions_detach_builder(client, &args.subscription)?;
     pubsub_projects_subscriptions_detach_execute(builder)
 }
 
@@ -3125,6 +3359,13 @@ pub fn pubsub_projects_subscriptions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_subscriptions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSubscriptionsGetArgs {
+    /// Path parameter: subscription
+    pub subscription: String,
+}
+
 /// GET v1/projects/{projectsId}/subscriptions/{subscriptionsId}
 /// Gets the configuration details of a subscription.
 ///
@@ -3137,14 +3378,14 @@ pub fn pubsub_projects_subscriptions_get_execute(
 
 pub fn pubsub_projects_subscriptions_get(
     client: &SimpleHttpClient,
-    subscription: &str,
+    args: &PubsubProjectsSubscriptionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_subscriptions_get_builder(client, subscription)?;
+    let builder = pubsub_projects_subscriptions_get_builder(client, &args.subscription)?;
     pubsub_projects_subscriptions_get_execute(builder)
 }
 
@@ -3250,6 +3491,15 @@ pub fn pubsub_projects_subscriptions_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_subscriptions_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSubscriptionsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/subscriptions/{subscriptionsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -3262,16 +3512,15 @@ pub fn pubsub_projects_subscriptions_get_iam_policy_execute(
 
 pub fn pubsub_projects_subscriptions_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &PubsubProjectsSubscriptionsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = pubsub_projects_subscriptions_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     pubsub_projects_subscriptions_get_iam_policy_execute(builder)
 }
@@ -3384,6 +3633,17 @@ pub fn pubsub_projects_subscriptions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_subscriptions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSubscriptionsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/subscriptions
 /// Lists matching subscriptions.
 ///
@@ -3396,16 +3656,19 @@ pub fn pubsub_projects_subscriptions_list_execute(
 
 pub fn pubsub_projects_subscriptions_list(
     client: &SimpleHttpClient,
-    project: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PubsubProjectsSubscriptionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSubscriptionsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_subscriptions_list_builder(client, project, pageSize, pageToken)?;
+    let builder = pubsub_projects_subscriptions_list_builder(
+        client,
+        &args.project,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     pubsub_projects_subscriptions_list_execute(builder)
 }
 
@@ -3502,6 +3765,15 @@ pub fn pubsub_projects_subscriptions_modify_ack_deadline_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_subscriptions_modify_ack_deadline`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSubscriptionsModifyAckDeadlineArgs {
+    /// Path parameter: subscription
+    pub subscription: String,
+    /// Request body.
+    pub body: ModifyAckDeadlineRequest,
+}
+
 /// GET v1/projects/{projectsId}/subscriptions/{subscriptionsId}:modifyAckDeadline
 /// Modifies the ack deadline for a specific message. This method is useful to indicate that more time is needed to process a message by the subscriber, or to make the message available for redelivery if the processing was interrupted. Note that this does not modify the subscription-level `ackDeadlineSeconds` used for subsequent messages.
 ///
@@ -3514,14 +3786,16 @@ pub fn pubsub_projects_subscriptions_modify_ack_deadline_execute(
 
 pub fn pubsub_projects_subscriptions_modify_ack_deadline(
     client: &SimpleHttpClient,
-    subscription: &str,
-    body: &ModifyAckDeadlineRequest,
+    args: &PubsubProjectsSubscriptionsModifyAckDeadlineArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        pubsub_projects_subscriptions_modify_ack_deadline_builder(client, subscription, body)?;
+    let builder = pubsub_projects_subscriptions_modify_ack_deadline_builder(
+        client,
+        &args.subscription,
+        &args.body,
+    )?;
     pubsub_projects_subscriptions_modify_ack_deadline_execute(builder)
 }
 
@@ -3618,6 +3892,15 @@ pub fn pubsub_projects_subscriptions_modify_push_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_subscriptions_modify_push_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSubscriptionsModifyPushConfigArgs {
+    /// Path parameter: subscription
+    pub subscription: String,
+    /// Request body.
+    pub body: ModifyPushConfigRequest,
+}
+
 /// GET v1/projects/{projectsId}/subscriptions/{subscriptionsId}:modifyPushConfig
 /// Modifies the PushConfig for a specified subscription. This may be used to change a push subscription to a pull one (signified by an empty PushConfig) or vice versa, or change the endpoint URL and other attributes of a push subscription. Messages will accumulate for delivery continuously through the call regardless of changes to the PushConfig.
 ///
@@ -3630,14 +3913,16 @@ pub fn pubsub_projects_subscriptions_modify_push_config_execute(
 
 pub fn pubsub_projects_subscriptions_modify_push_config(
     client: &SimpleHttpClient,
-    subscription: &str,
-    body: &ModifyPushConfigRequest,
+    args: &PubsubProjectsSubscriptionsModifyPushConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        pubsub_projects_subscriptions_modify_push_config_builder(client, subscription, body)?;
+    let builder = pubsub_projects_subscriptions_modify_push_config_builder(
+        client,
+        &args.subscription,
+        &args.body,
+    )?;
     pubsub_projects_subscriptions_modify_push_config_execute(builder)
 }
 
@@ -3736,6 +4021,15 @@ pub fn pubsub_projects_subscriptions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_subscriptions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSubscriptionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpdateSubscriptionRequest,
+}
+
 /// GET v1/projects/{projectsId}/subscriptions/{subscriptionsId}
 /// Updates an existing subscription by updating the fields specified in the update mask. Note that certain properties of a subscription, such as its topic, are not modifiable.
 ///
@@ -3748,15 +4042,14 @@ pub fn pubsub_projects_subscriptions_patch_execute(
 
 pub fn pubsub_projects_subscriptions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateSubscriptionRequest,
+    args: &PubsubProjectsSubscriptionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_subscriptions_patch_builder(client, name, body)?;
+    let builder = pubsub_projects_subscriptions_patch_builder(client, &args.name, &args.body)?;
     pubsub_projects_subscriptions_patch_execute(builder)
 }
 
@@ -3855,6 +4148,15 @@ pub fn pubsub_projects_subscriptions_pull_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_subscriptions_pull`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSubscriptionsPullArgs {
+    /// Path parameter: subscription
+    pub subscription: String,
+    /// Request body.
+    pub body: PullRequest,
+}
+
 /// GET v1/projects/{projectsId}/subscriptions/{subscriptionsId}:pull
 /// Pulls messages from the server.
 ///
@@ -3867,15 +4169,15 @@ pub fn pubsub_projects_subscriptions_pull_execute(
 
 pub fn pubsub_projects_subscriptions_pull(
     client: &SimpleHttpClient,
-    subscription: &str,
-    body: &PullRequest,
+    args: &PubsubProjectsSubscriptionsPullArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PullResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_subscriptions_pull_builder(client, subscription, body)?;
+    let builder =
+        pubsub_projects_subscriptions_pull_builder(client, &args.subscription, &args.body)?;
     pubsub_projects_subscriptions_pull_execute(builder)
 }
 
@@ -3974,6 +4276,15 @@ pub fn pubsub_projects_subscriptions_seek_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_subscriptions_seek`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSubscriptionsSeekArgs {
+    /// Path parameter: subscription
+    pub subscription: String,
+    /// Request body.
+    pub body: SeekRequest,
+}
+
 /// GET v1/projects/{projectsId}/subscriptions/{subscriptionsId}:seek
 /// Seeks an existing subscription to a point in time or to a given snapshot, whichever is provided in the request. Snapshots are used in [Seek] (<https://cloud.google.`com/pubsub/docs/replay-overview`>) operations, which allow you to manage message acknowledgments in bulk. That is, you can set the acknowledgment state of messages in an existing subscription to the state captured by a snapshot. Note that both the subscription and the snapshot must be on the same topic.
 ///
@@ -3986,15 +4297,15 @@ pub fn pubsub_projects_subscriptions_seek_execute(
 
 pub fn pubsub_projects_subscriptions_seek(
     client: &SimpleHttpClient,
-    subscription: &str,
-    body: &SeekRequest,
+    args: &PubsubProjectsSubscriptionsSeekArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SeekResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_subscriptions_seek_builder(client, subscription, body)?;
+    let builder =
+        pubsub_projects_subscriptions_seek_builder(client, &args.subscription, &args.body)?;
     pubsub_projects_subscriptions_seek_execute(builder)
 }
 
@@ -4091,6 +4402,15 @@ pub fn pubsub_projects_subscriptions_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_subscriptions_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSubscriptionsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/subscriptions/{subscriptionsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -4103,13 +4423,13 @@ pub fn pubsub_projects_subscriptions_set_iam_policy_execute(
 
 pub fn pubsub_projects_subscriptions_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &PubsubProjectsSubscriptionsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_subscriptions_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        pubsub_projects_subscriptions_set_iam_policy_builder(client, &args.resource, &args.body)?;
     pubsub_projects_subscriptions_set_iam_policy_execute(builder)
 }
 
@@ -4210,6 +4530,15 @@ pub fn pubsub_projects_subscriptions_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_subscriptions_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsSubscriptionsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/subscriptions/{subscriptionsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -4222,8 +4551,7 @@ pub fn pubsub_projects_subscriptions_test_iam_permissions_execute(
 
 pub fn pubsub_projects_subscriptions_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &PubsubProjectsSubscriptionsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -4232,8 +4560,11 @@ pub fn pubsub_projects_subscriptions_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        pubsub_projects_subscriptions_test_iam_permissions_builder(client, resource, body)?;
+    let builder = pubsub_projects_subscriptions_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     pubsub_projects_subscriptions_test_iam_permissions_execute(builder)
 }
 
@@ -4330,6 +4661,15 @@ pub fn pubsub_projects_topics_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_topics_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsTopicsCreateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Topic,
+}
+
 /// GET v1/projects/{projectsId}/topics/{topicsId}
 /// Creates the given topic with the given name. See the [resource name rules] (<https://cloud.google.`com/pubsub/docs/pubsub-basics`#resource_names>).
 ///
@@ -4342,13 +4682,12 @@ pub fn pubsub_projects_topics_create_execute(
 
 pub fn pubsub_projects_topics_create(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &Topic,
+    args: &PubsubProjectsTopicsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_topics_create_builder(client, name, body)?;
+    let builder = pubsub_projects_topics_create_builder(client, &args.name, &args.body)?;
     pubsub_projects_topics_create_execute(builder)
 }
 
@@ -4442,6 +4781,13 @@ pub fn pubsub_projects_topics_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_topics_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsTopicsDeleteArgs {
+    /// Path parameter: topic
+    pub topic: String,
+}
+
 /// GET v1/projects/{projectsId}/topics/{topicsId}
 /// Deletes the topic with the given name. Returns NOT_FOUND if the topic does not exist. After a topic is deleted, a new topic may be created with the same name; this is an entirely new topic with none of the old configuration or subscriptions. Existing subscriptions to this topic are not deleted, but their topic field is set to _deleted-topic_.
 ///
@@ -4454,12 +4800,12 @@ pub fn pubsub_projects_topics_delete_execute(
 
 pub fn pubsub_projects_topics_delete(
     client: &SimpleHttpClient,
-    topic: &str,
+    args: &PubsubProjectsTopicsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_topics_delete_builder(client, topic)?;
+    let builder = pubsub_projects_topics_delete_builder(client, &args.topic)?;
     pubsub_projects_topics_delete_execute(builder)
 }
 
@@ -4553,6 +4899,13 @@ pub fn pubsub_projects_topics_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_topics_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsTopicsGetArgs {
+    /// Path parameter: topic
+    pub topic: String,
+}
+
 /// GET v1/projects/{projectsId}/topics/{topicsId}
 /// Gets the configuration of a topic.
 ///
@@ -4565,12 +4918,12 @@ pub fn pubsub_projects_topics_get_execute(
 
 pub fn pubsub_projects_topics_get(
     client: &SimpleHttpClient,
-    topic: &str,
+    args: &PubsubProjectsTopicsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_topics_get_builder(client, topic)?;
+    let builder = pubsub_projects_topics_get_builder(client, &args.topic)?;
     pubsub_projects_topics_get_execute(builder)
 }
 
@@ -4676,6 +5029,15 @@ pub fn pubsub_projects_topics_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_topics_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsTopicsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/topics/{topicsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -4688,16 +5050,15 @@ pub fn pubsub_projects_topics_get_iam_policy_execute(
 
 pub fn pubsub_projects_topics_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &PubsubProjectsTopicsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = pubsub_projects_topics_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     pubsub_projects_topics_get_iam_policy_execute(builder)
 }
@@ -4810,6 +5171,17 @@ pub fn pubsub_projects_topics_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_topics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsTopicsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/topics
 /// Lists matching topics.
 ///
@@ -4822,16 +5194,19 @@ pub fn pubsub_projects_topics_list_execute(
 
 pub fn pubsub_projects_topics_list(
     client: &SimpleHttpClient,
-    project: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PubsubProjectsTopicsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTopicsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_topics_list_builder(client, project, pageSize, pageToken)?;
+    let builder = pubsub_projects_topics_list_builder(
+        client,
+        &args.project,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     pubsub_projects_topics_list_execute(builder)
 }
 
@@ -4928,6 +5303,15 @@ pub fn pubsub_projects_topics_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_topics_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsTopicsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpdateTopicRequest,
+}
+
 /// GET v1/projects/{projectsId}/topics/{topicsId}
 /// Updates an existing topic by updating the fields specified in the update mask. Note that certain properties of a topic are not modifiable.
 ///
@@ -4940,13 +5324,12 @@ pub fn pubsub_projects_topics_patch_execute(
 
 pub fn pubsub_projects_topics_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateTopicRequest,
+    args: &PubsubProjectsTopicsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_topics_patch_builder(client, name, body)?;
+    let builder = pubsub_projects_topics_patch_builder(client, &args.name, &args.body)?;
     pubsub_projects_topics_patch_execute(builder)
 }
 
@@ -5045,6 +5428,15 @@ pub fn pubsub_projects_topics_publish_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_topics_publish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsTopicsPublishArgs {
+    /// Path parameter: topic
+    pub topic: String,
+    /// Request body.
+    pub body: PublishRequest,
+}
+
 /// GET v1/projects/{projectsId}/topics/{topicsId}:publish
 /// Adds one or more messages to the topic. Returns NOT_FOUND if the topic does not exist.
 ///
@@ -5057,15 +5449,14 @@ pub fn pubsub_projects_topics_publish_execute(
 
 pub fn pubsub_projects_topics_publish(
     client: &SimpleHttpClient,
-    topic: &str,
-    body: &PublishRequest,
+    args: &PubsubProjectsTopicsPublishArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PublishResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_topics_publish_builder(client, topic, body)?;
+    let builder = pubsub_projects_topics_publish_builder(client, &args.topic, &args.body)?;
     pubsub_projects_topics_publish_execute(builder)
 }
 
@@ -5162,6 +5553,15 @@ pub fn pubsub_projects_topics_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_topics_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsTopicsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/topics/{topicsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -5174,13 +5574,13 @@ pub fn pubsub_projects_topics_set_iam_policy_execute(
 
 pub fn pubsub_projects_topics_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &PubsubProjectsTopicsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_topics_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        pubsub_projects_topics_set_iam_policy_builder(client, &args.resource, &args.body)?;
     pubsub_projects_topics_set_iam_policy_execute(builder)
 }
 
@@ -5281,6 +5681,15 @@ pub fn pubsub_projects_topics_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_topics_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsTopicsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/topics/{topicsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -5293,8 +5702,7 @@ pub fn pubsub_projects_topics_test_iam_permissions_execute(
 
 pub fn pubsub_projects_topics_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &PubsubProjectsTopicsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -5303,7 +5711,8 @@ pub fn pubsub_projects_topics_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = pubsub_projects_topics_test_iam_permissions_builder(client, resource, body)?;
+    let builder =
+        pubsub_projects_topics_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     pubsub_projects_topics_test_iam_permissions_execute(builder)
 }
 
@@ -5417,6 +5826,17 @@ pub fn pubsub_projects_topics_snapshots_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_topics_snapshots_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsTopicsSnapshotsListArgs {
+    /// Path parameter: topic
+    pub topic: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/topics/{topicsId}/snapshots
 /// Lists the names of the snapshots on this topic. Snapshots are used in [Seek](<https://cloud.google.`com/pubsub/docs/replay-overview`>) operations, which allow you to manage message acknowledgments in bulk. That is, you can set the acknowledgment state of messages in an existing subscription to the state captured by a snapshot.
 ///
@@ -5429,9 +5849,7 @@ pub fn pubsub_projects_topics_snapshots_list_execute(
 
 pub fn pubsub_projects_topics_snapshots_list(
     client: &SimpleHttpClient,
-    topic: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PubsubProjectsTopicsSnapshotsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTopicSnapshotsResponse>, ApiError>,
@@ -5440,8 +5858,12 @@ pub fn pubsub_projects_topics_snapshots_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        pubsub_projects_topics_snapshots_list_builder(client, topic, pageSize, pageToken)?;
+    let builder = pubsub_projects_topics_snapshots_list_builder(
+        client,
+        &args.topic,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     pubsub_projects_topics_snapshots_list_execute(builder)
 }
 
@@ -5555,6 +5977,17 @@ pub fn pubsub_projects_topics_subscriptions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsub_projects_topics_subscriptions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubProjectsTopicsSubscriptionsListArgs {
+    /// Path parameter: topic
+    pub topic: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/topics/{topicsId}/subscriptions
 /// Lists the names of the attached subscriptions on this topic.
 ///
@@ -5567,9 +6000,7 @@ pub fn pubsub_projects_topics_subscriptions_list_execute(
 
 pub fn pubsub_projects_topics_subscriptions_list(
     client: &SimpleHttpClient,
-    topic: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PubsubProjectsTopicsSubscriptionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTopicSubscriptionsResponse>, ApiError>,
@@ -5578,7 +6009,11 @@ pub fn pubsub_projects_topics_subscriptions_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        pubsub_projects_topics_subscriptions_list_builder(client, topic, pageSize, pageToken)?;
+    let builder = pubsub_projects_topics_subscriptions_list_builder(
+        client,
+        &args.topic,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     pubsub_projects_topics_subscriptions_list_execute(builder)
 }

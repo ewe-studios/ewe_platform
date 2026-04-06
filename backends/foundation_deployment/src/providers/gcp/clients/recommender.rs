@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/billingAccounts/{billingAccountsId}/locations/{locationsId}/insightTypes/{insightTypesId}/config
 /// Gets the requested InsightTypeConfig. There is only one instance of the config for each InsightType.
@@ -110,6 +112,13 @@ pub fn recommender_billing_accounts_locations_insight_types_get_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_billing_accounts_locations_insight_types_get_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderBillingAccountsLocationsInsightTypesGetConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/locations/{locationsId}/insightTypes/{insightTypesId}/config
 /// Gets the requested InsightTypeConfig. There is only one instance of the config for each InsightType.
 ///
@@ -122,7 +131,7 @@ pub fn recommender_billing_accounts_locations_insight_types_get_config_execute(
 
 pub fn recommender_billing_accounts_locations_insight_types_get_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommenderBillingAccountsLocationsInsightTypesGetConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1InsightTypeConfig>, ApiError>,
@@ -131,8 +140,9 @@ pub fn recommender_billing_accounts_locations_insight_types_get_config(
         + 'static,
     ApiError,
 > {
-    let builder =
-        recommender_billing_accounts_locations_insight_types_get_config_builder(client, name)?;
+    let builder = recommender_billing_accounts_locations_insight_types_get_config_builder(
+        client, &args.name,
+    )?;
     recommender_billing_accounts_locations_insight_types_get_config_execute(builder)
 }
 
@@ -249,6 +259,19 @@ pub fn recommender_billing_accounts_locations_insight_types_update_config_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_billing_accounts_locations_insight_types_update_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderBillingAccountsLocationsInsightTypesUpdateConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1InsightTypeConfig,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/locations/{locationsId}/insightTypes/{insightTypesId}/config
 /// Updates an InsightTypeConfig change. This will create a new revision of the config.
 ///
@@ -261,10 +284,7 @@ pub fn recommender_billing_accounts_locations_insight_types_update_config_execut
 
 pub fn recommender_billing_accounts_locations_insight_types_update_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudRecommenderV1InsightTypeConfig,
+    args: &RecommenderBillingAccountsLocationsInsightTypesUpdateConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1InsightTypeConfig>, ApiError>,
@@ -275,10 +295,10 @@ pub fn recommender_billing_accounts_locations_insight_types_update_config(
 > {
     let builder = recommender_billing_accounts_locations_insight_types_update_config_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     recommender_billing_accounts_locations_insight_types_update_config_execute(builder)
 }
@@ -377,6 +397,13 @@ pub fn recommender_billing_accounts_locations_insight_types_insights_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_billing_accounts_locations_insight_types_insights_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderBillingAccountsLocationsInsightTypesInsightsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}
 /// Gets the requested insight. Requires the recommender.*.get IAM permission for the specified insight type.
 ///
@@ -389,7 +416,7 @@ pub fn recommender_billing_accounts_locations_insight_types_insights_get_execute
 
 pub fn recommender_billing_accounts_locations_insight_types_insights_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommenderBillingAccountsLocationsInsightTypesInsightsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Insight>, ApiError>,
@@ -398,8 +425,9 @@ pub fn recommender_billing_accounts_locations_insight_types_insights_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        recommender_billing_accounts_locations_insight_types_insights_get_builder(client, name)?;
+    let builder = recommender_billing_accounts_locations_insight_types_insights_get_builder(
+        client, &args.name,
+    )?;
     recommender_billing_accounts_locations_insight_types_insights_get_execute(builder)
 }
 
@@ -518,6 +546,19 @@ pub fn recommender_billing_accounts_locations_insight_types_insights_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_billing_accounts_locations_insight_types_insights_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderBillingAccountsLocationsInsightTypesInsightsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/locations/{locationsId}/insightTypes/{insightTypesId}/insights
 /// Lists insights for the specified Cloud Resource. Requires the recommender.*.list IAM permission for the specified insight type.
 ///
@@ -530,10 +571,7 @@ pub fn recommender_billing_accounts_locations_insight_types_insights_list_execut
 
 pub fn recommender_billing_accounts_locations_insight_types_insights_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecommenderBillingAccountsLocationsInsightTypesInsightsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1ListInsightsResponse>, ApiError>,
@@ -543,7 +581,11 @@ pub fn recommender_billing_accounts_locations_insight_types_insights_list(
     ApiError,
 > {
     let builder = recommender_billing_accounts_locations_insight_types_insights_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     recommender_billing_accounts_locations_insight_types_insights_list_execute(builder)
 }
@@ -645,6 +687,15 @@ pub fn recommender_billing_accounts_locations_insight_types_insights_mark_accept
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_billing_accounts_locations_insight_types_insights_mark_accepted`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderBillingAccountsLocationsInsightTypesInsightsMarkAcceptedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkInsightAcceptedRequest,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}:markAccepted
 /// Marks the Insight State as Accepted. Users can use this method to indicate to the Recommender API that they have applied some action based on the insight. This stops the insight content from being updated. MarkInsightAccepted can be applied to insights in `ACTIVE` state. Requires the recommender.*.update IAM permission for the specified insight.
 ///
@@ -657,8 +708,7 @@ pub fn recommender_billing_accounts_locations_insight_types_insights_mark_accept
 
 pub fn recommender_billing_accounts_locations_insight_types_insights_mark_accepted(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkInsightAcceptedRequest,
+    args: &RecommenderBillingAccountsLocationsInsightTypesInsightsMarkAcceptedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Insight>, ApiError>,
@@ -669,7 +719,7 @@ pub fn recommender_billing_accounts_locations_insight_types_insights_mark_accept
 > {
     let builder =
         recommender_billing_accounts_locations_insight_types_insights_mark_accepted_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     recommender_billing_accounts_locations_insight_types_insights_mark_accepted_execute(builder)
 }
@@ -768,6 +818,13 @@ pub fn recommender_billing_accounts_locations_recommenders_get_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_billing_accounts_locations_recommenders_get_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderBillingAccountsLocationsRecommendersGetConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/locations/{locationsId}/recommenders/{recommendersId}/config
 /// Gets the requested Recommender Config. There is only one instance of the config for each Recommender.
 ///
@@ -780,7 +837,7 @@ pub fn recommender_billing_accounts_locations_recommenders_get_config_execute(
 
 pub fn recommender_billing_accounts_locations_recommenders_get_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommenderBillingAccountsLocationsRecommendersGetConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1RecommenderConfig>, ApiError>,
@@ -790,7 +847,7 @@ pub fn recommender_billing_accounts_locations_recommenders_get_config(
     ApiError,
 > {
     let builder =
-        recommender_billing_accounts_locations_recommenders_get_config_builder(client, name)?;
+        recommender_billing_accounts_locations_recommenders_get_config_builder(client, &args.name)?;
     recommender_billing_accounts_locations_recommenders_get_config_execute(builder)
 }
 
@@ -907,6 +964,19 @@ pub fn recommender_billing_accounts_locations_recommenders_update_config_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_billing_accounts_locations_recommenders_update_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderBillingAccountsLocationsRecommendersUpdateConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1RecommenderConfig,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/locations/{locationsId}/recommenders/{recommendersId}/config
 /// Updates a Recommender Config. This will create a new revision of the config.
 ///
@@ -919,10 +989,7 @@ pub fn recommender_billing_accounts_locations_recommenders_update_config_execute
 
 pub fn recommender_billing_accounts_locations_recommenders_update_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudRecommenderV1RecommenderConfig,
+    args: &RecommenderBillingAccountsLocationsRecommendersUpdateConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1RecommenderConfig>, ApiError>,
@@ -933,10 +1000,10 @@ pub fn recommender_billing_accounts_locations_recommenders_update_config(
 > {
     let builder = recommender_billing_accounts_locations_recommenders_update_config_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     recommender_billing_accounts_locations_recommenders_update_config_execute(builder)
 }
@@ -1035,6 +1102,13 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_get_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_billing_accounts_locations_recommenders_recommendations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderBillingAccountsLocationsRecommendersRecommendationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}
 /// Gets the requested recommendation. Requires the recommender.*.get IAM permission for the specified recommender.
 ///
@@ -1047,7 +1121,7 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_get_e
 
 pub fn recommender_billing_accounts_locations_recommenders_recommendations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommenderBillingAccountsLocationsRecommendersRecommendationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -1057,7 +1131,7 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_get(
     ApiError,
 > {
     let builder = recommender_billing_accounts_locations_recommenders_recommendations_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     recommender_billing_accounts_locations_recommenders_recommendations_get_execute(builder)
 }
@@ -1177,6 +1251,19 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_list_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_billing_accounts_locations_recommenders_recommendations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderBillingAccountsLocationsRecommendersRecommendationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations
 /// Lists recommendations for the specified Cloud Resource. Requires the recommender.*.list IAM permission for the specified recommender.
 ///
@@ -1189,10 +1276,7 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_list_
 
 pub fn recommender_billing_accounts_locations_recommenders_recommendations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecommenderBillingAccountsLocationsRecommendersRecommendationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1ListRecommendationsResponse>, ApiError>,
@@ -1202,7 +1286,11 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_list(
     ApiError,
 > {
     let builder = recommender_billing_accounts_locations_recommenders_recommendations_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     recommender_billing_accounts_locations_recommenders_recommendations_list_execute(builder)
 }
@@ -1304,6 +1392,15 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_billing_accounts_locations_recommenders_recommendations_mark_claimed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderBillingAccountsLocationsRecommendersRecommendationsMarkClaimedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationClaimedRequest,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markClaimed
 /// Marks the Recommendation State as Claimed. Users can use this method to indicate to the Recommender API that they are starting to apply the recommendation themselves. This stops the recommendation content from being updated. Associated insights are frozen and placed in the ACCEPTED state. MarkRecommendationClaimed can be applied to recommendations in CLAIMED, SUCCEEDED, FAILED, or `ACTIVE` state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -1316,8 +1413,7 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
 
 pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_claimed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationClaimedRequest,
+    args: &RecommenderBillingAccountsLocationsRecommendersRecommendationsMarkClaimedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -1328,7 +1424,7 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
 > {
     let builder =
         recommender_billing_accounts_locations_recommenders_recommendations_mark_claimed_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     recommender_billing_accounts_locations_recommenders_recommendations_mark_claimed_execute(
         builder,
@@ -1432,6 +1528,15 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_billing_accounts_locations_recommenders_recommendations_mark_dismissed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderBillingAccountsLocationsRecommendersRecommendationsMarkDismissedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationDismissedRequest,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markDismissed
 /// Mark the Recommendation State as Dismissed. Users can use this method to indicate to the Recommender API that an `ACTIVE` recommendation has to be marked back as DISMISSED. MarkRecommendationDismissed can be applied to recommendations in `ACTIVE` state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -1444,8 +1549,7 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
 
 pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_dismissed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationDismissedRequest,
+    args: &RecommenderBillingAccountsLocationsRecommendersRecommendationsMarkDismissedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -1456,7 +1560,7 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
 > {
     let builder =
         recommender_billing_accounts_locations_recommenders_recommendations_mark_dismissed_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     recommender_billing_accounts_locations_recommenders_recommendations_mark_dismissed_execute(
         builder,
@@ -1560,6 +1664,15 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_billing_accounts_locations_recommenders_recommendations_mark_failed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderBillingAccountsLocationsRecommendersRecommendationsMarkFailedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationFailedRequest,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markFailed
 /// Marks the Recommendation State as Failed. Users can use this method to indicate to the Recommender API that they have applied the recommendation themselves, and the operation failed. This stops the recommendation content from being updated. Associated insights are frozen and placed in the ACCEPTED state. MarkRecommendationFailed can be applied to recommendations in `ACTIVE`, CLAIMED, SUCCEEDED, or FAILED state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -1572,8 +1685,7 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
 
 pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_failed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationFailedRequest,
+    args: &RecommenderBillingAccountsLocationsRecommendersRecommendationsMarkFailedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -1584,7 +1696,7 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
 > {
     let builder =
         recommender_billing_accounts_locations_recommenders_recommendations_mark_failed_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     recommender_billing_accounts_locations_recommenders_recommendations_mark_failed_execute(builder)
 }
@@ -1686,6 +1798,15 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_billing_accounts_locations_recommenders_recommendations_mark_succeeded`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderBillingAccountsLocationsRecommendersRecommendationsMarkSucceededArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationSucceededRequest,
+}
+
 /// GET v1/billingAccounts/{billingAccountsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markSucceeded
 /// Marks the Recommendation State as Succeeded. Users can use this method to indicate to the Recommender API that they have applied the recommendation themselves, and the operation was successful. This stops the recommendation content from being updated. Associated insights are frozen and placed in the ACCEPTED state. MarkRecommendationSucceeded can be applied to recommendations in `ACTIVE`, CLAIMED, SUCCEEDED, or FAILED state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -1698,8 +1819,7 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
 
 pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_succeeded(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationSucceededRequest,
+    args: &RecommenderBillingAccountsLocationsRecommendersRecommendationsMarkSucceededArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -1710,7 +1830,7 @@ pub fn recommender_billing_accounts_locations_recommenders_recommendations_mark_
 > {
     let builder =
         recommender_billing_accounts_locations_recommenders_recommendations_mark_succeeded_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     recommender_billing_accounts_locations_recommenders_recommendations_mark_succeeded_execute(
         builder,
@@ -1811,6 +1931,13 @@ pub fn recommender_folders_locations_insight_types_insights_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_folders_locations_insight_types_insights_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderFoldersLocationsInsightTypesInsightsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}
 /// Gets the requested insight. Requires the recommender.*.get IAM permission for the specified insight type.
 ///
@@ -1823,7 +1950,7 @@ pub fn recommender_folders_locations_insight_types_insights_get_execute(
 
 pub fn recommender_folders_locations_insight_types_insights_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommenderFoldersLocationsInsightTypesInsightsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Insight>, ApiError>,
@@ -1832,7 +1959,8 @@ pub fn recommender_folders_locations_insight_types_insights_get(
         + 'static,
     ApiError,
 > {
-    let builder = recommender_folders_locations_insight_types_insights_get_builder(client, name)?;
+    let builder =
+        recommender_folders_locations_insight_types_insights_get_builder(client, &args.name)?;
     recommender_folders_locations_insight_types_insights_get_execute(builder)
 }
 
@@ -1951,6 +2079,19 @@ pub fn recommender_folders_locations_insight_types_insights_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_folders_locations_insight_types_insights_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderFoldersLocationsInsightTypesInsightsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/insightTypes/{insightTypesId}/insights
 /// Lists insights for the specified Cloud Resource. Requires the recommender.*.list IAM permission for the specified insight type.
 ///
@@ -1963,10 +2104,7 @@ pub fn recommender_folders_locations_insight_types_insights_list_execute(
 
 pub fn recommender_folders_locations_insight_types_insights_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecommenderFoldersLocationsInsightTypesInsightsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1ListInsightsResponse>, ApiError>,
@@ -1976,7 +2114,11 @@ pub fn recommender_folders_locations_insight_types_insights_list(
     ApiError,
 > {
     let builder = recommender_folders_locations_insight_types_insights_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     recommender_folders_locations_insight_types_insights_list_execute(builder)
 }
@@ -2078,6 +2220,15 @@ pub fn recommender_folders_locations_insight_types_insights_mark_accepted_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_folders_locations_insight_types_insights_mark_accepted`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderFoldersLocationsInsightTypesInsightsMarkAcceptedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkInsightAcceptedRequest,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}:markAccepted
 /// Marks the Insight State as Accepted. Users can use this method to indicate to the Recommender API that they have applied some action based on the insight. This stops the insight content from being updated. MarkInsightAccepted can be applied to insights in `ACTIVE` state. Requires the recommender.*.update IAM permission for the specified insight.
 ///
@@ -2090,8 +2241,7 @@ pub fn recommender_folders_locations_insight_types_insights_mark_accepted_execut
 
 pub fn recommender_folders_locations_insight_types_insights_mark_accepted(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkInsightAcceptedRequest,
+    args: &RecommenderFoldersLocationsInsightTypesInsightsMarkAcceptedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Insight>, ApiError>,
@@ -2101,7 +2251,7 @@ pub fn recommender_folders_locations_insight_types_insights_mark_accepted(
     ApiError,
 > {
     let builder = recommender_folders_locations_insight_types_insights_mark_accepted_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     recommender_folders_locations_insight_types_insights_mark_accepted_execute(builder)
 }
@@ -2200,6 +2350,13 @@ pub fn recommender_folders_locations_recommenders_recommendations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_folders_locations_recommenders_recommendations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderFoldersLocationsRecommendersRecommendationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}
 /// Gets the requested recommendation. Requires the recommender.*.get IAM permission for the specified recommender.
 ///
@@ -2212,7 +2369,7 @@ pub fn recommender_folders_locations_recommenders_recommendations_get_execute(
 
 pub fn recommender_folders_locations_recommenders_recommendations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommenderFoldersLocationsRecommendersRecommendationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -2222,7 +2379,7 @@ pub fn recommender_folders_locations_recommenders_recommendations_get(
     ApiError,
 > {
     let builder =
-        recommender_folders_locations_recommenders_recommendations_get_builder(client, name)?;
+        recommender_folders_locations_recommenders_recommendations_get_builder(client, &args.name)?;
     recommender_folders_locations_recommenders_recommendations_get_execute(builder)
 }
 
@@ -2341,6 +2498,19 @@ pub fn recommender_folders_locations_recommenders_recommendations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_folders_locations_recommenders_recommendations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderFoldersLocationsRecommendersRecommendationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations
 /// Lists recommendations for the specified Cloud Resource. Requires the recommender.*.list IAM permission for the specified recommender.
 ///
@@ -2353,10 +2523,7 @@ pub fn recommender_folders_locations_recommenders_recommendations_list_execute(
 
 pub fn recommender_folders_locations_recommenders_recommendations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecommenderFoldersLocationsRecommendersRecommendationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1ListRecommendationsResponse>, ApiError>,
@@ -2366,7 +2533,11 @@ pub fn recommender_folders_locations_recommenders_recommendations_list(
     ApiError,
 > {
     let builder = recommender_folders_locations_recommenders_recommendations_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     recommender_folders_locations_recommenders_recommendations_list_execute(builder)
 }
@@ -2468,6 +2639,15 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_claimed_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_folders_locations_recommenders_recommendations_mark_claimed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderFoldersLocationsRecommendersRecommendationsMarkClaimedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationClaimedRequest,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markClaimed
 /// Marks the Recommendation State as Claimed. Users can use this method to indicate to the Recommender API that they are starting to apply the recommendation themselves. This stops the recommendation content from being updated. Associated insights are frozen and placed in the ACCEPTED state. MarkRecommendationClaimed can be applied to recommendations in CLAIMED, SUCCEEDED, FAILED, or `ACTIVE` state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -2480,8 +2660,7 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_claimed_e
 
 pub fn recommender_folders_locations_recommenders_recommendations_mark_claimed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationClaimedRequest,
+    args: &RecommenderFoldersLocationsRecommendersRecommendationsMarkClaimedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -2491,7 +2670,7 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_claimed(
     ApiError,
 > {
     let builder = recommender_folders_locations_recommenders_recommendations_mark_claimed_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     recommender_folders_locations_recommenders_recommendations_mark_claimed_execute(builder)
 }
@@ -2593,6 +2772,15 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_dismissed
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_folders_locations_recommenders_recommendations_mark_dismissed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderFoldersLocationsRecommendersRecommendationsMarkDismissedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationDismissedRequest,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markDismissed
 /// Mark the Recommendation State as Dismissed. Users can use this method to indicate to the Recommender API that an `ACTIVE` recommendation has to be marked back as DISMISSED. MarkRecommendationDismissed can be applied to recommendations in `ACTIVE` state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -2605,8 +2793,7 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_dismissed
 
 pub fn recommender_folders_locations_recommenders_recommendations_mark_dismissed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationDismissedRequest,
+    args: &RecommenderFoldersLocationsRecommendersRecommendationsMarkDismissedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -2617,7 +2804,7 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_dismissed
 > {
     let builder =
         recommender_folders_locations_recommenders_recommendations_mark_dismissed_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     recommender_folders_locations_recommenders_recommendations_mark_dismissed_execute(builder)
 }
@@ -2719,6 +2906,15 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_failed_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_folders_locations_recommenders_recommendations_mark_failed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderFoldersLocationsRecommendersRecommendationsMarkFailedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationFailedRequest,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markFailed
 /// Marks the Recommendation State as Failed. Users can use this method to indicate to the Recommender API that they have applied the recommendation themselves, and the operation failed. This stops the recommendation content from being updated. Associated insights are frozen and placed in the ACCEPTED state. MarkRecommendationFailed can be applied to recommendations in `ACTIVE`, CLAIMED, SUCCEEDED, or FAILED state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -2731,8 +2927,7 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_failed_ex
 
 pub fn recommender_folders_locations_recommenders_recommendations_mark_failed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationFailedRequest,
+    args: &RecommenderFoldersLocationsRecommendersRecommendationsMarkFailedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -2742,7 +2937,7 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_failed(
     ApiError,
 > {
     let builder = recommender_folders_locations_recommenders_recommendations_mark_failed_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     recommender_folders_locations_recommenders_recommendations_mark_failed_execute(builder)
 }
@@ -2844,6 +3039,15 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_succeeded
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_folders_locations_recommenders_recommendations_mark_succeeded`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderFoldersLocationsRecommendersRecommendationsMarkSucceededArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationSucceededRequest,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markSucceeded
 /// Marks the Recommendation State as Succeeded. Users can use this method to indicate to the Recommender API that they have applied the recommendation themselves, and the operation was successful. This stops the recommendation content from being updated. Associated insights are frozen and placed in the ACCEPTED state. MarkRecommendationSucceeded can be applied to recommendations in `ACTIVE`, CLAIMED, SUCCEEDED, or FAILED state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -2856,8 +3060,7 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_succeeded
 
 pub fn recommender_folders_locations_recommenders_recommendations_mark_succeeded(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationSucceededRequest,
+    args: &RecommenderFoldersLocationsRecommendersRecommendationsMarkSucceededArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -2868,7 +3071,7 @@ pub fn recommender_folders_locations_recommenders_recommendations_mark_succeeded
 > {
     let builder =
         recommender_folders_locations_recommenders_recommendations_mark_succeeded_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     recommender_folders_locations_recommenders_recommendations_mark_succeeded_execute(builder)
 }
@@ -2967,6 +3170,13 @@ pub fn recommender_organizations_locations_insight_types_get_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_organizations_locations_insight_types_get_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderOrganizationsLocationsInsightTypesGetConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/insightTypes/{insightTypesId}/config
 /// Gets the requested InsightTypeConfig. There is only one instance of the config for each InsightType.
 ///
@@ -2979,7 +3189,7 @@ pub fn recommender_organizations_locations_insight_types_get_config_execute(
 
 pub fn recommender_organizations_locations_insight_types_get_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommenderOrganizationsLocationsInsightTypesGetConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1InsightTypeConfig>, ApiError>,
@@ -2989,7 +3199,7 @@ pub fn recommender_organizations_locations_insight_types_get_config(
     ApiError,
 > {
     let builder =
-        recommender_organizations_locations_insight_types_get_config_builder(client, name)?;
+        recommender_organizations_locations_insight_types_get_config_builder(client, &args.name)?;
     recommender_organizations_locations_insight_types_get_config_execute(builder)
 }
 
@@ -3106,6 +3316,19 @@ pub fn recommender_organizations_locations_insight_types_update_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_organizations_locations_insight_types_update_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderOrganizationsLocationsInsightTypesUpdateConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1InsightTypeConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/insightTypes/{insightTypesId}/config
 /// Updates an InsightTypeConfig change. This will create a new revision of the config.
 ///
@@ -3118,10 +3341,7 @@ pub fn recommender_organizations_locations_insight_types_update_config_execute(
 
 pub fn recommender_organizations_locations_insight_types_update_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudRecommenderV1InsightTypeConfig,
+    args: &RecommenderOrganizationsLocationsInsightTypesUpdateConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1InsightTypeConfig>, ApiError>,
@@ -3132,10 +3352,10 @@ pub fn recommender_organizations_locations_insight_types_update_config(
 > {
     let builder = recommender_organizations_locations_insight_types_update_config_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     recommender_organizations_locations_insight_types_update_config_execute(builder)
 }
@@ -3234,6 +3454,13 @@ pub fn recommender_organizations_locations_insight_types_insights_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_organizations_locations_insight_types_insights_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderOrganizationsLocationsInsightTypesInsightsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}
 /// Gets the requested insight. Requires the recommender.*.get IAM permission for the specified insight type.
 ///
@@ -3246,7 +3473,7 @@ pub fn recommender_organizations_locations_insight_types_insights_get_execute(
 
 pub fn recommender_organizations_locations_insight_types_insights_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommenderOrganizationsLocationsInsightTypesInsightsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Insight>, ApiError>,
@@ -3256,7 +3483,7 @@ pub fn recommender_organizations_locations_insight_types_insights_get(
     ApiError,
 > {
     let builder =
-        recommender_organizations_locations_insight_types_insights_get_builder(client, name)?;
+        recommender_organizations_locations_insight_types_insights_get_builder(client, &args.name)?;
     recommender_organizations_locations_insight_types_insights_get_execute(builder)
 }
 
@@ -3375,6 +3602,19 @@ pub fn recommender_organizations_locations_insight_types_insights_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_organizations_locations_insight_types_insights_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderOrganizationsLocationsInsightTypesInsightsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/insightTypes/{insightTypesId}/insights
 /// Lists insights for the specified Cloud Resource. Requires the recommender.*.list IAM permission for the specified insight type.
 ///
@@ -3387,10 +3627,7 @@ pub fn recommender_organizations_locations_insight_types_insights_list_execute(
 
 pub fn recommender_organizations_locations_insight_types_insights_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecommenderOrganizationsLocationsInsightTypesInsightsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1ListInsightsResponse>, ApiError>,
@@ -3400,7 +3637,11 @@ pub fn recommender_organizations_locations_insight_types_insights_list(
     ApiError,
 > {
     let builder = recommender_organizations_locations_insight_types_insights_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     recommender_organizations_locations_insight_types_insights_list_execute(builder)
 }
@@ -3502,6 +3743,15 @@ pub fn recommender_organizations_locations_insight_types_insights_mark_accepted_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_organizations_locations_insight_types_insights_mark_accepted`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderOrganizationsLocationsInsightTypesInsightsMarkAcceptedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkInsightAcceptedRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}:markAccepted
 /// Marks the Insight State as Accepted. Users can use this method to indicate to the Recommender API that they have applied some action based on the insight. This stops the insight content from being updated. MarkInsightAccepted can be applied to insights in `ACTIVE` state. Requires the recommender.*.update IAM permission for the specified insight.
 ///
@@ -3514,8 +3764,7 @@ pub fn recommender_organizations_locations_insight_types_insights_mark_accepted_
 
 pub fn recommender_organizations_locations_insight_types_insights_mark_accepted(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkInsightAcceptedRequest,
+    args: &RecommenderOrganizationsLocationsInsightTypesInsightsMarkAcceptedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Insight>, ApiError>,
@@ -3525,7 +3774,7 @@ pub fn recommender_organizations_locations_insight_types_insights_mark_accepted(
     ApiError,
 > {
     let builder = recommender_organizations_locations_insight_types_insights_mark_accepted_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     recommender_organizations_locations_insight_types_insights_mark_accepted_execute(builder)
 }
@@ -3624,6 +3873,13 @@ pub fn recommender_organizations_locations_recommenders_get_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_organizations_locations_recommenders_get_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderOrganizationsLocationsRecommendersGetConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/recommenders/{recommendersId}/config
 /// Gets the requested Recommender Config. There is only one instance of the config for each Recommender.
 ///
@@ -3636,7 +3892,7 @@ pub fn recommender_organizations_locations_recommenders_get_config_execute(
 
 pub fn recommender_organizations_locations_recommenders_get_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommenderOrganizationsLocationsRecommendersGetConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1RecommenderConfig>, ApiError>,
@@ -3646,7 +3902,7 @@ pub fn recommender_organizations_locations_recommenders_get_config(
     ApiError,
 > {
     let builder =
-        recommender_organizations_locations_recommenders_get_config_builder(client, name)?;
+        recommender_organizations_locations_recommenders_get_config_builder(client, &args.name)?;
     recommender_organizations_locations_recommenders_get_config_execute(builder)
 }
 
@@ -3763,6 +4019,19 @@ pub fn recommender_organizations_locations_recommenders_update_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_organizations_locations_recommenders_update_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderOrganizationsLocationsRecommendersUpdateConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1RecommenderConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/recommenders/{recommendersId}/config
 /// Updates a Recommender Config. This will create a new revision of the config.
 ///
@@ -3775,10 +4044,7 @@ pub fn recommender_organizations_locations_recommenders_update_config_execute(
 
 pub fn recommender_organizations_locations_recommenders_update_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudRecommenderV1RecommenderConfig,
+    args: &RecommenderOrganizationsLocationsRecommendersUpdateConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1RecommenderConfig>, ApiError>,
@@ -3789,10 +4055,10 @@ pub fn recommender_organizations_locations_recommenders_update_config(
 > {
     let builder = recommender_organizations_locations_recommenders_update_config_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     recommender_organizations_locations_recommenders_update_config_execute(builder)
 }
@@ -3891,6 +4157,13 @@ pub fn recommender_organizations_locations_recommenders_recommendations_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_organizations_locations_recommenders_recommendations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderOrganizationsLocationsRecommendersRecommendationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}
 /// Gets the requested recommendation. Requires the recommender.*.get IAM permission for the specified recommender.
 ///
@@ -3903,7 +4176,7 @@ pub fn recommender_organizations_locations_recommenders_recommendations_get_exec
 
 pub fn recommender_organizations_locations_recommenders_recommendations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommenderOrganizationsLocationsRecommendersRecommendationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -3912,8 +4185,9 @@ pub fn recommender_organizations_locations_recommenders_recommendations_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        recommender_organizations_locations_recommenders_recommendations_get_builder(client, name)?;
+    let builder = recommender_organizations_locations_recommenders_recommendations_get_builder(
+        client, &args.name,
+    )?;
     recommender_organizations_locations_recommenders_recommendations_get_execute(builder)
 }
 
@@ -4032,6 +4306,19 @@ pub fn recommender_organizations_locations_recommenders_recommendations_list_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_organizations_locations_recommenders_recommendations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderOrganizationsLocationsRecommendersRecommendationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations
 /// Lists recommendations for the specified Cloud Resource. Requires the recommender.*.list IAM permission for the specified recommender.
 ///
@@ -4044,10 +4331,7 @@ pub fn recommender_organizations_locations_recommenders_recommendations_list_exe
 
 pub fn recommender_organizations_locations_recommenders_recommendations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecommenderOrganizationsLocationsRecommendersRecommendationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1ListRecommendationsResponse>, ApiError>,
@@ -4057,7 +4341,11 @@ pub fn recommender_organizations_locations_recommenders_recommendations_list(
     ApiError,
 > {
     let builder = recommender_organizations_locations_recommenders_recommendations_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     recommender_organizations_locations_recommenders_recommendations_list_execute(builder)
 }
@@ -4159,6 +4447,15 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_cla
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_organizations_locations_recommenders_recommendations_mark_claimed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderOrganizationsLocationsRecommendersRecommendationsMarkClaimedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationClaimedRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markClaimed
 /// Marks the Recommendation State as Claimed. Users can use this method to indicate to the Recommender API that they are starting to apply the recommendation themselves. This stops the recommendation content from being updated. Associated insights are frozen and placed in the ACCEPTED state. MarkRecommendationClaimed can be applied to recommendations in CLAIMED, SUCCEEDED, FAILED, or `ACTIVE` state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -4171,8 +4468,7 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_cla
 
 pub fn recommender_organizations_locations_recommenders_recommendations_mark_claimed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationClaimedRequest,
+    args: &RecommenderOrganizationsLocationsRecommendersRecommendationsMarkClaimedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -4183,7 +4479,7 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_cla
 > {
     let builder =
         recommender_organizations_locations_recommenders_recommendations_mark_claimed_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     recommender_organizations_locations_recommenders_recommendations_mark_claimed_execute(builder)
 }
@@ -4285,6 +4581,15 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_dis
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_organizations_locations_recommenders_recommendations_mark_dismissed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderOrganizationsLocationsRecommendersRecommendationsMarkDismissedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationDismissedRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markDismissed
 /// Mark the Recommendation State as Dismissed. Users can use this method to indicate to the Recommender API that an `ACTIVE` recommendation has to be marked back as DISMISSED. MarkRecommendationDismissed can be applied to recommendations in `ACTIVE` state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -4297,8 +4602,7 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_dis
 
 pub fn recommender_organizations_locations_recommenders_recommendations_mark_dismissed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationDismissedRequest,
+    args: &RecommenderOrganizationsLocationsRecommendersRecommendationsMarkDismissedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -4309,7 +4613,7 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_dis
 > {
     let builder =
         recommender_organizations_locations_recommenders_recommendations_mark_dismissed_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     recommender_organizations_locations_recommenders_recommendations_mark_dismissed_execute(builder)
 }
@@ -4411,6 +4715,15 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_fai
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_organizations_locations_recommenders_recommendations_mark_failed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderOrganizationsLocationsRecommendersRecommendationsMarkFailedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationFailedRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markFailed
 /// Marks the Recommendation State as Failed. Users can use this method to indicate to the Recommender API that they have applied the recommendation themselves, and the operation failed. This stops the recommendation content from being updated. Associated insights are frozen and placed in the ACCEPTED state. MarkRecommendationFailed can be applied to recommendations in `ACTIVE`, CLAIMED, SUCCEEDED, or FAILED state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -4423,8 +4736,7 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_fai
 
 pub fn recommender_organizations_locations_recommenders_recommendations_mark_failed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationFailedRequest,
+    args: &RecommenderOrganizationsLocationsRecommendersRecommendationsMarkFailedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -4435,7 +4747,7 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_fai
 > {
     let builder =
         recommender_organizations_locations_recommenders_recommendations_mark_failed_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     recommender_organizations_locations_recommenders_recommendations_mark_failed_execute(builder)
 }
@@ -4537,6 +4849,15 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_suc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_organizations_locations_recommenders_recommendations_mark_succeeded`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderOrganizationsLocationsRecommendersRecommendationsMarkSucceededArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationSucceededRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markSucceeded
 /// Marks the Recommendation State as Succeeded. Users can use this method to indicate to the Recommender API that they have applied the recommendation themselves, and the operation was successful. This stops the recommendation content from being updated. Associated insights are frozen and placed in the ACCEPTED state. MarkRecommendationSucceeded can be applied to recommendations in `ACTIVE`, CLAIMED, SUCCEEDED, or FAILED state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -4549,8 +4870,7 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_suc
 
 pub fn recommender_organizations_locations_recommenders_recommendations_mark_succeeded(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationSucceededRequest,
+    args: &RecommenderOrganizationsLocationsRecommendersRecommendationsMarkSucceededArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -4561,7 +4881,7 @@ pub fn recommender_organizations_locations_recommenders_recommendations_mark_suc
 > {
     let builder =
         recommender_organizations_locations_recommenders_recommendations_mark_succeeded_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     recommender_organizations_locations_recommenders_recommendations_mark_succeeded_execute(builder)
 }
@@ -4660,6 +4980,13 @@ pub fn recommender_projects_locations_insight_types_get_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_projects_locations_insight_types_get_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderProjectsLocationsInsightTypesGetConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insightTypes/{insightTypesId}/config
 /// Gets the requested InsightTypeConfig. There is only one instance of the config for each InsightType.
 ///
@@ -4672,7 +4999,7 @@ pub fn recommender_projects_locations_insight_types_get_config_execute(
 
 pub fn recommender_projects_locations_insight_types_get_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommenderProjectsLocationsInsightTypesGetConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1InsightTypeConfig>, ApiError>,
@@ -4681,7 +5008,8 @@ pub fn recommender_projects_locations_insight_types_get_config(
         + 'static,
     ApiError,
 > {
-    let builder = recommender_projects_locations_insight_types_get_config_builder(client, name)?;
+    let builder =
+        recommender_projects_locations_insight_types_get_config_builder(client, &args.name)?;
     recommender_projects_locations_insight_types_get_config_execute(builder)
 }
 
@@ -4798,6 +5126,19 @@ pub fn recommender_projects_locations_insight_types_update_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_projects_locations_insight_types_update_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderProjectsLocationsInsightTypesUpdateConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1InsightTypeConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insightTypes/{insightTypesId}/config
 /// Updates an InsightTypeConfig change. This will create a new revision of the config.
 ///
@@ -4810,10 +5151,7 @@ pub fn recommender_projects_locations_insight_types_update_config_execute(
 
 pub fn recommender_projects_locations_insight_types_update_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudRecommenderV1InsightTypeConfig,
+    args: &RecommenderProjectsLocationsInsightTypesUpdateConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1InsightTypeConfig>, ApiError>,
@@ -4824,10 +5162,10 @@ pub fn recommender_projects_locations_insight_types_update_config(
 > {
     let builder = recommender_projects_locations_insight_types_update_config_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     recommender_projects_locations_insight_types_update_config_execute(builder)
 }
@@ -4926,6 +5264,13 @@ pub fn recommender_projects_locations_insight_types_insights_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_projects_locations_insight_types_insights_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderProjectsLocationsInsightTypesInsightsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}
 /// Gets the requested insight. Requires the recommender.*.get IAM permission for the specified insight type.
 ///
@@ -4938,7 +5283,7 @@ pub fn recommender_projects_locations_insight_types_insights_get_execute(
 
 pub fn recommender_projects_locations_insight_types_insights_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommenderProjectsLocationsInsightTypesInsightsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Insight>, ApiError>,
@@ -4947,7 +5292,8 @@ pub fn recommender_projects_locations_insight_types_insights_get(
         + 'static,
     ApiError,
 > {
-    let builder = recommender_projects_locations_insight_types_insights_get_builder(client, name)?;
+    let builder =
+        recommender_projects_locations_insight_types_insights_get_builder(client, &args.name)?;
     recommender_projects_locations_insight_types_insights_get_execute(builder)
 }
 
@@ -5066,6 +5412,19 @@ pub fn recommender_projects_locations_insight_types_insights_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_projects_locations_insight_types_insights_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderProjectsLocationsInsightTypesInsightsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insightTypes/{insightTypesId}/insights
 /// Lists insights for the specified Cloud Resource. Requires the recommender.*.list IAM permission for the specified insight type.
 ///
@@ -5078,10 +5437,7 @@ pub fn recommender_projects_locations_insight_types_insights_list_execute(
 
 pub fn recommender_projects_locations_insight_types_insights_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecommenderProjectsLocationsInsightTypesInsightsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1ListInsightsResponse>, ApiError>,
@@ -5091,7 +5447,11 @@ pub fn recommender_projects_locations_insight_types_insights_list(
     ApiError,
 > {
     let builder = recommender_projects_locations_insight_types_insights_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     recommender_projects_locations_insight_types_insights_list_execute(builder)
 }
@@ -5193,6 +5553,15 @@ pub fn recommender_projects_locations_insight_types_insights_mark_accepted_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_projects_locations_insight_types_insights_mark_accepted`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderProjectsLocationsInsightTypesInsightsMarkAcceptedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkInsightAcceptedRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insightTypes/{insightTypesId}/insights/{insightsId}:markAccepted
 /// Marks the Insight State as Accepted. Users can use this method to indicate to the Recommender API that they have applied some action based on the insight. This stops the insight content from being updated. MarkInsightAccepted can be applied to insights in `ACTIVE` state. Requires the recommender.*.update IAM permission for the specified insight.
 ///
@@ -5205,8 +5574,7 @@ pub fn recommender_projects_locations_insight_types_insights_mark_accepted_execu
 
 pub fn recommender_projects_locations_insight_types_insights_mark_accepted(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkInsightAcceptedRequest,
+    args: &RecommenderProjectsLocationsInsightTypesInsightsMarkAcceptedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Insight>, ApiError>,
@@ -5216,7 +5584,7 @@ pub fn recommender_projects_locations_insight_types_insights_mark_accepted(
     ApiError,
 > {
     let builder = recommender_projects_locations_insight_types_insights_mark_accepted_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     recommender_projects_locations_insight_types_insights_mark_accepted_execute(builder)
 }
@@ -5315,6 +5683,13 @@ pub fn recommender_projects_locations_recommenders_get_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_projects_locations_recommenders_get_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderProjectsLocationsRecommendersGetConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/recommenders/{recommendersId}/config
 /// Gets the requested Recommender Config. There is only one instance of the config for each Recommender.
 ///
@@ -5327,7 +5702,7 @@ pub fn recommender_projects_locations_recommenders_get_config_execute(
 
 pub fn recommender_projects_locations_recommenders_get_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommenderProjectsLocationsRecommendersGetConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1RecommenderConfig>, ApiError>,
@@ -5336,7 +5711,8 @@ pub fn recommender_projects_locations_recommenders_get_config(
         + 'static,
     ApiError,
 > {
-    let builder = recommender_projects_locations_recommenders_get_config_builder(client, name)?;
+    let builder =
+        recommender_projects_locations_recommenders_get_config_builder(client, &args.name)?;
     recommender_projects_locations_recommenders_get_config_execute(builder)
 }
 
@@ -5453,6 +5829,19 @@ pub fn recommender_projects_locations_recommenders_update_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_projects_locations_recommenders_update_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderProjectsLocationsRecommendersUpdateConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1RecommenderConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/recommenders/{recommendersId}/config
 /// Updates a Recommender Config. This will create a new revision of the config.
 ///
@@ -5465,10 +5854,7 @@ pub fn recommender_projects_locations_recommenders_update_config_execute(
 
 pub fn recommender_projects_locations_recommenders_update_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudRecommenderV1RecommenderConfig,
+    args: &RecommenderProjectsLocationsRecommendersUpdateConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1RecommenderConfig>, ApiError>,
@@ -5479,10 +5865,10 @@ pub fn recommender_projects_locations_recommenders_update_config(
 > {
     let builder = recommender_projects_locations_recommenders_update_config_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     recommender_projects_locations_recommenders_update_config_execute(builder)
 }
@@ -5581,6 +5967,13 @@ pub fn recommender_projects_locations_recommenders_recommendations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_projects_locations_recommenders_recommendations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderProjectsLocationsRecommendersRecommendationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}
 /// Gets the requested recommendation. Requires the recommender.*.get IAM permission for the specified recommender.
 ///
@@ -5593,7 +5986,7 @@ pub fn recommender_projects_locations_recommenders_recommendations_get_execute(
 
 pub fn recommender_projects_locations_recommenders_recommendations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecommenderProjectsLocationsRecommendersRecommendationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -5602,8 +5995,9 @@ pub fn recommender_projects_locations_recommenders_recommendations_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        recommender_projects_locations_recommenders_recommendations_get_builder(client, name)?;
+    let builder = recommender_projects_locations_recommenders_recommendations_get_builder(
+        client, &args.name,
+    )?;
     recommender_projects_locations_recommenders_recommendations_get_execute(builder)
 }
 
@@ -5722,6 +6116,19 @@ pub fn recommender_projects_locations_recommenders_recommendations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_projects_locations_recommenders_recommendations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderProjectsLocationsRecommendersRecommendationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations
 /// Lists recommendations for the specified Cloud Resource. Requires the recommender.*.list IAM permission for the specified recommender.
 ///
@@ -5734,10 +6141,7 @@ pub fn recommender_projects_locations_recommenders_recommendations_list_execute(
 
 pub fn recommender_projects_locations_recommenders_recommendations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecommenderProjectsLocationsRecommendersRecommendationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1ListRecommendationsResponse>, ApiError>,
@@ -5747,7 +6151,11 @@ pub fn recommender_projects_locations_recommenders_recommendations_list(
     ApiError,
 > {
     let builder = recommender_projects_locations_recommenders_recommendations_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     recommender_projects_locations_recommenders_recommendations_list_execute(builder)
 }
@@ -5849,6 +6257,15 @@ pub fn recommender_projects_locations_recommenders_recommendations_mark_claimed_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_projects_locations_recommenders_recommendations_mark_claimed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderProjectsLocationsRecommendersRecommendationsMarkClaimedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationClaimedRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markClaimed
 /// Marks the Recommendation State as Claimed. Users can use this method to indicate to the Recommender API that they are starting to apply the recommendation themselves. This stops the recommendation content from being updated. Associated insights are frozen and placed in the ACCEPTED state. MarkRecommendationClaimed can be applied to recommendations in CLAIMED, SUCCEEDED, FAILED, or `ACTIVE` state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -5861,8 +6278,7 @@ pub fn recommender_projects_locations_recommenders_recommendations_mark_claimed_
 
 pub fn recommender_projects_locations_recommenders_recommendations_mark_claimed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationClaimedRequest,
+    args: &RecommenderProjectsLocationsRecommendersRecommendationsMarkClaimedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -5872,7 +6288,7 @@ pub fn recommender_projects_locations_recommenders_recommendations_mark_claimed(
     ApiError,
 > {
     let builder = recommender_projects_locations_recommenders_recommendations_mark_claimed_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     recommender_projects_locations_recommenders_recommendations_mark_claimed_execute(builder)
 }
@@ -5974,6 +6390,15 @@ pub fn recommender_projects_locations_recommenders_recommendations_mark_dismisse
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_projects_locations_recommenders_recommendations_mark_dismissed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderProjectsLocationsRecommendersRecommendationsMarkDismissedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationDismissedRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markDismissed
 /// Mark the Recommendation State as Dismissed. Users can use this method to indicate to the Recommender API that an `ACTIVE` recommendation has to be marked back as DISMISSED. MarkRecommendationDismissed can be applied to recommendations in `ACTIVE` state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -5986,8 +6411,7 @@ pub fn recommender_projects_locations_recommenders_recommendations_mark_dismisse
 
 pub fn recommender_projects_locations_recommenders_recommendations_mark_dismissed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationDismissedRequest,
+    args: &RecommenderProjectsLocationsRecommendersRecommendationsMarkDismissedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -5998,7 +6422,7 @@ pub fn recommender_projects_locations_recommenders_recommendations_mark_dismisse
 > {
     let builder =
         recommender_projects_locations_recommenders_recommendations_mark_dismissed_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     recommender_projects_locations_recommenders_recommendations_mark_dismissed_execute(builder)
 }
@@ -6100,6 +6524,15 @@ pub fn recommender_projects_locations_recommenders_recommendations_mark_failed_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_projects_locations_recommenders_recommendations_mark_failed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderProjectsLocationsRecommendersRecommendationsMarkFailedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationFailedRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markFailed
 /// Marks the Recommendation State as Failed. Users can use this method to indicate to the Recommender API that they have applied the recommendation themselves, and the operation failed. This stops the recommendation content from being updated. Associated insights are frozen and placed in the ACCEPTED state. MarkRecommendationFailed can be applied to recommendations in `ACTIVE`, CLAIMED, SUCCEEDED, or FAILED state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -6112,8 +6545,7 @@ pub fn recommender_projects_locations_recommenders_recommendations_mark_failed_e
 
 pub fn recommender_projects_locations_recommenders_recommendations_mark_failed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationFailedRequest,
+    args: &RecommenderProjectsLocationsRecommendersRecommendationsMarkFailedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -6123,7 +6555,7 @@ pub fn recommender_projects_locations_recommenders_recommendations_mark_failed(
     ApiError,
 > {
     let builder = recommender_projects_locations_recommenders_recommendations_mark_failed_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     recommender_projects_locations_recommenders_recommendations_mark_failed_execute(builder)
 }
@@ -6225,6 +6657,15 @@ pub fn recommender_projects_locations_recommenders_recommendations_mark_succeede
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recommender_projects_locations_recommenders_recommendations_mark_succeeded`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecommenderProjectsLocationsRecommendersRecommendationsMarkSucceededArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecommenderV1MarkRecommendationSucceededRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/recommenders/{recommendersId}/recommendations/{recommendationsId}:markSucceeded
 /// Marks the Recommendation State as Succeeded. Users can use this method to indicate to the Recommender API that they have applied the recommendation themselves, and the operation was successful. This stops the recommendation content from being updated. Associated insights are frozen and placed in the ACCEPTED state. MarkRecommendationSucceeded can be applied to recommendations in `ACTIVE`, CLAIMED, SUCCEEDED, or FAILED state. Requires the recommender.*.update IAM permission for the specified recommender.
 ///
@@ -6237,8 +6678,7 @@ pub fn recommender_projects_locations_recommenders_recommendations_mark_succeede
 
 pub fn recommender_projects_locations_recommenders_recommendations_mark_succeeded(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecommenderV1MarkRecommendationSucceededRequest,
+    args: &RecommenderProjectsLocationsRecommendersRecommendationsMarkSucceededArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecommenderV1Recommendation>, ApiError>,
@@ -6249,7 +6689,7 @@ pub fn recommender_projects_locations_recommenders_recommendations_mark_succeede
 > {
     let builder =
         recommender_projects_locations_recommenders_recommendations_mark_succeeded_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     recommender_projects_locations_recommenders_recommendations_mark_succeeded_execute(builder)
 }

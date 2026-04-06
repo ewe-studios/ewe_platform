@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dataPolicies/{dataPoliciesId}:addGrantees
 /// Adds new grantees to a data policy. The new grantees will be added to the existing grantees. If the request contains a duplicate grantee, the grantee will be ignored. If the request contains a grantee that already exists, the grantee will be ignored.
@@ -109,6 +111,15 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_add_grantees_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatapolicy_projects_locations_data_policies_add_grantees`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatapolicyProjectsLocationsDataPoliciesAddGranteesArgs {
+    /// Path parameter: dataPolicy
+    pub dataPolicy: String,
+    /// Request body.
+    pub body: AddGranteesRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dataPolicies/{dataPoliciesId}:addGrantees
 /// Adds new grantees to a data policy. The new grantees will be added to the existing grantees. If the request contains a duplicate grantee, the grantee will be ignored. If the request contains a grantee that already exists, the grantee will be ignored.
 ///
@@ -121,14 +132,15 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_add_grantees_execute(
 
 pub fn bigquerydatapolicy_projects_locations_data_policies_add_grantees(
     client: &SimpleHttpClient,
-    dataPolicy: &str,
-    body: &AddGranteesRequest,
+    args: &BigquerydatapolicyProjectsLocationsDataPoliciesAddGranteesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DataPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigquerydatapolicy_projects_locations_data_policies_add_grantees_builder(
-        client, dataPolicy, body,
+        client,
+        &args.dataPolicy,
+        &args.body,
     )?;
     bigquerydatapolicy_projects_locations_data_policies_add_grantees_execute(builder)
 }
@@ -226,6 +238,15 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatapolicy_projects_locations_data_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatapolicyProjectsLocationsDataPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateDataPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dataPolicies
 /// Creates a new data policy under a project with the given data_policy_id (used as the display name), and data policy type.
 ///
@@ -238,14 +259,16 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_create_execute(
 
 pub fn bigquerydatapolicy_projects_locations_data_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateDataPolicyRequest,
+    args: &BigquerydatapolicyProjectsLocationsDataPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DataPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquerydatapolicy_projects_locations_data_policies_create_builder(client, parent, body)?;
+    let builder = bigquerydatapolicy_projects_locations_data_policies_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     bigquerydatapolicy_projects_locations_data_policies_create_execute(builder)
 }
 
@@ -339,6 +362,13 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatapolicy_projects_locations_data_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatapolicyProjectsLocationsDataPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dataPolicies/{dataPoliciesId}
 /// Deletes the data policy specified by its resource name.
 ///
@@ -351,12 +381,13 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_delete_execute(
 
 pub fn bigquerydatapolicy_projects_locations_data_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigquerydatapolicyProjectsLocationsDataPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquerydatapolicy_projects_locations_data_policies_delete_builder(client, name)?;
+    let builder =
+        bigquerydatapolicy_projects_locations_data_policies_delete_builder(client, &args.name)?;
     bigquerydatapolicy_projects_locations_data_policies_delete_execute(builder)
 }
 
@@ -450,6 +481,13 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatapolicy_projects_locations_data_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatapolicyProjectsLocationsDataPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dataPolicies/{dataPoliciesId}
 /// Gets the data policy specified by its resource name.
 ///
@@ -462,12 +500,13 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_get_execute(
 
 pub fn bigquerydatapolicy_projects_locations_data_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigquerydatapolicyProjectsLocationsDataPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DataPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquerydatapolicy_projects_locations_data_policies_get_builder(client, name)?;
+    let builder =
+        bigquerydatapolicy_projects_locations_data_policies_get_builder(client, &args.name)?;
     bigquerydatapolicy_projects_locations_data_policies_get_execute(builder)
 }
 
@@ -564,6 +603,15 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_get_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatapolicy_projects_locations_data_policies_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatapolicyProjectsLocationsDataPoliciesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dataPolicies/{dataPoliciesId}:getIamPolicy
 /// Gets the IAM policy for the specified data policy.
 ///
@@ -576,14 +624,15 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_get_iam_policy_execut
 
 pub fn bigquerydatapolicy_projects_locations_data_policies_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &BigquerydatapolicyProjectsLocationsDataPoliciesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigquerydatapolicy_projects_locations_data_policies_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigquerydatapolicy_projects_locations_data_policies_get_iam_policy_execute(builder)
 }
@@ -700,6 +749,19 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatapolicy_projects_locations_data_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatapolicyProjectsLocationsDataPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dataPolicies
 /// List all of the data policies in the specified parent project.
 ///
@@ -712,10 +774,7 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_list_execute(
 
 pub fn bigquerydatapolicy_projects_locations_data_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigquerydatapolicyProjectsLocationsDataPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDataPoliciesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -723,7 +782,11 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_list(
     ApiError,
 > {
     let builder = bigquerydatapolicy_projects_locations_data_policies_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigquerydatapolicy_projects_locations_data_policies_list_execute(builder)
 }
@@ -837,6 +900,19 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatapolicy_projects_locations_data_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatapolicyProjectsLocationsDataPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: DataPolicy,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dataPolicies/{dataPoliciesId}
 /// Updates the metadata for an existing data policy. The target data policy can be specified by the resource name.
 ///
@@ -849,20 +925,17 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_patch_execute(
 
 pub fn bigquerydatapolicy_projects_locations_data_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    body: &DataPolicy,
+    args: &BigquerydatapolicyProjectsLocationsDataPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DataPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigquerydatapolicy_projects_locations_data_policies_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     bigquerydatapolicy_projects_locations_data_policies_patch_execute(builder)
 }
@@ -960,6 +1033,15 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_remove_grantees_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatapolicy_projects_locations_data_policies_remove_grantees`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatapolicyProjectsLocationsDataPoliciesRemoveGranteesArgs {
+    /// Path parameter: dataPolicy
+    pub dataPolicy: String,
+    /// Request body.
+    pub body: RemoveGranteesRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dataPolicies/{dataPoliciesId}:removeGrantees
 /// Removes grantees from a data policy. The grantees will be removed from the existing grantees. If the request contains a grantee that does not exist, the grantee will be ignored.
 ///
@@ -972,14 +1054,15 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_remove_grantees_execu
 
 pub fn bigquerydatapolicy_projects_locations_data_policies_remove_grantees(
     client: &SimpleHttpClient,
-    dataPolicy: &str,
-    body: &RemoveGranteesRequest,
+    args: &BigquerydatapolicyProjectsLocationsDataPoliciesRemoveGranteesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DataPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigquerydatapolicy_projects_locations_data_policies_remove_grantees_builder(
-        client, dataPolicy, body,
+        client,
+        &args.dataPolicy,
+        &args.body,
     )?;
     bigquerydatapolicy_projects_locations_data_policies_remove_grantees_execute(builder)
 }
@@ -1077,6 +1160,15 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_set_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatapolicy_projects_locations_data_policies_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatapolicyProjectsLocationsDataPoliciesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dataPolicies/{dataPoliciesId}:setIamPolicy
 /// Sets the IAM policy for the specified data policy.
 ///
@@ -1089,14 +1181,15 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_set_iam_policy_execut
 
 pub fn bigquerydatapolicy_projects_locations_data_policies_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BigquerydatapolicyProjectsLocationsDataPoliciesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigquerydatapolicy_projects_locations_data_policies_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigquerydatapolicy_projects_locations_data_policies_set_iam_policy_execute(builder)
 }
@@ -1198,6 +1291,15 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatapolicyProjectsLocationsDataPoliciesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dataPolicies/{dataPoliciesId}:testIamPermissions
 /// Returns the caller's permission on the specified data policy resource.
 ///
@@ -1210,8 +1312,7 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions_
 
 pub fn bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BigquerydatapolicyProjectsLocationsDataPoliciesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1221,7 +1322,9 @@ pub fn bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions(
     ApiError,
 > {
     let builder = bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigquerydatapolicy_projects_locations_data_policies_test_iam_permissions_execute(builder)
 }

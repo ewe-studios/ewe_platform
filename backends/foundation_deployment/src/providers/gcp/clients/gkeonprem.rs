@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn gkeonprem_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn gkeonprem_projects_locations_get_execute(
 
 pub fn gkeonprem_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkeonpremProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkeonprem_projects_locations_get_builder(client, name)?;
+    let builder = gkeonprem_projects_locations_get_builder(client, &args.name)?;
     gkeonprem_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn gkeonprem_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn gkeonprem_projects_locations_list_execute(
 
 pub fn gkeonprem_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GkeonpremProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn gkeonprem_projects_locations_list(
 > {
     let builder = gkeonprem_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     gkeonprem_projects_locations_list_execute(builder)
 }
@@ -390,6 +410,21 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_admin_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalAdminClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: allowPreflightFailure
+    pub allowPreflightFailure: Option<bool>,
+    /// Query parameter: bareMetalAdminClusterId
+    pub bareMetalAdminClusterId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: BareMetalAdminCluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters
 /// Creates a new bare metal admin cluster in a given project and location. The API needs to be combined with creating a bootstrap cluster to work. See: <https://cloud.google.`com/anthos/clusters/docs/bare-metal/latest/installing/creating-clusters/create-admin-cluster-api`#prepare_bootstrap_environment>
 ///
@@ -402,22 +437,18 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_create_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    allowPreflightFailure: Option<bool>,
-    bareMetalAdminClusterId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &BareMetalAdminCluster,
+    args: &GkeonpremProjectsLocationsBareMetalAdminClustersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_bare_metal_admin_clusters_create_builder(
         client,
-        parent,
-        allowPreflightFailure,
-        bareMetalAdminClusterId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.allowPreflightFailure,
+        args.bareMetalAdminClusterId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     gkeonprem_projects_locations_bare_metal_admin_clusters_create_execute(builder)
 }
@@ -515,6 +546,15 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_enroll_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_admin_clusters_enroll`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalAdminClustersEnrollArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: EnrollBareMetalAdminClusterRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters:enroll
 /// Enrolls an existing bare metal admin cluster to the Anthos On-Prem API within a given project and location. Through enrollment, an existing admin cluster will become Anthos On-Prem API managed. The corresponding GCP resources will be created and all future modifications to the cluster will be expected to be performed through the API.
 ///
@@ -527,14 +567,15 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_enroll_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_enroll(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &EnrollBareMetalAdminClusterRequest,
+    args: &GkeonpremProjectsLocationsBareMetalAdminClustersEnrollArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_bare_metal_admin_clusters_enroll_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     gkeonprem_projects_locations_bare_metal_admin_clusters_enroll_execute(builder)
 }
@@ -647,6 +688,17 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_admin_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalAdminClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}
 /// Gets details of a single bare metal admin cluster.
 ///
@@ -659,9 +711,7 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    view: Option<&str>,
+    args: &GkeonpremProjectsLocationsBareMetalAdminClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BareMetalAdminCluster>, ApiError>, P = ApiPending>
         + Send
@@ -670,9 +720,9 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get(
 > {
     let builder = gkeonprem_projects_locations_bare_metal_admin_clusters_get_builder(
         client,
-        name,
-        allowMissing,
-        view,
+        &args.name,
+        args.allowMissing,
+        args.view.as_deref(),
     )?;
     gkeonprem_projects_locations_bare_metal_admin_clusters_get_execute(builder)
 }
@@ -779,6 +829,15 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_admin_clusters_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalAdminClustersGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -791,16 +850,15 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get_iam_policy_exe
 
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &GkeonpremProjectsLocationsBareMetalAdminClustersGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_bare_metal_admin_clusters_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     gkeonprem_projects_locations_bare_metal_admin_clusters_get_iam_policy_execute(builder)
 }
@@ -923,6 +981,21 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_admin_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalAdminClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters
 /// Lists bare metal admin clusters in a given project and location.
 ///
@@ -935,11 +1008,7 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_list_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    allowMissing: Option<bool>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &GkeonpremProjectsLocationsBareMetalAdminClustersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBareMetalAdminClustersResponse>, ApiError>,
@@ -950,11 +1019,11 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_list(
 > {
     let builder = gkeonprem_projects_locations_bare_metal_admin_clusters_list_builder(
         client,
-        parent,
-        allowMissing,
-        pageSize,
-        pageToken,
-        view,
+        &args.parent,
+        args.allowMissing,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     gkeonprem_projects_locations_bare_metal_admin_clusters_list_execute(builder)
 }
@@ -1068,6 +1137,19 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_admin_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalAdminClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: BareMetalAdminCluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}
 /// Updates the parameters of a single bare metal admin cluster.
 ///
@@ -1080,20 +1162,17 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_patch_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &BareMetalAdminCluster,
+    args: &GkeonpremProjectsLocationsBareMetalAdminClustersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_bare_metal_admin_clusters_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     gkeonprem_projects_locations_bare_metal_admin_clusters_patch_execute(builder)
 }
@@ -1204,6 +1283,15 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_query_version_conf
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_admin_clusters_query_version_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalAdminClustersQueryVersionConfigArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: upgradeConfig_clusterName
+    pub upgradeConfig_clusterName: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters:queryVersionConfig
 /// Queries the bare metal admin cluster version config.
 ///
@@ -1216,8 +1304,7 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_query_version_conf
 
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_query_version_config(
     client: &SimpleHttpClient,
-    parent: &str,
-    upgradeConfig_clusterName: Option<&str>,
+    args: &GkeonpremProjectsLocationsBareMetalAdminClustersQueryVersionConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<QueryBareMetalAdminVersionConfigResponse>, ApiError>,
@@ -1229,8 +1316,8 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_query_version_conf
     let builder =
         gkeonprem_projects_locations_bare_metal_admin_clusters_query_version_config_builder(
             client,
-            parent,
-            upgradeConfig_clusterName,
+            &args.parent,
+            args.upgradeConfig_clusterName.as_deref(),
         )?;
     gkeonprem_projects_locations_bare_metal_admin_clusters_query_version_config_execute(builder)
 }
@@ -1328,6 +1415,15 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_set_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_admin_clusters_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalAdminClustersSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1340,14 +1436,15 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_set_iam_policy_exe
 
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &GkeonpremProjectsLocationsBareMetalAdminClustersSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_bare_metal_admin_clusters_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     gkeonprem_projects_locations_bare_metal_admin_clusters_set_iam_policy_execute(builder)
 }
@@ -1449,6 +1546,15 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_test_iam_permissio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_admin_clusters_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalAdminClustersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1461,8 +1567,7 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_test_iam_permissio
 
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &GkeonpremProjectsLocationsBareMetalAdminClustersTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1473,7 +1578,9 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_test_iam_permissio
 > {
     let builder =
         gkeonprem_projects_locations_bare_metal_admin_clusters_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     gkeonprem_projects_locations_bare_metal_admin_clusters_test_iam_permissions_execute(builder)
 }
@@ -1592,6 +1699,21 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_unenroll_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_admin_clusters_unenroll`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalAdminClustersUnenrollArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: ignoreErrors
+    pub ignoreErrors: Option<bool>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}:unenroll
 /// Unenrolls an existing bare metal admin cluster from the Anthos On-Prem API within a given project and location. Unenrollment removes the Cloud reference to the cluster without modifying the underlying OnPrem Resources. Clusters will continue to run; however, they will no longer be accessible through the Anthos On-Prem API or its clients.
 ///
@@ -1604,22 +1726,18 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_unenroll_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_unenroll(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    ignoreErrors: Option<bool>,
-    validateOnly: Option<bool>,
+    args: &GkeonpremProjectsLocationsBareMetalAdminClustersUnenrollArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_bare_metal_admin_clusters_unenroll_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        ignoreErrors,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.ignoreErrors,
+        args.validateOnly,
     )?;
     gkeonprem_projects_locations_bare_metal_admin_clusters_unenroll_execute(builder)
 }
@@ -1714,6 +1832,13 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_admin_clusters_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalAdminClustersOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1726,13 +1851,13 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_get_exe
 
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkeonpremProjectsLocationsBareMetalAdminClustersOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_bare_metal_admin_clusters_operations_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     gkeonprem_projects_locations_bare_metal_admin_clusters_operations_get_execute(builder)
 }
@@ -1853,6 +1978,21 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_admin_clusters_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalAdminClustersOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalAdminClusters/{bareMetalAdminClustersId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1865,11 +2005,7 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_list_ex
 
 pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &GkeonpremProjectsLocationsBareMetalAdminClustersOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1878,11 +2014,11 @@ pub fn gkeonprem_projects_locations_bare_metal_admin_clusters_operations_list(
 > {
     let builder = gkeonprem_projects_locations_bare_metal_admin_clusters_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     gkeonprem_projects_locations_bare_metal_admin_clusters_operations_list_execute(builder)
 }
@@ -2000,6 +2136,21 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: allowPreflightFailure
+    pub allowPreflightFailure: Option<bool>,
+    /// Query parameter: bareMetalClusterId
+    pub bareMetalClusterId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: BareMetalCluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters
 /// Creates a new bare metal cluster in a given project and location.
 ///
@@ -2012,22 +2163,18 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_create_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    allowPreflightFailure: Option<bool>,
-    bareMetalClusterId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &BareMetalCluster,
+    args: &GkeonpremProjectsLocationsBareMetalClustersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_bare_metal_clusters_create_builder(
         client,
-        parent,
-        allowPreflightFailure,
-        bareMetalClusterId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.allowPreflightFailure,
+        args.bareMetalClusterId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     gkeonprem_projects_locations_bare_metal_clusters_create_execute(builder)
 }
@@ -2150,6 +2297,23 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: ignoreErrors
+    pub ignoreErrors: Option<bool>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}
 /// Deletes a single bare metal Cluster.
 ///
@@ -2162,24 +2326,19 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_delete_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    force: Option<bool>,
-    ignoreErrors: Option<bool>,
-    validateOnly: Option<bool>,
+    args: &GkeonpremProjectsLocationsBareMetalClustersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_bare_metal_clusters_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        force,
-        ignoreErrors,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.force,
+        args.ignoreErrors,
+        args.validateOnly,
     )?;
     gkeonprem_projects_locations_bare_metal_clusters_delete_execute(builder)
 }
@@ -2277,6 +2436,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_enroll_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_enroll`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersEnrollArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: EnrollBareMetalClusterRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters:enroll
 /// Enrolls an existing bare metal user cluster and its node pools to the Anthos On-Prem API within a given project and location. Through enrollment, an existing cluster will become Anthos On-Prem API managed. The corresponding GCP resources will be created and all future modifications to the cluster `and/or` its node pools will be expected to be performed through the API.
 ///
@@ -2289,14 +2457,16 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_enroll_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_enroll(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &EnrollBareMetalClusterRequest,
+    args: &GkeonpremProjectsLocationsBareMetalClustersEnrollArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gkeonprem_projects_locations_bare_metal_clusters_enroll_builder(client, parent, body)?;
+    let builder = gkeonprem_projects_locations_bare_metal_clusters_enroll_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     gkeonprem_projects_locations_bare_metal_clusters_enroll_execute(builder)
 }
 
@@ -2408,6 +2578,17 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}
 /// Gets details of a single bare metal Cluster.
 ///
@@ -2420,9 +2601,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_get_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_get(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    view: Option<&str>,
+    args: &GkeonpremProjectsLocationsBareMetalClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BareMetalCluster>, ApiError>, P = ApiPending>
         + Send
@@ -2431,9 +2610,9 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_get(
 > {
     let builder = gkeonprem_projects_locations_bare_metal_clusters_get_builder(
         client,
-        name,
-        allowMissing,
-        view,
+        &args.name,
+        args.allowMissing,
+        args.view.as_deref(),
     )?;
     gkeonprem_projects_locations_bare_metal_clusters_get_execute(builder)
 }
@@ -2540,6 +2719,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2552,16 +2740,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_get_iam_policy_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &GkeonpremProjectsLocationsBareMetalClustersGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_bare_metal_clusters_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     gkeonprem_projects_locations_bare_metal_clusters_get_iam_policy_execute(builder)
 }
@@ -2688,6 +2875,23 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters
 /// Lists bare metal clusters in a given project and location.
 ///
@@ -2700,12 +2904,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_list_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    allowMissing: Option<bool>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &GkeonpremProjectsLocationsBareMetalClustersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBareMetalClustersResponse>, ApiError>,
@@ -2716,12 +2915,12 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_list(
 > {
     let builder = gkeonprem_projects_locations_bare_metal_clusters_list_builder(
         client,
-        parent,
-        allowMissing,
-        filter,
-        pageSize,
-        pageToken,
-        view,
+        &args.parent,
+        args.allowMissing,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     gkeonprem_projects_locations_bare_metal_clusters_list_execute(builder)
 }
@@ -2839,6 +3038,21 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: BareMetalCluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}
 /// Updates the parameters of a single bare metal Cluster.
 ///
@@ -2851,22 +3065,18 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_patch_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &BareMetalCluster,
+    args: &GkeonpremProjectsLocationsBareMetalClustersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_bare_metal_clusters_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     gkeonprem_projects_locations_bare_metal_clusters_patch_execute(builder)
 }
@@ -2985,6 +3195,19 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_query_version_config_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_query_version_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersQueryVersionConfigArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: createConfig_adminClusterMembership
+    pub createConfig_adminClusterMembership: Option<String>,
+    /// Query parameter: createConfig_adminClusterName
+    pub createConfig_adminClusterName: Option<String>,
+    /// Query parameter: upgradeConfig_clusterName
+    pub upgradeConfig_clusterName: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters:queryVersionConfig
 /// Queries the bare metal user cluster version config.
 ///
@@ -2997,10 +3220,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_query_version_config_exe
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_query_version_config(
     client: &SimpleHttpClient,
-    parent: &str,
-    createConfig_adminClusterMembership: Option<&str>,
-    createConfig_adminClusterName: Option<&str>,
-    upgradeConfig_clusterName: Option<&str>,
+    args: &GkeonpremProjectsLocationsBareMetalClustersQueryVersionConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<QueryBareMetalVersionConfigResponse>, ApiError>,
@@ -3011,10 +3231,10 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_query_version_config(
 > {
     let builder = gkeonprem_projects_locations_bare_metal_clusters_query_version_config_builder(
         client,
-        parent,
-        createConfig_adminClusterMembership,
-        createConfig_adminClusterName,
-        upgradeConfig_clusterName,
+        &args.parent,
+        args.createConfig_adminClusterMembership.as_deref(),
+        args.createConfig_adminClusterName.as_deref(),
+        args.upgradeConfig_clusterName.as_deref(),
     )?;
     gkeonprem_projects_locations_bare_metal_clusters_query_version_config_execute(builder)
 }
@@ -3112,6 +3332,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3124,14 +3353,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_set_iam_policy_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &GkeonpremProjectsLocationsBareMetalClustersSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_bare_metal_clusters_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     gkeonprem_projects_locations_bare_metal_clusters_set_iam_policy_execute(builder)
 }
@@ -3233,6 +3463,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_test_iam_permissions_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3245,8 +3484,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_test_iam_permissions_exe
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &GkeonpremProjectsLocationsBareMetalClustersTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3256,7 +3494,9 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_test_iam_permissions(
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_bare_metal_clusters_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     gkeonprem_projects_locations_bare_metal_clusters_test_iam_permissions_execute(builder)
 }
@@ -3375,6 +3615,21 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_unenroll_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_unenroll`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersUnenrollArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}:unenroll
 /// Unenrolls an existing bare metal user cluster and its node pools from the Anthos On-Prem API within a given project and location. Unenrollment removes the Cloud reference to the cluster without modifying the underlying OnPrem Resources. Clusters and node pools will continue to run; however, they will no longer be accessible through the Anthos On-Prem API or its clients.
 ///
@@ -3387,22 +3642,18 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_unenroll_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_unenroll(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    force: Option<bool>,
-    validateOnly: Option<bool>,
+    args: &GkeonpremProjectsLocationsBareMetalClustersUnenrollArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_bare_metal_clusters_unenroll_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        force,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.force,
+        args.validateOnly,
     )?;
     gkeonprem_projects_locations_bare_metal_clusters_unenroll_execute(builder)
 }
@@ -3516,6 +3767,19 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_cr
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: bareMetalNodePoolId
+    pub bareMetalNodePoolId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: BareMetalNodePool,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools
 /// Creates a new bare metal node pool in a given project, location and Bare Metal cluster.
 ///
@@ -3528,10 +3792,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_cr
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    bareMetalNodePoolId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &BareMetalNodePool,
+    args: &GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -3539,10 +3800,10 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_cr
     let builder =
         gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_create_builder(
             client,
-            parent,
-            bareMetalNodePoolId,
-            validateOnly,
-            body,
+            &args.parent,
+            args.bareMetalNodePoolId.as_deref(),
+            args.validateOnly,
+            &args.body,
         )?;
     gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_create_execute(builder)
 }
@@ -3661,6 +3922,21 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_de
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: ignoreErrors
+    pub ignoreErrors: Option<bool>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}
 /// Deletes a single bare metal node pool.
 ///
@@ -3673,11 +3949,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_de
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    ignoreErrors: Option<bool>,
-    validateOnly: Option<bool>,
+    args: &GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -3685,11 +3957,11 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_de
     let builder =
         gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_delete_builder(
             client,
-            name,
-            allowMissing,
-            etag,
-            ignoreErrors,
-            validateOnly,
+            &args.name,
+            args.allowMissing,
+            args.etag.as_deref(),
+            args.ignoreErrors,
+            args.validateOnly,
         )?;
     gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_delete_execute(builder)
 }
@@ -3787,6 +4059,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_enroll`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsEnrollArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: EnrollBareMetalNodePoolRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools:enroll
 /// Enrolls an existing bare metal node pool to the Anthos On-Prem API within a given project and location. Through enrollment, an existing node pool will become Anthos On-Prem API managed. The corresponding GCP resources will be created.
 ///
@@ -3799,15 +4080,16 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_en
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_enroll(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &EnrollBareMetalNodePoolRequest,
+    args: &GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsEnrollArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_enroll_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_enroll_execute(builder)
 }
@@ -3916,6 +4198,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_ge
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}
 /// Gets details of a single bare metal node pool.
 ///
@@ -3928,8 +4219,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_ge
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BareMetalNodePool>, ApiError>, P = ApiPending>
         + Send
@@ -3938,7 +4228,9 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_ge
 > {
     let builder =
         gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get_builder(
-            client, name, view,
+            client,
+            &args.name,
+            args.view.as_deref(),
         )?;
     gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get_execute(builder)
 }
@@ -4045,6 +4337,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_ge
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -4057,13 +4358,12 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_ge
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get_iam_policy_builder(client, resource, options_requestedPolicyVersion)?;
+    let builder = gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get_iam_policy_builder(client, &args.resource, args.options_requestedPolicyVersion)?;
     gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_get_iam_policy_execute(
         builder,
     )
@@ -4183,6 +4483,19 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_li
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools
 /// Lists bare metal node pools in a given project, location and bare metal cluster.
 ///
@@ -4195,10 +4508,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_li
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBareMetalNodePoolsResponse>, ApiError>,
@@ -4209,7 +4519,11 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_li
 > {
     let builder =
         gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_list_builder(
-            client, parent, pageSize, pageToken, view,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.view.as_deref(),
         )?;
     gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_list_execute(builder)
 }
@@ -4327,6 +4641,21 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_pa
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: BareMetalNodePool,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}
 /// Updates the parameters of a single bare metal node pool.
 ///
@@ -4339,11 +4668,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_pa
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &BareMetalNodePool,
+    args: &GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -4351,11 +4676,11 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_pa
     let builder =
         gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_patch_builder(
             client,
-            name,
-            allowMissing,
-            updateMask,
-            validateOnly,
-            body,
+            &args.name,
+            args.allowMissing,
+            args.updateMask.as_deref(),
+            args.validateOnly,
+            &args.body,
         )?;
     gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_patch_execute(builder)
 }
@@ -4453,6 +4778,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_se
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -4465,13 +4799,12 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_se
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_set_iam_policy_builder(client, resource, body)?;
+    let builder = gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_set_iam_policy_builder(client, &args.resource, &args.body)?;
     gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_set_iam_policy_execute(
         builder,
     )
@@ -4574,6 +4907,15 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_te
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -4586,8 +4928,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_te
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -4596,7 +4937,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_te
         + 'static,
     ApiError,
 > {
-    let builder = gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_test_iam_permissions_builder(client, resource, body)?;
+    let builder = gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_test_iam_permissions_execute(builder)
 }
 
@@ -4710,6 +5051,19 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_un
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_unenroll`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsUnenrollArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}:unenroll
 /// Unenrolls a bare metal node pool from Anthos On-Prem API.
 ///
@@ -4722,10 +5076,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_un
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_unenroll(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsUnenrollArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -4733,10 +5084,10 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_un
     let builder =
         gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_unenroll_builder(
             client,
-            name,
-            allowMissing,
-            etag,
-            validateOnly,
+            &args.name,
+            args.allowMissing,
+            args.etag.as_deref(),
+            args.validateOnly,
         )?;
     gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_unenroll_execute(builder)
 }
@@ -4831,6 +5182,13 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_op
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -4843,12 +5201,12 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_op
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_get_builder(client, name)?;
+    let builder = gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_get_builder(client, &args.name)?;
     gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_get_execute(
         builder,
     )
@@ -4970,6 +5328,21 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_op
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/bareMetalNodePools/{bareMetalNodePoolsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -4982,18 +5355,14 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_op
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_list_builder(client, name, filter, pageSize, pageToken, returnPartialSuccess)?;
+    let builder = gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_list_builder(client, &args.name, args.filter.as_deref(), args.pageSize, args.pageToken.as_deref(), args.returnPartialSuccess)?;
     gkeonprem_projects_locations_bare_metal_clusters_bare_metal_node_pools_operations_list_execute(
         builder,
     )
@@ -5089,6 +5458,13 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -5101,13 +5477,14 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_operations_get_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkeonpremProjectsLocationsBareMetalClustersOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gkeonprem_projects_locations_bare_metal_clusters_operations_get_builder(client, name)?;
+    let builder = gkeonprem_projects_locations_bare_metal_clusters_operations_get_builder(
+        client, &args.name,
+    )?;
     gkeonprem_projects_locations_bare_metal_clusters_operations_get_execute(builder)
 }
 
@@ -5227,6 +5604,21 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_bare_metal_clusters_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsBareMetalClustersOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/bareMetalClusters/{bareMetalClustersId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -5239,11 +5631,7 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_operations_list_execute(
 
 pub fn gkeonprem_projects_locations_bare_metal_clusters_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &GkeonpremProjectsLocationsBareMetalClustersOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5252,11 +5640,11 @@ pub fn gkeonprem_projects_locations_bare_metal_clusters_operations_list(
 > {
     let builder = gkeonprem_projects_locations_bare_metal_clusters_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     gkeonprem_projects_locations_bare_metal_clusters_operations_list_execute(builder)
 }
@@ -5354,6 +5742,15 @@ pub fn gkeonprem_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -5366,13 +5763,13 @@ pub fn gkeonprem_projects_locations_operations_cancel_execute(
 
 pub fn gkeonprem_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &GkeonpremProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkeonprem_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        gkeonprem_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     gkeonprem_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -5466,6 +5863,13 @@ pub fn gkeonprem_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -5478,12 +5882,12 @@ pub fn gkeonprem_projects_locations_operations_delete_execute(
 
 pub fn gkeonprem_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkeonpremProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkeonprem_projects_locations_operations_delete_builder(client, name)?;
+    let builder = gkeonprem_projects_locations_operations_delete_builder(client, &args.name)?;
     gkeonprem_projects_locations_operations_delete_execute(builder)
 }
 
@@ -5577,6 +5981,13 @@ pub fn gkeonprem_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -5589,12 +6000,12 @@ pub fn gkeonprem_projects_locations_operations_get_execute(
 
 pub fn gkeonprem_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkeonpremProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gkeonprem_projects_locations_operations_get_builder(client, name)?;
+    let builder = gkeonprem_projects_locations_operations_get_builder(client, &args.name)?;
     gkeonprem_projects_locations_operations_get_execute(builder)
 }
 
@@ -5714,6 +6125,21 @@ pub fn gkeonprem_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -5726,11 +6152,7 @@ pub fn gkeonprem_projects_locations_operations_list_execute(
 
 pub fn gkeonprem_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &GkeonpremProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5739,11 +6161,11 @@ pub fn gkeonprem_projects_locations_operations_list(
 > {
     let builder = gkeonprem_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     gkeonprem_projects_locations_operations_list_execute(builder)
 }
@@ -5865,6 +6287,23 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_admin_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareAdminClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: allowPreflightFailure
+    pub allowPreflightFailure: Option<bool>,
+    /// Query parameter: skipValidations
+    pub skipValidations: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Query parameter: vmwareAdminClusterId
+    pub vmwareAdminClusterId: Option<String>,
+    /// Request body.
+    pub body: VmwareAdminCluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters
 /// Creates a new VMware admin cluster in a given project and location. The API needs to be combined with creating a bootstrap cluster to work.
 ///
@@ -5877,24 +6316,19 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_create_execute(
 
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    allowPreflightFailure: Option<bool>,
-    skipValidations: Option<&str>,
-    validateOnly: Option<bool>,
-    vmwareAdminClusterId: Option<&str>,
-    body: &VmwareAdminCluster,
+    args: &GkeonpremProjectsLocationsVmwareAdminClustersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_admin_clusters_create_builder(
         client,
-        parent,
-        allowPreflightFailure,
-        skipValidations,
-        validateOnly,
-        vmwareAdminClusterId,
-        body,
+        &args.parent,
+        args.allowPreflightFailure,
+        args.skipValidations.as_deref(),
+        args.validateOnly,
+        args.vmwareAdminClusterId.as_deref(),
+        &args.body,
     )?;
     gkeonprem_projects_locations_vmware_admin_clusters_create_execute(builder)
 }
@@ -5992,6 +6426,15 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_enroll_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_admin_clusters_enroll`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareAdminClustersEnrollArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: EnrollVmwareAdminClusterRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters:enroll
 /// Enrolls an existing VMware admin cluster to the Anthos On-Prem API within a given project and location. Through enrollment, an existing admin cluster will become Anthos On-Prem API managed. The corresponding GCP resources will be created and all future modifications to the cluster will be expected to be performed through the API.
 ///
@@ -6004,14 +6447,16 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_enroll_execute(
 
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_enroll(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &EnrollVmwareAdminClusterRequest,
+    args: &GkeonpremProjectsLocationsVmwareAdminClustersEnrollArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gkeonprem_projects_locations_vmware_admin_clusters_enroll_builder(client, parent, body)?;
+    let builder = gkeonprem_projects_locations_vmware_admin_clusters_enroll_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     gkeonprem_projects_locations_vmware_admin_clusters_enroll_execute(builder)
 }
 
@@ -6123,6 +6568,17 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_admin_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareAdminClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}
 /// Gets details of a single VMware admin cluster.
 ///
@@ -6135,9 +6591,7 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_get_execute(
 
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_get(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    view: Option<&str>,
+    args: &GkeonpremProjectsLocationsVmwareAdminClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VmwareAdminCluster>, ApiError>, P = ApiPending>
         + Send
@@ -6146,9 +6600,9 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_get(
 > {
     let builder = gkeonprem_projects_locations_vmware_admin_clusters_get_builder(
         client,
-        name,
-        allowMissing,
-        view,
+        &args.name,
+        args.allowMissing,
+        args.view.as_deref(),
     )?;
     gkeonprem_projects_locations_vmware_admin_clusters_get_execute(builder)
 }
@@ -6255,6 +6709,15 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_get_iam_policy_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_admin_clusters_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareAdminClustersGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -6267,16 +6730,15 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_get_iam_policy_execute
 
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &GkeonpremProjectsLocationsVmwareAdminClustersGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_admin_clusters_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     gkeonprem_projects_locations_vmware_admin_clusters_get_iam_policy_execute(builder)
 }
@@ -6399,6 +6861,21 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_admin_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareAdminClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters
 /// Lists VMware admin clusters in a given project and location.
 ///
@@ -6411,11 +6888,7 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_list_execute(
 
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    allowMissing: Option<bool>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &GkeonpremProjectsLocationsVmwareAdminClustersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListVmwareAdminClustersResponse>, ApiError>,
@@ -6426,11 +6899,11 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_list(
 > {
     let builder = gkeonprem_projects_locations_vmware_admin_clusters_list_builder(
         client,
-        parent,
-        allowMissing,
-        pageSize,
-        pageToken,
-        view,
+        &args.parent,
+        args.allowMissing,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     gkeonprem_projects_locations_vmware_admin_clusters_list_execute(builder)
 }
@@ -6548,6 +7021,21 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_admin_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareAdminClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: skipValidations
+    pub skipValidations: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: VmwareAdminCluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}
 /// Updates the parameters of a single VMware admin cluster.
 ///
@@ -6560,22 +7048,18 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_patch_execute(
 
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    skipValidations: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &VmwareAdminCluster,
+    args: &GkeonpremProjectsLocationsVmwareAdminClustersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_admin_clusters_patch_builder(
         client,
-        name,
-        skipValidations,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.skipValidations.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     gkeonprem_projects_locations_vmware_admin_clusters_patch_execute(builder)
 }
@@ -6673,6 +7157,15 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_set_iam_policy_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_admin_clusters_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareAdminClustersSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -6685,14 +7178,15 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_set_iam_policy_execute
 
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &GkeonpremProjectsLocationsVmwareAdminClustersSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_admin_clusters_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     gkeonprem_projects_locations_vmware_admin_clusters_set_iam_policy_execute(builder)
 }
@@ -6794,6 +7288,15 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_test_iam_permissions_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_admin_clusters_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareAdminClustersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -6806,8 +7309,7 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_test_iam_permissions_e
 
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &GkeonpremProjectsLocationsVmwareAdminClustersTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -6817,7 +7319,9 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_test_iam_permissions(
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_admin_clusters_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     gkeonprem_projects_locations_vmware_admin_clusters_test_iam_permissions_execute(builder)
 }
@@ -6936,6 +7440,21 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_unenroll_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_admin_clusters_unenroll`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareAdminClustersUnenrollArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: ignoreErrors
+    pub ignoreErrors: Option<bool>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}:unenroll
 /// Unenrolls an existing VMware admin cluster from the Anthos On-Prem API within a given project and location. Unenrollment removes the Cloud reference to the cluster without modifying the underlying OnPrem Resources. Clusters will continue to run; however, they will no longer be accessible through the Anthos On-Prem API or its clients.
 ///
@@ -6948,22 +7467,18 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_unenroll_execute(
 
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_unenroll(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    ignoreErrors: Option<bool>,
-    validateOnly: Option<bool>,
+    args: &GkeonpremProjectsLocationsVmwareAdminClustersUnenrollArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_admin_clusters_unenroll_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        ignoreErrors,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.ignoreErrors,
+        args.validateOnly,
     )?;
     gkeonprem_projects_locations_vmware_admin_clusters_unenroll_execute(builder)
 }
@@ -7058,6 +7573,13 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_admin_clusters_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareAdminClustersOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -7070,13 +7592,14 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_get_execute
 
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkeonpremProjectsLocationsVmwareAdminClustersOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gkeonprem_projects_locations_vmware_admin_clusters_operations_get_builder(client, name)?;
+    let builder = gkeonprem_projects_locations_vmware_admin_clusters_operations_get_builder(
+        client, &args.name,
+    )?;
     gkeonprem_projects_locations_vmware_admin_clusters_operations_get_execute(builder)
 }
 
@@ -7196,6 +7719,21 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_admin_clusters_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareAdminClustersOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareAdminClusters/{vmwareAdminClustersId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -7208,11 +7746,7 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_list_execut
 
 pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &GkeonpremProjectsLocationsVmwareAdminClustersOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7221,11 +7755,11 @@ pub fn gkeonprem_projects_locations_vmware_admin_clusters_operations_list(
 > {
     let builder = gkeonprem_projects_locations_vmware_admin_clusters_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     gkeonprem_projects_locations_vmware_admin_clusters_operations_list_execute(builder)
 }
@@ -7347,6 +7881,23 @@ pub fn gkeonprem_projects_locations_vmware_clusters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: allowPreflightFailure
+    pub allowPreflightFailure: Option<bool>,
+    /// Query parameter: skipValidations
+    pub skipValidations: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Query parameter: vmwareClusterId
+    pub vmwareClusterId: Option<String>,
+    /// Request body.
+    pub body: VmwareCluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters
 /// Creates a new VMware user cluster in a given project and location.
 ///
@@ -7359,24 +7910,19 @@ pub fn gkeonprem_projects_locations_vmware_clusters_create_execute(
 
 pub fn gkeonprem_projects_locations_vmware_clusters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    allowPreflightFailure: Option<bool>,
-    skipValidations: Option<&str>,
-    validateOnly: Option<bool>,
-    vmwareClusterId: Option<&str>,
-    body: &VmwareCluster,
+    args: &GkeonpremProjectsLocationsVmwareClustersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_create_builder(
         client,
-        parent,
-        allowPreflightFailure,
-        skipValidations,
-        validateOnly,
-        vmwareClusterId,
-        body,
+        &args.parent,
+        args.allowPreflightFailure,
+        args.skipValidations.as_deref(),
+        args.validateOnly,
+        args.vmwareClusterId.as_deref(),
+        &args.body,
     )?;
     gkeonprem_projects_locations_vmware_clusters_create_execute(builder)
 }
@@ -7499,6 +8045,23 @@ pub fn gkeonprem_projects_locations_vmware_clusters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: ignoreErrors
+    pub ignoreErrors: Option<bool>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}
 /// Deletes a single VMware Cluster.
 ///
@@ -7511,24 +8074,19 @@ pub fn gkeonprem_projects_locations_vmware_clusters_delete_execute(
 
 pub fn gkeonprem_projects_locations_vmware_clusters_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    force: Option<bool>,
-    ignoreErrors: Option<bool>,
-    validateOnly: Option<bool>,
+    args: &GkeonpremProjectsLocationsVmwareClustersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        force,
-        ignoreErrors,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.force,
+        args.ignoreErrors,
+        args.validateOnly,
     )?;
     gkeonprem_projects_locations_vmware_clusters_delete_execute(builder)
 }
@@ -7626,6 +8184,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_enroll_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_enroll`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersEnrollArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: EnrollVmwareClusterRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters:enroll
 /// Enrolls an existing VMware user cluster and its node pools to the Anthos On-Prem API within a given project and location. Through enrollment, an existing cluster will become Anthos On-Prem API managed. The corresponding GCP resources will be created and all future modifications to the cluster `and/or` its node pools will be expected to be performed through the API.
 ///
@@ -7638,14 +8205,16 @@ pub fn gkeonprem_projects_locations_vmware_clusters_enroll_execute(
 
 pub fn gkeonprem_projects_locations_vmware_clusters_enroll(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &EnrollVmwareClusterRequest,
+    args: &GkeonpremProjectsLocationsVmwareClustersEnrollArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gkeonprem_projects_locations_vmware_clusters_enroll_builder(client, parent, body)?;
+    let builder = gkeonprem_projects_locations_vmware_clusters_enroll_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     gkeonprem_projects_locations_vmware_clusters_enroll_execute(builder)
 }
 
@@ -7757,6 +8326,17 @@ pub fn gkeonprem_projects_locations_vmware_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}
 /// Gets details of a single VMware Cluster.
 ///
@@ -7769,17 +8349,19 @@ pub fn gkeonprem_projects_locations_vmware_clusters_get_execute(
 
 pub fn gkeonprem_projects_locations_vmware_clusters_get(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    view: Option<&str>,
+    args: &GkeonpremProjectsLocationsVmwareClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VmwareCluster>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        gkeonprem_projects_locations_vmware_clusters_get_builder(client, name, allowMissing, view)?;
+    let builder = gkeonprem_projects_locations_vmware_clusters_get_builder(
+        client,
+        &args.name,
+        args.allowMissing,
+        args.view.as_deref(),
+    )?;
     gkeonprem_projects_locations_vmware_clusters_get_execute(builder)
 }
 
@@ -7885,6 +8467,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -7897,16 +8488,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_get_iam_policy_execute(
 
 pub fn gkeonprem_projects_locations_vmware_clusters_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &GkeonpremProjectsLocationsVmwareClustersGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     gkeonprem_projects_locations_vmware_clusters_get_iam_policy_execute(builder)
 }
@@ -8033,6 +8623,23 @@ pub fn gkeonprem_projects_locations_vmware_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters
 /// Lists VMware Clusters in a given project and location.
 ///
@@ -8045,12 +8652,7 @@ pub fn gkeonprem_projects_locations_vmware_clusters_list_execute(
 
 pub fn gkeonprem_projects_locations_vmware_clusters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    allowMissing: Option<bool>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &GkeonpremProjectsLocationsVmwareClustersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListVmwareClustersResponse>, ApiError>,
@@ -8061,12 +8663,12 @@ pub fn gkeonprem_projects_locations_vmware_clusters_list(
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_list_builder(
         client,
-        parent,
-        allowMissing,
-        filter,
-        pageSize,
-        pageToken,
-        view,
+        &args.parent,
+        args.allowMissing,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     gkeonprem_projects_locations_vmware_clusters_list_execute(builder)
 }
@@ -8184,6 +8786,21 @@ pub fn gkeonprem_projects_locations_vmware_clusters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: skipValidations
+    pub skipValidations: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: VmwareCluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}
 /// Updates the parameters of a single VMware cluster.
 ///
@@ -8196,22 +8813,18 @@ pub fn gkeonprem_projects_locations_vmware_clusters_patch_execute(
 
 pub fn gkeonprem_projects_locations_vmware_clusters_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    skipValidations: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &VmwareCluster,
+    args: &GkeonpremProjectsLocationsVmwareClustersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_patch_builder(
         client,
-        name,
-        skipValidations,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.skipValidations.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     gkeonprem_projects_locations_vmware_clusters_patch_execute(builder)
 }
@@ -8330,6 +8943,19 @@ pub fn gkeonprem_projects_locations_vmware_clusters_query_version_config_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_query_version_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersQueryVersionConfigArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: createConfig_adminClusterMembership
+    pub createConfig_adminClusterMembership: Option<String>,
+    /// Query parameter: createConfig_adminClusterName
+    pub createConfig_adminClusterName: Option<String>,
+    /// Query parameter: upgradeConfig_clusterName
+    pub upgradeConfig_clusterName: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters:queryVersionConfig
 /// Queries the VMware user cluster version config.
 ///
@@ -8342,10 +8968,7 @@ pub fn gkeonprem_projects_locations_vmware_clusters_query_version_config_execute
 
 pub fn gkeonprem_projects_locations_vmware_clusters_query_version_config(
     client: &SimpleHttpClient,
-    parent: &str,
-    createConfig_adminClusterMembership: Option<&str>,
-    createConfig_adminClusterName: Option<&str>,
-    upgradeConfig_clusterName: Option<&str>,
+    args: &GkeonpremProjectsLocationsVmwareClustersQueryVersionConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<QueryVmwareVersionConfigResponse>, ApiError>,
@@ -8356,10 +8979,10 @@ pub fn gkeonprem_projects_locations_vmware_clusters_query_version_config(
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_query_version_config_builder(
         client,
-        parent,
-        createConfig_adminClusterMembership,
-        createConfig_adminClusterName,
-        upgradeConfig_clusterName,
+        &args.parent,
+        args.createConfig_adminClusterMembership.as_deref(),
+        args.createConfig_adminClusterName.as_deref(),
+        args.upgradeConfig_clusterName.as_deref(),
     )?;
     gkeonprem_projects_locations_vmware_clusters_query_version_config_execute(builder)
 }
@@ -8457,6 +9080,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -8469,14 +9101,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_set_iam_policy_execute(
 
 pub fn gkeonprem_projects_locations_vmware_clusters_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &GkeonpremProjectsLocationsVmwareClustersSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     gkeonprem_projects_locations_vmware_clusters_set_iam_policy_execute(builder)
 }
@@ -8578,6 +9211,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_test_iam_permissions_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -8590,8 +9232,7 @@ pub fn gkeonprem_projects_locations_vmware_clusters_test_iam_permissions_execute
 
 pub fn gkeonprem_projects_locations_vmware_clusters_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &GkeonpremProjectsLocationsVmwareClustersTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -8601,7 +9242,9 @@ pub fn gkeonprem_projects_locations_vmware_clusters_test_iam_permissions(
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     gkeonprem_projects_locations_vmware_clusters_test_iam_permissions_execute(builder)
 }
@@ -8720,6 +9363,21 @@ pub fn gkeonprem_projects_locations_vmware_clusters_unenroll_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_unenroll`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersUnenrollArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}:unenroll
 /// Unenrolls an existing VMware user cluster and its node pools from the Anthos On-Prem API within a given project and location. Unenrollment removes the Cloud reference to the cluster without modifying the underlying OnPrem Resources. Clusters and node pools will continue to run; however, they will no longer be accessible through the Anthos On-Prem API or UI.
 ///
@@ -8732,22 +9390,18 @@ pub fn gkeonprem_projects_locations_vmware_clusters_unenroll_execute(
 
 pub fn gkeonprem_projects_locations_vmware_clusters_unenroll(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    force: Option<bool>,
-    validateOnly: Option<bool>,
+    args: &GkeonpremProjectsLocationsVmwareClustersUnenrollArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_unenroll_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        force,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.force,
+        args.validateOnly,
     )?;
     gkeonprem_projects_locations_vmware_clusters_unenroll_execute(builder)
 }
@@ -8842,6 +9496,13 @@ pub fn gkeonprem_projects_locations_vmware_clusters_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -8854,13 +9515,13 @@ pub fn gkeonprem_projects_locations_vmware_clusters_operations_get_execute(
 
 pub fn gkeonprem_projects_locations_vmware_clusters_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkeonpremProjectsLocationsVmwareClustersOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        gkeonprem_projects_locations_vmware_clusters_operations_get_builder(client, name)?;
+        gkeonprem_projects_locations_vmware_clusters_operations_get_builder(client, &args.name)?;
     gkeonprem_projects_locations_vmware_clusters_operations_get_execute(builder)
 }
 
@@ -8980,6 +9641,21 @@ pub fn gkeonprem_projects_locations_vmware_clusters_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -8992,11 +9668,7 @@ pub fn gkeonprem_projects_locations_vmware_clusters_operations_list_execute(
 
 pub fn gkeonprem_projects_locations_vmware_clusters_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &GkeonpremProjectsLocationsVmwareClustersOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9005,11 +9677,11 @@ pub fn gkeonprem_projects_locations_vmware_clusters_operations_list(
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     gkeonprem_projects_locations_vmware_clusters_operations_list_execute(builder)
 }
@@ -9123,6 +9795,19 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_create_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Query parameter: vmwareNodePoolId
+    pub vmwareNodePoolId: Option<String>,
+    /// Request body.
+    pub body: VmwareNodePool,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools
 /// Creates a new VMware node pool in a given project, location and VMWare cluster.
 ///
@@ -9135,20 +9820,17 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_create_exe
 
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    validateOnly: Option<bool>,
-    vmwareNodePoolId: Option<&str>,
-    body: &VmwareNodePool,
+    args: &GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_create_builder(
         client,
-        parent,
-        validateOnly,
-        vmwareNodePoolId,
-        body,
+        &args.parent,
+        args.validateOnly,
+        args.vmwareNodePoolId.as_deref(),
+        &args.body,
     )?;
     gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_create_execute(builder)
 }
@@ -9267,6 +9949,21 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_delete_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: ignoreErrors
+    pub ignoreErrors: Option<bool>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}
 /// Deletes a single VMware node pool.
 ///
@@ -9279,22 +9976,18 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_delete_exe
 
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    ignoreErrors: Option<bool>,
-    validateOnly: Option<bool>,
+    args: &GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        ignoreErrors,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.ignoreErrors,
+        args.validateOnly,
     )?;
     gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_delete_execute(builder)
 }
@@ -9392,6 +10085,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_enroll_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_enroll`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsEnrollArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: EnrollVmwareNodePoolRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools:enroll
 /// Enrolls a VMware node pool to Anthos On-Prem API
 ///
@@ -9404,14 +10106,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_enroll_exe
 
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_enroll(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &EnrollVmwareNodePoolRequest,
+    args: &GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsEnrollArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_enroll_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_enroll_execute(builder)
 }
@@ -9520,6 +10223,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}
 /// Gets details of a single VMware node pool.
 ///
@@ -9532,8 +10244,7 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_execut
 
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VmwareNodePool>, ApiError>, P = ApiPending>
         + Send
@@ -9541,7 +10252,9 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get(
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_builder(
-        client, name, view,
+        client,
+        &args.name,
+        args.view.as_deref(),
     )?;
     gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_execute(builder)
 }
@@ -9648,6 +10361,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_iam_po
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -9660,8 +10382,7 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_iam_po
 
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -9669,8 +10390,8 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_iam_po
     let builder =
         gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_iam_policy_builder(
             client,
-            resource,
-            options_requestedPolicyVersion,
+            &args.resource,
+            args.options_requestedPolicyVersion,
         )?;
     gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_get_iam_policy_execute(builder)
 }
@@ -9789,6 +10510,19 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools
 /// Lists VMware node pools in a given project, location and VMWare cluster.
 ///
@@ -9801,10 +10535,7 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_list_execu
 
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListVmwareNodePoolsResponse>, ApiError>,
@@ -9814,7 +10545,11 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_list(
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_list_builder(
-        client, parent, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_list_execute(builder)
 }
@@ -9928,6 +10663,19 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: VmwareNodePool,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}
 /// Updates the parameters of a single VMware node pool.
 ///
@@ -9940,20 +10688,17 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_patch_exec
 
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &VmwareNodePool,
+    args: &GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_patch_builder(
         client,
-        name,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_patch_execute(builder)
 }
@@ -10051,6 +10796,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_set_iam_po
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -10063,15 +10817,16 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_set_iam_po
 
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_set_iam_policy_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_set_iam_policy_execute(builder)
 }
@@ -10173,6 +10928,15 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_test_iam_p
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -10185,8 +10949,7 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_test_iam_p
 
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -10195,7 +10958,7 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_test_iam_p
         + 'static,
     ApiError,
 > {
-    let builder = gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_test_iam_permissions_builder(client, resource, body)?;
+    let builder = gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_test_iam_permissions_execute(
         builder,
     )
@@ -10311,6 +11074,19 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_unenroll_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_unenroll`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsUnenrollArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}:unenroll
 /// Unenrolls a VMware node pool to Anthos On-Prem API
 ///
@@ -10323,20 +11099,17 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_unenroll_e
 
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_unenroll(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsUnenrollArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_unenroll_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.validateOnly,
     )?;
     gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_unenroll_execute(builder)
 }
@@ -10431,6 +11204,13 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -10443,14 +11223,14 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations
 
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_get_execute(builder)
 }
@@ -10571,6 +11351,21 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vmwareClusters/{vmwareClustersId}/vmwareNodePools/{vmwareNodePoolsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -10583,11 +11378,7 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations
 
 pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -10597,11 +11388,11 @@ pub fn gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations
     let builder =
         gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_list_builder(
             client,
-            name,
-            filter,
-            pageSize,
-            pageToken,
-            returnPartialSuccess,
+            &args.name,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.returnPartialSuccess,
         )?;
     gkeonprem_projects_locations_vmware_clusters_vmware_node_pools_operations_list_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/partners/{partnersId}/products
 /// Currently, it doesn't support **YouTube** products. Retrieves the products that can be resold by the partner. It should be authenticated with a service account.
@@ -128,6 +130,19 @@ pub fn paymentsresellersubscription_partners_products_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`paymentsresellersubscription_partners_products_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PaymentsresellersubscriptionPartnersProductsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/partners/{partnersId}/products
 /// Currently, it doesn't support **YouTube** products. Retrieves the products that can be resold by the partner. It should be authenticated with a service account.
 ///
@@ -140,10 +155,7 @@ pub fn paymentsresellersubscription_partners_products_list_execute(
 
 pub fn paymentsresellersubscription_partners_products_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PaymentsresellersubscriptionPartnersProductsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListProductsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -151,7 +163,11 @@ pub fn paymentsresellersubscription_partners_products_list(
     ApiError,
 > {
     let builder = paymentsresellersubscription_partners_products_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     paymentsresellersubscription_partners_products_list_execute(builder)
 }
@@ -253,6 +269,15 @@ pub fn paymentsresellersubscription_partners_promotions_find_eligible_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`paymentsresellersubscription_partners_promotions_find_eligible`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PaymentsresellersubscriptionPartnersPromotionsFindEligibleArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: FindEligiblePromotionsRequest,
+}
+
 /// GET v1/partners/{partnersId}/promotions:findEligible
 /// Currently, it is only enabled for **YouTube**. Finds eligible promotions for the current user. The API requires user authorization via OAuth. The bare minimum oauth scope openid is sufficient, which will skip the consent screen.
 ///
@@ -265,8 +290,7 @@ pub fn paymentsresellersubscription_partners_promotions_find_eligible_execute(
 
 pub fn paymentsresellersubscription_partners_promotions_find_eligible(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &FindEligiblePromotionsRequest,
+    args: &PaymentsresellersubscriptionPartnersPromotionsFindEligibleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FindEligiblePromotionsResponse>, ApiError>,
@@ -276,7 +300,9 @@ pub fn paymentsresellersubscription_partners_promotions_find_eligible(
     ApiError,
 > {
     let builder = paymentsresellersubscription_partners_promotions_find_eligible_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     paymentsresellersubscription_partners_promotions_find_eligible_execute(builder)
 }
@@ -393,6 +419,19 @@ pub fn paymentsresellersubscription_partners_promotions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`paymentsresellersubscription_partners_promotions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PaymentsresellersubscriptionPartnersPromotionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/partners/{partnersId}/promotions
 /// Currently, it doesn't support **YouTube** promotions. Retrieves the promotions, such as free trial, that can be used by the partner. It should be authenticated with a service account.
 ///
@@ -405,10 +444,7 @@ pub fn paymentsresellersubscription_partners_promotions_list_execute(
 
 pub fn paymentsresellersubscription_partners_promotions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PaymentsresellersubscriptionPartnersPromotionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPromotionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -416,7 +452,11 @@ pub fn paymentsresellersubscription_partners_promotions_list(
     ApiError,
 > {
     let builder = paymentsresellersubscription_partners_promotions_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     paymentsresellersubscription_partners_promotions_list_execute(builder)
 }
@@ -518,6 +558,15 @@ pub fn paymentsresellersubscription_partners_subscriptions_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`paymentsresellersubscription_partners_subscriptions_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PaymentsresellersubscriptionPartnersSubscriptionsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelSubscriptionRequest,
+}
+
 /// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:cancel
 /// Cancels a subscription service either immediately or by the end of the current billing cycle for their customers. It should be called directly by the partner using service accounts.
 ///
@@ -530,8 +579,7 @@ pub fn paymentsresellersubscription_partners_subscriptions_cancel_execute(
 
 pub fn paymentsresellersubscription_partners_subscriptions_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelSubscriptionRequest,
+    args: &PaymentsresellersubscriptionPartnersSubscriptionsCancelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CancelSubscriptionResponse>, ApiError>,
@@ -540,8 +588,9 @@ pub fn paymentsresellersubscription_partners_subscriptions_cancel(
         + 'static,
     ApiError,
 > {
-    let builder =
-        paymentsresellersubscription_partners_subscriptions_cancel_builder(client, name, body)?;
+    let builder = paymentsresellersubscription_partners_subscriptions_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     paymentsresellersubscription_partners_subscriptions_cancel_execute(builder)
 }
 
@@ -652,6 +701,17 @@ pub fn paymentsresellersubscription_partners_subscriptions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`paymentsresellersubscription_partners_subscriptions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PaymentsresellersubscriptionPartnersSubscriptionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: subscriptionId
+    pub subscriptionId: Option<String>,
+    /// Request body.
+    pub body: Subscription,
+}
+
 /// GET v1/partners/{partnersId}/subscriptions
 /// Used by partners to create a subscription for their customers. The created subscription is associated with the end user inferred from the end user credentials. This API must be authorized by the end user using OAuth.
 ///
@@ -664,9 +724,7 @@ pub fn paymentsresellersubscription_partners_subscriptions_create_execute(
 
 pub fn paymentsresellersubscription_partners_subscriptions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    subscriptionId: Option<&str>,
-    body: &Subscription,
+    args: &PaymentsresellersubscriptionPartnersSubscriptionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
@@ -675,9 +733,9 @@ pub fn paymentsresellersubscription_partners_subscriptions_create(
 > {
     let builder = paymentsresellersubscription_partners_subscriptions_create_builder(
         client,
-        parent,
-        subscriptionId,
-        body,
+        &args.parent,
+        args.subscriptionId.as_deref(),
+        &args.body,
     )?;
     paymentsresellersubscription_partners_subscriptions_create_execute(builder)
 }
@@ -779,6 +837,15 @@ pub fn paymentsresellersubscription_partners_subscriptions_entitle_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`paymentsresellersubscription_partners_subscriptions_entitle`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PaymentsresellersubscriptionPartnersSubscriptionsEntitleArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EntitleSubscriptionRequest,
+}
+
 /// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:entitle
 /// Entitles a previously provisioned subscription to the current end user. The end user identity is inferred from the authorized credential of the request. This API must be authorized by the end user using OAuth.
 ///
@@ -791,8 +858,7 @@ pub fn paymentsresellersubscription_partners_subscriptions_entitle_execute(
 
 pub fn paymentsresellersubscription_partners_subscriptions_entitle(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EntitleSubscriptionRequest,
+    args: &PaymentsresellersubscriptionPartnersSubscriptionsEntitleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EntitleSubscriptionResponse>, ApiError>,
@@ -801,8 +867,9 @@ pub fn paymentsresellersubscription_partners_subscriptions_entitle(
         + 'static,
     ApiError,
 > {
-    let builder =
-        paymentsresellersubscription_partners_subscriptions_entitle_builder(client, name, body)?;
+    let builder = paymentsresellersubscription_partners_subscriptions_entitle_builder(
+        client, &args.name, &args.body,
+    )?;
     paymentsresellersubscription_partners_subscriptions_entitle_execute(builder)
 }
 
@@ -903,6 +970,15 @@ pub fn paymentsresellersubscription_partners_subscriptions_extend_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`paymentsresellersubscription_partners_subscriptions_extend`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PaymentsresellersubscriptionPartnersSubscriptionsExtendArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExtendSubscriptionRequest,
+}
+
 /// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:extend
 /// [Opt-in only] Most partners should be on auto-extend by default. Extends a subscription service for their customers on an ongoing basis for the subscription to remain active and renewable. It should be called directly by the partner using service accounts.
 ///
@@ -915,8 +991,7 @@ pub fn paymentsresellersubscription_partners_subscriptions_extend_execute(
 
 pub fn paymentsresellersubscription_partners_subscriptions_extend(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExtendSubscriptionRequest,
+    args: &PaymentsresellersubscriptionPartnersSubscriptionsExtendArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ExtendSubscriptionResponse>, ApiError>,
@@ -925,8 +1000,9 @@ pub fn paymentsresellersubscription_partners_subscriptions_extend(
         + 'static,
     ApiError,
 > {
-    let builder =
-        paymentsresellersubscription_partners_subscriptions_extend_builder(client, name, body)?;
+    let builder = paymentsresellersubscription_partners_subscriptions_extend_builder(
+        client, &args.name, &args.body,
+    )?;
     paymentsresellersubscription_partners_subscriptions_extend_execute(builder)
 }
 
@@ -1022,6 +1098,13 @@ pub fn paymentsresellersubscription_partners_subscriptions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`paymentsresellersubscription_partners_subscriptions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PaymentsresellersubscriptionPartnersSubscriptionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}
 /// Gets a subscription by id. It should be called directly by the partner using service accounts.
 ///
@@ -1034,14 +1117,15 @@ pub fn paymentsresellersubscription_partners_subscriptions_get_execute(
 
 pub fn paymentsresellersubscription_partners_subscriptions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PaymentsresellersubscriptionPartnersSubscriptionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = paymentsresellersubscription_partners_subscriptions_get_builder(client, name)?;
+    let builder =
+        paymentsresellersubscription_partners_subscriptions_get_builder(client, &args.name)?;
     paymentsresellersubscription_partners_subscriptions_get_execute(builder)
 }
 
@@ -1160,6 +1244,21 @@ pub fn paymentsresellersubscription_partners_subscriptions_provision_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`paymentsresellersubscription_partners_subscriptions_provision`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PaymentsresellersubscriptionPartnersSubscriptionsProvisionArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: cycleOptions_initialCycleDuration_count
+    pub cycleOptions_initialCycleDuration_count: Option<i32>,
+    /// Query parameter: cycleOptions_initialCycleDuration_unit
+    pub cycleOptions_initialCycleDuration_unit: Option<String>,
+    /// Query parameter: subscriptionId
+    pub subscriptionId: Option<String>,
+    /// Request body.
+    pub body: Subscription,
+}
+
 /// GET v1/partners/{partnersId}/subscriptions:provision
 /// Used by partners to provision a subscription for their customers. This creates a subscription without associating it with the end user account. EntitleSubscription must be called separately using OAuth in order for the end user account to be associated with the subscription. It should be called directly by the partner using service accounts.
 ///
@@ -1172,11 +1271,7 @@ pub fn paymentsresellersubscription_partners_subscriptions_provision_execute(
 
 pub fn paymentsresellersubscription_partners_subscriptions_provision(
     client: &SimpleHttpClient,
-    parent: &str,
-    cycleOptions_initialCycleDuration_count: Option<i32>,
-    cycleOptions_initialCycleDuration_unit: Option<&str>,
-    subscriptionId: Option<&str>,
-    body: &Subscription,
+    args: &PaymentsresellersubscriptionPartnersSubscriptionsProvisionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
@@ -1185,11 +1280,11 @@ pub fn paymentsresellersubscription_partners_subscriptions_provision(
 > {
     let builder = paymentsresellersubscription_partners_subscriptions_provision_builder(
         client,
-        parent,
-        cycleOptions_initialCycleDuration_count,
-        cycleOptions_initialCycleDuration_unit,
-        subscriptionId,
-        body,
+        &args.parent,
+        args.cycleOptions_initialCycleDuration_count,
+        args.cycleOptions_initialCycleDuration_unit.as_deref(),
+        args.subscriptionId.as_deref(),
+        &args.body,
     )?;
     paymentsresellersubscription_partners_subscriptions_provision_execute(builder)
 }
@@ -1291,6 +1386,15 @@ pub fn paymentsresellersubscription_partners_subscriptions_resume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`paymentsresellersubscription_partners_subscriptions_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PaymentsresellersubscriptionPartnersSubscriptionsResumeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResumeSubscriptionRequest,
+}
+
 /// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:resume
 /// Resumes a suspended subscription. The new billing cycle will start at the time of the request. It should be called directly by the partner using service accounts.
 ///
@@ -1303,8 +1407,7 @@ pub fn paymentsresellersubscription_partners_subscriptions_resume_execute(
 
 pub fn paymentsresellersubscription_partners_subscriptions_resume(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResumeSubscriptionRequest,
+    args: &PaymentsresellersubscriptionPartnersSubscriptionsResumeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ResumeSubscriptionResponse>, ApiError>,
@@ -1313,8 +1416,9 @@ pub fn paymentsresellersubscription_partners_subscriptions_resume(
         + 'static,
     ApiError,
 > {
-    let builder =
-        paymentsresellersubscription_partners_subscriptions_resume_builder(client, name, body)?;
+    let builder = paymentsresellersubscription_partners_subscriptions_resume_builder(
+        client, &args.name, &args.body,
+    )?;
     paymentsresellersubscription_partners_subscriptions_resume_execute(builder)
 }
 
@@ -1415,6 +1519,15 @@ pub fn paymentsresellersubscription_partners_subscriptions_suspend_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`paymentsresellersubscription_partners_subscriptions_suspend`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PaymentsresellersubscriptionPartnersSubscriptionsSuspendArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SuspendSubscriptionRequest,
+}
+
 /// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:suspend
 /// Suspends a subscription. Contract terms may dictate if a prorated refund will be issued upon suspension. It should be called directly by the partner using service accounts.
 ///
@@ -1427,8 +1540,7 @@ pub fn paymentsresellersubscription_partners_subscriptions_suspend_execute(
 
 pub fn paymentsresellersubscription_partners_subscriptions_suspend(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SuspendSubscriptionRequest,
+    args: &PaymentsresellersubscriptionPartnersSubscriptionsSuspendArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SuspendSubscriptionResponse>, ApiError>,
@@ -1437,8 +1549,9 @@ pub fn paymentsresellersubscription_partners_subscriptions_suspend(
         + 'static,
     ApiError,
 > {
-    let builder =
-        paymentsresellersubscription_partners_subscriptions_suspend_builder(client, name, body)?;
+    let builder = paymentsresellersubscription_partners_subscriptions_suspend_builder(
+        client, &args.name, &args.body,
+    )?;
     paymentsresellersubscription_partners_subscriptions_suspend_execute(builder)
 }
 
@@ -1539,6 +1652,15 @@ pub fn paymentsresellersubscription_partners_subscriptions_undo_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`paymentsresellersubscription_partners_subscriptions_undo_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PaymentsresellersubscriptionPartnersSubscriptionsUndoCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UndoCancelSubscriptionRequest,
+}
+
 /// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:undoCancel
 /// Currently, it is used by **Google One, Play Pass** partners. Revokes the pending cancellation of a subscription, which is currently in STATE_CANCEL_AT_END_OF_CYCLE state. If the subscription is already cancelled, the request will fail. It should be called directly by the partner using service accounts.
 ///
@@ -1551,8 +1673,7 @@ pub fn paymentsresellersubscription_partners_subscriptions_undo_cancel_execute(
 
 pub fn paymentsresellersubscription_partners_subscriptions_undo_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UndoCancelSubscriptionRequest,
+    args: &PaymentsresellersubscriptionPartnersSubscriptionsUndoCancelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UndoCancelSubscriptionResponse>, ApiError>,
@@ -1562,7 +1683,7 @@ pub fn paymentsresellersubscription_partners_subscriptions_undo_cancel(
     ApiError,
 > {
     let builder = paymentsresellersubscription_partners_subscriptions_undo_cancel_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     paymentsresellersubscription_partners_subscriptions_undo_cancel_execute(builder)
 }
@@ -1674,6 +1795,17 @@ pub fn paymentsresellersubscription_partners_subscriptions_line_items_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`paymentsresellersubscription_partners_subscriptions_line_items_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PaymentsresellersubscriptionPartnersSubscriptionsLineItemsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SubscriptionLineItem,
+}
+
 /// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}/lineItems/{lineItemsId}
 /// Updates a line item of a subscription. It should be authenticated with a service account.
 ///
@@ -1686,9 +1818,7 @@ pub fn paymentsresellersubscription_partners_subscriptions_line_items_patch_exec
 
 pub fn paymentsresellersubscription_partners_subscriptions_line_items_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SubscriptionLineItem,
+    args: &PaymentsresellersubscriptionPartnersSubscriptionsLineItemsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SubscriptionLineItem>, ApiError>, P = ApiPending>
         + Send
@@ -1696,7 +1826,10 @@ pub fn paymentsresellersubscription_partners_subscriptions_line_items_patch(
     ApiError,
 > {
     let builder = paymentsresellersubscription_partners_subscriptions_line_items_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     paymentsresellersubscription_partners_subscriptions_line_items_patch_execute(builder)
 }
@@ -1798,6 +1931,15 @@ pub fn paymentsresellersubscription_partners_user_sessions_generate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`paymentsresellersubscription_partners_user_sessions_generate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PaymentsresellersubscriptionPartnersUserSessionsGenerateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GenerateUserSessionRequest,
+}
+
 /// GET v1/partners/{partnersId}/userSessions:generate
 /// This API replaces user authorized OAuth consent based APIs (Create, Entitle). Issues a timed session token for the given user intent. You can use the session token to redirect the user to Google to finish the signup flow. You can re-generate new session token repeatedly for the same request if necessary, regardless of the previous tokens being expired or not. By default, the session token is valid for 1 hour.
 ///
@@ -1810,8 +1952,7 @@ pub fn paymentsresellersubscription_partners_user_sessions_generate_execute(
 
 pub fn paymentsresellersubscription_partners_user_sessions_generate(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GenerateUserSessionRequest,
+    args: &PaymentsresellersubscriptionPartnersUserSessionsGenerateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateUserSessionResponse>, ApiError>,
@@ -1820,7 +1961,10 @@ pub fn paymentsresellersubscription_partners_user_sessions_generate(
         + 'static,
     ApiError,
 > {
-    let builder =
-        paymentsresellersubscription_partners_user_sessions_generate_builder(client, parent, body)?;
+    let builder = paymentsresellersubscription_partners_user_sessions_generate_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     paymentsresellersubscription_partners_user_sessions_generate_execute(builder)
 }

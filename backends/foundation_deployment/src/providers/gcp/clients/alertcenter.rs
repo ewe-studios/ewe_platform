@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1beta1/alerts:batchDelete
 /// Performs batch delete operation on alerts.
@@ -107,6 +109,13 @@ pub fn alertcenter_alerts_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alertcenter_alerts_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlertcenterAlertsBatchDeleteArgs {
+    /// Request body.
+    pub body: BatchDeleteAlertsRequest,
+}
+
 /// GET v1beta1/alerts:batchDelete
 /// Performs batch delete operation on alerts.
 ///
@@ -119,14 +128,14 @@ pub fn alertcenter_alerts_batch_delete_execute(
 
 pub fn alertcenter_alerts_batch_delete(
     client: &SimpleHttpClient,
-    body: &BatchDeleteAlertsRequest,
+    args: &AlertcenterAlertsBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchDeleteAlertsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = alertcenter_alerts_batch_delete_builder(client, body)?;
+    let builder = alertcenter_alerts_batch_delete_builder(client, &args.body)?;
     alertcenter_alerts_batch_delete_execute(builder)
 }
 
@@ -223,6 +232,13 @@ pub fn alertcenter_alerts_batch_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alertcenter_alerts_batch_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlertcenterAlertsBatchUndeleteArgs {
+    /// Request body.
+    pub body: BatchUndeleteAlertsRequest,
+}
+
 /// GET v1beta1/alerts:batchUndelete
 /// Performs batch undelete operation on alerts.
 ///
@@ -235,7 +251,7 @@ pub fn alertcenter_alerts_batch_undelete_execute(
 
 pub fn alertcenter_alerts_batch_undelete(
     client: &SimpleHttpClient,
-    body: &BatchUndeleteAlertsRequest,
+    args: &AlertcenterAlertsBatchUndeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUndeleteAlertsResponse>, ApiError>,
@@ -244,7 +260,7 @@ pub fn alertcenter_alerts_batch_undelete(
         + 'static,
     ApiError,
 > {
-    let builder = alertcenter_alerts_batch_undelete_builder(client, body)?;
+    let builder = alertcenter_alerts_batch_undelete_builder(client, &args.body)?;
     alertcenter_alerts_batch_undelete_execute(builder)
 }
 
@@ -350,6 +366,15 @@ pub fn alertcenter_alerts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alertcenter_alerts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlertcenterAlertsDeleteArgs {
+    /// Path parameter: alertId
+    pub alertId: String,
+    /// Query parameter: customerId
+    pub customerId: Option<String>,
+}
+
 /// GET v1beta1/alerts/{alertId}
 /// Marks the specified alert for deletion. An alert that has been marked for deletion is removed from Alert Center after 30 days. Marking an alert for deletion has no effect on an alert which has already been marked for deletion. Attempting to mark a nonexistent alert for deletion results in a NOT_FOUND error.
 ///
@@ -362,13 +387,13 @@ pub fn alertcenter_alerts_delete_execute(
 
 pub fn alertcenter_alerts_delete(
     client: &SimpleHttpClient,
-    alertId: &str,
-    customerId: Option<&str>,
+    args: &AlertcenterAlertsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alertcenter_alerts_delete_builder(client, alertId, customerId)?;
+    let builder =
+        alertcenter_alerts_delete_builder(client, &args.alertId, args.customerId.as_deref())?;
     alertcenter_alerts_delete_execute(builder)
 }
 
@@ -474,6 +499,15 @@ pub fn alertcenter_alerts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alertcenter_alerts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlertcenterAlertsGetArgs {
+    /// Path parameter: alertId
+    pub alertId: String,
+    /// Query parameter: customerId
+    pub customerId: Option<String>,
+}
+
 /// GET v1beta1/alerts/{alertId}
 /// Gets the specified alert. Attempting to get a nonexistent alert returns NOT_FOUND error.
 ///
@@ -486,13 +520,13 @@ pub fn alertcenter_alerts_get_execute(
 
 pub fn alertcenter_alerts_get(
     client: &SimpleHttpClient,
-    alertId: &str,
-    customerId: Option<&str>,
+    args: &AlertcenterAlertsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alertcenter_alerts_get_builder(client, alertId, customerId)?;
+    let builder =
+        alertcenter_alerts_get_builder(client, &args.alertId, args.customerId.as_deref())?;
     alertcenter_alerts_get_execute(builder)
 }
 
@@ -600,6 +634,15 @@ pub fn alertcenter_alerts_get_metadata_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alertcenter_alerts_get_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlertcenterAlertsGetMetadataArgs {
+    /// Path parameter: alertId
+    pub alertId: String,
+    /// Query parameter: customerId
+    pub customerId: Option<String>,
+}
+
 /// GET v1beta1/alerts/{alertId}/metadata
 /// Returns the metadata of an alert. Attempting to get metadata for a non-existent alert returns NOT_FOUND error.
 ///
@@ -612,15 +655,15 @@ pub fn alertcenter_alerts_get_metadata_execute(
 
 pub fn alertcenter_alerts_get_metadata(
     client: &SimpleHttpClient,
-    alertId: &str,
-    customerId: Option<&str>,
+    args: &AlertcenterAlertsGetMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AlertMetadata>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = alertcenter_alerts_get_metadata_builder(client, alertId, customerId)?;
+    let builder =
+        alertcenter_alerts_get_metadata_builder(client, &args.alertId, args.customerId.as_deref())?;
     alertcenter_alerts_get_metadata_execute(builder)
 }
 
@@ -740,6 +783,21 @@ pub fn alertcenter_alerts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alertcenter_alerts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlertcenterAlertsListArgs {
+    /// Query parameter: customerId
+    pub customerId: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta1/alerts
 /// Lists the alerts.
 ///
@@ -752,19 +810,21 @@ pub fn alertcenter_alerts_list_execute(
 
 pub fn alertcenter_alerts_list(
     client: &SimpleHttpClient,
-    customerId: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AlertcenterAlertsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAlertsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        alertcenter_alerts_list_builder(client, customerId, filter, orderBy, pageSize, pageToken)?;
+    let builder = alertcenter_alerts_list_builder(
+        client,
+        args.customerId.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     alertcenter_alerts_list_execute(builder)
 }
 
@@ -861,6 +921,15 @@ pub fn alertcenter_alerts_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alertcenter_alerts_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlertcenterAlertsUndeleteArgs {
+    /// Path parameter: alertId
+    pub alertId: String,
+    /// Request body.
+    pub body: UndeleteAlertRequest,
+}
+
 /// GET v1beta1/alerts/{alertId}:undelete
 /// Restores, or "undeletes", an alert that was marked for deletion within the past 30 days. Attempting to undelete an alert which was marked for deletion over 30 days ago (which has been removed from the Alert Center database) or a nonexistent alert returns a NOT_FOUND error. Attempting to undelete an alert which has not been marked for deletion has no effect.
 ///
@@ -873,13 +942,12 @@ pub fn alertcenter_alerts_undelete_execute(
 
 pub fn alertcenter_alerts_undelete(
     client: &SimpleHttpClient,
-    alertId: &str,
-    body: &UndeleteAlertRequest,
+    args: &AlertcenterAlertsUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alertcenter_alerts_undelete_builder(client, alertId, body)?;
+    let builder = alertcenter_alerts_undelete_builder(client, &args.alertId, &args.body)?;
     alertcenter_alerts_undelete_execute(builder)
 }
 
@@ -990,6 +1058,17 @@ pub fn alertcenter_alerts_feedback_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alertcenter_alerts_feedback_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlertcenterAlertsFeedbackCreateArgs {
+    /// Path parameter: alertId
+    pub alertId: String,
+    /// Query parameter: customerId
+    pub customerId: Option<String>,
+    /// Request body.
+    pub body: AlertFeedback,
+}
+
 /// GET v1beta1/alerts/{alertId}/feedback
 /// Creates new feedback for an alert. Attempting to create a feedback for a non-existent alert returns NOT_FOUND error. Attempting to create a feedback for an alert that is marked for deletion returns FAILED_PRECONDITION' error.
 ///
@@ -1002,16 +1081,19 @@ pub fn alertcenter_alerts_feedback_create_execute(
 
 pub fn alertcenter_alerts_feedback_create(
     client: &SimpleHttpClient,
-    alertId: &str,
-    customerId: Option<&str>,
-    body: &AlertFeedback,
+    args: &AlertcenterAlertsFeedbackCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AlertFeedback>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = alertcenter_alerts_feedback_create_builder(client, alertId, customerId, body)?;
+    let builder = alertcenter_alerts_feedback_create_builder(
+        client,
+        &args.alertId,
+        args.customerId.as_deref(),
+        &args.body,
+    )?;
     alertcenter_alerts_feedback_create_execute(builder)
 }
 
@@ -1123,6 +1205,17 @@ pub fn alertcenter_alerts_feedback_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alertcenter_alerts_feedback_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlertcenterAlertsFeedbackListArgs {
+    /// Path parameter: alertId
+    pub alertId: String,
+    /// Query parameter: customerId
+    pub customerId: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+}
+
 /// GET v1beta1/alerts/{alertId}/feedback
 /// Lists all the feedback for an alert. Attempting to list feedbacks for a non-existent alert returns NOT_FOUND error.
 ///
@@ -1135,16 +1228,19 @@ pub fn alertcenter_alerts_feedback_list_execute(
 
 pub fn alertcenter_alerts_feedback_list(
     client: &SimpleHttpClient,
-    alertId: &str,
-    customerId: Option<&str>,
-    filter: Option<&str>,
+    args: &AlertcenterAlertsFeedbackListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAlertFeedbackResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = alertcenter_alerts_feedback_list_builder(client, alertId, customerId, filter)?;
+    let builder = alertcenter_alerts_feedback_list_builder(
+        client,
+        &args.alertId,
+        args.customerId.as_deref(),
+        args.filter.as_deref(),
+    )?;
     alertcenter_alerts_feedback_list_execute(builder)
 }
 
@@ -1246,6 +1342,13 @@ pub fn alertcenter_get_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alertcenter_get_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlertcenterGetSettingsArgs {
+    /// Query parameter: customerId
+    pub customerId: Option<String>,
+}
+
 /// GET v1beta1/settings
 /// Returns customer-level settings.
 ///
@@ -1258,12 +1361,12 @@ pub fn alertcenter_get_settings_execute(
 
 pub fn alertcenter_get_settings(
     client: &SimpleHttpClient,
-    customerId: Option<&str>,
+    args: &AlertcenterGetSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alertcenter_get_settings_builder(client, customerId)?;
+    let builder = alertcenter_get_settings_builder(client, args.customerId.as_deref())?;
     alertcenter_get_settings_execute(builder)
 }
 
@@ -1368,6 +1471,15 @@ pub fn alertcenter_update_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`alertcenter_update_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AlertcenterUpdateSettingsArgs {
+    /// Query parameter: customerId
+    pub customerId: Option<String>,
+    /// Request body.
+    pub body: Settings,
+}
+
 /// GET v1beta1/settings
 /// Updates the customer-level settings.
 ///
@@ -1380,12 +1492,12 @@ pub fn alertcenter_update_settings_execute(
 
 pub fn alertcenter_update_settings(
     client: &SimpleHttpClient,
-    customerId: Option<&str>,
-    body: &Settings,
+    args: &AlertcenterUpdateSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = alertcenter_update_settings_builder(client, customerId, body)?;
+    let builder =
+        alertcenter_update_settings_builder(client, args.customerId.as_deref(), &args.body)?;
     alertcenter_update_settings_execute(builder)
 }

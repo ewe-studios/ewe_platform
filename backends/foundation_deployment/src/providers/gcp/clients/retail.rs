@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}:completeQuery
 /// Completes the specified prefix with keyword suggestions. This feature is only available for users who have Retail Search enabled. Enable Retail Search on Cloud Console before using this feature.
@@ -150,6 +152,29 @@ pub fn retail_projects_locations_catalogs_complete_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_complete_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsCompleteQueryArgs {
+    /// Path parameter: catalog
+    pub catalog: String,
+    /// Query parameter: dataset
+    pub dataset: Option<String>,
+    /// Query parameter: deviceType
+    pub deviceType: Option<String>,
+    /// Query parameter: enableAttributeSuggestions
+    pub enableAttributeSuggestions: Option<bool>,
+    /// Query parameter: entity
+    pub entity: Option<String>,
+    /// Query parameter: languageCodes
+    pub languageCodes: Option<String>,
+    /// Query parameter: maxSuggestions
+    pub maxSuggestions: Option<i32>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: visitorId
+    pub visitorId: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}:completeQuery
 /// Completes the specified prefix with keyword suggestions. This feature is only available for users who have Retail Search enabled. Enable Retail Search on Cloud Console before using this feature.
 ///
@@ -162,15 +187,7 @@ pub fn retail_projects_locations_catalogs_complete_query_execute(
 
 pub fn retail_projects_locations_catalogs_complete_query(
     client: &SimpleHttpClient,
-    catalog: &str,
-    dataset: Option<&str>,
-    deviceType: Option<&str>,
-    enableAttributeSuggestions: Option<bool>,
-    entity: Option<&str>,
-    languageCodes: Option<&str>,
-    maxSuggestions: Option<i32>,
-    query: Option<&str>,
-    visitorId: Option<&str>,
+    args: &RetailProjectsLocationsCatalogsCompleteQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2CompleteQueryResponse>, ApiError>,
@@ -181,15 +198,15 @@ pub fn retail_projects_locations_catalogs_complete_query(
 > {
     let builder = retail_projects_locations_catalogs_complete_query_builder(
         client,
-        catalog,
-        dataset,
-        deviceType,
-        enableAttributeSuggestions,
-        entity,
-        languageCodes,
-        maxSuggestions,
-        query,
-        visitorId,
+        &args.catalog,
+        args.dataset.as_deref(),
+        args.deviceType.as_deref(),
+        args.enableAttributeSuggestions,
+        args.entity.as_deref(),
+        args.languageCodes.as_deref(),
+        args.maxSuggestions,
+        args.query.as_deref(),
+        args.visitorId.as_deref(),
     )?;
     retail_projects_locations_catalogs_complete_query_execute(builder)
 }
@@ -291,6 +308,15 @@ pub fn retail_projects_locations_catalogs_export_analytics_metrics_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_export_analytics_metrics`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsExportAnalyticsMetricsArgs {
+    /// Path parameter: catalog
+    pub catalog: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2ExportAnalyticsMetricsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}:exportAnalyticsMetrics
 /// Exports analytics metrics. Operation.response is of type ExportAnalyticsMetricsResponse. Operation.metadata is of type ExportMetadata.
 ///
@@ -303,8 +329,7 @@ pub fn retail_projects_locations_catalogs_export_analytics_metrics_execute(
 
 pub fn retail_projects_locations_catalogs_export_analytics_metrics(
     client: &SimpleHttpClient,
-    catalog: &str,
-    body: &GoogleCloudRetailV2ExportAnalyticsMetricsRequest,
+    args: &RetailProjectsLocationsCatalogsExportAnalyticsMetricsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -313,8 +338,11 @@ pub fn retail_projects_locations_catalogs_export_analytics_metrics(
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_export_analytics_metrics_builder(client, catalog, body)?;
+    let builder = retail_projects_locations_catalogs_export_analytics_metrics_builder(
+        client,
+        &args.catalog,
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_export_analytics_metrics_execute(builder)
 }
 
@@ -412,6 +440,13 @@ pub fn retail_projects_locations_catalogs_get_attributes_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_get_attributes_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsGetAttributesConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/attributesConfig
 /// Gets an AttributesConfig.
 ///
@@ -424,7 +459,7 @@ pub fn retail_projects_locations_catalogs_get_attributes_config_execute(
 
 pub fn retail_projects_locations_catalogs_get_attributes_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RetailProjectsLocationsCatalogsGetAttributesConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2AttributesConfig>, ApiError>,
@@ -433,7 +468,8 @@ pub fn retail_projects_locations_catalogs_get_attributes_config(
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_get_attributes_config_builder(client, name)?;
+    let builder =
+        retail_projects_locations_catalogs_get_attributes_config_builder(client, &args.name)?;
     retail_projects_locations_catalogs_get_attributes_config_execute(builder)
 }
 
@@ -531,6 +567,13 @@ pub fn retail_projects_locations_catalogs_get_completion_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_get_completion_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsGetCompletionConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/completionConfig
 /// Gets a CompletionConfig.
 ///
@@ -543,7 +586,7 @@ pub fn retail_projects_locations_catalogs_get_completion_config_execute(
 
 pub fn retail_projects_locations_catalogs_get_completion_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RetailProjectsLocationsCatalogsGetCompletionConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2CompletionConfig>, ApiError>,
@@ -552,7 +595,8 @@ pub fn retail_projects_locations_catalogs_get_completion_config(
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_get_completion_config_builder(client, name)?;
+    let builder =
+        retail_projects_locations_catalogs_get_completion_config_builder(client, &args.name)?;
     retail_projects_locations_catalogs_get_completion_config_execute(builder)
 }
 
@@ -654,6 +698,13 @@ pub fn retail_projects_locations_catalogs_get_conversational_search_customizatio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_get_conversational_search_customization_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsGetConversationalSearchCustomizationConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/conversationalSearchCustomizationConfig
 /// Returns the conversational search customization config for a given catalog.
 ///
@@ -666,7 +717,7 @@ pub fn retail_projects_locations_catalogs_get_conversational_search_customizatio
 
 pub fn retail_projects_locations_catalogs_get_conversational_search_customization_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RetailProjectsLocationsCatalogsGetConversationalSearchCustomizationConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -680,7 +731,7 @@ pub fn retail_projects_locations_catalogs_get_conversational_search_customizatio
 > {
     let builder =
         retail_projects_locations_catalogs_get_conversational_search_customization_config_builder(
-            client, name,
+            client, &args.name,
         )?;
     retail_projects_locations_catalogs_get_conversational_search_customization_config_execute(
         builder,
@@ -782,6 +833,13 @@ pub fn retail_projects_locations_catalogs_get_default_branch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_get_default_branch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsGetDefaultBranchArgs {
+    /// Path parameter: catalog
+    pub catalog: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}:getDefaultBranch
 /// Get which branch is currently default branch set by CatalogService.SetDefaultBranch method under a specified parent catalog.
 ///
@@ -794,7 +852,7 @@ pub fn retail_projects_locations_catalogs_get_default_branch_execute(
 
 pub fn retail_projects_locations_catalogs_get_default_branch(
     client: &SimpleHttpClient,
-    catalog: &str,
+    args: &RetailProjectsLocationsCatalogsGetDefaultBranchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2GetDefaultBranchResponse>, ApiError>,
@@ -803,7 +861,8 @@ pub fn retail_projects_locations_catalogs_get_default_branch(
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_get_default_branch_builder(client, catalog)?;
+    let builder =
+        retail_projects_locations_catalogs_get_default_branch_builder(client, &args.catalog)?;
     retail_projects_locations_catalogs_get_default_branch_execute(builder)
 }
 
@@ -902,6 +961,13 @@ pub fn retail_projects_locations_catalogs_get_generative_question_feature_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_get_generative_question_feature`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsGetGenerativeQuestionFeatureArgs {
+    /// Path parameter: catalog
+    pub catalog: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/generativeQuestionFeature
 /// Manages overal generative question feature state -- enables toggling feature on and off.
 ///
@@ -914,7 +980,7 @@ pub fn retail_projects_locations_catalogs_get_generative_question_feature_execut
 
 pub fn retail_projects_locations_catalogs_get_generative_question_feature(
     client: &SimpleHttpClient,
-    catalog: &str,
+    args: &RetailProjectsLocationsCatalogsGetGenerativeQuestionFeatureArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2GenerativeQuestionsFeatureConfig>, ApiError>,
@@ -924,7 +990,8 @@ pub fn retail_projects_locations_catalogs_get_generative_question_feature(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_get_generative_question_feature_builder(
-        client, catalog,
+        client,
+        &args.catalog,
     )?;
     retail_projects_locations_catalogs_get_generative_question_feature_execute(builder)
 }
@@ -1040,6 +1107,17 @@ pub fn retail_projects_locations_catalogs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs
 /// Lists all the Catalogs associated with the project.
 ///
@@ -1052,9 +1130,7 @@ pub fn retail_projects_locations_catalogs_list_execute(
 
 pub fn retail_projects_locations_catalogs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RetailProjectsLocationsCatalogsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2ListCatalogsResponse>, ApiError>,
@@ -1063,8 +1139,12 @@ pub fn retail_projects_locations_catalogs_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = retail_projects_locations_catalogs_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     retail_projects_locations_catalogs_list_execute(builder)
 }
 
@@ -1177,6 +1257,17 @@ pub fn retail_projects_locations_catalogs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRetailV2Catalog,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}
 /// Updates the Catalogs.
 ///
@@ -1189,9 +1280,7 @@ pub fn retail_projects_locations_catalogs_patch_execute(
 
 pub fn retail_projects_locations_catalogs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudRetailV2Catalog,
+    args: &RetailProjectsLocationsCatalogsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2Catalog>, ApiError>,
@@ -1200,7 +1289,12 @@ pub fn retail_projects_locations_catalogs_patch(
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_patch_builder(client, name, updateMask, body)?;
+    let builder = retail_projects_locations_catalogs_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_patch_execute(builder)
 }
 
@@ -1299,6 +1393,15 @@ pub fn retail_projects_locations_catalogs_set_default_branch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_set_default_branch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsSetDefaultBranchArgs {
+    /// Path parameter: catalog
+    pub catalog: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2SetDefaultBranchRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}:setDefaultBranch
 /// Set a specified branch id as default branch. API methods such as SearchService.Search, ProductService.GetProduct, ProductService.ListProducts will treat requests using "default_branch" to the actual branch id set as default. For example, if projects/*/locations/*/catalogs/*/`branches/1` is set as default, setting SearchRequest.branch to projects/*/locations/*/catalogs/*/`branches/default_branch` is equivalent to setting SearchRequest.branch to projects/*/locations/*/catalogs/*/`branches/1`. Using multiple branches can be useful when developers would like to have a staging branch to test and verify for future usage. When it becomes ready, developers switch on the staging branch using this API while keeping using projects/*/locations/*/catalogs/*/`branches/default_branch` as SearchRequest.branch to route the traffic to this staging branch. CAUTION: If you have live `predict/search` traffic, switching the default branch could potentially cause outages if the ID space of the new branch is very different from the old one. More specifically: * PredictionService will only return product IDs from branch {`newBranch`}. * SearchService will only return product IDs from branch {`newBranch`} (if branch is not explicitly set). * UserEventService will only join events with products from branch {`newBranch`}.
 ///
@@ -1311,16 +1414,18 @@ pub fn retail_projects_locations_catalogs_set_default_branch_execute(
 
 pub fn retail_projects_locations_catalogs_set_default_branch(
     client: &SimpleHttpClient,
-    catalog: &str,
-    body: &GoogleCloudRetailV2SetDefaultBranchRequest,
+    args: &RetailProjectsLocationsCatalogsSetDefaultBranchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_set_default_branch_builder(client, catalog, body)?;
+    let builder = retail_projects_locations_catalogs_set_default_branch_builder(
+        client,
+        &args.catalog,
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_set_default_branch_execute(builder)
 }
 
@@ -1433,6 +1538,17 @@ pub fn retail_projects_locations_catalogs_update_attributes_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_update_attributes_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsUpdateAttributesConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRetailV2AttributesConfig,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/attributesConfig
 /// Updates the AttributesConfig. The catalog attributes in the request will be updated in the catalog, or inserted if they do not exist. Existing catalog attributes not included in the request will remain unchanged. Attributes that are assigned to products, but do not exist at the catalog level, are always included in the response. The product attribute is assigned default values for missing catalog attribute fields, e.g., searchable and dynamic facetable options.
 ///
@@ -1445,9 +1561,7 @@ pub fn retail_projects_locations_catalogs_update_attributes_config_execute(
 
 pub fn retail_projects_locations_catalogs_update_attributes_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudRetailV2AttributesConfig,
+    args: &RetailProjectsLocationsCatalogsUpdateAttributesConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2AttributesConfig>, ApiError>,
@@ -1457,7 +1571,10 @@ pub fn retail_projects_locations_catalogs_update_attributes_config(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_update_attributes_config_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     retail_projects_locations_catalogs_update_attributes_config_execute(builder)
 }
@@ -1571,6 +1688,17 @@ pub fn retail_projects_locations_catalogs_update_completion_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_update_completion_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsUpdateCompletionConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRetailV2CompletionConfig,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/completionConfig
 /// Updates the CompletionConfigs.
 ///
@@ -1583,9 +1711,7 @@ pub fn retail_projects_locations_catalogs_update_completion_config_execute(
 
 pub fn retail_projects_locations_catalogs_update_completion_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudRetailV2CompletionConfig,
+    args: &RetailProjectsLocationsCatalogsUpdateCompletionConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2CompletionConfig>, ApiError>,
@@ -1595,7 +1721,10 @@ pub fn retail_projects_locations_catalogs_update_completion_config(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_update_completion_config_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     retail_projects_locations_catalogs_update_completion_config_execute(builder)
 }
@@ -1713,6 +1842,17 @@ pub fn retail_projects_locations_catalogs_update_conversational_search_customiza
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_update_conversational_search_customization_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsUpdateConversationalSearchCustomizationConfigArgs {
+    /// Path parameter: catalog
+    pub catalog: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRetailV2ConversationalSearchCustomizationConfig,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/conversationalSearchCustomizationConfig
 /// Updates the conversational search customization config for a given catalog.
 ///
@@ -1725,9 +1865,7 @@ pub fn retail_projects_locations_catalogs_update_conversational_search_customiza
 
 pub fn retail_projects_locations_catalogs_update_conversational_search_customization_config(
     client: &SimpleHttpClient,
-    catalog: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudRetailV2ConversationalSearchCustomizationConfig,
+    args: &RetailProjectsLocationsCatalogsUpdateConversationalSearchCustomizationConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1739,7 +1877,7 @@ pub fn retail_projects_locations_catalogs_update_conversational_search_customiza
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_update_conversational_search_customization_config_builder(client, catalog, updateMask, body)?;
+    let builder = retail_projects_locations_catalogs_update_conversational_search_customization_config_builder(client, &args.catalog, args.updateMask.as_deref(), &args.body)?;
     retail_projects_locations_catalogs_update_conversational_search_customization_config_execute(
         builder,
     )
@@ -1855,6 +1993,17 @@ pub fn retail_projects_locations_catalogs_update_generative_question_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_update_generative_question`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsUpdateGenerativeQuestionArgs {
+    /// Path parameter: catalog
+    pub catalog: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRetailV2GenerativeQuestionConfig,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/generativeQuestion
 /// Allows management of individual questions.
 ///
@@ -1867,9 +2016,7 @@ pub fn retail_projects_locations_catalogs_update_generative_question_execute(
 
 pub fn retail_projects_locations_catalogs_update_generative_question(
     client: &SimpleHttpClient,
-    catalog: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudRetailV2GenerativeQuestionConfig,
+    args: &RetailProjectsLocationsCatalogsUpdateGenerativeQuestionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2GenerativeQuestionConfig>, ApiError>,
@@ -1879,7 +2026,10 @@ pub fn retail_projects_locations_catalogs_update_generative_question(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_update_generative_question_builder(
-        client, catalog, updateMask, body,
+        client,
+        &args.catalog,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     retail_projects_locations_catalogs_update_generative_question_execute(builder)
 }
@@ -1994,6 +2144,17 @@ pub fn retail_projects_locations_catalogs_update_generative_question_feature_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_update_generative_question_feature`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsUpdateGenerativeQuestionFeatureArgs {
+    /// Path parameter: catalog
+    pub catalog: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRetailV2GenerativeQuestionsFeatureConfig,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/generativeQuestionFeature
 /// Manages overal generative question feature state -- enables toggling feature on and off.
 ///
@@ -2006,9 +2167,7 @@ pub fn retail_projects_locations_catalogs_update_generative_question_feature_exe
 
 pub fn retail_projects_locations_catalogs_update_generative_question_feature(
     client: &SimpleHttpClient,
-    catalog: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudRetailV2GenerativeQuestionsFeatureConfig,
+    args: &RetailProjectsLocationsCatalogsUpdateGenerativeQuestionFeatureArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2GenerativeQuestionsFeatureConfig>, ApiError>,
@@ -2018,7 +2177,10 @@ pub fn retail_projects_locations_catalogs_update_generative_question_feature(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_update_generative_question_feature_builder(
-        client, catalog, updateMask, body,
+        client,
+        &args.catalog,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     retail_projects_locations_catalogs_update_generative_question_feature_execute(builder)
 }
@@ -2120,6 +2282,15 @@ pub fn retail_projects_locations_catalogs_attributes_config_add_catalog_attribut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_attributes_config_add_catalog_attribute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsAttributesConfigAddCatalogAttributeArgs {
+    /// Path parameter: attributesConfig
+    pub attributesConfig: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2AddCatalogAttributeRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/attributesConfig:addCatalogAttribute
 /// Adds the specified CatalogAttribute to the AttributesConfig. If the CatalogAttribute to add already exists, an ALREADY_EXISTS error is returned.
 ///
@@ -2132,8 +2303,7 @@ pub fn retail_projects_locations_catalogs_attributes_config_add_catalog_attribut
 
 pub fn retail_projects_locations_catalogs_attributes_config_add_catalog_attribute(
     client: &SimpleHttpClient,
-    attributesConfig: &str,
-    body: &GoogleCloudRetailV2AddCatalogAttributeRequest,
+    args: &RetailProjectsLocationsCatalogsAttributesConfigAddCatalogAttributeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2AttributesConfig>, ApiError>,
@@ -2145,8 +2315,8 @@ pub fn retail_projects_locations_catalogs_attributes_config_add_catalog_attribut
     let builder =
         retail_projects_locations_catalogs_attributes_config_add_catalog_attribute_builder(
             client,
-            attributesConfig,
-            body,
+            &args.attributesConfig,
+            &args.body,
         )?;
     retail_projects_locations_catalogs_attributes_config_add_catalog_attribute_execute(builder)
 }
@@ -2248,6 +2418,15 @@ pub fn retail_projects_locations_catalogs_attributes_config_remove_catalog_attri
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_attributes_config_remove_catalog_attribute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsAttributesConfigRemoveCatalogAttributeArgs {
+    /// Path parameter: attributesConfig
+    pub attributesConfig: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2RemoveCatalogAttributeRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/attributesConfig:removeCatalogAttribute
 /// Removes the specified CatalogAttribute from the AttributesConfig. If the CatalogAttribute to remove does not exist, a NOT_FOUND error is returned.
 ///
@@ -2260,8 +2439,7 @@ pub fn retail_projects_locations_catalogs_attributes_config_remove_catalog_attri
 
 pub fn retail_projects_locations_catalogs_attributes_config_remove_catalog_attribute(
     client: &SimpleHttpClient,
-    attributesConfig: &str,
-    body: &GoogleCloudRetailV2RemoveCatalogAttributeRequest,
+    args: &RetailProjectsLocationsCatalogsAttributesConfigRemoveCatalogAttributeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2AttributesConfig>, ApiError>,
@@ -2273,8 +2451,8 @@ pub fn retail_projects_locations_catalogs_attributes_config_remove_catalog_attri
     let builder =
         retail_projects_locations_catalogs_attributes_config_remove_catalog_attribute_builder(
             client,
-            attributesConfig,
-            body,
+            &args.attributesConfig,
+            &args.body,
         )?;
     retail_projects_locations_catalogs_attributes_config_remove_catalog_attribute_execute(builder)
 }
@@ -2376,6 +2554,15 @@ pub fn retail_projects_locations_catalogs_attributes_config_replace_catalog_attr
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_attributes_config_replace_catalog_attribute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsAttributesConfigReplaceCatalogAttributeArgs {
+    /// Path parameter: attributesConfig
+    pub attributesConfig: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2ReplaceCatalogAttributeRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/attributesConfig:replaceCatalogAttribute
 /// Replaces the specified CatalogAttribute in the AttributesConfig by updating the catalog attribute with the same CatalogAttribute.key. If the CatalogAttribute to replace does not exist, a NOT_FOUND error is returned.
 ///
@@ -2388,8 +2575,7 @@ pub fn retail_projects_locations_catalogs_attributes_config_replace_catalog_attr
 
 pub fn retail_projects_locations_catalogs_attributes_config_replace_catalog_attribute(
     client: &SimpleHttpClient,
-    attributesConfig: &str,
-    body: &GoogleCloudRetailV2ReplaceCatalogAttributeRequest,
+    args: &RetailProjectsLocationsCatalogsAttributesConfigReplaceCatalogAttributeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2AttributesConfig>, ApiError>,
@@ -2401,8 +2587,8 @@ pub fn retail_projects_locations_catalogs_attributes_config_replace_catalog_attr
     let builder =
         retail_projects_locations_catalogs_attributes_config_replace_catalog_attribute_builder(
             client,
-            attributesConfig,
-            body,
+            &args.attributesConfig,
+            &args.body,
         )?;
     retail_projects_locations_catalogs_attributes_config_replace_catalog_attribute_execute(builder)
 }
@@ -2501,6 +2687,13 @@ pub fn retail_projects_locations_catalogs_branches_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_branches_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsBranchesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2513,7 +2706,7 @@ pub fn retail_projects_locations_catalogs_branches_operations_get_execute(
 
 pub fn retail_projects_locations_catalogs_branches_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RetailProjectsLocationsCatalogsBranchesOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2522,7 +2715,8 @@ pub fn retail_projects_locations_catalogs_branches_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_branches_operations_get_builder(client, name)?;
+    let builder =
+        retail_projects_locations_catalogs_branches_operations_get_builder(client, &args.name)?;
     retail_projects_locations_catalogs_branches_operations_get_execute(builder)
 }
 
@@ -2623,6 +2817,15 @@ pub fn retail_projects_locations_catalogs_branches_products_add_fulfillment_plac
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_branches_products_add_fulfillment_places`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsBranchesProductsAddFulfillmentPlacesArgs {
+    /// Path parameter: product
+    pub product: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2AddFulfillmentPlacesRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}:addFulfillmentPlaces
 /// We recommend that you use the ProductService.AddLocalInventories method instead of the ProductService.AddFulfillmentPlaces method. ProductService.AddLocalInventories achieves the same results but provides more fine-grained control over ingesting local inventory data. Incrementally adds place IDs to Product.fulfillment_info.place_ids. This process is asynchronous and does not require the Product to exist before updating fulfillment information. If the request is valid, the update will be enqueued and processed downstream. As a consequence, when a response is returned, the added place IDs are not immediately manifested in the Product queried by ProductService.GetProduct or ProductService.ListProducts. The returned Operations will be obsolete after 1 day, and GetOperation API will return NOT_FOUND afterwards. If conflicting updates are issued, the Operations associated with the stale updates will not be marked as done until being obsolete.
 ///
@@ -2635,8 +2838,7 @@ pub fn retail_projects_locations_catalogs_branches_products_add_fulfillment_plac
 
 pub fn retail_projects_locations_catalogs_branches_products_add_fulfillment_places(
     client: &SimpleHttpClient,
-    product: &str,
-    body: &GoogleCloudRetailV2AddFulfillmentPlacesRequest,
+    args: &RetailProjectsLocationsCatalogsBranchesProductsAddFulfillmentPlacesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2647,7 +2849,9 @@ pub fn retail_projects_locations_catalogs_branches_products_add_fulfillment_plac
 > {
     let builder =
         retail_projects_locations_catalogs_branches_products_add_fulfillment_places_builder(
-            client, product, body,
+            client,
+            &args.product,
+            &args.body,
         )?;
     retail_projects_locations_catalogs_branches_products_add_fulfillment_places_execute(builder)
 }
@@ -2749,6 +2953,15 @@ pub fn retail_projects_locations_catalogs_branches_products_add_local_inventorie
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_branches_products_add_local_inventories`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsBranchesProductsAddLocalInventoriesArgs {
+    /// Path parameter: product
+    pub product: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2AddLocalInventoriesRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}:addLocalInventories
 /// Updates local inventory information for a Product at a list of places, while respecting the last update timestamps of each inventory field. This process is asynchronous and does not require the Product to exist before updating inventory information. If the request is valid, the update will be enqueued and processed downstream. As a consequence, when a response is returned, updates are not immediately manifested in the Product queried by ProductService.GetProduct or ProductService.ListProducts. Local inventory information can only be modified using this method. ProductService.CreateProduct and ProductService.UpdateProduct has no effect on local inventories. The returned Operations will be obsolete after 1 day, and GetOperation API will return NOT_FOUND afterwards. If conflicting updates are issued, the Operations associated with the stale updates will not be marked as done until being obsolete.
 ///
@@ -2761,8 +2974,7 @@ pub fn retail_projects_locations_catalogs_branches_products_add_local_inventorie
 
 pub fn retail_projects_locations_catalogs_branches_products_add_local_inventories(
     client: &SimpleHttpClient,
-    product: &str,
-    body: &GoogleCloudRetailV2AddLocalInventoriesRequest,
+    args: &RetailProjectsLocationsCatalogsBranchesProductsAddLocalInventoriesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2773,7 +2985,9 @@ pub fn retail_projects_locations_catalogs_branches_products_add_local_inventorie
 > {
     let builder =
         retail_projects_locations_catalogs_branches_products_add_local_inventories_builder(
-            client, product, body,
+            client,
+            &args.product,
+            &args.body,
         )?;
     retail_projects_locations_catalogs_branches_products_add_local_inventories_execute(builder)
 }
@@ -2887,6 +3101,17 @@ pub fn retail_projects_locations_catalogs_branches_products_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_branches_products_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsBranchesProductsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: productId
+    pub productId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRetailV2Product,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products
 /// Creates a Product.
 ///
@@ -2899,9 +3124,7 @@ pub fn retail_projects_locations_catalogs_branches_products_create_execute(
 
 pub fn retail_projects_locations_catalogs_branches_products_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    productId: Option<&str>,
-    body: &GoogleCloudRetailV2Product,
+    args: &RetailProjectsLocationsCatalogsBranchesProductsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2Product>, ApiError>,
@@ -2911,7 +3134,10 @@ pub fn retail_projects_locations_catalogs_branches_products_create(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_branches_products_create_builder(
-        client, parent, productId, body,
+        client,
+        &args.parent,
+        args.productId.as_deref(),
+        &args.body,
     )?;
     retail_projects_locations_catalogs_branches_products_create_execute(builder)
 }
@@ -3008,6 +3234,13 @@ pub fn retail_projects_locations_catalogs_branches_products_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_branches_products_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsBranchesProductsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}
 /// Deletes a Product.
 ///
@@ -3020,7 +3253,7 @@ pub fn retail_projects_locations_catalogs_branches_products_delete_execute(
 
 pub fn retail_projects_locations_catalogs_branches_products_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RetailProjectsLocationsCatalogsBranchesProductsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -3028,7 +3261,7 @@ pub fn retail_projects_locations_catalogs_branches_products_delete(
     ApiError,
 > {
     let builder =
-        retail_projects_locations_catalogs_branches_products_delete_builder(client, name)?;
+        retail_projects_locations_catalogs_branches_products_delete_builder(client, &args.name)?;
     retail_projects_locations_catalogs_branches_products_delete_execute(builder)
 }
 
@@ -3126,6 +3359,13 @@ pub fn retail_projects_locations_catalogs_branches_products_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_branches_products_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsBranchesProductsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}
 /// Gets a Product.
 ///
@@ -3138,7 +3378,7 @@ pub fn retail_projects_locations_catalogs_branches_products_get_execute(
 
 pub fn retail_projects_locations_catalogs_branches_products_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RetailProjectsLocationsCatalogsBranchesProductsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2Product>, ApiError>,
@@ -3147,7 +3387,8 @@ pub fn retail_projects_locations_catalogs_branches_products_get(
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_branches_products_get_builder(client, name)?;
+    let builder =
+        retail_projects_locations_catalogs_branches_products_get_builder(client, &args.name)?;
     retail_projects_locations_catalogs_branches_products_get_execute(builder)
 }
 
@@ -3248,6 +3489,15 @@ pub fn retail_projects_locations_catalogs_branches_products_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_branches_products_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsBranchesProductsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2ImportProductsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products:import
 /// Bulk import of multiple Products. Request processing may be synchronous. Non-existing items are created. Note that it is possible for a subset of the Products to be successfully updated.
 ///
@@ -3260,8 +3510,7 @@ pub fn retail_projects_locations_catalogs_branches_products_import_execute(
 
 pub fn retail_projects_locations_catalogs_branches_products_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRetailV2ImportProductsRequest,
+    args: &RetailProjectsLocationsCatalogsBranchesProductsImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3270,8 +3519,11 @@ pub fn retail_projects_locations_catalogs_branches_products_import(
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_branches_products_import_builder(client, parent, body)?;
+    let builder = retail_projects_locations_catalogs_branches_products_import_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_branches_products_import_execute(builder)
 }
 
@@ -3394,6 +3646,21 @@ pub fn retail_projects_locations_catalogs_branches_products_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_branches_products_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsBranchesProductsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products
 /// Gets a list of Products.
 ///
@@ -3406,11 +3673,7 @@ pub fn retail_projects_locations_catalogs_branches_products_list_execute(
 
 pub fn retail_projects_locations_catalogs_branches_products_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &RetailProjectsLocationsCatalogsBranchesProductsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2ListProductsResponse>, ApiError>,
@@ -3420,7 +3683,12 @@ pub fn retail_projects_locations_catalogs_branches_products_list(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_branches_products_list_builder(
-        client, parent, filter, pageSize, pageToken, readMask,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     retail_projects_locations_catalogs_branches_products_list_execute(builder)
 }
@@ -3538,6 +3806,19 @@ pub fn retail_projects_locations_catalogs_branches_products_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_branches_products_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsBranchesProductsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRetailV2Product,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}
 /// Updates a Product.
 ///
@@ -3550,10 +3831,7 @@ pub fn retail_projects_locations_catalogs_branches_products_patch_execute(
 
 pub fn retail_projects_locations_catalogs_branches_products_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudRetailV2Product,
+    args: &RetailProjectsLocationsCatalogsBranchesProductsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2Product>, ApiError>,
@@ -3564,10 +3842,10 @@ pub fn retail_projects_locations_catalogs_branches_products_patch(
 > {
     let builder = retail_projects_locations_catalogs_branches_products_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     retail_projects_locations_catalogs_branches_products_patch_execute(builder)
 }
@@ -3669,6 +3947,15 @@ pub fn retail_projects_locations_catalogs_branches_products_purge_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_branches_products_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsBranchesProductsPurgeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2PurgeProductsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products:purge
 /// Permanently deletes all selected Products under a branch. This process is asynchronous. If the request is valid, the removal will be enqueued and processed offline. Depending on the number of Products, this operation could take hours to complete. Before the operation completes, some Products may still be returned by ProductService.GetProduct or ProductService.ListProducts. Depending on the number of Products, this operation could take hours to complete. To get a sample of Products that would be deleted, set PurgeProductsRequest.force to `false`.
 ///
@@ -3681,8 +3968,7 @@ pub fn retail_projects_locations_catalogs_branches_products_purge_execute(
 
 pub fn retail_projects_locations_catalogs_branches_products_purge(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRetailV2PurgeProductsRequest,
+    args: &RetailProjectsLocationsCatalogsBranchesProductsPurgeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3691,8 +3977,11 @@ pub fn retail_projects_locations_catalogs_branches_products_purge(
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_branches_products_purge_builder(client, parent, body)?;
+    let builder = retail_projects_locations_catalogs_branches_products_purge_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_branches_products_purge_execute(builder)
 }
 
@@ -3793,6 +4082,15 @@ pub fn retail_projects_locations_catalogs_branches_products_remove_fulfillment_p
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_branches_products_remove_fulfillment_places`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsBranchesProductsRemoveFulfillmentPlacesArgs {
+    /// Path parameter: product
+    pub product: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2RemoveFulfillmentPlacesRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}:removeFulfillmentPlaces
 /// We recommend that you use the ProductService.RemoveLocalInventories method instead of the ProductService.RemoveFulfillmentPlaces method. ProductService.RemoveLocalInventories achieves the same results but provides more fine-grained control over ingesting local inventory data. Incrementally removes place IDs from a Product.fulfillment_info.place_ids. This process is asynchronous and does not require the Product to exist before updating fulfillment information. If the request is valid, the update will be enqueued and processed downstream. As a consequence, when a response is returned, the removed place IDs are not immediately manifested in the Product queried by ProductService.GetProduct or ProductService.ListProducts. The returned Operations will be obsolete after 1 day, and GetOperation API will return NOT_FOUND afterwards. If conflicting updates are issued, the Operations associated with the stale updates will not be marked as done until being obsolete.
 ///
@@ -3805,8 +4103,7 @@ pub fn retail_projects_locations_catalogs_branches_products_remove_fulfillment_p
 
 pub fn retail_projects_locations_catalogs_branches_products_remove_fulfillment_places(
     client: &SimpleHttpClient,
-    product: &str,
-    body: &GoogleCloudRetailV2RemoveFulfillmentPlacesRequest,
+    args: &RetailProjectsLocationsCatalogsBranchesProductsRemoveFulfillmentPlacesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3817,7 +4114,9 @@ pub fn retail_projects_locations_catalogs_branches_products_remove_fulfillment_p
 > {
     let builder =
         retail_projects_locations_catalogs_branches_products_remove_fulfillment_places_builder(
-            client, product, body,
+            client,
+            &args.product,
+            &args.body,
         )?;
     retail_projects_locations_catalogs_branches_products_remove_fulfillment_places_execute(builder)
 }
@@ -3919,6 +4218,15 @@ pub fn retail_projects_locations_catalogs_branches_products_remove_local_invento
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_branches_products_remove_local_inventories`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsBranchesProductsRemoveLocalInventoriesArgs {
+    /// Path parameter: product
+    pub product: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2RemoveLocalInventoriesRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}:removeLocalInventories
 /// Remove local inventory information for a Product at a list of places at a removal timestamp. This process is asynchronous. If the request is valid, the removal will be enqueued and processed downstream. As a consequence, when a response is returned, removals are not immediately manifested in the Product queried by ProductService.GetProduct or ProductService.ListProducts. Local inventory information can only be removed using this method. ProductService.CreateProduct and ProductService.UpdateProduct has no effect on local inventories. The returned Operations will be obsolete after 1 day, and GetOperation API will return NOT_FOUND afterwards. If conflicting updates are issued, the Operations associated with the stale updates will not be marked as done until being obsolete.
 ///
@@ -3931,8 +4239,7 @@ pub fn retail_projects_locations_catalogs_branches_products_remove_local_invento
 
 pub fn retail_projects_locations_catalogs_branches_products_remove_local_inventories(
     client: &SimpleHttpClient,
-    product: &str,
-    body: &GoogleCloudRetailV2RemoveLocalInventoriesRequest,
+    args: &RetailProjectsLocationsCatalogsBranchesProductsRemoveLocalInventoriesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3943,7 +4250,9 @@ pub fn retail_projects_locations_catalogs_branches_products_remove_local_invento
 > {
     let builder =
         retail_projects_locations_catalogs_branches_products_remove_local_inventories_builder(
-            client, product, body,
+            client,
+            &args.product,
+            &args.body,
         )?;
     retail_projects_locations_catalogs_branches_products_remove_local_inventories_execute(builder)
 }
@@ -4045,6 +4354,15 @@ pub fn retail_projects_locations_catalogs_branches_products_set_inventory_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_branches_products_set_inventory`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsBranchesProductsSetInventoryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2SetInventoryRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/branches/{branchesId}/products/{productsId}:setInventory
 /// Updates inventory information for a Product while respecting the last update timestamps of each inventory field. This process is asynchronous and does not require the Product to exist before updating fulfillment information. If the request is valid, the update is enqueued and processed downstream. As a consequence, when a response is returned, updates are not immediately manifested in the Product queried by ProductService.GetProduct or ProductService.ListProducts. When inventory is updated with ProductService.CreateProduct and ProductService.UpdateProduct, the specified inventory field value(s) overwrite any existing value(s) while ignoring the last update time for this field. Furthermore, the last update times for the specified inventory fields are overwritten by the times of the ProductService.CreateProduct or ProductService.UpdateProduct request. If no inventory fields are set in CreateProductRequest.product, then any pre-existing inventory information for this product is used. If no inventory fields are set in SetInventoryRequest.set_mask, then any existing inventory information is preserved. Pre-existing inventory information can only be updated with ProductService.SetInventory, ProductService.AddFulfillmentPlaces, and ProductService.RemoveFulfillmentPlaces. The returned Operations is obsolete after one day, and the GetOperation API returns NOT_FOUND afterwards. If conflicting updates are issued, the Operations associated with the stale updates are not marked as done until they are obsolete.
 ///
@@ -4057,8 +4375,7 @@ pub fn retail_projects_locations_catalogs_branches_products_set_inventory_execut
 
 pub fn retail_projects_locations_catalogs_branches_products_set_inventory(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRetailV2SetInventoryRequest,
+    args: &RetailProjectsLocationsCatalogsBranchesProductsSetInventoryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4068,7 +4385,7 @@ pub fn retail_projects_locations_catalogs_branches_products_set_inventory(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_branches_products_set_inventory_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     retail_projects_locations_catalogs_branches_products_set_inventory_execute(builder)
 }
@@ -4170,6 +4487,15 @@ pub fn retail_projects_locations_catalogs_completion_data_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_completion_data_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsCompletionDataImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2ImportCompletionDataRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/completionData:import
 /// Bulk import of processed completion dataset. Request processing is asynchronous. Partial updating is not supported. The operation is successfully finished only after the imported suggestions are indexed successfully and ready for serving. The process takes hours. This feature is only available for users who have Retail Search enabled. Enable Retail Search on Cloud Console before using this feature.
 ///
@@ -4182,8 +4508,7 @@ pub fn retail_projects_locations_catalogs_completion_data_import_execute(
 
 pub fn retail_projects_locations_catalogs_completion_data_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRetailV2ImportCompletionDataRequest,
+    args: &RetailProjectsLocationsCatalogsCompletionDataImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4192,8 +4517,11 @@ pub fn retail_projects_locations_catalogs_completion_data_import(
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_completion_data_import_builder(client, parent, body)?;
+    let builder = retail_projects_locations_catalogs_completion_data_import_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_completion_data_import_execute(builder)
 }
 
@@ -4306,6 +4634,17 @@ pub fn retail_projects_locations_catalogs_controls_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_controls_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsControlsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: controlId
+    pub controlId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRetailV2Control,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/controls
 /// Creates a Control. If the Control to create already exists, an ALREADY_EXISTS error is returned.
 ///
@@ -4318,9 +4657,7 @@ pub fn retail_projects_locations_catalogs_controls_create_execute(
 
 pub fn retail_projects_locations_catalogs_controls_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    controlId: Option<&str>,
-    body: &GoogleCloudRetailV2Control,
+    args: &RetailProjectsLocationsCatalogsControlsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2Control>, ApiError>,
@@ -4330,7 +4667,10 @@ pub fn retail_projects_locations_catalogs_controls_create(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_controls_create_builder(
-        client, parent, controlId, body,
+        client,
+        &args.parent,
+        args.controlId.as_deref(),
+        &args.body,
     )?;
     retail_projects_locations_catalogs_controls_create_execute(builder)
 }
@@ -4427,6 +4767,13 @@ pub fn retail_projects_locations_catalogs_controls_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_controls_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsControlsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/controls/{controlsId}
 /// Deletes a Control. If the Control to delete does not exist, a NOT_FOUND error is returned.
 ///
@@ -4439,14 +4786,14 @@ pub fn retail_projects_locations_catalogs_controls_delete_execute(
 
 pub fn retail_projects_locations_catalogs_controls_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RetailProjectsLocationsCatalogsControlsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_controls_delete_builder(client, name)?;
+    let builder = retail_projects_locations_catalogs_controls_delete_builder(client, &args.name)?;
     retail_projects_locations_catalogs_controls_delete_execute(builder)
 }
 
@@ -4544,6 +4891,13 @@ pub fn retail_projects_locations_catalogs_controls_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_controls_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsControlsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/controls/{controlsId}
 /// Gets a Control.
 ///
@@ -4556,7 +4910,7 @@ pub fn retail_projects_locations_catalogs_controls_get_execute(
 
 pub fn retail_projects_locations_catalogs_controls_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RetailProjectsLocationsCatalogsControlsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2Control>, ApiError>,
@@ -4565,7 +4919,7 @@ pub fn retail_projects_locations_catalogs_controls_get(
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_controls_get_builder(client, name)?;
+    let builder = retail_projects_locations_catalogs_controls_get_builder(client, &args.name)?;
     retail_projects_locations_catalogs_controls_get_execute(builder)
 }
 
@@ -4684,6 +5038,19 @@ pub fn retail_projects_locations_catalogs_controls_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_controls_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsControlsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/controls
 /// Lists all Controls by their parent Catalog.
 ///
@@ -4696,10 +5063,7 @@ pub fn retail_projects_locations_catalogs_controls_list_execute(
 
 pub fn retail_projects_locations_catalogs_controls_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RetailProjectsLocationsCatalogsControlsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2ListControlsResponse>, ApiError>,
@@ -4709,7 +5073,11 @@ pub fn retail_projects_locations_catalogs_controls_list(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_controls_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     retail_projects_locations_catalogs_controls_list_execute(builder)
 }
@@ -4823,6 +5191,17 @@ pub fn retail_projects_locations_catalogs_controls_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_controls_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsControlsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRetailV2Control,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/controls/{controlsId}
 /// Updates a Control. Control cannot be set to a different oneof field, if so an INVALID_ARGUMENT is returned. If the Control to update does not exist, a NOT_FOUND error is returned.
 ///
@@ -4835,9 +5214,7 @@ pub fn retail_projects_locations_catalogs_controls_patch_execute(
 
 pub fn retail_projects_locations_catalogs_controls_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudRetailV2Control,
+    args: &RetailProjectsLocationsCatalogsControlsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2Control>, ApiError>,
@@ -4846,8 +5223,12 @@ pub fn retail_projects_locations_catalogs_controls_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_controls_patch_builder(client, name, updateMask, body)?;
+    let builder = retail_projects_locations_catalogs_controls_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_controls_patch_execute(builder)
 }
 
@@ -4952,6 +5333,15 @@ pub fn retail_projects_locations_catalogs_generative_question_batch_update_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_generative_question_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsGenerativeQuestionBatchUpdateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2BatchUpdateGenerativeQuestionConfigsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/generativeQuestion:batchUpdate
 /// Allows management of multiple questions.
 ///
@@ -4964,8 +5354,7 @@ pub fn retail_projects_locations_catalogs_generative_question_batch_update_execu
 
 pub fn retail_projects_locations_catalogs_generative_question_batch_update(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRetailV2BatchUpdateGenerativeQuestionConfigsRequest,
+    args: &RetailProjectsLocationsCatalogsGenerativeQuestionBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4978,7 +5367,9 @@ pub fn retail_projects_locations_catalogs_generative_question_batch_update(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_generative_question_batch_update_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     retail_projects_locations_catalogs_generative_question_batch_update_execute(builder)
 }
@@ -5081,6 +5472,13 @@ pub fn retail_projects_locations_catalogs_generative_questions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_generative_questions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsGenerativeQuestionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/generativeQuestions
 /// Returns all questions for a given catalog.
 ///
@@ -5093,7 +5491,7 @@ pub fn retail_projects_locations_catalogs_generative_questions_list_execute(
 
 pub fn retail_projects_locations_catalogs_generative_questions_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &RetailProjectsLocationsCatalogsGenerativeQuestionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5106,7 +5504,7 @@ pub fn retail_projects_locations_catalogs_generative_questions_list(
     ApiError,
 > {
     let builder =
-        retail_projects_locations_catalogs_generative_questions_list_builder(client, parent)?;
+        retail_projects_locations_catalogs_generative_questions_list_builder(client, &args.parent)?;
     retail_projects_locations_catalogs_generative_questions_list_execute(builder)
 }
 
@@ -5219,6 +5617,17 @@ pub fn retail_projects_locations_catalogs_models_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_models_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsModelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dryRun
+    pub dryRun: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudRetailV2Model,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/models
 /// Creates a new model.
 ///
@@ -5231,9 +5640,7 @@ pub fn retail_projects_locations_catalogs_models_create_execute(
 
 pub fn retail_projects_locations_catalogs_models_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dryRun: Option<bool>,
-    body: &GoogleCloudRetailV2Model,
+    args: &RetailProjectsLocationsCatalogsModelsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5242,8 +5649,12 @@ pub fn retail_projects_locations_catalogs_models_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_models_create_builder(client, parent, dryRun, body)?;
+    let builder = retail_projects_locations_catalogs_models_create_builder(
+        client,
+        &args.parent,
+        args.dryRun,
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_models_create_execute(builder)
 }
 
@@ -5339,6 +5750,13 @@ pub fn retail_projects_locations_catalogs_models_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_models_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsModelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/models/{modelsId}
 /// Deletes an existing model.
 ///
@@ -5351,14 +5769,14 @@ pub fn retail_projects_locations_catalogs_models_delete_execute(
 
 pub fn retail_projects_locations_catalogs_models_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RetailProjectsLocationsCatalogsModelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_models_delete_builder(client, name)?;
+    let builder = retail_projects_locations_catalogs_models_delete_builder(client, &args.name)?;
     retail_projects_locations_catalogs_models_delete_execute(builder)
 }
 
@@ -5454,6 +5872,13 @@ pub fn retail_projects_locations_catalogs_models_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_models_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsModelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/models/{modelsId}
 /// Gets a model.
 ///
@@ -5466,14 +5891,14 @@ pub fn retail_projects_locations_catalogs_models_get_execute(
 
 pub fn retail_projects_locations_catalogs_models_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RetailProjectsLocationsCatalogsModelsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudRetailV2Model>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_models_get_builder(client, name)?;
+    let builder = retail_projects_locations_catalogs_models_get_builder(client, &args.name)?;
     retail_projects_locations_catalogs_models_get_execute(builder)
 }
 
@@ -5587,6 +6012,17 @@ pub fn retail_projects_locations_catalogs_models_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_models_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsModelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/models
 /// Lists all the models linked to this event store.
 ///
@@ -5599,9 +6035,7 @@ pub fn retail_projects_locations_catalogs_models_list_execute(
 
 pub fn retail_projects_locations_catalogs_models_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RetailProjectsLocationsCatalogsModelsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2ListModelsResponse>, ApiError>,
@@ -5611,7 +6045,10 @@ pub fn retail_projects_locations_catalogs_models_list(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_models_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     retail_projects_locations_catalogs_models_list_execute(builder)
 }
@@ -5723,6 +6160,17 @@ pub fn retail_projects_locations_catalogs_models_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_models_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsModelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRetailV2Model,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/models/{modelsId}
 /// Update of model metadata. Only fields that currently can be updated are: filtering_option and periodic_tuning_state. If other values are provided, this API method ignores them.
 ///
@@ -5735,17 +6183,19 @@ pub fn retail_projects_locations_catalogs_models_patch_execute(
 
 pub fn retail_projects_locations_catalogs_models_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudRetailV2Model,
+    args: &RetailProjectsLocationsCatalogsModelsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudRetailV2Model>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_models_patch_builder(client, name, updateMask, body)?;
+    let builder = retail_projects_locations_catalogs_models_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_models_patch_execute(builder)
 }
 
@@ -5844,6 +6294,15 @@ pub fn retail_projects_locations_catalogs_models_pause_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_models_pause`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsModelsPauseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2PauseModelRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/models/{modelsId}:pause
 /// Pauses the training of an existing model.
 ///
@@ -5856,15 +6315,15 @@ pub fn retail_projects_locations_catalogs_models_pause_execute(
 
 pub fn retail_projects_locations_catalogs_models_pause(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRetailV2PauseModelRequest,
+    args: &RetailProjectsLocationsCatalogsModelsPauseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudRetailV2Model>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_models_pause_builder(client, name, body)?;
+    let builder =
+        retail_projects_locations_catalogs_models_pause_builder(client, &args.name, &args.body)?;
     retail_projects_locations_catalogs_models_pause_execute(builder)
 }
 
@@ -5963,6 +6422,15 @@ pub fn retail_projects_locations_catalogs_models_resume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_models_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsModelsResumeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2ResumeModelRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/models/{modelsId}:resume
 /// Resumes the training of an existing model.
 ///
@@ -5975,15 +6443,15 @@ pub fn retail_projects_locations_catalogs_models_resume_execute(
 
 pub fn retail_projects_locations_catalogs_models_resume(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRetailV2ResumeModelRequest,
+    args: &RetailProjectsLocationsCatalogsModelsResumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudRetailV2Model>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_models_resume_builder(client, name, body)?;
+    let builder =
+        retail_projects_locations_catalogs_models_resume_builder(client, &args.name, &args.body)?;
     retail_projects_locations_catalogs_models_resume_execute(builder)
 }
 
@@ -6084,6 +6552,15 @@ pub fn retail_projects_locations_catalogs_models_tune_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_models_tune`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsModelsTuneArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2TuneModelRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/models/{modelsId}:tune
 /// Tunes an existing model.
 ///
@@ -6096,8 +6573,7 @@ pub fn retail_projects_locations_catalogs_models_tune_execute(
 
 pub fn retail_projects_locations_catalogs_models_tune(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRetailV2TuneModelRequest,
+    args: &RetailProjectsLocationsCatalogsModelsTuneArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6106,7 +6582,8 @@ pub fn retail_projects_locations_catalogs_models_tune(
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_models_tune_builder(client, name, body)?;
+    let builder =
+        retail_projects_locations_catalogs_models_tune_builder(client, &args.name, &args.body)?;
     retail_projects_locations_catalogs_models_tune_execute(builder)
 }
 
@@ -6204,6 +6681,13 @@ pub fn retail_projects_locations_catalogs_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -6216,7 +6700,7 @@ pub fn retail_projects_locations_catalogs_operations_get_execute(
 
 pub fn retail_projects_locations_catalogs_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RetailProjectsLocationsCatalogsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6225,7 +6709,7 @@ pub fn retail_projects_locations_catalogs_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_operations_get_builder(client, name)?;
+    let builder = retail_projects_locations_catalogs_operations_get_builder(client, &args.name)?;
     retail_projects_locations_catalogs_operations_get_execute(builder)
 }
 
@@ -6348,6 +6832,21 @@ pub fn retail_projects_locations_catalogs_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -6360,11 +6859,7 @@ pub fn retail_projects_locations_catalogs_operations_list_execute(
 
 pub fn retail_projects_locations_catalogs_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &RetailProjectsLocationsCatalogsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -6375,11 +6870,11 @@ pub fn retail_projects_locations_catalogs_operations_list(
 > {
     let builder = retail_projects_locations_catalogs_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     retail_projects_locations_catalogs_operations_list_execute(builder)
 }
@@ -6482,6 +6977,15 @@ pub fn retail_projects_locations_catalogs_placements_conversational_search_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_placements_conversational_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsPlacementsConversationalSearchArgs {
+    /// Path parameter: placement
+    pub placement: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2ConversationalSearchRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/placements/{placementsId}:conversationalSearch
 /// Performs a conversational search. This feature is only available for users who have Conversational Search enabled.
 ///
@@ -6494,8 +6998,7 @@ pub fn retail_projects_locations_catalogs_placements_conversational_search_execu
 
 pub fn retail_projects_locations_catalogs_placements_conversational_search(
     client: &SimpleHttpClient,
-    placement: &str,
-    body: &GoogleCloudRetailV2ConversationalSearchRequest,
+    args: &RetailProjectsLocationsCatalogsPlacementsConversationalSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2ConversationalSearchResponse>, ApiError>,
@@ -6505,7 +7008,9 @@ pub fn retail_projects_locations_catalogs_placements_conversational_search(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_placements_conversational_search_builder(
-        client, placement, body,
+        client,
+        &args.placement,
+        &args.body,
     )?;
     retail_projects_locations_catalogs_placements_conversational_search_execute(builder)
 }
@@ -6607,6 +7112,15 @@ pub fn retail_projects_locations_catalogs_placements_predict_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_placements_predict`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsPlacementsPredictArgs {
+    /// Path parameter: placement
+    pub placement: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2PredictRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/placements/{placementsId}:predict
 /// Makes a recommendation prediction.
 ///
@@ -6619,8 +7133,7 @@ pub fn retail_projects_locations_catalogs_placements_predict_execute(
 
 pub fn retail_projects_locations_catalogs_placements_predict(
     client: &SimpleHttpClient,
-    placement: &str,
-    body: &GoogleCloudRetailV2PredictRequest,
+    args: &RetailProjectsLocationsCatalogsPlacementsPredictArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2PredictResponse>, ApiError>,
@@ -6629,8 +7142,11 @@ pub fn retail_projects_locations_catalogs_placements_predict(
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_placements_predict_builder(client, placement, body)?;
+    let builder = retail_projects_locations_catalogs_placements_predict_builder(
+        client,
+        &args.placement,
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_placements_predict_execute(builder)
 }
 
@@ -6731,6 +7247,15 @@ pub fn retail_projects_locations_catalogs_placements_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_placements_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsPlacementsSearchArgs {
+    /// Path parameter: placement
+    pub placement: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2SearchRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/placements/{placementsId}:search
 /// Performs a search. This feature is only available for users who have Retail Search enabled. Enable Retail Search on Cloud Console before using this feature.
 ///
@@ -6743,8 +7268,7 @@ pub fn retail_projects_locations_catalogs_placements_search_execute(
 
 pub fn retail_projects_locations_catalogs_placements_search(
     client: &SimpleHttpClient,
-    placement: &str,
-    body: &GoogleCloudRetailV2SearchRequest,
+    args: &RetailProjectsLocationsCatalogsPlacementsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2SearchResponse>, ApiError>,
@@ -6753,8 +7277,11 @@ pub fn retail_projects_locations_catalogs_placements_search(
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_placements_search_builder(client, placement, body)?;
+    let builder = retail_projects_locations_catalogs_placements_search_builder(
+        client,
+        &args.placement,
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_placements_search_execute(builder)
 }
 
@@ -6855,6 +7382,15 @@ pub fn retail_projects_locations_catalogs_serving_configs_add_control_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_serving_configs_add_control`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsServingConfigsAddControlArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2AddControlRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}:addControl
 /// Enables a Control on the specified ServingConfig. The control is added in the last position of the list of controls it belongs to (e.g. if it's a facet spec control it will be applied in the last position of `servingConfig`.`facetSpecIds`) Returns a ALREADY_EXISTS error if the control has already been applied. Returns a FAILED_PRECONDITION error if the addition could exceed maximum number of control allowed for that type of control.
 ///
@@ -6867,8 +7403,7 @@ pub fn retail_projects_locations_catalogs_serving_configs_add_control_execute(
 
 pub fn retail_projects_locations_catalogs_serving_configs_add_control(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudRetailV2AddControlRequest,
+    args: &RetailProjectsLocationsCatalogsServingConfigsAddControlArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2ServingConfig>, ApiError>,
@@ -6879,8 +7414,8 @@ pub fn retail_projects_locations_catalogs_serving_configs_add_control(
 > {
     let builder = retail_projects_locations_catalogs_serving_configs_add_control_builder(
         client,
-        servingConfig,
-        body,
+        &args.servingConfig,
+        &args.body,
     )?;
     retail_projects_locations_catalogs_serving_configs_add_control_execute(builder)
 }
@@ -6983,6 +7518,15 @@ pub fn retail_projects_locations_catalogs_serving_configs_conversational_search_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_serving_configs_conversational_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsServingConfigsConversationalSearchArgs {
+    /// Path parameter: placement
+    pub placement: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2ConversationalSearchRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}:conversationalSearch
 /// Performs a conversational search. This feature is only available for users who have Conversational Search enabled.
 ///
@@ -6995,8 +7539,7 @@ pub fn retail_projects_locations_catalogs_serving_configs_conversational_search_
 
 pub fn retail_projects_locations_catalogs_serving_configs_conversational_search(
     client: &SimpleHttpClient,
-    placement: &str,
-    body: &GoogleCloudRetailV2ConversationalSearchRequest,
+    args: &RetailProjectsLocationsCatalogsServingConfigsConversationalSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2ConversationalSearchResponse>, ApiError>,
@@ -7006,7 +7549,9 @@ pub fn retail_projects_locations_catalogs_serving_configs_conversational_search(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_serving_configs_conversational_search_builder(
-        client, placement, body,
+        client,
+        &args.placement,
+        &args.body,
     )?;
     retail_projects_locations_catalogs_serving_configs_conversational_search_execute(builder)
 }
@@ -7120,6 +7665,17 @@ pub fn retail_projects_locations_catalogs_serving_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_serving_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsServingConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: servingConfigId
+    pub servingConfigId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRetailV2ServingConfig,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs
 /// Creates a ServingConfig. A maximum of 100 ServingConfigs are allowed in a Catalog, otherwise a FAILED_PRECONDITION error is returned.
 ///
@@ -7132,9 +7688,7 @@ pub fn retail_projects_locations_catalogs_serving_configs_create_execute(
 
 pub fn retail_projects_locations_catalogs_serving_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    servingConfigId: Option<&str>,
-    body: &GoogleCloudRetailV2ServingConfig,
+    args: &RetailProjectsLocationsCatalogsServingConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2ServingConfig>, ApiError>,
@@ -7145,9 +7699,9 @@ pub fn retail_projects_locations_catalogs_serving_configs_create(
 > {
     let builder = retail_projects_locations_catalogs_serving_configs_create_builder(
         client,
-        parent,
-        servingConfigId,
-        body,
+        &args.parent,
+        args.servingConfigId.as_deref(),
+        &args.body,
     )?;
     retail_projects_locations_catalogs_serving_configs_create_execute(builder)
 }
@@ -7244,6 +7798,13 @@ pub fn retail_projects_locations_catalogs_serving_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_serving_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsServingConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}
 /// Deletes a ServingConfig. Returns a NotFound error if the ServingConfig does not exist.
 ///
@@ -7256,14 +7817,15 @@ pub fn retail_projects_locations_catalogs_serving_configs_delete_execute(
 
 pub fn retail_projects_locations_catalogs_serving_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RetailProjectsLocationsCatalogsServingConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_serving_configs_delete_builder(client, name)?;
+    let builder =
+        retail_projects_locations_catalogs_serving_configs_delete_builder(client, &args.name)?;
     retail_projects_locations_catalogs_serving_configs_delete_execute(builder)
 }
 
@@ -7361,6 +7923,13 @@ pub fn retail_projects_locations_catalogs_serving_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_serving_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsServingConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}
 /// Gets a ServingConfig. Returns a NotFound error if the ServingConfig does not exist.
 ///
@@ -7373,7 +7942,7 @@ pub fn retail_projects_locations_catalogs_serving_configs_get_execute(
 
 pub fn retail_projects_locations_catalogs_serving_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RetailProjectsLocationsCatalogsServingConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2ServingConfig>, ApiError>,
@@ -7382,7 +7951,8 @@ pub fn retail_projects_locations_catalogs_serving_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_catalogs_serving_configs_get_builder(client, name)?;
+    let builder =
+        retail_projects_locations_catalogs_serving_configs_get_builder(client, &args.name)?;
     retail_projects_locations_catalogs_serving_configs_get_execute(builder)
 }
 
@@ -7497,6 +8067,17 @@ pub fn retail_projects_locations_catalogs_serving_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_serving_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsServingConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs
 /// Lists all ServingConfigs linked to this catalog.
 ///
@@ -7509,9 +8090,7 @@ pub fn retail_projects_locations_catalogs_serving_configs_list_execute(
 
 pub fn retail_projects_locations_catalogs_serving_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RetailProjectsLocationsCatalogsServingConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2ListServingConfigsResponse>, ApiError>,
@@ -7521,7 +8100,10 @@ pub fn retail_projects_locations_catalogs_serving_configs_list(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_serving_configs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     retail_projects_locations_catalogs_serving_configs_list_execute(builder)
 }
@@ -7635,6 +8217,17 @@ pub fn retail_projects_locations_catalogs_serving_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_serving_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsServingConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRetailV2ServingConfig,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}
 /// Updates a ServingConfig.
 ///
@@ -7647,9 +8240,7 @@ pub fn retail_projects_locations_catalogs_serving_configs_patch_execute(
 
 pub fn retail_projects_locations_catalogs_serving_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudRetailV2ServingConfig,
+    args: &RetailProjectsLocationsCatalogsServingConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2ServingConfig>, ApiError>,
@@ -7659,7 +8250,10 @@ pub fn retail_projects_locations_catalogs_serving_configs_patch(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_serving_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     retail_projects_locations_catalogs_serving_configs_patch_execute(builder)
 }
@@ -7761,6 +8355,15 @@ pub fn retail_projects_locations_catalogs_serving_configs_predict_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_serving_configs_predict`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsServingConfigsPredictArgs {
+    /// Path parameter: placement
+    pub placement: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2PredictRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}:predict
 /// Makes a recommendation prediction.
 ///
@@ -7773,8 +8376,7 @@ pub fn retail_projects_locations_catalogs_serving_configs_predict_execute(
 
 pub fn retail_projects_locations_catalogs_serving_configs_predict(
     client: &SimpleHttpClient,
-    placement: &str,
-    body: &GoogleCloudRetailV2PredictRequest,
+    args: &RetailProjectsLocationsCatalogsServingConfigsPredictArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2PredictResponse>, ApiError>,
@@ -7784,7 +8386,9 @@ pub fn retail_projects_locations_catalogs_serving_configs_predict(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_serving_configs_predict_builder(
-        client, placement, body,
+        client,
+        &args.placement,
+        &args.body,
     )?;
     retail_projects_locations_catalogs_serving_configs_predict_execute(builder)
 }
@@ -7886,6 +8490,15 @@ pub fn retail_projects_locations_catalogs_serving_configs_remove_control_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_serving_configs_remove_control`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsServingConfigsRemoveControlArgs {
+    /// Path parameter: servingConfig
+    pub servingConfig: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2RemoveControlRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}:removeControl
 /// Disables a Control on the specified ServingConfig. The control is removed from the ServingConfig. Returns a NOT_FOUND error if the Control is not enabled for the ServingConfig.
 ///
@@ -7898,8 +8511,7 @@ pub fn retail_projects_locations_catalogs_serving_configs_remove_control_execute
 
 pub fn retail_projects_locations_catalogs_serving_configs_remove_control(
     client: &SimpleHttpClient,
-    servingConfig: &str,
-    body: &GoogleCloudRetailV2RemoveControlRequest,
+    args: &RetailProjectsLocationsCatalogsServingConfigsRemoveControlArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2ServingConfig>, ApiError>,
@@ -7910,8 +8522,8 @@ pub fn retail_projects_locations_catalogs_serving_configs_remove_control(
 > {
     let builder = retail_projects_locations_catalogs_serving_configs_remove_control_builder(
         client,
-        servingConfig,
-        body,
+        &args.servingConfig,
+        &args.body,
     )?;
     retail_projects_locations_catalogs_serving_configs_remove_control_execute(builder)
 }
@@ -8013,6 +8625,15 @@ pub fn retail_projects_locations_catalogs_serving_configs_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_serving_configs_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsServingConfigsSearchArgs {
+    /// Path parameter: placement
+    pub placement: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2SearchRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/servingConfigs/{servingConfigsId}:search
 /// Performs a search. This feature is only available for users who have Retail Search enabled. Enable Retail Search on Cloud Console before using this feature.
 ///
@@ -8025,8 +8646,7 @@ pub fn retail_projects_locations_catalogs_serving_configs_search_execute(
 
 pub fn retail_projects_locations_catalogs_serving_configs_search(
     client: &SimpleHttpClient,
-    placement: &str,
-    body: &GoogleCloudRetailV2SearchRequest,
+    args: &RetailProjectsLocationsCatalogsServingConfigsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2SearchResponse>, ApiError>,
@@ -8035,8 +8655,11 @@ pub fn retail_projects_locations_catalogs_serving_configs_search(
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_serving_configs_search_builder(client, placement, body)?;
+    let builder = retail_projects_locations_catalogs_serving_configs_search_builder(
+        client,
+        &args.placement,
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_serving_configs_search_execute(builder)
 }
 
@@ -8135,6 +8758,15 @@ pub fn retail_projects_locations_catalogs_user_events_collect_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_user_events_collect`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsUserEventsCollectArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2CollectUserEventRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/userEvents:collect
 /// Writes a single user event from the browser. For larger user event payload over 16 KB, the POST method should be used instead, otherwise a 400 Bad Request error is returned. This method is used only by the Retail API JavaScript pixel and Google Tag Manager. Users should not call this method directly.
 ///
@@ -8147,16 +8779,18 @@ pub fn retail_projects_locations_catalogs_user_events_collect_execute(
 
 pub fn retail_projects_locations_catalogs_user_events_collect(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRetailV2CollectUserEventRequest,
+    args: &RetailProjectsLocationsCatalogsUserEventsCollectArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApiHttpBody>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_user_events_collect_builder(client, parent, body)?;
+    let builder = retail_projects_locations_catalogs_user_events_collect_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_user_events_collect_execute(builder)
 }
 
@@ -8257,6 +8891,15 @@ pub fn retail_projects_locations_catalogs_user_events_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_user_events_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsUserEventsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2ImportUserEventsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/userEvents:import
 /// Bulk import of User events. Request processing might be synchronous. Events that already exist are skipped. Use this method for backfilling historical user events. Operation.response is of type ImportResponse. Note that it is possible for a subset of the items to be successfully inserted. Operation.metadata is of type ImportMetadata.
 ///
@@ -8269,8 +8912,7 @@ pub fn retail_projects_locations_catalogs_user_events_import_execute(
 
 pub fn retail_projects_locations_catalogs_user_events_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRetailV2ImportUserEventsRequest,
+    args: &RetailProjectsLocationsCatalogsUserEventsImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -8279,8 +8921,11 @@ pub fn retail_projects_locations_catalogs_user_events_import(
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_user_events_import_builder(client, parent, body)?;
+    let builder = retail_projects_locations_catalogs_user_events_import_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_user_events_import_execute(builder)
 }
 
@@ -8381,6 +9026,15 @@ pub fn retail_projects_locations_catalogs_user_events_purge_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_user_events_purge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsUserEventsPurgeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2PurgeUserEventsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/userEvents:purge
 /// Deletes permanently all user events specified by the filter provided. Depending on the number of events specified by the filter, this operation could take hours or days to complete. To test a filter, use the list command first.
 ///
@@ -8393,8 +9047,7 @@ pub fn retail_projects_locations_catalogs_user_events_purge_execute(
 
 pub fn retail_projects_locations_catalogs_user_events_purge(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRetailV2PurgeUserEventsRequest,
+    args: &RetailProjectsLocationsCatalogsUserEventsPurgeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -8403,8 +9056,11 @@ pub fn retail_projects_locations_catalogs_user_events_purge(
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_user_events_purge_builder(client, parent, body)?;
+    let builder = retail_projects_locations_catalogs_user_events_purge_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_user_events_purge_execute(builder)
 }
 
@@ -8505,6 +9161,15 @@ pub fn retail_projects_locations_catalogs_user_events_rejoin_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_user_events_rejoin`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsUserEventsRejoinArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRetailV2RejoinUserEventsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/userEvents:rejoin
 /// Starts a user-event rejoin operation with latest product catalog. Events are not annotated with detailed product information for products that are missing from the catalog when the user event is ingested. These events are stored as unjoined events with limited usage on training and serving. You can use this method to start a join operation on specified events with the latest version of product catalog. You can also use this method to correct events joined with the wrong product catalog. A rejoin operation can take hours or days to complete.
 ///
@@ -8517,8 +9182,7 @@ pub fn retail_projects_locations_catalogs_user_events_rejoin_execute(
 
 pub fn retail_projects_locations_catalogs_user_events_rejoin(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRetailV2RejoinUserEventsRequest,
+    args: &RetailProjectsLocationsCatalogsUserEventsRejoinArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -8527,8 +9191,11 @@ pub fn retail_projects_locations_catalogs_user_events_rejoin(
         + 'static,
     ApiError,
 > {
-    let builder =
-        retail_projects_locations_catalogs_user_events_rejoin_builder(client, parent, body)?;
+    let builder = retail_projects_locations_catalogs_user_events_rejoin_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     retail_projects_locations_catalogs_user_events_rejoin_execute(builder)
 }
 
@@ -8641,6 +9308,17 @@ pub fn retail_projects_locations_catalogs_user_events_write_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_catalogs_user_events_write`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsCatalogsUserEventsWriteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: writeAsync
+    pub writeAsync: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudRetailV2UserEvent,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/catalogs/{catalogsId}/userEvents:write
 /// Writes a single user event.
 ///
@@ -8653,9 +9331,7 @@ pub fn retail_projects_locations_catalogs_user_events_write_execute(
 
 pub fn retail_projects_locations_catalogs_user_events_write(
     client: &SimpleHttpClient,
-    parent: &str,
-    writeAsync: Option<bool>,
-    body: &GoogleCloudRetailV2UserEvent,
+    args: &RetailProjectsLocationsCatalogsUserEventsWriteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRetailV2UserEvent>, ApiError>,
@@ -8665,7 +9341,10 @@ pub fn retail_projects_locations_catalogs_user_events_write(
     ApiError,
 > {
     let builder = retail_projects_locations_catalogs_user_events_write_builder(
-        client, parent, writeAsync, body,
+        client,
+        &args.parent,
+        args.writeAsync,
+        &args.body,
     )?;
     retail_projects_locations_catalogs_user_events_write_execute(builder)
 }
@@ -8764,6 +9443,13 @@ pub fn retail_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -8776,7 +9462,7 @@ pub fn retail_projects_locations_operations_get_execute(
 
 pub fn retail_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RetailProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -8785,7 +9471,7 @@ pub fn retail_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_locations_operations_get_builder(client, name)?;
+    let builder = retail_projects_locations_operations_get_builder(client, &args.name)?;
     retail_projects_locations_operations_get_execute(builder)
 }
 
@@ -8908,6 +9594,21 @@ pub fn retail_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -8920,11 +9621,7 @@ pub fn retail_projects_locations_operations_list_execute(
 
 pub fn retail_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &RetailProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -8935,11 +9632,11 @@ pub fn retail_projects_locations_operations_list(
 > {
     let builder = retail_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     retail_projects_locations_operations_list_execute(builder)
 }
@@ -9038,6 +9735,13 @@ pub fn retail_projects_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -9050,7 +9754,7 @@ pub fn retail_projects_operations_get_execute(
 
 pub fn retail_projects_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RetailProjectsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -9059,7 +9763,7 @@ pub fn retail_projects_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = retail_projects_operations_get_builder(client, name)?;
+    let builder = retail_projects_operations_get_builder(client, &args.name)?;
     retail_projects_operations_get_execute(builder)
 }
 
@@ -9182,6 +9886,21 @@ pub fn retail_projects_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`retail_projects_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RetailProjectsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -9194,11 +9913,7 @@ pub fn retail_projects_operations_list_execute(
 
 pub fn retail_projects_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &RetailProjectsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -9209,11 +9924,11 @@ pub fn retail_projects_operations_list(
 > {
     let builder = retail_projects_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     retail_projects_operations_list_execute(builder)
 }

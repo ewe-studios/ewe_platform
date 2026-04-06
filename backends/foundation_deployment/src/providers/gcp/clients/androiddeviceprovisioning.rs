@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/customers
 /// Lists the user's customer accounts.
@@ -122,6 +124,15 @@ pub fn androiddeviceprovisioning_customers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_customers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/customers
 /// Lists the user's customer accounts.
 ///
@@ -134,8 +145,7 @@ pub fn androiddeviceprovisioning_customers_list_execute(
 
 pub fn androiddeviceprovisioning_customers_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AndroiddeviceprovisioningCustomersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CustomerListCustomersResponse>, ApiError>,
@@ -144,7 +154,11 @@ pub fn androiddeviceprovisioning_customers_list(
         + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_customers_list_builder(client, pageSize, pageToken)?;
+    let builder = androiddeviceprovisioning_customers_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     androiddeviceprovisioning_customers_list_execute(builder)
 }
 
@@ -243,6 +257,15 @@ pub fn androiddeviceprovisioning_customers_configurations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_customers_configurations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersConfigurationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Configuration,
+}
+
 /// GET v1/customers/{customersId}/configurations
 /// Creates a new configuration. Once created, a customer can apply the configuration to devices.
 ///
@@ -255,16 +278,18 @@ pub fn androiddeviceprovisioning_customers_configurations_create_execute(
 
 pub fn androiddeviceprovisioning_customers_configurations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Configuration,
+    args: &AndroiddeviceprovisioningCustomersConfigurationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Configuration>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androiddeviceprovisioning_customers_configurations_create_builder(client, parent, body)?;
+    let builder = androiddeviceprovisioning_customers_configurations_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     androiddeviceprovisioning_customers_configurations_create_execute(builder)
 }
 
@@ -358,6 +383,13 @@ pub fn androiddeviceprovisioning_customers_configurations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_customers_configurations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersConfigurationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/customers/{customersId}/configurations/{configurationsId}
 /// Deletes an unused configuration. The API call fails if the customer has devices with the configuration applied.
 ///
@@ -370,12 +402,13 @@ pub fn androiddeviceprovisioning_customers_configurations_delete_execute(
 
 pub fn androiddeviceprovisioning_customers_configurations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroiddeviceprovisioningCustomersConfigurationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_customers_configurations_delete_builder(client, name)?;
+    let builder =
+        androiddeviceprovisioning_customers_configurations_delete_builder(client, &args.name)?;
     androiddeviceprovisioning_customers_configurations_delete_execute(builder)
 }
 
@@ -471,6 +504,13 @@ pub fn androiddeviceprovisioning_customers_configurations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_customers_configurations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersConfigurationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/customers/{customersId}/configurations/{configurationsId}
 /// Gets the details of a configuration.
 ///
@@ -483,14 +523,15 @@ pub fn androiddeviceprovisioning_customers_configurations_get_execute(
 
 pub fn androiddeviceprovisioning_customers_configurations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroiddeviceprovisioningCustomersConfigurationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Configuration>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_customers_configurations_get_builder(client, name)?;
+    let builder =
+        androiddeviceprovisioning_customers_configurations_get_builder(client, &args.name)?;
     androiddeviceprovisioning_customers_configurations_get_execute(builder)
 }
 
@@ -588,6 +629,13 @@ pub fn androiddeviceprovisioning_customers_configurations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_customers_configurations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersConfigurationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/customers/{customersId}/configurations
 /// Lists a customer's configurations.
 ///
@@ -600,7 +648,7 @@ pub fn androiddeviceprovisioning_customers_configurations_list_execute(
 
 pub fn androiddeviceprovisioning_customers_configurations_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &AndroiddeviceprovisioningCustomersConfigurationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CustomerListConfigurationsResponse>, ApiError>,
@@ -609,7 +657,8 @@ pub fn androiddeviceprovisioning_customers_configurations_list(
         + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_customers_configurations_list_builder(client, parent)?;
+    let builder =
+        androiddeviceprovisioning_customers_configurations_list_builder(client, &args.parent)?;
     androiddeviceprovisioning_customers_configurations_list_execute(builder)
 }
 
@@ -720,6 +769,17 @@ pub fn androiddeviceprovisioning_customers_configurations_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_customers_configurations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersConfigurationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Configuration,
+}
+
 /// GET v1/customers/{customersId}/configurations/{configurationsId}
 /// Updates a configuration's field values.
 ///
@@ -732,9 +792,7 @@ pub fn androiddeviceprovisioning_customers_configurations_patch_execute(
 
 pub fn androiddeviceprovisioning_customers_configurations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Configuration,
+    args: &AndroiddeviceprovisioningCustomersConfigurationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Configuration>, ApiError>, P = ApiPending>
         + Send
@@ -742,7 +800,10 @@ pub fn androiddeviceprovisioning_customers_configurations_patch(
     ApiError,
 > {
     let builder = androiddeviceprovisioning_customers_configurations_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     androiddeviceprovisioning_customers_configurations_patch_execute(builder)
 }
@@ -840,6 +901,15 @@ pub fn androiddeviceprovisioning_customers_devices_apply_configuration_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_customers_devices_apply_configuration`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersDevicesApplyConfigurationArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CustomerApplyConfigurationRequest,
+}
+
 /// GET v1/customers/{customersId}/devices:applyConfiguration
 /// Applies a Configuration to the device to register the device for zero-touch enrollment. After applying a configuration to a device, the device automatically provisions itself on first boot, or next factory reset.
 ///
@@ -852,14 +922,15 @@ pub fn androiddeviceprovisioning_customers_devices_apply_configuration_execute(
 
 pub fn androiddeviceprovisioning_customers_devices_apply_configuration(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CustomerApplyConfigurationRequest,
+    args: &AndroiddeviceprovisioningCustomersDevicesApplyConfigurationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androiddeviceprovisioning_customers_devices_apply_configuration_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     androiddeviceprovisioning_customers_devices_apply_configuration_execute(builder)
 }
@@ -954,6 +1025,13 @@ pub fn androiddeviceprovisioning_customers_devices_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_customers_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/customers/{customersId}/devices/{devicesId}
 /// Gets the details of a device.
 ///
@@ -966,12 +1044,12 @@ pub fn androiddeviceprovisioning_customers_devices_get_execute(
 
 pub fn androiddeviceprovisioning_customers_devices_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroiddeviceprovisioningCustomersDevicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_customers_devices_get_builder(client, name)?;
+    let builder = androiddeviceprovisioning_customers_devices_get_builder(client, &args.name)?;
     androiddeviceprovisioning_customers_devices_get_execute(builder)
 }
 
@@ -1085,6 +1163,17 @@ pub fn androiddeviceprovisioning_customers_devices_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_customers_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/devices
 /// Lists a customer's devices.
 ///
@@ -1097,9 +1186,7 @@ pub fn androiddeviceprovisioning_customers_devices_list_execute(
 
 pub fn androiddeviceprovisioning_customers_devices_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<&str>,
-    pageToken: Option<&str>,
+    args: &AndroiddeviceprovisioningCustomersDevicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CustomerListDevicesResponse>, ApiError>,
@@ -1109,7 +1196,10 @@ pub fn androiddeviceprovisioning_customers_devices_list(
     ApiError,
 > {
     let builder = androiddeviceprovisioning_customers_devices_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize.as_deref(),
+        args.pageToken.as_deref(),
     )?;
     androiddeviceprovisioning_customers_devices_list_execute(builder)
 }
@@ -1207,6 +1297,15 @@ pub fn androiddeviceprovisioning_customers_devices_remove_configuration_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_customers_devices_remove_configuration`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersDevicesRemoveConfigurationArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CustomerRemoveConfigurationRequest,
+}
+
 /// GET v1/customers/{customersId}/devices:removeConfiguration
 /// Removes a configuration from device.
 ///
@@ -1219,14 +1318,15 @@ pub fn androiddeviceprovisioning_customers_devices_remove_configuration_execute(
 
 pub fn androiddeviceprovisioning_customers_devices_remove_configuration(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CustomerRemoveConfigurationRequest,
+    args: &AndroiddeviceprovisioningCustomersDevicesRemoveConfigurationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androiddeviceprovisioning_customers_devices_remove_configuration_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     androiddeviceprovisioning_customers_devices_remove_configuration_execute(builder)
 }
@@ -1324,6 +1424,15 @@ pub fn androiddeviceprovisioning_customers_devices_unclaim_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_customers_devices_unclaim`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersDevicesUnclaimArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CustomerUnclaimDeviceRequest,
+}
+
 /// GET v1/customers/{customersId}/devices:unclaim
 /// Unclaims a device from a customer and removes it from zero-touch enrollment. After removing a device, a customer must contact their reseller to register the device into zero-touch enrollment again.
 ///
@@ -1336,14 +1445,16 @@ pub fn androiddeviceprovisioning_customers_devices_unclaim_execute(
 
 pub fn androiddeviceprovisioning_customers_devices_unclaim(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CustomerUnclaimDeviceRequest,
+    args: &AndroiddeviceprovisioningCustomersDevicesUnclaimArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androiddeviceprovisioning_customers_devices_unclaim_builder(client, parent, body)?;
+    let builder = androiddeviceprovisioning_customers_devices_unclaim_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     androiddeviceprovisioning_customers_devices_unclaim_execute(builder)
 }
 
@@ -1439,6 +1550,13 @@ pub fn androiddeviceprovisioning_customers_dpcs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_customers_dpcs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningCustomersDpcsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/customers/{customersId}/dpcs
 /// Lists the DPCs (device policy controllers) that support zero-touch enrollment.
 ///
@@ -1451,14 +1569,14 @@ pub fn androiddeviceprovisioning_customers_dpcs_list_execute(
 
 pub fn androiddeviceprovisioning_customers_dpcs_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &AndroiddeviceprovisioningCustomersDpcsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomerListDpcsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_customers_dpcs_list_builder(client, parent)?;
+    let builder = androiddeviceprovisioning_customers_dpcs_list_builder(client, &args.parent)?;
     androiddeviceprovisioning_customers_dpcs_list_execute(builder)
 }
 
@@ -1552,6 +1670,13 @@ pub fn androiddeviceprovisioning_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1564,12 +1689,12 @@ pub fn androiddeviceprovisioning_operations_get_execute(
 
 pub fn androiddeviceprovisioning_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroiddeviceprovisioningOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_operations_get_builder(client, name)?;
+    let builder = androiddeviceprovisioning_operations_get_builder(client, &args.name)?;
     androiddeviceprovisioning_operations_get_execute(builder)
 }
 
@@ -1666,6 +1791,15 @@ pub fn androiddeviceprovisioning_partners_customers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_partners_customers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersCustomersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateCustomerRequest,
+}
+
 /// GET v1/partners/{partnersId}/customers
 /// Creates a customer for zero-touch enrollment. After the method returns successfully, admin and owner roles can manage devices and EMM configs by calling API methods or using their zero-touch enrollment portal. The customer receives an email that welcomes them to zero-touch enrollment and explains how to sign into the portal.
 ///
@@ -1678,14 +1812,16 @@ pub fn androiddeviceprovisioning_partners_customers_create_execute(
 
 pub fn androiddeviceprovisioning_partners_customers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateCustomerRequest,
+    args: &AndroiddeviceprovisioningPartnersCustomersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Company>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androiddeviceprovisioning_partners_customers_create_builder(client, parent, body)?;
+    let builder = androiddeviceprovisioning_partners_customers_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     androiddeviceprovisioning_partners_customers_create_execute(builder)
 }
 
@@ -1797,6 +1933,17 @@ pub fn androiddeviceprovisioning_partners_customers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_partners_customers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersCustomersListArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/partners/{partnersId}/customers
 /// Lists the customers that are enrolled to the reseller identified by the `partnerId` argument. This list includes customers that the reseller created and customers that enrolled themselves using the portal.
 ///
@@ -1809,9 +1956,7 @@ pub fn androiddeviceprovisioning_partners_customers_list_execute(
 
 pub fn androiddeviceprovisioning_partners_customers_list(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AndroiddeviceprovisioningPartnersCustomersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCustomersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1819,7 +1964,10 @@ pub fn androiddeviceprovisioning_partners_customers_list(
     ApiError,
 > {
     let builder = androiddeviceprovisioning_partners_customers_list_builder(
-        client, partnerId, pageSize, pageToken,
+        client,
+        &args.partnerId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     androiddeviceprovisioning_partners_customers_list_execute(builder)
 }
@@ -1919,6 +2067,15 @@ pub fn androiddeviceprovisioning_partners_devices_claim_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_partners_devices_claim`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersDevicesClaimArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Request body.
+    pub body: ClaimDeviceRequest,
+}
+
 /// GET v1/partners/{partnersId}/devices:claim
 /// Claims a device for a customer and adds it to zero-touch enrollment. If the device is already claimed by another customer, the call returns an error.
 ///
@@ -1931,16 +2088,18 @@ pub fn androiddeviceprovisioning_partners_devices_claim_execute(
 
 pub fn androiddeviceprovisioning_partners_devices_claim(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    body: &ClaimDeviceRequest,
+    args: &AndroiddeviceprovisioningPartnersDevicesClaimArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClaimDeviceResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        androiddeviceprovisioning_partners_devices_claim_builder(client, partnerId, body)?;
+    let builder = androiddeviceprovisioning_partners_devices_claim_builder(
+        client,
+        &args.partnerId,
+        &args.body,
+    )?;
     androiddeviceprovisioning_partners_devices_claim_execute(builder)
 }
 
@@ -2037,6 +2196,15 @@ pub fn androiddeviceprovisioning_partners_devices_claim_async_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_partners_devices_claim_async`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersDevicesClaimAsyncArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Request body.
+    pub body: ClaimDevicesRequest,
+}
+
 /// GET v1/partners/{partnersId}/devices:claimAsync
 /// Claims a batch of devices for a customer asynchronously. Adds the devices to zero-touch enrollment. To learn more, read [Long‑running batch operations](/zero-`touch/guides/how-it-works`#operations).
 ///
@@ -2049,14 +2217,16 @@ pub fn androiddeviceprovisioning_partners_devices_claim_async_execute(
 
 pub fn androiddeviceprovisioning_partners_devices_claim_async(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    body: &ClaimDevicesRequest,
+    args: &AndroiddeviceprovisioningPartnersDevicesClaimAsyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androiddeviceprovisioning_partners_devices_claim_async_builder(client, partnerId, body)?;
+    let builder = androiddeviceprovisioning_partners_devices_claim_async_builder(
+        client,
+        &args.partnerId,
+        &args.body,
+    )?;
     androiddeviceprovisioning_partners_devices_claim_async_execute(builder)
 }
 
@@ -2157,6 +2327,15 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_identifier_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_partners_devices_find_by_identifier`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersDevicesFindByIdentifierArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Request body.
+    pub body: FindDevicesByDeviceIdentifierRequest,
+}
+
 /// GET v1/partners/{partnersId}/devices:findByIdentifier
 /// Finds devices by hardware identifiers, such as IMEI.
 ///
@@ -2169,8 +2348,7 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_identifier_execute(
 
 pub fn androiddeviceprovisioning_partners_devices_find_by_identifier(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    body: &FindDevicesByDeviceIdentifierRequest,
+    args: &AndroiddeviceprovisioningPartnersDevicesFindByIdentifierArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FindDevicesByDeviceIdentifierResponse>, ApiError>,
@@ -2180,7 +2358,9 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_identifier(
     ApiError,
 > {
     let builder = androiddeviceprovisioning_partners_devices_find_by_identifier_builder(
-        client, partnerId, body,
+        client,
+        &args.partnerId,
+        &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_find_by_identifier_execute(builder)
 }
@@ -2282,6 +2462,15 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_owner_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_partners_devices_find_by_owner`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersDevicesFindByOwnerArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Request body.
+    pub body: FindDevicesByOwnerRequest,
+}
+
 /// GET v1/partners/{partnersId}/devices:findByOwner
 /// Finds devices claimed for customers. The results only contain devices registered to the reseller that's identified by the `partnerId` argument. The customer's devices purchased from other resellers don't appear in the results.
 ///
@@ -2294,8 +2483,7 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_owner_execute(
 
 pub fn androiddeviceprovisioning_partners_devices_find_by_owner(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    body: &FindDevicesByOwnerRequest,
+    args: &AndroiddeviceprovisioningPartnersDevicesFindByOwnerArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FindDevicesByOwnerResponse>, ApiError>,
@@ -2304,8 +2492,11 @@ pub fn androiddeviceprovisioning_partners_devices_find_by_owner(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androiddeviceprovisioning_partners_devices_find_by_owner_builder(client, partnerId, body)?;
+    let builder = androiddeviceprovisioning_partners_devices_find_by_owner_builder(
+        client,
+        &args.partnerId,
+        &args.body,
+    )?;
     androiddeviceprovisioning_partners_devices_find_by_owner_execute(builder)
 }
 
@@ -2399,6 +2590,13 @@ pub fn androiddeviceprovisioning_partners_devices_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_partners_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/partners/{partnersId}/devices/{devicesId}
 /// Gets a device.
 ///
@@ -2411,12 +2609,12 @@ pub fn androiddeviceprovisioning_partners_devices_get_execute(
 
 pub fn androiddeviceprovisioning_partners_devices_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AndroiddeviceprovisioningPartnersDevicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Device>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androiddeviceprovisioning_partners_devices_get_builder(client, name)?;
+    let builder = androiddeviceprovisioning_partners_devices_get_builder(client, &args.name)?;
     androiddeviceprovisioning_partners_devices_get_execute(builder)
 }
 
@@ -2517,6 +2715,15 @@ pub fn androiddeviceprovisioning_partners_devices_get_sim_lock_state_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_partners_devices_get_sim_lock_state`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersDevicesGetSimLockStateArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Request body.
+    pub body: GetDeviceSimLockStateRequest,
+}
+
 /// GET v1/partners/{partnersId}/devices:getSimLockState
 /// Gets a device's SIM lock state.
 ///
@@ -2529,8 +2736,7 @@ pub fn androiddeviceprovisioning_partners_devices_get_sim_lock_state_execute(
 
 pub fn androiddeviceprovisioning_partners_devices_get_sim_lock_state(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    body: &GetDeviceSimLockStateRequest,
+    args: &AndroiddeviceprovisioningPartnersDevicesGetSimLockStateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetDeviceSimLockStateResponse>, ApiError>,
@@ -2540,7 +2746,9 @@ pub fn androiddeviceprovisioning_partners_devices_get_sim_lock_state(
     ApiError,
 > {
     let builder = androiddeviceprovisioning_partners_devices_get_sim_lock_state_builder(
-        client, partnerId, body,
+        client,
+        &args.partnerId,
+        &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_get_sim_lock_state_execute(builder)
 }
@@ -2641,6 +2849,17 @@ pub fn androiddeviceprovisioning_partners_devices_metadata_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_partners_devices_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersDevicesMetadataArgs {
+    /// Path parameter: metadataOwnerId
+    pub metadataOwnerId: String,
+    /// Path parameter: deviceId
+    pub deviceId: String,
+    /// Request body.
+    pub body: UpdateDeviceMetadataRequest,
+}
+
 /// GET v1/partners/{partnersId}/devices/{devicesId}/metadata
 /// Updates reseller metadata associated with the device. Android devices only.
 ///
@@ -2653,9 +2872,7 @@ pub fn androiddeviceprovisioning_partners_devices_metadata_execute(
 
 pub fn androiddeviceprovisioning_partners_devices_metadata(
     client: &SimpleHttpClient,
-    metadataOwnerId: &str,
-    deviceId: &str,
-    body: &UpdateDeviceMetadataRequest,
+    args: &AndroiddeviceprovisioningPartnersDevicesMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeviceMetadata>, ApiError>, P = ApiPending>
         + Send
@@ -2664,9 +2881,9 @@ pub fn androiddeviceprovisioning_partners_devices_metadata(
 > {
     let builder = androiddeviceprovisioning_partners_devices_metadata_builder(
         client,
-        metadataOwnerId,
-        deviceId,
-        body,
+        &args.metadataOwnerId,
+        &args.deviceId,
+        &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_metadata_execute(builder)
 }
@@ -2764,6 +2981,15 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_partners_devices_unclaim`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersDevicesUnclaimArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Request body.
+    pub body: UnclaimDeviceRequest,
+}
+
 /// GET v1/partners/{partnersId}/devices:unclaim
 /// Unclaims a device from a customer and removes it from zero-touch enrollment.
 ///
@@ -2776,14 +3002,16 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim_execute(
 
 pub fn androiddeviceprovisioning_partners_devices_unclaim(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    body: &UnclaimDeviceRequest,
+    args: &AndroiddeviceprovisioningPartnersDevicesUnclaimArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androiddeviceprovisioning_partners_devices_unclaim_builder(client, partnerId, body)?;
+    let builder = androiddeviceprovisioning_partners_devices_unclaim_builder(
+        client,
+        &args.partnerId,
+        &args.body,
+    )?;
     androiddeviceprovisioning_partners_devices_unclaim_execute(builder)
 }
 
@@ -2880,6 +3108,15 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim_async_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_partners_devices_unclaim_async`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersDevicesUnclaimAsyncArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Request body.
+    pub body: UnclaimDevicesRequest,
+}
+
 /// GET v1/partners/{partnersId}/devices:unclaimAsync
 /// Unclaims a batch of devices for a customer asynchronously. Removes the devices from zero-touch enrollment. To learn more, read [Long‑running batch operations](/zero-`touch/guides/how-it-works`#operations).
 ///
@@ -2892,14 +3129,16 @@ pub fn androiddeviceprovisioning_partners_devices_unclaim_async_execute(
 
 pub fn androiddeviceprovisioning_partners_devices_unclaim_async(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    body: &UnclaimDevicesRequest,
+    args: &AndroiddeviceprovisioningPartnersDevicesUnclaimAsyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androiddeviceprovisioning_partners_devices_unclaim_async_builder(client, partnerId, body)?;
+    let builder = androiddeviceprovisioning_partners_devices_unclaim_async_builder(
+        client,
+        &args.partnerId,
+        &args.body,
+    )?;
     androiddeviceprovisioning_partners_devices_unclaim_async_execute(builder)
 }
 
@@ -2996,6 +3235,15 @@ pub fn androiddeviceprovisioning_partners_devices_update_metadata_async_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_partners_devices_update_metadata_async`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersDevicesUpdateMetadataAsyncArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Request body.
+    pub body: UpdateDeviceMetadataInBatchRequest,
+}
+
 /// GET v1/partners/{partnersId}/devices:updateMetadataAsync
 /// Updates the reseller metadata attached to a batch of devices. This method updates devices asynchronously and returns an Operation that can be used to track progress. Read [Long‑running batch operations](/zero-`touch/guides/how-it-works`#operations). Android Devices only.
 ///
@@ -3008,14 +3256,15 @@ pub fn androiddeviceprovisioning_partners_devices_update_metadata_async_execute(
 
 pub fn androiddeviceprovisioning_partners_devices_update_metadata_async(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    body: &UpdateDeviceMetadataInBatchRequest,
+    args: &AndroiddeviceprovisioningPartnersDevicesUpdateMetadataAsyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = androiddeviceprovisioning_partners_devices_update_metadata_async_builder(
-        client, partnerId, body,
+        client,
+        &args.partnerId,
+        &args.body,
     )?;
     androiddeviceprovisioning_partners_devices_update_metadata_async_execute(builder)
 }
@@ -3128,6 +3377,17 @@ pub fn androiddeviceprovisioning_partners_vendors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_partners_vendors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersVendorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/partners/{partnersId}/vendors
 /// Lists the vendors of the partner.
 ///
@@ -3140,9 +3400,7 @@ pub fn androiddeviceprovisioning_partners_vendors_list_execute(
 
 pub fn androiddeviceprovisioning_partners_vendors_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AndroiddeviceprovisioningPartnersVendorsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListVendorsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3150,7 +3408,10 @@ pub fn androiddeviceprovisioning_partners_vendors_list(
     ApiError,
 > {
     let builder = androiddeviceprovisioning_partners_vendors_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     androiddeviceprovisioning_partners_vendors_list_execute(builder)
 }
@@ -3265,6 +3526,17 @@ pub fn androiddeviceprovisioning_partners_vendors_customers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`androiddeviceprovisioning_partners_vendors_customers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AndroiddeviceprovisioningPartnersVendorsCustomersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/partners/{partnersId}/vendors/{vendorsId}/customers
 /// Lists the customers of the vendor.
 ///
@@ -3277,9 +3549,7 @@ pub fn androiddeviceprovisioning_partners_vendors_customers_list_execute(
 
 pub fn androiddeviceprovisioning_partners_vendors_customers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AndroiddeviceprovisioningPartnersVendorsCustomersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListVendorCustomersResponse>, ApiError>,
@@ -3289,7 +3559,10 @@ pub fn androiddeviceprovisioning_partners_vendors_customers_list(
     ApiError,
 > {
     let builder = androiddeviceprovisioning_partners_vendors_customers_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     androiddeviceprovisioning_partners_vendors_customers_list_execute(builder)
 }

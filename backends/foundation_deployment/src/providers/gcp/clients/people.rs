@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/contactGroups:batchGet
 /// Get a list of contact groups owned by the authenticated user by specifying a list of contact group resource names.
@@ -126,6 +128,17 @@ pub fn people_contact_groups_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_contact_groups_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeopleContactGroupsBatchGetArgs {
+    /// Query parameter: groupFields
+    pub groupFields: Option<String>,
+    /// Query parameter: maxMembers
+    pub maxMembers: Option<i32>,
+    /// Query parameter: resourceNames
+    pub resourceNames: Option<String>,
+}
+
 /// GET v1/contactGroups:batchGet
 /// Get a list of contact groups owned by the authenticated user by specifying a list of contact group resource names.
 ///
@@ -138,9 +151,7 @@ pub fn people_contact_groups_batch_get_execute(
 
 pub fn people_contact_groups_batch_get(
     client: &SimpleHttpClient,
-    groupFields: Option<&str>,
-    maxMembers: Option<i32>,
-    resourceNames: Option<&str>,
+    args: &PeopleContactGroupsBatchGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchGetContactGroupsResponse>, ApiError>,
@@ -149,8 +160,12 @@ pub fn people_contact_groups_batch_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        people_contact_groups_batch_get_builder(client, groupFields, maxMembers, resourceNames)?;
+    let builder = people_contact_groups_batch_get_builder(
+        client,
+        args.groupFields.as_deref(),
+        args.maxMembers,
+        args.resourceNames.as_deref(),
+    )?;
     people_contact_groups_batch_get_execute(builder)
 }
 
@@ -245,6 +260,13 @@ pub fn people_contact_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_contact_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeopleContactGroupsCreateArgs {
+    /// Request body.
+    pub body: CreateContactGroupRequest,
+}
+
 /// GET v1/contactGroups
 /// Create a new contact group owned by the authenticated user. Created contact group names must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
@@ -257,14 +279,14 @@ pub fn people_contact_groups_create_execute(
 
 pub fn people_contact_groups_create(
     client: &SimpleHttpClient,
-    body: &CreateContactGroupRequest,
+    args: &PeopleContactGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContactGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = people_contact_groups_create_builder(client, body)?;
+    let builder = people_contact_groups_create_builder(client, &args.body)?;
     people_contact_groups_create_execute(builder)
 }
 
@@ -370,6 +392,15 @@ pub fn people_contact_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_contact_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeopleContactGroupsDeleteArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+    /// Query parameter: deleteContacts
+    pub deleteContacts: Option<bool>,
+}
+
 /// GET v1/contactGroups/{contactGroupsId}
 /// Delete an existing contact group owned by the authenticated user by specifying a contact group resource name. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
@@ -382,13 +413,13 @@ pub fn people_contact_groups_delete_execute(
 
 pub fn people_contact_groups_delete(
     client: &SimpleHttpClient,
-    resourceName: &str,
-    deleteContacts: Option<bool>,
+    args: &PeopleContactGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = people_contact_groups_delete_builder(client, resourceName, deleteContacts)?;
+    let builder =
+        people_contact_groups_delete_builder(client, &args.resourceName, args.deleteContacts)?;
     people_contact_groups_delete_execute(builder)
 }
 
@@ -500,6 +531,17 @@ pub fn people_contact_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_contact_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeopleContactGroupsGetArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+    /// Query parameter: groupFields
+    pub groupFields: Option<String>,
+    /// Query parameter: maxMembers
+    pub maxMembers: Option<i32>,
+}
+
 /// GET v1/contactGroups/{contactGroupsId}
 /// Get a specific contact group owned by the authenticated user by specifying a contact group resource name.
 ///
@@ -512,16 +554,19 @@ pub fn people_contact_groups_get_execute(
 
 pub fn people_contact_groups_get(
     client: &SimpleHttpClient,
-    resourceName: &str,
-    groupFields: Option<&str>,
-    maxMembers: Option<i32>,
+    args: &PeopleContactGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContactGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = people_contact_groups_get_builder(client, resourceName, groupFields, maxMembers)?;
+    let builder = people_contact_groups_get_builder(
+        client,
+        &args.resourceName,
+        args.groupFields.as_deref(),
+        args.maxMembers,
+    )?;
     people_contact_groups_get_execute(builder)
 }
 
@@ -637,6 +682,19 @@ pub fn people_contact_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_contact_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeopleContactGroupsListArgs {
+    /// Query parameter: groupFields
+    pub groupFields: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<String>,
+}
+
 /// GET v1/contactGroups
 /// List all contact groups owned by the authenticated user. Members of the contact groups are not populated.
 ///
@@ -649,18 +707,20 @@ pub fn people_contact_groups_list_execute(
 
 pub fn people_contact_groups_list(
     client: &SimpleHttpClient,
-    groupFields: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    syncToken: Option<&str>,
+    args: &PeopleContactGroupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListContactGroupsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        people_contact_groups_list_builder(client, groupFields, pageSize, pageToken, syncToken)?;
+    let builder = people_contact_groups_list_builder(
+        client,
+        args.groupFields.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.syncToken.as_deref(),
+    )?;
     people_contact_groups_list_execute(builder)
 }
 
@@ -759,6 +819,15 @@ pub fn people_contact_groups_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_contact_groups_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeopleContactGroupsUpdateArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+    /// Request body.
+    pub body: UpdateContactGroupRequest,
+}
+
 /// GET v1/contactGroups/{contactGroupsId}
 /// Update the name of an existing contact group owned by the authenticated user. Updated contact group names must be unique to the users contact groups. Attempting to create a group with a duplicate name will return a HTTP 409 error. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
@@ -771,15 +840,14 @@ pub fn people_contact_groups_update_execute(
 
 pub fn people_contact_groups_update(
     client: &SimpleHttpClient,
-    resourceName: &str,
-    body: &UpdateContactGroupRequest,
+    args: &PeopleContactGroupsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContactGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = people_contact_groups_update_builder(client, resourceName, body)?;
+    let builder = people_contact_groups_update_builder(client, &args.resourceName, &args.body)?;
     people_contact_groups_update_execute(builder)
 }
 
@@ -880,6 +948,15 @@ pub fn people_contact_groups_members_modify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_contact_groups_members_modify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeopleContactGroupsMembersModifyArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+    /// Request body.
+    pub body: ModifyContactGroupMembersRequest,
+}
+
 /// GET v1/contactGroups/{contactGroupsId}/members:modify
 /// Modify the members of a contact group owned by the authenticated user. The only system contact groups that can have members added are contactG`roups/`myContacts`` and contactG`roups/starred`. Other system contact groups are deprecated and can only have contacts removed.
 ///
@@ -892,8 +969,7 @@ pub fn people_contact_groups_members_modify_execute(
 
 pub fn people_contact_groups_members_modify(
     client: &SimpleHttpClient,
-    resourceName: &str,
-    body: &ModifyContactGroupMembersRequest,
+    args: &PeopleContactGroupsMembersModifyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ModifyContactGroupMembersResponse>, ApiError>,
@@ -902,7 +978,8 @@ pub fn people_contact_groups_members_modify(
         + 'static,
     ApiError,
 > {
-    let builder = people_contact_groups_members_modify_builder(client, resourceName, body)?;
+    let builder =
+        people_contact_groups_members_modify_builder(client, &args.resourceName, &args.body)?;
     people_contact_groups_members_modify_execute(builder)
 }
 
@@ -999,6 +1076,15 @@ pub fn people_other_contacts_copy_other_contact_to_my_contacts_group_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_other_contacts_copy_other_contact_to_my_contacts_group`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeopleOtherContactsCopyOtherContactToMyContactsGroupArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+    /// Request body.
+    pub body: CopyOtherContactToMyContactsGroupRequest,
+}
+
 /// GET v1/otherContacts/{otherContactsId}:copyOtherContactToMyContactsGroup
 /// Copies an "Other contact" to a new contact in the user's "`myContacts`" group Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
@@ -1011,16 +1097,15 @@ pub fn people_other_contacts_copy_other_contact_to_my_contacts_group_execute(
 
 pub fn people_other_contacts_copy_other_contact_to_my_contacts_group(
     client: &SimpleHttpClient,
-    resourceName: &str,
-    body: &CopyOtherContactToMyContactsGroupRequest,
+    args: &PeopleOtherContactsCopyOtherContactToMyContactsGroupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Person>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = people_other_contacts_copy_other_contact_to_my_contacts_group_builder(
         client,
-        resourceName,
-        body,
+        &args.resourceName,
+        &args.body,
     )?;
     people_other_contacts_copy_other_contact_to_my_contacts_group_execute(builder)
 }
@@ -1145,6 +1230,23 @@ pub fn people_other_contacts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_other_contacts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeopleOtherContactsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+    /// Query parameter: requestSyncToken
+    pub requestSyncToken: Option<bool>,
+    /// Query parameter: sources
+    pub sources: Option<String>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<String>,
+}
+
 /// GET v1/otherContacts
 /// List all "Other contacts", that is contacts that are not in a contact group. "Other contacts" are typically auto created contacts from interactions. Sync tokens expire 7 days after the full sync. A request with an expired sync token will get an error with an [google.rpc.ErrorInfo](<https://cloud.google.`com/apis/design/errors`#error_info>) with reason "EXPIRED_SYNC_TOKEN". In the case of such an error clients should make a full sync request without a sync_token. The first page of a full sync request has an additional quota. If the quota is exceeded, a 429 error will be returned. This quota is fixed and can not be increased. When the sync_token is specified, resources deleted since the last sync will be returned as a person with PersonMetadata.deleted set to `true`. When the page_token or sync_token is specified, all other request parameters must match the first call. Writes may have a propagation delay of several minutes for sync requests. Incremental syncs are not intended for read-after-write use cases. See example usage at [List the user's other contacts that have changed](/`people/v1/other-contacts`#list_the_users_other_contacts_that_have_changed).
 ///
@@ -1157,12 +1259,7 @@ pub fn people_other_contacts_list_execute(
 
 pub fn people_other_contacts_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
-    requestSyncToken: Option<bool>,
-    sources: Option<&str>,
-    syncToken: Option<&str>,
+    args: &PeopleOtherContactsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOtherContactsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1171,12 +1268,12 @@ pub fn people_other_contacts_list(
 > {
     let builder = people_other_contacts_list_builder(
         client,
-        pageSize,
-        pageToken,
-        readMask,
-        requestSyncToken,
-        sources,
-        syncToken,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
+        args.requestSyncToken,
+        args.sources.as_deref(),
+        args.syncToken.as_deref(),
     )?;
     people_other_contacts_list_execute(builder)
 }
@@ -1289,6 +1386,17 @@ pub fn people_other_contacts_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_other_contacts_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeopleOtherContactsSearchArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/otherContacts:search
 /// Provides a list of contacts in the authenticated user's other contacts that matches the search query. The query matches on a contact's names, `emailAddresses`, and `phoneNumbers` fields that are from the OTHER_CONTACT source. **IMPORTANT**: Before searching, clients should send a warmup request with an empty query to update the cache. See <https://developers.google.`com/people/v1/other-contacts`#search_the_users_other_contacts>
 ///
@@ -1301,16 +1409,19 @@ pub fn people_other_contacts_search_execute(
 
 pub fn people_other_contacts_search(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    query: Option<&str>,
-    readMask: Option<&str>,
+    args: &PeopleOtherContactsSearchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = people_other_contacts_search_builder(client, pageSize, query, readMask)?;
+    let builder = people_other_contacts_search_builder(
+        client,
+        args.pageSize,
+        args.query.as_deref(),
+        args.readMask.as_deref(),
+    )?;
     people_other_contacts_search_execute(builder)
 }
 
@@ -1407,6 +1518,13 @@ pub fn people_people_batch_create_contacts_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_people_batch_create_contacts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeoplePeopleBatchCreateContactsArgs {
+    /// Request body.
+    pub body: BatchCreateContactsRequest,
+}
+
 /// GET v1/people:batchCreateContacts
 /// Create a batch of new contacts and return the PersonResponses for the newly Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
@@ -1419,7 +1537,7 @@ pub fn people_people_batch_create_contacts_execute(
 
 pub fn people_people_batch_create_contacts(
     client: &SimpleHttpClient,
-    body: &BatchCreateContactsRequest,
+    args: &PeoplePeopleBatchCreateContactsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchCreateContactsResponse>, ApiError>,
@@ -1428,7 +1546,7 @@ pub fn people_people_batch_create_contacts(
         + 'static,
     ApiError,
 > {
-    let builder = people_people_batch_create_contacts_builder(client, body)?;
+    let builder = people_people_batch_create_contacts_builder(client, &args.body)?;
     people_people_batch_create_contacts_execute(builder)
 }
 
@@ -1521,6 +1639,13 @@ pub fn people_people_batch_delete_contacts_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_people_batch_delete_contacts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeoplePeopleBatchDeleteContactsArgs {
+    /// Request body.
+    pub body: BatchDeleteContactsRequest,
+}
+
 /// GET v1/people:batchDeleteContacts
 /// Delete a batch of contacts. Any non-contact data will not be deleted. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
@@ -1533,12 +1658,12 @@ pub fn people_people_batch_delete_contacts_execute(
 
 pub fn people_people_batch_delete_contacts(
     client: &SimpleHttpClient,
-    body: &BatchDeleteContactsRequest,
+    args: &PeoplePeopleBatchDeleteContactsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = people_people_batch_delete_contacts_builder(client, body)?;
+    let builder = people_people_batch_delete_contacts_builder(client, &args.body)?;
     people_people_batch_delete_contacts_execute(builder)
 }
 
@@ -1635,6 +1760,13 @@ pub fn people_people_batch_update_contacts_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_people_batch_update_contacts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeoplePeopleBatchUpdateContactsArgs {
+    /// Request body.
+    pub body: BatchUpdateContactsRequest,
+}
+
 /// GET v1/people:batchUpdateContacts
 /// Update a batch of contacts and return a map of resource names to PersonResponses for the updated contacts. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
@@ -1647,7 +1779,7 @@ pub fn people_people_batch_update_contacts_execute(
 
 pub fn people_people_batch_update_contacts(
     client: &SimpleHttpClient,
-    body: &BatchUpdateContactsRequest,
+    args: &PeoplePeopleBatchUpdateContactsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUpdateContactsResponse>, ApiError>,
@@ -1656,7 +1788,7 @@ pub fn people_people_batch_update_contacts(
         + 'static,
     ApiError,
 > {
-    let builder = people_people_batch_update_contacts_builder(client, body)?;
+    let builder = people_people_batch_update_contacts_builder(client, &args.body)?;
     people_people_batch_update_contacts_execute(builder)
 }
 
@@ -1765,6 +1897,17 @@ pub fn people_people_create_contact_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_people_create_contact`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeoplePeopleCreateContactArgs {
+    /// Query parameter: personFields
+    pub personFields: Option<String>,
+    /// Query parameter: sources
+    pub sources: Option<String>,
+    /// Request body.
+    pub body: Person,
+}
+
 /// GET v1/people:createContact
 /// Create a new contact and return the person resource for that contact. The request returns a 400 error if more than one field is specified on a field that is a singleton for contact sources: * biographies * birthdays * genders * names Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
@@ -1777,14 +1920,17 @@ pub fn people_people_create_contact_execute(
 
 pub fn people_people_create_contact(
     client: &SimpleHttpClient,
-    personFields: Option<&str>,
-    sources: Option<&str>,
-    body: &Person,
+    args: &PeoplePeopleCreateContactArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Person>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = people_people_create_contact_builder(client, personFields, sources, body)?;
+    let builder = people_people_create_contact_builder(
+        client,
+        args.personFields.as_deref(),
+        args.sources.as_deref(),
+        &args.body,
+    )?;
     people_people_create_contact_execute(builder)
 }
 
@@ -1878,6 +2024,13 @@ pub fn people_people_delete_contact_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_people_delete_contact`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeoplePeopleDeleteContactArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+}
+
 /// GET v1/people/{peopleId}:deleteContact
 /// Delete a contact person. Any non-contact data will not be deleted. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
@@ -1890,12 +2043,12 @@ pub fn people_people_delete_contact_execute(
 
 pub fn people_people_delete_contact(
     client: &SimpleHttpClient,
-    resourceName: &str,
+    args: &PeoplePeopleDeleteContactArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = people_people_delete_contact_builder(client, resourceName)?;
+    let builder = people_people_delete_contact_builder(client, &args.resourceName)?;
     people_people_delete_contact_execute(builder)
 }
 
@@ -2009,6 +2162,17 @@ pub fn people_people_delete_contact_photo_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_people_delete_contact_photo`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeoplePeopleDeleteContactPhotoArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+    /// Query parameter: personFields
+    pub personFields: Option<String>,
+    /// Query parameter: sources
+    pub sources: Option<String>,
+}
+
 /// GET v1/people/{peopleId}:deleteContactPhoto
 /// Delete a contact's photo. Mutate requests for the same user should be done sequentially to avoid // lock contention.
 ///
@@ -2021,9 +2185,7 @@ pub fn people_people_delete_contact_photo_execute(
 
 pub fn people_people_delete_contact_photo(
     client: &SimpleHttpClient,
-    resourceName: &str,
-    personFields: Option<&str>,
-    sources: Option<&str>,
+    args: &PeoplePeopleDeleteContactPhotoArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DeleteContactPhotoResponse>, ApiError>,
@@ -2032,8 +2194,12 @@ pub fn people_people_delete_contact_photo(
         + 'static,
     ApiError,
 > {
-    let builder =
-        people_people_delete_contact_photo_builder(client, resourceName, personFields, sources)?;
+    let builder = people_people_delete_contact_photo_builder(
+        client,
+        &args.resourceName,
+        args.personFields.as_deref(),
+        args.sources.as_deref(),
+    )?;
     people_people_delete_contact_photo_execute(builder)
 }
 
@@ -2144,6 +2310,19 @@ pub fn people_people_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_people_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeoplePeopleGetArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+    /// Query parameter: personFields
+    pub personFields: Option<String>,
+    /// Query parameter: requestMask_includeField
+    pub requestMask_includeField: Option<String>,
+    /// Query parameter: sources
+    pub sources: Option<String>,
+}
+
 /// GET v1/people/{peopleId}
 /// Provides information about a person by specifying a resource name. Use `people/me` to indicate the authenticated user. The request returns a 400 error if '`personFields`' is not specified.
 ///
@@ -2156,20 +2335,17 @@ pub fn people_people_get_execute(
 
 pub fn people_people_get(
     client: &SimpleHttpClient,
-    resourceName: &str,
-    personFields: Option<&str>,
-    requestMask_includeField: Option<&str>,
-    sources: Option<&str>,
+    args: &PeoplePeopleGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Person>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = people_people_get_builder(
         client,
-        resourceName,
-        personFields,
-        requestMask_includeField,
-        sources,
+        &args.resourceName,
+        args.personFields.as_deref(),
+        args.requestMask_includeField.as_deref(),
+        args.sources.as_deref(),
     )?;
     people_people_get_execute(builder)
 }
@@ -2286,6 +2462,19 @@ pub fn people_people_get_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_people_get_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeoplePeopleGetBatchGetArgs {
+    /// Query parameter: personFields
+    pub personFields: Option<String>,
+    /// Query parameter: requestMask_includeField
+    pub requestMask_includeField: Option<String>,
+    /// Query parameter: resourceNames
+    pub resourceNames: Option<String>,
+    /// Query parameter: sources
+    pub sources: Option<String>,
+}
+
 /// GET v1/people:batchGet
 /// Provides information about a list of specific people by specifying a list of requested resource names. Use `people/me` to indicate the authenticated user. The request returns a 400 error if '`personFields`' is not specified.
 ///
@@ -2298,10 +2487,7 @@ pub fn people_people_get_batch_get_execute(
 
 pub fn people_people_get_batch_get(
     client: &SimpleHttpClient,
-    personFields: Option<&str>,
-    requestMask_includeField: Option<&str>,
-    resourceNames: Option<&str>,
-    sources: Option<&str>,
+    args: &PeoplePeopleGetBatchGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetPeopleResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2310,10 +2496,10 @@ pub fn people_people_get_batch_get(
 > {
     let builder = people_people_get_batch_get_builder(
         client,
-        personFields,
-        requestMask_includeField,
-        resourceNames,
-        sources,
+        args.personFields.as_deref(),
+        args.requestMask_includeField.as_deref(),
+        args.resourceNames.as_deref(),
+        args.sources.as_deref(),
     )?;
     people_people_get_batch_get_execute(builder)
 }
@@ -2444,6 +2630,25 @@ pub fn people_people_list_directory_people_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_people_list_directory_people`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeoplePeopleListDirectoryPeopleArgs {
+    /// Query parameter: mergeSources
+    pub mergeSources: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+    /// Query parameter: requestSyncToken
+    pub requestSyncToken: Option<bool>,
+    /// Query parameter: sources
+    pub sources: Option<String>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<String>,
+}
+
 /// GET v1/people:listDirectoryPeople
 /// Provides a list of domain profiles and domain contacts in the authenticated user's domain directory. When the sync_token is specified, resources deleted since the last sync will be returned as a person with PersonMetadata.deleted set to `true`. When the page_token or sync_token is specified, all other request parameters must match the first call. Writes may have a propagation delay of several minutes for sync requests. Incremental syncs are not intended for read-after-write use cases. See example usage at [List the directory people that have changed](/`people/v1/directory`#list_the_directory_people_that_have_changed).
 ///
@@ -2456,13 +2661,7 @@ pub fn people_people_list_directory_people_execute(
 
 pub fn people_people_list_directory_people(
     client: &SimpleHttpClient,
-    mergeSources: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
-    requestSyncToken: Option<bool>,
-    sources: Option<&str>,
-    syncToken: Option<&str>,
+    args: &PeoplePeopleListDirectoryPeopleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDirectoryPeopleResponse>, ApiError>,
@@ -2473,13 +2672,13 @@ pub fn people_people_list_directory_people(
 > {
     let builder = people_people_list_directory_people_builder(
         client,
-        mergeSources,
-        pageSize,
-        pageToken,
-        readMask,
-        requestSyncToken,
-        sources,
-        syncToken,
+        args.mergeSources.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
+        args.requestSyncToken,
+        args.sources.as_deref(),
+        args.syncToken.as_deref(),
     )?;
     people_people_list_directory_people_execute(builder)
 }
@@ -2596,6 +2795,19 @@ pub fn people_people_search_contacts_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_people_search_contacts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeoplePeopleSearchContactsArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+    /// Query parameter: sources
+    pub sources: Option<String>,
+}
+
 /// GET v1/people:searchContacts
 /// Provides a list of contacts in the authenticated user's grouped contacts that matches the search query. The query matches on a contact's names, `nickNames`, `emailAddresses`, `phoneNumbers`, and organizations fields that are from the CONTACT source. **IMPORTANT**: Before searching, clients should send a warmup request with an empty query to update the cache. See <https://developers.google.`com/people/v1/contacts`#search_the_users_contacts>
 ///
@@ -2608,18 +2820,20 @@ pub fn people_people_search_contacts_execute(
 
 pub fn people_people_search_contacts(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    query: Option<&str>,
-    readMask: Option<&str>,
-    sources: Option<&str>,
+    args: &PeoplePeopleSearchContactsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        people_people_search_contacts_builder(client, pageSize, query, readMask, sources)?;
+    let builder = people_people_search_contacts_builder(
+        client,
+        args.pageSize,
+        args.query.as_deref(),
+        args.readMask.as_deref(),
+        args.sources.as_deref(),
+    )?;
     people_people_search_contacts_execute(builder)
 }
 
@@ -2745,6 +2959,23 @@ pub fn people_people_search_directory_people_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_people_search_directory_people`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeoplePeopleSearchDirectoryPeopleArgs {
+    /// Query parameter: mergeSources
+    pub mergeSources: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+    /// Query parameter: sources
+    pub sources: Option<String>,
+}
+
 /// GET v1/people:searchDirectoryPeople
 /// Provides a list of domain profiles and domain contacts in the authenticated user's domain directory that match the search query.
 ///
@@ -2757,12 +2988,7 @@ pub fn people_people_search_directory_people_execute(
 
 pub fn people_people_search_directory_people(
     client: &SimpleHttpClient,
-    mergeSources: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
-    readMask: Option<&str>,
-    sources: Option<&str>,
+    args: &PeoplePeopleSearchDirectoryPeopleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchDirectoryPeopleResponse>, ApiError>,
@@ -2773,12 +2999,12 @@ pub fn people_people_search_directory_people(
 > {
     let builder = people_people_search_directory_people_builder(
         client,
-        mergeSources,
-        pageSize,
-        pageToken,
-        query,
-        readMask,
-        sources,
+        args.mergeSources.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
+        args.readMask.as_deref(),
+        args.sources.as_deref(),
     )?;
     people_people_search_directory_people_execute(builder)
 }
@@ -2896,6 +3122,21 @@ pub fn people_people_update_contact_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_people_update_contact`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeoplePeopleUpdateContactArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+    /// Query parameter: personFields
+    pub personFields: Option<String>,
+    /// Query parameter: sources
+    pub sources: Option<String>,
+    /// Query parameter: updatePersonFields
+    pub updatePersonFields: Option<String>,
+    /// Request body.
+    pub body: Person,
+}
+
 /// GET v1/people/{peopleId}:updateContact
 /// Update contact data for an existing contact person. Any non-contact data will not be modified. Any non-contact data in the person to update will be ignored. All fields specified in the update_mask will be replaced. The server returns a 400 error if person.metadata.sources is not specified for the contact to be updated or if there is no contact source. The server returns a 400 error with reason "`failedPrecondition`" if person.metadata.sources.etag is different than the contact's etag, which indicates the contact has changed since its data was read. Clients should get the latest person and merge their updates into the latest person. If making sequential updates to the same person, the etag from the `updateContact` response should be used to avoid failures. The server returns a 400 error if memberships are being updated and there are no contact group memberships specified on the person. The server returns a 400 error if more than one field is specified on a field that is a singleton for contact sources: * biographies * birthdays * genders * names Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
@@ -2908,22 +3149,18 @@ pub fn people_people_update_contact_execute(
 
 pub fn people_people_update_contact(
     client: &SimpleHttpClient,
-    resourceName: &str,
-    personFields: Option<&str>,
-    sources: Option<&str>,
-    updatePersonFields: Option<&str>,
-    body: &Person,
+    args: &PeoplePeopleUpdateContactArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Person>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = people_people_update_contact_builder(
         client,
-        resourceName,
-        personFields,
-        sources,
-        updatePersonFields,
-        body,
+        &args.resourceName,
+        args.personFields.as_deref(),
+        args.sources.as_deref(),
+        args.updatePersonFields.as_deref(),
+        &args.body,
     )?;
     people_people_update_contact_execute(builder)
 }
@@ -3025,6 +3262,15 @@ pub fn people_people_update_contact_photo_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_people_update_contact_photo`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeoplePeopleUpdateContactPhotoArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+    /// Request body.
+    pub body: UpdateContactPhotoRequest,
+}
+
 /// GET v1/people/{peopleId}:updateContactPhoto
 /// Update a contact's photo. Mutate requests for the same user should be sent sequentially to avoid increased latency and failures.
 ///
@@ -3037,8 +3283,7 @@ pub fn people_people_update_contact_photo_execute(
 
 pub fn people_people_update_contact_photo(
     client: &SimpleHttpClient,
-    resourceName: &str,
-    body: &UpdateContactPhotoRequest,
+    args: &PeoplePeopleUpdateContactPhotoArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UpdateContactPhotoResponse>, ApiError>,
@@ -3047,7 +3292,8 @@ pub fn people_people_update_contact_photo(
         + 'static,
     ApiError,
 > {
-    let builder = people_people_update_contact_photo_builder(client, resourceName, body)?;
+    let builder =
+        people_people_update_contact_photo_builder(client, &args.resourceName, &args.body)?;
     people_people_update_contact_photo_execute(builder)
 }
 
@@ -3183,6 +3429,29 @@ pub fn people_people_connections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`people_people_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PeoplePeopleConnectionsListArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: personFields
+    pub personFields: Option<String>,
+    /// Query parameter: requestMask_includeField
+    pub requestMask_includeField: Option<String>,
+    /// Query parameter: requestSyncToken
+    pub requestSyncToken: Option<bool>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+    /// Query parameter: sources
+    pub sources: Option<String>,
+    /// Query parameter: syncToken
+    pub syncToken: Option<String>,
+}
+
 /// GET v1/people/{peopleId}/connections
 /// Provides a list of the authenticated user's contacts. Sync tokens expire 7 days after the full sync. A request with an expired sync token will get an error with an [google.rpc.ErrorInfo](<https://cloud.google.`com/apis/design/errors`#error_info>) with reason "EXPIRED_SYNC_TOKEN". In the case of such an error clients should make a full sync request without a sync_token. The first page of a full sync request has an additional quota. If the quota is exceeded, a 429 error will be returned. This quota is fixed and can not be increased. When the sync_token is specified, resources deleted since the last sync will be returned as a person with PersonMetadata.deleted set to `true`. When the page_token or sync_token is specified, all other request parameters must match the first call. Writes may have a propagation delay of several minutes for sync requests. Incremental syncs are not intended for read-after-write use cases. See example usage at [List the user's contacts that have changed](/`people/v1/contacts`#list_the_users_contacts_that_have_changed).
 ///
@@ -3195,15 +3464,7 @@ pub fn people_people_connections_list_execute(
 
 pub fn people_people_connections_list(
     client: &SimpleHttpClient,
-    resourceName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    personFields: Option<&str>,
-    requestMask_includeField: Option<&str>,
-    requestSyncToken: Option<bool>,
-    sortOrder: Option<&str>,
-    sources: Option<&str>,
-    syncToken: Option<&str>,
+    args: &PeoplePeopleConnectionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListConnectionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3212,15 +3473,15 @@ pub fn people_people_connections_list(
 > {
     let builder = people_people_connections_list_builder(
         client,
-        resourceName,
-        pageSize,
-        pageToken,
-        personFields,
-        requestMask_includeField,
-        requestSyncToken,
-        sortOrder,
-        sources,
-        syncToken,
+        &args.resourceName,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.personFields.as_deref(),
+        args.requestMask_includeField.as_deref(),
+        args.requestSyncToken,
+        args.sortOrder.as_deref(),
+        args.sources.as_deref(),
+        args.syncToken.as_deref(),
     )?;
     people_people_connections_list_execute(builder)
 }

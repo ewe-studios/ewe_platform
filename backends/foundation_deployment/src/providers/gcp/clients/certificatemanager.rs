@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn certificatemanager_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn certificatemanager_projects_locations_get_execute(
 
 pub fn certificatemanager_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CertificatemanagerProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = certificatemanager_projects_locations_get_builder(client, name)?;
+    let builder = certificatemanager_projects_locations_get_builder(client, &args.name)?;
     certificatemanager_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn certificatemanager_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn certificatemanager_projects_locations_list_execute(
 
 pub fn certificatemanager_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CertificatemanagerProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn certificatemanager_projects_locations_list(
 > {
     let builder = certificatemanager_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     certificatemanager_projects_locations_list_execute(builder)
 }
@@ -382,6 +402,17 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_create
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificate_issuance_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificateIssuanceConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: certificateIssuanceConfigId
+    pub certificateIssuanceConfigId: Option<String>,
+    /// Request body.
+    pub body: CertificateIssuanceConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateIssuanceConfigs
 /// Creates a new CertificateIssuanceConfig in a given project and location.
 ///
@@ -394,9 +425,7 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_create
 
 pub fn certificatemanager_projects_locations_certificate_issuance_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    certificateIssuanceConfigId: Option<&str>,
-    body: &CertificateIssuanceConfig,
+    args: &CertificatemanagerProjectsLocationsCertificateIssuanceConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -404,9 +433,9 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_create
     let builder =
         certificatemanager_projects_locations_certificate_issuance_configs_create_builder(
             client,
-            parent,
-            certificateIssuanceConfigId,
-            body,
+            &args.parent,
+            args.certificateIssuanceConfigId.as_deref(),
+            &args.body,
         )?;
     certificatemanager_projects_locations_certificate_issuance_configs_create_execute(builder)
 }
@@ -501,6 +530,13 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_delete
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificate_issuance_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificateIssuanceConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateIssuanceConfigs/{certificateIssuanceConfigsId}
 /// Deletes a single CertificateIssuanceConfig.
 ///
@@ -513,14 +549,14 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_delete
 
 pub fn certificatemanager_projects_locations_certificate_issuance_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CertificatemanagerProjectsLocationsCertificateIssuanceConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         certificatemanager_projects_locations_certificate_issuance_configs_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     certificatemanager_projects_locations_certificate_issuance_configs_delete_execute(builder)
 }
@@ -617,6 +653,13 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_get_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificate_issuance_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificateIssuanceConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateIssuanceConfigs/{certificateIssuanceConfigsId}
 /// Gets details of a single CertificateIssuanceConfig.
 ///
@@ -629,7 +672,7 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_get_ex
 
 pub fn certificatemanager_projects_locations_certificate_issuance_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CertificatemanagerProjectsLocationsCertificateIssuanceConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateIssuanceConfig>, ApiError>, P = ApiPending>
         + Send
@@ -637,7 +680,7 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_get(
     ApiError,
 > {
     let builder = certificatemanager_projects_locations_certificate_issuance_configs_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     certificatemanager_projects_locations_certificate_issuance_configs_get_execute(builder)
 }
@@ -760,6 +803,21 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificate_issuance_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificateIssuanceConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateIssuanceConfigs
 /// Lists CertificateIssuanceConfigs in a given project and location.
 ///
@@ -772,11 +830,7 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_list_e
 
 pub fn certificatemanager_projects_locations_certificate_issuance_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CertificatemanagerProjectsLocationsCertificateIssuanceConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCertificateIssuanceConfigsResponse>, ApiError>,
@@ -786,7 +840,12 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_list(
     ApiError,
 > {
     let builder = certificatemanager_projects_locations_certificate_issuance_configs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     certificatemanager_projects_locations_certificate_issuance_configs_list_execute(builder)
 }
@@ -896,6 +955,17 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_patch_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificate_issuance_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificateIssuanceConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CertificateIssuanceConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateIssuanceConfigs/{certificateIssuanceConfigsId}
 /// Updates a CertificateIssuanceConfig.
 ///
@@ -908,15 +978,16 @@ pub fn certificatemanager_projects_locations_certificate_issuance_configs_patch_
 
 pub fn certificatemanager_projects_locations_certificate_issuance_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &CertificateIssuanceConfig,
+    args: &CertificatemanagerProjectsLocationsCertificateIssuanceConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = certificatemanager_projects_locations_certificate_issuance_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     certificatemanager_projects_locations_certificate_issuance_configs_patch_execute(builder)
 }
@@ -1026,6 +1097,17 @@ pub fn certificatemanager_projects_locations_certificate_maps_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificate_maps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificateMapsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: certificateMapId
+    pub certificateMapId: Option<String>,
+    /// Request body.
+    pub body: CertificateMap,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateMaps
 /// Creates a new CertificateMap in a given project and location.
 ///
@@ -1038,18 +1120,16 @@ pub fn certificatemanager_projects_locations_certificate_maps_create_execute(
 
 pub fn certificatemanager_projects_locations_certificate_maps_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    certificateMapId: Option<&str>,
-    body: &CertificateMap,
+    args: &CertificatemanagerProjectsLocationsCertificateMapsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = certificatemanager_projects_locations_certificate_maps_create_builder(
         client,
-        parent,
-        certificateMapId,
-        body,
+        &args.parent,
+        args.certificateMapId.as_deref(),
+        &args.body,
     )?;
     certificatemanager_projects_locations_certificate_maps_create_execute(builder)
 }
@@ -1144,6 +1224,13 @@ pub fn certificatemanager_projects_locations_certificate_maps_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificate_maps_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificateMapsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateMaps/{certificateMapsId}
 /// Deletes a single CertificateMap. A Certificate Map can't be deleted if it contains Certificate Map Entries. Remove all the entries from the map before calling this method.
 ///
@@ -1156,13 +1243,13 @@ pub fn certificatemanager_projects_locations_certificate_maps_delete_execute(
 
 pub fn certificatemanager_projects_locations_certificate_maps_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CertificatemanagerProjectsLocationsCertificateMapsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        certificatemanager_projects_locations_certificate_maps_delete_builder(client, name)?;
+        certificatemanager_projects_locations_certificate_maps_delete_builder(client, &args.name)?;
     certificatemanager_projects_locations_certificate_maps_delete_execute(builder)
 }
 
@@ -1258,6 +1345,13 @@ pub fn certificatemanager_projects_locations_certificate_maps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificate_maps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificateMapsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateMaps/{certificateMapsId}
 /// Gets details of a single CertificateMap.
 ///
@@ -1270,14 +1364,15 @@ pub fn certificatemanager_projects_locations_certificate_maps_get_execute(
 
 pub fn certificatemanager_projects_locations_certificate_maps_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CertificatemanagerProjectsLocationsCertificateMapsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateMap>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = certificatemanager_projects_locations_certificate_maps_get_builder(client, name)?;
+    let builder =
+        certificatemanager_projects_locations_certificate_maps_get_builder(client, &args.name)?;
     certificatemanager_projects_locations_certificate_maps_get_execute(builder)
 }
 
@@ -1399,6 +1494,21 @@ pub fn certificatemanager_projects_locations_certificate_maps_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificate_maps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificateMapsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateMaps
 /// Lists CertificateMaps in a given project and location.
 ///
@@ -1411,11 +1521,7 @@ pub fn certificatemanager_projects_locations_certificate_maps_list_execute(
 
 pub fn certificatemanager_projects_locations_certificate_maps_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CertificatemanagerProjectsLocationsCertificateMapsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCertificateMapsResponse>, ApiError>,
@@ -1425,7 +1531,12 @@ pub fn certificatemanager_projects_locations_certificate_maps_list(
     ApiError,
 > {
     let builder = certificatemanager_projects_locations_certificate_maps_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     certificatemanager_projects_locations_certificate_maps_list_execute(builder)
 }
@@ -1535,6 +1646,17 @@ pub fn certificatemanager_projects_locations_certificate_maps_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificate_maps_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificateMapsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CertificateMap,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateMaps/{certificateMapsId}
 /// Updates a CertificateMap.
 ///
@@ -1547,15 +1669,16 @@ pub fn certificatemanager_projects_locations_certificate_maps_patch_execute(
 
 pub fn certificatemanager_projects_locations_certificate_maps_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &CertificateMap,
+    args: &CertificatemanagerProjectsLocationsCertificateMapsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = certificatemanager_projects_locations_certificate_maps_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     certificatemanager_projects_locations_certificate_maps_patch_execute(builder)
 }
@@ -1665,6 +1788,17 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificate_maps_certificate_map_entries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: certificateMapEntryId
+    pub certificateMapEntryId: Option<String>,
+    /// Request body.
+    pub body: CertificateMapEntry,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateMaps/{certificateMapsId}/certificateMapEntries
 /// Creates a new CertificateMapEntry in a given project and location.
 ///
@@ -1677,14 +1811,12 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
 
 pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_entries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    certificateMapEntryId: Option<&str>,
-    body: &CertificateMapEntry,
+    args: &CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = certificatemanager_projects_locations_certificate_maps_certificate_map_entries_create_builder(client, parent, certificateMapEntryId, body)?;
+    let builder = certificatemanager_projects_locations_certificate_maps_certificate_map_entries_create_builder(client, &args.parent, args.certificateMapEntryId.as_deref(), &args.body)?;
     certificatemanager_projects_locations_certificate_maps_certificate_map_entries_create_execute(
         builder,
     )
@@ -1780,6 +1912,13 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificate_maps_certificate_map_entries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateMaps/{certificateMapsId}/certificateMapEntries/{certificateMapEntriesId}
 /// Deletes a single CertificateMapEntry.
 ///
@@ -1792,12 +1931,12 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
 
 pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_entries_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = certificatemanager_projects_locations_certificate_maps_certificate_map_entries_delete_builder(client, name)?;
+    let builder = certificatemanager_projects_locations_certificate_maps_certificate_map_entries_delete_builder(client, &args.name)?;
     certificatemanager_projects_locations_certificate_maps_certificate_map_entries_delete_execute(
         builder,
     )
@@ -1895,6 +2034,13 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificate_maps_certificate_map_entries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateMaps/{certificateMapsId}/certificateMapEntries/{certificateMapEntriesId}
 /// Gets details of a single CertificateMapEntry.
 ///
@@ -1907,7 +2053,7 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
 
 pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_entries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateMapEntry>, ApiError>, P = ApiPending>
         + Send
@@ -1916,7 +2062,7 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
 > {
     let builder =
         certificatemanager_projects_locations_certificate_maps_certificate_map_entries_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     certificatemanager_projects_locations_certificate_maps_certificate_map_entries_get_execute(
         builder,
@@ -2041,6 +2187,21 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificate_maps_certificate_map_entries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateMaps/{certificateMapsId}/certificateMapEntries
 /// Lists CertificateMapEntries in a given project and location.
 ///
@@ -2053,11 +2214,7 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
 
 pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_entries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCertificateMapEntriesResponse>, ApiError>,
@@ -2066,7 +2223,7 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
         + 'static,
     ApiError,
 > {
-    let builder = certificatemanager_projects_locations_certificate_maps_certificate_map_entries_list_builder(client, parent, filter, orderBy, pageSize, pageToken)?;
+    let builder = certificatemanager_projects_locations_certificate_maps_certificate_map_entries_list_builder(client, &args.parent, args.filter.as_deref(), args.orderBy.as_deref(), args.pageSize, args.pageToken.as_deref())?;
     certificatemanager_projects_locations_certificate_maps_certificate_map_entries_list_execute(
         builder,
     )
@@ -2177,6 +2334,17 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificate_maps_certificate_map_entries_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CertificateMapEntry,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateMaps/{certificateMapsId}/certificateMapEntries/{certificateMapEntriesId}
 /// Updates a CertificateMapEntry.
 ///
@@ -2189,14 +2357,12 @@ pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_en
 
 pub fn certificatemanager_projects_locations_certificate_maps_certificate_map_entries_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &CertificateMapEntry,
+    args: &CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntriesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = certificatemanager_projects_locations_certificate_maps_certificate_map_entries_patch_builder(client, name, updateMask, body)?;
+    let builder = certificatemanager_projects_locations_certificate_maps_certificate_map_entries_patch_builder(client, &args.name, args.updateMask.as_deref(), &args.body)?;
     certificatemanager_projects_locations_certificate_maps_certificate_map_entries_patch_execute(
         builder,
     )
@@ -2307,6 +2473,17 @@ pub fn certificatemanager_projects_locations_certificates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: certificateId
+    pub certificateId: Option<String>,
+    /// Request body.
+    pub body: Certificate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificates
 /// Creates a new Certificate in a given project and location.
 ///
@@ -2319,18 +2496,16 @@ pub fn certificatemanager_projects_locations_certificates_create_execute(
 
 pub fn certificatemanager_projects_locations_certificates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    certificateId: Option<&str>,
-    body: &Certificate,
+    args: &CertificatemanagerProjectsLocationsCertificatesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = certificatemanager_projects_locations_certificates_create_builder(
         client,
-        parent,
-        certificateId,
-        body,
+        &args.parent,
+        args.certificateId.as_deref(),
+        &args.body,
     )?;
     certificatemanager_projects_locations_certificates_create_execute(builder)
 }
@@ -2425,6 +2600,13 @@ pub fn certificatemanager_projects_locations_certificates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificates/{certificatesId}
 /// Deletes a single Certificate.
 ///
@@ -2437,12 +2619,13 @@ pub fn certificatemanager_projects_locations_certificates_delete_execute(
 
 pub fn certificatemanager_projects_locations_certificates_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CertificatemanagerProjectsLocationsCertificatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = certificatemanager_projects_locations_certificates_delete_builder(client, name)?;
+    let builder =
+        certificatemanager_projects_locations_certificates_delete_builder(client, &args.name)?;
     certificatemanager_projects_locations_certificates_delete_execute(builder)
 }
 
@@ -2536,6 +2719,13 @@ pub fn certificatemanager_projects_locations_certificates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificates/{certificatesId}
 /// Gets details of a single Certificate.
 ///
@@ -2548,12 +2738,13 @@ pub fn certificatemanager_projects_locations_certificates_get_execute(
 
 pub fn certificatemanager_projects_locations_certificates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CertificatemanagerProjectsLocationsCertificatesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Certificate>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = certificatemanager_projects_locations_certificates_get_builder(client, name)?;
+    let builder =
+        certificatemanager_projects_locations_certificates_get_builder(client, &args.name)?;
     certificatemanager_projects_locations_certificates_get_execute(builder)
 }
 
@@ -2673,6 +2864,21 @@ pub fn certificatemanager_projects_locations_certificates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificates
 /// Lists Certificates in a given project and location.
 ///
@@ -2685,11 +2891,7 @@ pub fn certificatemanager_projects_locations_certificates_list_execute(
 
 pub fn certificatemanager_projects_locations_certificates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CertificatemanagerProjectsLocationsCertificatesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCertificatesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2697,7 +2899,12 @@ pub fn certificatemanager_projects_locations_certificates_list(
     ApiError,
 > {
     let builder = certificatemanager_projects_locations_certificates_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     certificatemanager_projects_locations_certificates_list_execute(builder)
 }
@@ -2807,6 +3014,17 @@ pub fn certificatemanager_projects_locations_certificates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_certificates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsCertificatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Certificate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificates/{certificatesId}
 /// Updates a Certificate.
 ///
@@ -2819,15 +3037,16 @@ pub fn certificatemanager_projects_locations_certificates_patch_execute(
 
 pub fn certificatemanager_projects_locations_certificates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Certificate,
+    args: &CertificatemanagerProjectsLocationsCertificatesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = certificatemanager_projects_locations_certificates_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     certificatemanager_projects_locations_certificates_patch_execute(builder)
 }
@@ -2937,6 +3156,17 @@ pub fn certificatemanager_projects_locations_dns_authorizations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_dns_authorizations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsDnsAuthorizationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dnsAuthorizationId
+    pub dnsAuthorizationId: Option<String>,
+    /// Request body.
+    pub body: DnsAuthorization,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dnsAuthorizations
 /// Creates a new DnsAuthorization in a given project and location.
 ///
@@ -2949,18 +3179,16 @@ pub fn certificatemanager_projects_locations_dns_authorizations_create_execute(
 
 pub fn certificatemanager_projects_locations_dns_authorizations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dnsAuthorizationId: Option<&str>,
-    body: &DnsAuthorization,
+    args: &CertificatemanagerProjectsLocationsDnsAuthorizationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = certificatemanager_projects_locations_dns_authorizations_create_builder(
         client,
-        parent,
-        dnsAuthorizationId,
-        body,
+        &args.parent,
+        args.dnsAuthorizationId.as_deref(),
+        &args.body,
     )?;
     certificatemanager_projects_locations_dns_authorizations_create_execute(builder)
 }
@@ -3055,6 +3283,13 @@ pub fn certificatemanager_projects_locations_dns_authorizations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_dns_authorizations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsDnsAuthorizationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dnsAuthorizations/{dnsAuthorizationsId}
 /// Deletes a single DnsAuthorization.
 ///
@@ -3067,13 +3302,14 @@ pub fn certificatemanager_projects_locations_dns_authorizations_delete_execute(
 
 pub fn certificatemanager_projects_locations_dns_authorizations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CertificatemanagerProjectsLocationsDnsAuthorizationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        certificatemanager_projects_locations_dns_authorizations_delete_builder(client, name)?;
+    let builder = certificatemanager_projects_locations_dns_authorizations_delete_builder(
+        client, &args.name,
+    )?;
     certificatemanager_projects_locations_dns_authorizations_delete_execute(builder)
 }
 
@@ -3169,6 +3405,13 @@ pub fn certificatemanager_projects_locations_dns_authorizations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_dns_authorizations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsDnsAuthorizationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dnsAuthorizations/{dnsAuthorizationsId}
 /// Gets details of a single DnsAuthorization.
 ///
@@ -3181,7 +3424,7 @@ pub fn certificatemanager_projects_locations_dns_authorizations_get_execute(
 
 pub fn certificatemanager_projects_locations_dns_authorizations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CertificatemanagerProjectsLocationsDnsAuthorizationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DnsAuthorization>, ApiError>, P = ApiPending>
         + Send
@@ -3189,7 +3432,7 @@ pub fn certificatemanager_projects_locations_dns_authorizations_get(
     ApiError,
 > {
     let builder =
-        certificatemanager_projects_locations_dns_authorizations_get_builder(client, name)?;
+        certificatemanager_projects_locations_dns_authorizations_get_builder(client, &args.name)?;
     certificatemanager_projects_locations_dns_authorizations_get_execute(builder)
 }
 
@@ -3311,6 +3554,21 @@ pub fn certificatemanager_projects_locations_dns_authorizations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_dns_authorizations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsDnsAuthorizationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dnsAuthorizations
 /// Lists DnsAuthorizations in a given project and location.
 ///
@@ -3323,11 +3581,7 @@ pub fn certificatemanager_projects_locations_dns_authorizations_list_execute(
 
 pub fn certificatemanager_projects_locations_dns_authorizations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CertificatemanagerProjectsLocationsDnsAuthorizationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDnsAuthorizationsResponse>, ApiError>,
@@ -3337,7 +3591,12 @@ pub fn certificatemanager_projects_locations_dns_authorizations_list(
     ApiError,
 > {
     let builder = certificatemanager_projects_locations_dns_authorizations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     certificatemanager_projects_locations_dns_authorizations_list_execute(builder)
 }
@@ -3447,6 +3706,17 @@ pub fn certificatemanager_projects_locations_dns_authorizations_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_dns_authorizations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsDnsAuthorizationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: DnsAuthorization,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dnsAuthorizations/{dnsAuthorizationsId}
 /// Updates a DnsAuthorization.
 ///
@@ -3459,15 +3729,16 @@ pub fn certificatemanager_projects_locations_dns_authorizations_patch_execute(
 
 pub fn certificatemanager_projects_locations_dns_authorizations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &DnsAuthorization,
+    args: &CertificatemanagerProjectsLocationsDnsAuthorizationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = certificatemanager_projects_locations_dns_authorizations_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     certificatemanager_projects_locations_dns_authorizations_patch_execute(builder)
 }
@@ -3565,6 +3836,15 @@ pub fn certificatemanager_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -3577,14 +3857,14 @@ pub fn certificatemanager_projects_locations_operations_cancel_execute(
 
 pub fn certificatemanager_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &CertificatemanagerProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        certificatemanager_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = certificatemanager_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     certificatemanager_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -3678,6 +3958,13 @@ pub fn certificatemanager_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -3690,12 +3977,13 @@ pub fn certificatemanager_projects_locations_operations_delete_execute(
 
 pub fn certificatemanager_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CertificatemanagerProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = certificatemanager_projects_locations_operations_delete_builder(client, name)?;
+    let builder =
+        certificatemanager_projects_locations_operations_delete_builder(client, &args.name)?;
     certificatemanager_projects_locations_operations_delete_execute(builder)
 }
 
@@ -3789,6 +4077,13 @@ pub fn certificatemanager_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3801,12 +4096,12 @@ pub fn certificatemanager_projects_locations_operations_get_execute(
 
 pub fn certificatemanager_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CertificatemanagerProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = certificatemanager_projects_locations_operations_get_builder(client, name)?;
+    let builder = certificatemanager_projects_locations_operations_get_builder(client, &args.name)?;
     certificatemanager_projects_locations_operations_get_execute(builder)
 }
 
@@ -3926,6 +4221,21 @@ pub fn certificatemanager_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -3938,11 +4248,7 @@ pub fn certificatemanager_projects_locations_operations_list_execute(
 
 pub fn certificatemanager_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &CertificatemanagerProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3951,11 +4257,11 @@ pub fn certificatemanager_projects_locations_operations_list(
 > {
     let builder = certificatemanager_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     certificatemanager_projects_locations_operations_list_execute(builder)
 }
@@ -4065,6 +4371,17 @@ pub fn certificatemanager_projects_locations_trust_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_trust_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsTrustConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: trustConfigId
+    pub trustConfigId: Option<String>,
+    /// Request body.
+    pub body: TrustConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/trustConfigs
 /// Creates a new TrustConfig in a given project and location.
 ///
@@ -4077,18 +4394,16 @@ pub fn certificatemanager_projects_locations_trust_configs_create_execute(
 
 pub fn certificatemanager_projects_locations_trust_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    trustConfigId: Option<&str>,
-    body: &TrustConfig,
+    args: &CertificatemanagerProjectsLocationsTrustConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = certificatemanager_projects_locations_trust_configs_create_builder(
         client,
-        parent,
-        trustConfigId,
-        body,
+        &args.parent,
+        args.trustConfigId.as_deref(),
+        &args.body,
     )?;
     certificatemanager_projects_locations_trust_configs_create_execute(builder)
 }
@@ -4195,6 +4510,15 @@ pub fn certificatemanager_projects_locations_trust_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_trust_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsTrustConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/trustConfigs/{trustConfigsId}
 /// Deletes a single TrustConfig.
 ///
@@ -4207,14 +4531,16 @@ pub fn certificatemanager_projects_locations_trust_configs_delete_execute(
 
 pub fn certificatemanager_projects_locations_trust_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &CertificatemanagerProjectsLocationsTrustConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        certificatemanager_projects_locations_trust_configs_delete_builder(client, name, etag)?;
+    let builder = certificatemanager_projects_locations_trust_configs_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     certificatemanager_projects_locations_trust_configs_delete_execute(builder)
 }
 
@@ -4308,6 +4634,13 @@ pub fn certificatemanager_projects_locations_trust_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_trust_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsTrustConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/trustConfigs/{trustConfigsId}
 /// Gets details of a single TrustConfig.
 ///
@@ -4320,12 +4653,13 @@ pub fn certificatemanager_projects_locations_trust_configs_get_execute(
 
 pub fn certificatemanager_projects_locations_trust_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CertificatemanagerProjectsLocationsTrustConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TrustConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = certificatemanager_projects_locations_trust_configs_get_builder(client, name)?;
+    let builder =
+        certificatemanager_projects_locations_trust_configs_get_builder(client, &args.name)?;
     certificatemanager_projects_locations_trust_configs_get_execute(builder)
 }
 
@@ -4445,6 +4779,21 @@ pub fn certificatemanager_projects_locations_trust_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_trust_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsTrustConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/trustConfigs
 /// Lists TrustConfigs in a given project and location.
 ///
@@ -4457,11 +4806,7 @@ pub fn certificatemanager_projects_locations_trust_configs_list_execute(
 
 pub fn certificatemanager_projects_locations_trust_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CertificatemanagerProjectsLocationsTrustConfigsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTrustConfigsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4469,7 +4814,12 @@ pub fn certificatemanager_projects_locations_trust_configs_list(
     ApiError,
 > {
     let builder = certificatemanager_projects_locations_trust_configs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     certificatemanager_projects_locations_trust_configs_list_execute(builder)
 }
@@ -4579,6 +4929,17 @@ pub fn certificatemanager_projects_locations_trust_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`certificatemanager_projects_locations_trust_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CertificatemanagerProjectsLocationsTrustConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: TrustConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/trustConfigs/{trustConfigsId}
 /// Updates a TrustConfig.
 ///
@@ -4591,15 +4952,16 @@ pub fn certificatemanager_projects_locations_trust_configs_patch_execute(
 
 pub fn certificatemanager_projects_locations_trust_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &TrustConfig,
+    args: &CertificatemanagerProjectsLocationsTrustConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = certificatemanager_projects_locations_trust_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     certificatemanager_projects_locations_trust_configs_patch_execute(builder)
 }

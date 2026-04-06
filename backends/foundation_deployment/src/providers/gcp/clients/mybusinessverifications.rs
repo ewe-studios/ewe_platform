@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/locations/{locationsId}:fetchVerificationOptions
 /// Reports all eligible verification options for a location in a specific language.
@@ -113,6 +115,15 @@ pub fn mybusinessverifications_locations_fetch_verification_options_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessverifications_locations_fetch_verification_options`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessverificationsLocationsFetchVerificationOptionsArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Request body.
+    pub body: FetchVerificationOptionsRequest,
+}
+
 /// GET v1/locations/{locationsId}:fetchVerificationOptions
 /// Reports all eligible verification options for a location in a specific language.
 ///
@@ -125,8 +136,7 @@ pub fn mybusinessverifications_locations_fetch_verification_options_execute(
 
 pub fn mybusinessverifications_locations_fetch_verification_options(
     client: &SimpleHttpClient,
-    location: &str,
-    body: &FetchVerificationOptionsRequest,
+    args: &MybusinessverificationsLocationsFetchVerificationOptionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchVerificationOptionsResponse>, ApiError>,
@@ -136,7 +146,9 @@ pub fn mybusinessverifications_locations_fetch_verification_options(
     ApiError,
 > {
     let builder = mybusinessverifications_locations_fetch_verification_options_builder(
-        client, location, body,
+        client,
+        &args.location,
+        &args.body,
     )?;
     mybusinessverifications_locations_fetch_verification_options_execute(builder)
 }
@@ -233,6 +245,13 @@ pub fn mybusinessverifications_locations_get_voice_of_merchant_state_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessverifications_locations_get_voice_of_merchant_state`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessverificationsLocationsGetVoiceOfMerchantStateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/locations/{locationsId}/VoiceOfMerchantState
 /// Gets the VoiceOfMerchant state.
 ///
@@ -245,7 +264,7 @@ pub fn mybusinessverifications_locations_get_voice_of_merchant_state_execute(
 
 pub fn mybusinessverifications_locations_get_voice_of_merchant_state(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MybusinessverificationsLocationsGetVoiceOfMerchantStateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VoiceOfMerchantState>, ApiError>, P = ApiPending>
         + Send
@@ -253,7 +272,7 @@ pub fn mybusinessverifications_locations_get_voice_of_merchant_state(
     ApiError,
 > {
     let builder =
-        mybusinessverifications_locations_get_voice_of_merchant_state_builder(client, name)?;
+        mybusinessverifications_locations_get_voice_of_merchant_state_builder(client, &args.name)?;
     mybusinessverifications_locations_get_voice_of_merchant_state_execute(builder)
 }
 
@@ -352,6 +371,15 @@ pub fn mybusinessverifications_locations_verify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessverifications_locations_verify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessverificationsLocationsVerifyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: VerifyLocationRequest,
+}
+
 /// GET v1/locations/{locationsId}:verify
 /// Starts the verification process for a location.
 ///
@@ -364,15 +392,14 @@ pub fn mybusinessverifications_locations_verify_execute(
 
 pub fn mybusinessverifications_locations_verify(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &VerifyLocationRequest,
+    args: &MybusinessverificationsLocationsVerifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VerifyLocationResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = mybusinessverifications_locations_verify_builder(client, name, body)?;
+    let builder = mybusinessverifications_locations_verify_builder(client, &args.name, &args.body)?;
     mybusinessverifications_locations_verify_execute(builder)
 }
 
@@ -473,6 +500,15 @@ pub fn mybusinessverifications_locations_verifications_complete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessverifications_locations_verifications_complete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessverificationsLocationsVerificationsCompleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CompleteVerificationRequest,
+}
+
 /// GET v1/locations/{locationsId}/verifications/{verificationsId}:complete
 /// Completes a `PENDING` verification. It is only necessary for non AUTO verification methods. AUTO verification request is instantly VERIFIED upon creation.
 ///
@@ -485,8 +521,7 @@ pub fn mybusinessverifications_locations_verifications_complete_execute(
 
 pub fn mybusinessverifications_locations_verifications_complete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CompleteVerificationRequest,
+    args: &MybusinessverificationsLocationsVerificationsCompleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CompleteVerificationResponse>, ApiError>,
@@ -495,8 +530,9 @@ pub fn mybusinessverifications_locations_verifications_complete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessverifications_locations_verifications_complete_builder(client, name, body)?;
+    let builder = mybusinessverifications_locations_verifications_complete_builder(
+        client, &args.name, &args.body,
+    )?;
     mybusinessverifications_locations_verifications_complete_execute(builder)
 }
 
@@ -608,6 +644,17 @@ pub fn mybusinessverifications_locations_verifications_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessverifications_locations_verifications_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessverificationsLocationsVerificationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/locations/{locationsId}/verifications
 /// List verifications of a location, ordered by create time.
 ///
@@ -620,9 +667,7 @@ pub fn mybusinessverifications_locations_verifications_list_execute(
 
 pub fn mybusinessverifications_locations_verifications_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MybusinessverificationsLocationsVerificationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListVerificationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -630,7 +675,10 @@ pub fn mybusinessverifications_locations_verifications_list(
     ApiError,
 > {
     let builder = mybusinessverifications_locations_verifications_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     mybusinessverifications_locations_verifications_list_execute(builder)
 }
@@ -729,6 +777,13 @@ pub fn mybusinessverifications_verification_tokens_generate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`mybusinessverifications_verification_tokens_generate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MybusinessverificationsVerificationTokensGenerateArgs {
+    /// Request body.
+    pub body: GenerateInstantVerificationTokenRequest,
+}
+
 /// GET v1/verificationTokens:generate
 /// Generate a token for the provided location data to verify the location.
 ///
@@ -741,7 +796,7 @@ pub fn mybusinessverifications_verification_tokens_generate_execute(
 
 pub fn mybusinessverifications_verification_tokens_generate(
     client: &SimpleHttpClient,
-    body: &GenerateInstantVerificationTokenRequest,
+    args: &MybusinessverificationsVerificationTokensGenerateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateInstantVerificationTokenResponse>, ApiError>,
@@ -750,6 +805,6 @@ pub fn mybusinessverifications_verification_tokens_generate(
         + 'static,
     ApiError,
 > {
-    let builder = mybusinessverifications_verification_tokens_generate_builder(client, body)?;
+    let builder = mybusinessverifications_verification_tokens_generate_builder(client, &args.body)?;
     mybusinessverifications_verification_tokens_generate_execute(builder)
 }

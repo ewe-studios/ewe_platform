@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:fetchStaticIps
 /// Fetches a set of static IP addresses that need to be allowlisted by the customer when using the static-IP connectivity method.
@@ -124,6 +126,17 @@ pub fn datamigration_projects_locations_fetch_static_ips_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_fetch_static_ips`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsFetchStaticIpsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:fetchStaticIps
 /// Fetches a set of static IP addresses that need to be allowlisted by the customer when using the static-IP connectivity method.
 ///
@@ -136,9 +149,7 @@ pub fn datamigration_projects_locations_fetch_static_ips_execute(
 
 pub fn datamigration_projects_locations_fetch_static_ips(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatamigrationProjectsLocationsFetchStaticIpsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FetchStaticIpsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -146,7 +157,10 @@ pub fn datamigration_projects_locations_fetch_static_ips(
     ApiError,
 > {
     let builder = datamigration_projects_locations_fetch_static_ips_builder(
-        client, name, pageSize, pageToken,
+        client,
+        &args.name,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datamigration_projects_locations_fetch_static_ips_execute(builder)
 }
@@ -241,6 +255,13 @@ pub fn datamigration_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -253,12 +274,12 @@ pub fn datamigration_projects_locations_get_execute(
 
 pub fn datamigration_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatamigrationProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datamigration_projects_locations_get_builder(client, name)?;
+    let builder = datamigration_projects_locations_get_builder(client, &args.name)?;
     datamigration_projects_locations_get_execute(builder)
 }
 
@@ -378,6 +399,21 @@ pub fn datamigration_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -390,11 +426,7 @@ pub fn datamigration_projects_locations_list_execute(
 
 pub fn datamigration_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatamigrationProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -403,11 +435,11 @@ pub fn datamigration_projects_locations_list(
 > {
     let builder = datamigration_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datamigration_projects_locations_list_execute(builder)
 }
@@ -529,6 +561,23 @@ pub fn datamigration_projects_locations_connection_profiles_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_connection_profiles_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConnectionProfilesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: connectionProfileId
+    pub connectionProfileId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: skipValidation
+    pub skipValidation: Option<bool>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: ConnectionProfile,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles
 /// Creates a new connection profile in a given project and location.
 ///
@@ -541,24 +590,19 @@ pub fn datamigration_projects_locations_connection_profiles_create_execute(
 
 pub fn datamigration_projects_locations_connection_profiles_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    connectionProfileId: Option<&str>,
-    requestId: Option<&str>,
-    skipValidation: Option<bool>,
-    validateOnly: Option<bool>,
-    body: &ConnectionProfile,
+    args: &DatamigrationProjectsLocationsConnectionProfilesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_connection_profiles_create_builder(
         client,
-        parent,
-        connectionProfileId,
-        requestId,
-        skipValidation,
-        validateOnly,
-        body,
+        &args.parent,
+        args.connectionProfileId.as_deref(),
+        args.requestId.as_deref(),
+        args.skipValidation,
+        args.validateOnly,
+        &args.body,
     )?;
     datamigration_projects_locations_connection_profiles_create_execute(builder)
 }
@@ -669,6 +713,17 @@ pub fn datamigration_projects_locations_connection_profiles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_connection_profiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConnectionProfilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}
 /// Deletes a single Database Migration Service connection profile. A connection profile can only be deleted if it is not in use by any active migration jobs.
 ///
@@ -681,15 +736,16 @@ pub fn datamigration_projects_locations_connection_profiles_delete_execute(
 
 pub fn datamigration_projects_locations_connection_profiles_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    requestId: Option<&str>,
+    args: &DatamigrationProjectsLocationsConnectionProfilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_connection_profiles_delete_builder(
-        client, name, force, requestId,
+        client,
+        &args.name,
+        args.force,
+        args.requestId.as_deref(),
     )?;
     datamigration_projects_locations_connection_profiles_delete_execute(builder)
 }
@@ -786,6 +842,13 @@ pub fn datamigration_projects_locations_connection_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_connection_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConnectionProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}
 /// Gets details of a single connection profile.
 ///
@@ -798,14 +861,15 @@ pub fn datamigration_projects_locations_connection_profiles_get_execute(
 
 pub fn datamigration_projects_locations_connection_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatamigrationProjectsLocationsConnectionProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConnectionProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datamigration_projects_locations_connection_profiles_get_builder(client, name)?;
+    let builder =
+        datamigration_projects_locations_connection_profiles_get_builder(client, &args.name)?;
     datamigration_projects_locations_connection_profiles_get_execute(builder)
 }
 
@@ -911,6 +975,15 @@ pub fn datamigration_projects_locations_connection_profiles_get_iam_policy_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_connection_profiles_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConnectionProfilesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -923,16 +996,15 @@ pub fn datamigration_projects_locations_connection_profiles_get_iam_policy_execu
 
 pub fn datamigration_projects_locations_connection_profiles_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DatamigrationProjectsLocationsConnectionProfilesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_connection_profiles_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     datamigration_projects_locations_connection_profiles_get_iam_policy_execute(builder)
 }
@@ -1055,6 +1127,21 @@ pub fn datamigration_projects_locations_connection_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_connection_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConnectionProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles
 /// Retrieves a list of all connection profiles in a given project and location.
 ///
@@ -1067,11 +1154,7 @@ pub fn datamigration_projects_locations_connection_profiles_list_execute(
 
 pub fn datamigration_projects_locations_connection_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatamigrationProjectsLocationsConnectionProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListConnectionProfilesResponse>, ApiError>,
@@ -1081,7 +1164,12 @@ pub fn datamigration_projects_locations_connection_profiles_list(
     ApiError,
 > {
     let builder = datamigration_projects_locations_connection_profiles_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datamigration_projects_locations_connection_profiles_list_execute(builder)
 }
@@ -1203,6 +1291,23 @@ pub fn datamigration_projects_locations_connection_profiles_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_connection_profiles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConnectionProfilesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: skipValidation
+    pub skipValidation: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: ConnectionProfile,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}
 /// Update the configuration of a single connection profile.
 ///
@@ -1215,24 +1320,19 @@ pub fn datamigration_projects_locations_connection_profiles_patch_execute(
 
 pub fn datamigration_projects_locations_connection_profiles_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    skipValidation: Option<bool>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &ConnectionProfile,
+    args: &DatamigrationProjectsLocationsConnectionProfilesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_connection_profiles_patch_builder(
         client,
-        name,
-        requestId,
-        skipValidation,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.skipValidation,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     datamigration_projects_locations_connection_profiles_patch_execute(builder)
 }
@@ -1330,6 +1430,15 @@ pub fn datamigration_projects_locations_connection_profiles_set_iam_policy_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_connection_profiles_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConnectionProfilesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1342,14 +1451,15 @@ pub fn datamigration_projects_locations_connection_profiles_set_iam_policy_execu
 
 pub fn datamigration_projects_locations_connection_profiles_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DatamigrationProjectsLocationsConnectionProfilesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_connection_profiles_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datamigration_projects_locations_connection_profiles_set_iam_policy_execute(builder)
 }
@@ -1451,6 +1561,15 @@ pub fn datamigration_projects_locations_connection_profiles_test_iam_permissions
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_connection_profiles_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConnectionProfilesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connectionProfiles/{connectionProfilesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1463,8 +1582,7 @@ pub fn datamigration_projects_locations_connection_profiles_test_iam_permissions
 
 pub fn datamigration_projects_locations_connection_profiles_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DatamigrationProjectsLocationsConnectionProfilesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1475,7 +1593,9 @@ pub fn datamigration_projects_locations_connection_profiles_test_iam_permissions
 > {
     let builder =
         datamigration_projects_locations_connection_profiles_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     datamigration_projects_locations_connection_profiles_test_iam_permissions_execute(builder)
 }
@@ -1573,6 +1693,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_apply_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_apply`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesApplyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ApplyConversionWorkspaceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:apply
 /// Applies draft tree onto a specific destination database.
 ///
@@ -1585,14 +1714,14 @@ pub fn datamigration_projects_locations_conversion_workspaces_apply_execute(
 
 pub fn datamigration_projects_locations_conversion_workspaces_apply(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ApplyConversionWorkspaceRequest,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesApplyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datamigration_projects_locations_conversion_workspaces_apply_builder(client, name, body)?;
+    let builder = datamigration_projects_locations_conversion_workspaces_apply_builder(
+        client, &args.name, &args.body,
+    )?;
     datamigration_projects_locations_conversion_workspaces_apply_execute(builder)
 }
 
@@ -1689,6 +1818,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_commit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_commit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesCommitArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CommitConversionWorkspaceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:commit
 /// Marks all the data in the conversion workspace as committed.
 ///
@@ -1701,14 +1839,14 @@ pub fn datamigration_projects_locations_conversion_workspaces_commit_execute(
 
 pub fn datamigration_projects_locations_conversion_workspaces_commit(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CommitConversionWorkspaceRequest,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesCommitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datamigration_projects_locations_conversion_workspaces_commit_builder(client, name, body)?;
+    let builder = datamigration_projects_locations_conversion_workspaces_commit_builder(
+        client, &args.name, &args.body,
+    )?;
     datamigration_projects_locations_conversion_workspaces_commit_execute(builder)
 }
 
@@ -1805,6 +1943,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_convert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_convert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesConvertArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ConvertConversionWorkspaceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:convert
 /// Creates a draft tree schema for the destination database.
 ///
@@ -1817,14 +1964,14 @@ pub fn datamigration_projects_locations_conversion_workspaces_convert_execute(
 
 pub fn datamigration_projects_locations_conversion_workspaces_convert(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ConvertConversionWorkspaceRequest,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesConvertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datamigration_projects_locations_conversion_workspaces_convert_builder(client, name, body)?;
+    let builder = datamigration_projects_locations_conversion_workspaces_convert_builder(
+        client, &args.name, &args.body,
+    )?;
     datamigration_projects_locations_conversion_workspaces_convert_execute(builder)
 }
 
@@ -1937,6 +2084,19 @@ pub fn datamigration_projects_locations_conversion_workspaces_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: conversionWorkspaceId
+    pub conversionWorkspaceId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: ConversionWorkspace,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces
 /// Creates a new conversion workspace in a given project and location.
 ///
@@ -1949,20 +2109,17 @@ pub fn datamigration_projects_locations_conversion_workspaces_create_execute(
 
 pub fn datamigration_projects_locations_conversion_workspaces_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    conversionWorkspaceId: Option<&str>,
-    requestId: Option<&str>,
-    body: &ConversionWorkspace,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_conversion_workspaces_create_builder(
         client,
-        parent,
-        conversionWorkspaceId,
-        requestId,
-        body,
+        &args.parent,
+        args.conversionWorkspaceId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     datamigration_projects_locations_conversion_workspaces_create_execute(builder)
 }
@@ -2073,6 +2230,17 @@ pub fn datamigration_projects_locations_conversion_workspaces_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}
 /// Deletes a single conversion workspace.
 ///
@@ -2085,15 +2253,16 @@ pub fn datamigration_projects_locations_conversion_workspaces_delete_execute(
 
 pub fn datamigration_projects_locations_conversion_workspaces_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    requestId: Option<&str>,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_conversion_workspaces_delete_builder(
-        client, name, force, requestId,
+        client,
+        &args.name,
+        args.force,
+        args.requestId.as_deref(),
     )?;
     datamigration_projects_locations_conversion_workspaces_delete_execute(builder)
 }
@@ -2205,6 +2374,16 @@ pub fn datamigration_projects_locations_conversion_workspaces_describe_conversio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_describe_conversion_workspace_revisions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesDescribeConversionWorkspaceRevisionsArgs
+{
+    /// Path parameter: conversionWorkspace
+    pub conversionWorkspace: String,
+    /// Query parameter: commitId
+    pub commitId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:describeConversionWorkspaceRevisions
 /// Retrieves a list of committed revisions of a specific conversion workspace.
 ///
@@ -2217,8 +2396,7 @@ pub fn datamigration_projects_locations_conversion_workspaces_describe_conversio
 
 pub fn datamigration_projects_locations_conversion_workspaces_describe_conversion_workspace_revisions(
     client: &SimpleHttpClient,
-    conversionWorkspace: &str,
-    commitId: Option<&str>,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesDescribeConversionWorkspaceRevisionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DescribeConversionWorkspaceRevisionsResponse>, ApiError>,
@@ -2227,7 +2405,7 @@ pub fn datamigration_projects_locations_conversion_workspaces_describe_conversio
         + 'static,
     ApiError,
 > {
-    let builder = datamigration_projects_locations_conversion_workspaces_describe_conversion_workspace_revisions_builder(client, conversionWorkspace, commitId)?;
+    let builder = datamigration_projects_locations_conversion_workspaces_describe_conversion_workspace_revisions_builder(client, &args.conversionWorkspace, args.commitId.as_deref())?;
     datamigration_projects_locations_conversion_workspaces_describe_conversion_workspace_revisions_execute(builder)
 }
 
@@ -2361,6 +2539,27 @@ pub fn datamigration_projects_locations_conversion_workspaces_describe_database_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_describe_database_entities`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesDescribeDatabaseEntitiesArgs {
+    /// Path parameter: conversionWorkspace
+    pub conversionWorkspace: String,
+    /// Query parameter: commitId
+    pub commitId: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: tree
+    pub tree: Option<String>,
+    /// Query parameter: uncommitted
+    pub uncommitted: Option<bool>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:describeDatabaseEntities
 /// Describes the database entities tree for a specific conversion workspace and a specific tree type. Database entities are not resources like conversion workspaces or mapping rules, and they can't be created, updated or deleted. Instead, they are simple data objects describing the structure of the client database.
 ///
@@ -2373,14 +2572,7 @@ pub fn datamigration_projects_locations_conversion_workspaces_describe_database_
 
 pub fn datamigration_projects_locations_conversion_workspaces_describe_database_entities(
     client: &SimpleHttpClient,
-    conversionWorkspace: &str,
-    commitId: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    tree: Option<&str>,
-    uncommitted: Option<bool>,
-    view: Option<&str>,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesDescribeDatabaseEntitiesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DescribeDatabaseEntitiesResponse>, ApiError>,
@@ -2392,14 +2584,14 @@ pub fn datamigration_projects_locations_conversion_workspaces_describe_database_
     let builder =
         datamigration_projects_locations_conversion_workspaces_describe_database_entities_builder(
             client,
-            conversionWorkspace,
-            commitId,
-            filter,
-            pageSize,
-            pageToken,
-            tree,
-            uncommitted,
-            view,
+            &args.conversionWorkspace,
+            args.commitId.as_deref(),
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.tree.as_deref(),
+            args.uncommitted,
+            args.view.as_deref(),
         )?;
     datamigration_projects_locations_conversion_workspaces_describe_database_entities_execute(
         builder,
@@ -2498,6 +2690,13 @@ pub fn datamigration_projects_locations_conversion_workspaces_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}
 /// Gets details of a single conversion workspace.
 ///
@@ -2510,14 +2709,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_get_execute(
 
 pub fn datamigration_projects_locations_conversion_workspaces_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConversionWorkspace>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datamigration_projects_locations_conversion_workspaces_get_builder(client, name)?;
+    let builder =
+        datamigration_projects_locations_conversion_workspaces_get_builder(client, &args.name)?;
     datamigration_projects_locations_conversion_workspaces_get_execute(builder)
 }
 
@@ -2623,6 +2823,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_get_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2635,16 +2844,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_get_iam_policy_exe
 
 pub fn datamigration_projects_locations_conversion_workspaces_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_conversion_workspaces_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     datamigration_projects_locations_conversion_workspaces_get_iam_policy_execute(builder)
 }
@@ -2763,6 +2971,19 @@ pub fn datamigration_projects_locations_conversion_workspaces_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces
 /// Lists conversion workspaces in a given project and location.
 ///
@@ -2775,10 +2996,7 @@ pub fn datamigration_projects_locations_conversion_workspaces_list_execute(
 
 pub fn datamigration_projects_locations_conversion_workspaces_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListConversionWorkspacesResponse>, ApiError>,
@@ -2788,7 +3006,11 @@ pub fn datamigration_projects_locations_conversion_workspaces_list(
     ApiError,
 > {
     let builder = datamigration_projects_locations_conversion_workspaces_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datamigration_projects_locations_conversion_workspaces_list_execute(builder)
 }
@@ -2902,6 +3124,19 @@ pub fn datamigration_projects_locations_conversion_workspaces_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ConversionWorkspace,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}
 /// Updates the parameters of a single conversion workspace.
 ///
@@ -2914,16 +3149,17 @@ pub fn datamigration_projects_locations_conversion_workspaces_patch_execute(
 
 pub fn datamigration_projects_locations_conversion_workspaces_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &ConversionWorkspace,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_conversion_workspaces_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     datamigration_projects_locations_conversion_workspaces_patch_execute(builder)
 }
@@ -3021,6 +3257,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_rollback_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_rollback`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesRollbackArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RollbackConversionWorkspaceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:rollback
 /// Rolls back a conversion workspace to the last committed snapshot.
 ///
@@ -3033,14 +3278,13 @@ pub fn datamigration_projects_locations_conversion_workspaces_rollback_execute(
 
 pub fn datamigration_projects_locations_conversion_workspaces_rollback(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RollbackConversionWorkspaceRequest,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesRollbackArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_conversion_workspaces_rollback_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     datamigration_projects_locations_conversion_workspaces_rollback_execute(builder)
 }
@@ -3159,6 +3403,19 @@ pub fn datamigration_projects_locations_conversion_workspaces_search_background_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_search_background_jobs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesSearchBackgroundJobsArgs {
+    /// Path parameter: conversionWorkspace
+    pub conversionWorkspace: String,
+    /// Query parameter: completedUntilTime
+    pub completedUntilTime: Option<String>,
+    /// Query parameter: maxSize
+    pub maxSize: Option<i32>,
+    /// Query parameter: returnMostRecentPerJobType
+    pub returnMostRecentPerJobType: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:searchBackgroundJobs
 /// S`earches/lists` the background jobs for a specific conversion workspace. The background jobs are not resources like conversion workspaces or mapping rules, and they can't be created, updated or deleted. Instead, they are a way to expose the data plane jobs log.
 ///
@@ -3171,10 +3428,7 @@ pub fn datamigration_projects_locations_conversion_workspaces_search_background_
 
 pub fn datamigration_projects_locations_conversion_workspaces_search_background_jobs(
     client: &SimpleHttpClient,
-    conversionWorkspace: &str,
-    completedUntilTime: Option<&str>,
-    maxSize: Option<i32>,
-    returnMostRecentPerJobType: Option<bool>,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesSearchBackgroundJobsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchBackgroundJobsResponse>, ApiError>,
@@ -3186,10 +3440,10 @@ pub fn datamigration_projects_locations_conversion_workspaces_search_background_
     let builder =
         datamigration_projects_locations_conversion_workspaces_search_background_jobs_builder(
             client,
-            conversionWorkspace,
-            completedUntilTime,
-            maxSize,
-            returnMostRecentPerJobType,
+            &args.conversionWorkspace,
+            args.completedUntilTime.as_deref(),
+            args.maxSize,
+            args.returnMostRecentPerJobType,
         )?;
     datamigration_projects_locations_conversion_workspaces_search_background_jobs_execute(builder)
 }
@@ -3287,6 +3541,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_seed_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_seed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesSeedArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SeedConversionWorkspaceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:seed
 /// Imports a snapshot of the source database into the conversion workspace.
 ///
@@ -3299,14 +3562,14 @@ pub fn datamigration_projects_locations_conversion_workspaces_seed_execute(
 
 pub fn datamigration_projects_locations_conversion_workspaces_seed(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SeedConversionWorkspaceRequest,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesSeedArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datamigration_projects_locations_conversion_workspaces_seed_builder(client, name, body)?;
+    let builder = datamigration_projects_locations_conversion_workspaces_seed_builder(
+        client, &args.name, &args.body,
+    )?;
     datamigration_projects_locations_conversion_workspaces_seed_execute(builder)
 }
 
@@ -3403,6 +3666,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_set_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3415,14 +3687,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_set_iam_policy_exe
 
 pub fn datamigration_projects_locations_conversion_workspaces_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_conversion_workspaces_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datamigration_projects_locations_conversion_workspaces_set_iam_policy_execute(builder)
 }
@@ -3524,6 +3797,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_test_iam_permissio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3536,8 +3818,7 @@ pub fn datamigration_projects_locations_conversion_workspaces_test_iam_permissio
 
 pub fn datamigration_projects_locations_conversion_workspaces_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3548,7 +3829,9 @@ pub fn datamigration_projects_locations_conversion_workspaces_test_iam_permissio
 > {
     let builder =
         datamigration_projects_locations_conversion_workspaces_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     datamigration_projects_locations_conversion_workspaces_test_iam_permissions_execute(builder)
 }
@@ -3662,6 +3945,19 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_crea
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_mapping_rules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesMappingRulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: mappingRuleId
+    pub mappingRuleId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: MappingRule,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}/mappingRules
 /// Creates a new mapping rule for a given conversion workspace.
 ///
@@ -3674,10 +3970,7 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_crea
 
 pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    mappingRuleId: Option<&str>,
-    requestId: Option<&str>,
-    body: &MappingRule,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesMappingRulesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MappingRule>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -3685,10 +3978,10 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_crea
     let builder =
         datamigration_projects_locations_conversion_workspaces_mapping_rules_create_builder(
             client,
-            parent,
-            mappingRuleId,
-            requestId,
-            body,
+            &args.parent,
+            args.mappingRuleId.as_deref(),
+            args.requestId.as_deref(),
+            &args.body,
         )?;
     datamigration_projects_locations_conversion_workspaces_mapping_rules_create_execute(builder)
 }
@@ -3795,6 +4088,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_dele
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_mapping_rules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesMappingRulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}/mappingRules/{mappingRulesId}
 /// Deletes a single mapping rule.
 ///
@@ -3807,15 +4109,16 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_dele
 
 pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesMappingRulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         datamigration_projects_locations_conversion_workspaces_mapping_rules_delete_builder(
-            client, name, requestId,
+            client,
+            &args.name,
+            args.requestId.as_deref(),
         )?;
     datamigration_projects_locations_conversion_workspaces_mapping_rules_delete_execute(builder)
 }
@@ -3910,6 +4213,13 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_get_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_mapping_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesMappingRulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}/mappingRules/{mappingRulesId}
 /// Gets the details of a mapping rule.
 ///
@@ -3922,13 +4232,13 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_get_
 
 pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesMappingRulesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MappingRule>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_conversion_workspaces_mapping_rules_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     datamigration_projects_locations_conversion_workspaces_mapping_rules_get_execute(builder)
 }
@@ -4026,6 +4336,15 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_impo
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_mapping_rules_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesMappingRulesImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ImportMappingRulesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}/mappingRules:import
 /// Imports the mapping rules for a given conversion workspace. Supports various formats of external rules files.
 ///
@@ -4038,15 +4357,16 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_impo
 
 pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ImportMappingRulesRequest,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesMappingRulesImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         datamigration_projects_locations_conversion_workspaces_mapping_rules_import_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     datamigration_projects_locations_conversion_workspaces_mapping_rules_import_execute(builder)
 }
@@ -4159,6 +4479,17 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_list
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_conversion_workspaces_mapping_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsConversionWorkspacesMappingRulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/conversionWorkspaces/{conversionWorkspacesId}/mappingRules
 /// Lists the mapping rules for a specific conversion workspace.
 ///
@@ -4171,9 +4502,7 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_list
 
 pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatamigrationProjectsLocationsConversionWorkspacesMappingRulesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListMappingRulesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4182,7 +4511,10 @@ pub fn datamigration_projects_locations_conversion_workspaces_mapping_rules_list
 > {
     let builder =
         datamigration_projects_locations_conversion_workspaces_mapping_rules_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     datamigration_projects_locations_conversion_workspaces_mapping_rules_list_execute(builder)
 }
@@ -4296,6 +4628,19 @@ pub fn datamigration_projects_locations_migration_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: migrationJobId
+    pub migrationJobId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: MigrationJob,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs
 /// Creates a new migration job in a given project and location.
 ///
@@ -4308,20 +4653,17 @@ pub fn datamigration_projects_locations_migration_jobs_create_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    migrationJobId: Option<&str>,
-    requestId: Option<&str>,
-    body: &MigrationJob,
+    args: &DatamigrationProjectsLocationsMigrationJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_migration_jobs_create_builder(
         client,
-        parent,
-        migrationJobId,
-        requestId,
-        body,
+        &args.parent,
+        args.migrationJobId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     datamigration_projects_locations_migration_jobs_create_execute(builder)
 }
@@ -4432,6 +4774,17 @@ pub fn datamigration_projects_locations_migration_jobs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}
 /// Deletes a single migration job.
 ///
@@ -4444,15 +4797,16 @@ pub fn datamigration_projects_locations_migration_jobs_delete_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    requestId: Option<&str>,
+    args: &DatamigrationProjectsLocationsMigrationJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_migration_jobs_delete_builder(
-        client, name, force, requestId,
+        client,
+        &args.name,
+        args.force,
+        args.requestId.as_deref(),
     )?;
     datamigration_projects_locations_migration_jobs_delete_execute(builder)
 }
@@ -4550,6 +4904,15 @@ pub fn datamigration_projects_locations_migration_jobs_demote_destination_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_demote_destination`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsDemoteDestinationArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DemoteDestinationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}:demoteDestination
 /// Demotes the destination database to become a read replica of the source. This is applicable for the following migrations: 1. MySQL to Cloud SQL for MySQL 2. PostgreSQL to Cloud SQL for PostgreSQL 3. PostgreSQL to AlloyDB for PostgreSQL.
 ///
@@ -4562,14 +4925,13 @@ pub fn datamigration_projects_locations_migration_jobs_demote_destination_execut
 
 pub fn datamigration_projects_locations_migration_jobs_demote_destination(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DemoteDestinationRequest,
+    args: &DatamigrationProjectsLocationsMigrationJobsDemoteDestinationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_migration_jobs_demote_destination_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     datamigration_projects_locations_migration_jobs_demote_destination_execute(builder)
 }
@@ -4664,6 +5026,13 @@ pub fn datamigration_projects_locations_migration_jobs_fetch_source_objects_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_fetch_source_objects`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsFetchSourceObjectsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}:fetchSourceObjects
 /// Retrieves objects from the source database that can be selected for data migration. This is applicable for the following migrations: 1. PostgreSQL to Cloud SQL for PostgreSQL 2. PostgreSQL to AlloyDB for PostgreSQL.
 ///
@@ -4676,13 +5045,14 @@ pub fn datamigration_projects_locations_migration_jobs_fetch_source_objects_exec
 
 pub fn datamigration_projects_locations_migration_jobs_fetch_source_objects(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatamigrationProjectsLocationsMigrationJobsFetchSourceObjectsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datamigration_projects_locations_migration_jobs_fetch_source_objects_builder(client, name)?;
+    let builder = datamigration_projects_locations_migration_jobs_fetch_source_objects_builder(
+        client, &args.name,
+    )?;
     datamigration_projects_locations_migration_jobs_fetch_source_objects_execute(builder)
 }
 
@@ -4779,6 +5149,15 @@ pub fn datamigration_projects_locations_migration_jobs_generate_ssh_script_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_generate_ssh_script`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsGenerateSshScriptArgs {
+    /// Path parameter: migrationJob
+    pub migrationJob: String,
+    /// Request body.
+    pub body: GenerateSshScriptRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}:generateSshScript
 /// Generate a SSH configuration script to configure the reverse SSH connectivity.
 ///
@@ -4791,16 +5170,15 @@ pub fn datamigration_projects_locations_migration_jobs_generate_ssh_script_execu
 
 pub fn datamigration_projects_locations_migration_jobs_generate_ssh_script(
     client: &SimpleHttpClient,
-    migrationJob: &str,
-    body: &GenerateSshScriptRequest,
+    args: &DatamigrationProjectsLocationsMigrationJobsGenerateSshScriptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SshScript>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_migration_jobs_generate_ssh_script_builder(
         client,
-        migrationJob,
-        body,
+        &args.migrationJob,
+        &args.body,
     )?;
     datamigration_projects_locations_migration_jobs_generate_ssh_script_execute(builder)
 }
@@ -4900,6 +5278,15 @@ pub fn datamigration_projects_locations_migration_jobs_generate_tcp_proxy_script
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_generate_tcp_proxy_script`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsGenerateTcpProxyScriptArgs {
+    /// Path parameter: migrationJob
+    pub migrationJob: String,
+    /// Request body.
+    pub body: GenerateTcpProxyScriptRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}:generateTcpProxyScript
 /// Generate a TCP Proxy configuration script to configure a cloud-hosted VM running a TCP Proxy.
 ///
@@ -4912,8 +5299,7 @@ pub fn datamigration_projects_locations_migration_jobs_generate_tcp_proxy_script
 
 pub fn datamigration_projects_locations_migration_jobs_generate_tcp_proxy_script(
     client: &SimpleHttpClient,
-    migrationJob: &str,
-    body: &GenerateTcpProxyScriptRequest,
+    args: &DatamigrationProjectsLocationsMigrationJobsGenerateTcpProxyScriptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TcpProxyScript>, ApiError>, P = ApiPending>
         + Send
@@ -4923,8 +5309,8 @@ pub fn datamigration_projects_locations_migration_jobs_generate_tcp_proxy_script
     let builder =
         datamigration_projects_locations_migration_jobs_generate_tcp_proxy_script_builder(
             client,
-            migrationJob,
-            body,
+            &args.migrationJob,
+            &args.body,
         )?;
     datamigration_projects_locations_migration_jobs_generate_tcp_proxy_script_execute(builder)
 }
@@ -5021,6 +5407,13 @@ pub fn datamigration_projects_locations_migration_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}
 /// Gets details of a single migration job.
 ///
@@ -5033,14 +5426,14 @@ pub fn datamigration_projects_locations_migration_jobs_get_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatamigrationProjectsLocationsMigrationJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MigrationJob>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datamigration_projects_locations_migration_jobs_get_builder(client, name)?;
+    let builder = datamigration_projects_locations_migration_jobs_get_builder(client, &args.name)?;
     datamigration_projects_locations_migration_jobs_get_execute(builder)
 }
 
@@ -5146,6 +5539,15 @@ pub fn datamigration_projects_locations_migration_jobs_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -5158,16 +5560,15 @@ pub fn datamigration_projects_locations_migration_jobs_get_iam_policy_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DatamigrationProjectsLocationsMigrationJobsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_migration_jobs_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     datamigration_projects_locations_migration_jobs_get_iam_policy_execute(builder)
 }
@@ -5288,6 +5689,21 @@ pub fn datamigration_projects_locations_migration_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs
 /// Lists migration jobs in a given project and location.
 ///
@@ -5300,11 +5716,7 @@ pub fn datamigration_projects_locations_migration_jobs_list_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatamigrationProjectsLocationsMigrationJobsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListMigrationJobsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5312,7 +5724,12 @@ pub fn datamigration_projects_locations_migration_jobs_list(
     ApiError,
 > {
     let builder = datamigration_projects_locations_migration_jobs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datamigration_projects_locations_migration_jobs_list_execute(builder)
 }
@@ -5426,6 +5843,19 @@ pub fn datamigration_projects_locations_migration_jobs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: MigrationJob,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}
 /// Updates the parameters of a single migration job.
 ///
@@ -5438,16 +5868,17 @@ pub fn datamigration_projects_locations_migration_jobs_patch_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &MigrationJob,
+    args: &DatamigrationProjectsLocationsMigrationJobsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_migration_jobs_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     datamigration_projects_locations_migration_jobs_patch_execute(builder)
 }
@@ -5545,6 +5976,15 @@ pub fn datamigration_projects_locations_migration_jobs_promote_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_promote`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsPromoteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: PromoteMigrationJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}:promote
 /// Promote a migration job, stopping replication to the destination and promoting the destination to be a standalone database.
 ///
@@ -5557,14 +5997,14 @@ pub fn datamigration_projects_locations_migration_jobs_promote_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_promote(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &PromoteMigrationJobRequest,
+    args: &DatamigrationProjectsLocationsMigrationJobsPromoteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datamigration_projects_locations_migration_jobs_promote_builder(client, name, body)?;
+    let builder = datamigration_projects_locations_migration_jobs_promote_builder(
+        client, &args.name, &args.body,
+    )?;
     datamigration_projects_locations_migration_jobs_promote_execute(builder)
 }
 
@@ -5661,6 +6101,15 @@ pub fn datamigration_projects_locations_migration_jobs_restart_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_restart`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsRestartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestartMigrationJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}:restart
 /// Restart a stopped or failed migration job, resetting the destination instance to its original state and starting the migration process from scratch.
 ///
@@ -5673,14 +6122,14 @@ pub fn datamigration_projects_locations_migration_jobs_restart_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_restart(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestartMigrationJobRequest,
+    args: &DatamigrationProjectsLocationsMigrationJobsRestartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datamigration_projects_locations_migration_jobs_restart_builder(client, name, body)?;
+    let builder = datamigration_projects_locations_migration_jobs_restart_builder(
+        client, &args.name, &args.body,
+    )?;
     datamigration_projects_locations_migration_jobs_restart_execute(builder)
 }
 
@@ -5777,6 +6226,15 @@ pub fn datamigration_projects_locations_migration_jobs_resume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsResumeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResumeMigrationJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}:resume
 /// Resume a migration job that is currently stopped and is resumable (was stopped during CDC phase).
 ///
@@ -5789,14 +6247,14 @@ pub fn datamigration_projects_locations_migration_jobs_resume_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_resume(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResumeMigrationJobRequest,
+    args: &DatamigrationProjectsLocationsMigrationJobsResumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datamigration_projects_locations_migration_jobs_resume_builder(client, name, body)?;
+    let builder = datamigration_projects_locations_migration_jobs_resume_builder(
+        client, &args.name, &args.body,
+    )?;
     datamigration_projects_locations_migration_jobs_resume_execute(builder)
 }
 
@@ -5893,6 +6351,15 @@ pub fn datamigration_projects_locations_migration_jobs_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -5905,14 +6372,15 @@ pub fn datamigration_projects_locations_migration_jobs_set_iam_policy_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DatamigrationProjectsLocationsMigrationJobsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_migration_jobs_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datamigration_projects_locations_migration_jobs_set_iam_policy_execute(builder)
 }
@@ -6010,6 +6478,15 @@ pub fn datamigration_projects_locations_migration_jobs_start_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsStartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StartMigrationJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}:start
 /// Start an already created migration job.
 ///
@@ -6022,14 +6499,14 @@ pub fn datamigration_projects_locations_migration_jobs_start_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_start(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StartMigrationJobRequest,
+    args: &DatamigrationProjectsLocationsMigrationJobsStartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datamigration_projects_locations_migration_jobs_start_builder(client, name, body)?;
+    let builder = datamigration_projects_locations_migration_jobs_start_builder(
+        client, &args.name, &args.body,
+    )?;
     datamigration_projects_locations_migration_jobs_start_execute(builder)
 }
 
@@ -6126,6 +6603,15 @@ pub fn datamigration_projects_locations_migration_jobs_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsStopArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StopMigrationJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}:stop
 /// Stops a running migration job.
 ///
@@ -6138,13 +6624,14 @@ pub fn datamigration_projects_locations_migration_jobs_stop_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_stop(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StopMigrationJobRequest,
+    args: &DatamigrationProjectsLocationsMigrationJobsStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datamigration_projects_locations_migration_jobs_stop_builder(client, name, body)?;
+    let builder = datamigration_projects_locations_migration_jobs_stop_builder(
+        client, &args.name, &args.body,
+    )?;
     datamigration_projects_locations_migration_jobs_stop_execute(builder)
 }
 
@@ -6245,6 +6732,15 @@ pub fn datamigration_projects_locations_migration_jobs_test_iam_permissions_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -6257,8 +6753,7 @@ pub fn datamigration_projects_locations_migration_jobs_test_iam_permissions_exec
 
 pub fn datamigration_projects_locations_migration_jobs_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DatamigrationProjectsLocationsMigrationJobsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -6268,7 +6763,9 @@ pub fn datamigration_projects_locations_migration_jobs_test_iam_permissions(
     ApiError,
 > {
     let builder = datamigration_projects_locations_migration_jobs_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datamigration_projects_locations_migration_jobs_test_iam_permissions_execute(builder)
 }
@@ -6366,6 +6863,15 @@ pub fn datamigration_projects_locations_migration_jobs_verify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_verify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsVerifyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: VerifyMigrationJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}:verify
 /// Verify a migration job, making sure the destination can reach the source and that all configuration and prerequisites are met.
 ///
@@ -6378,14 +6884,14 @@ pub fn datamigration_projects_locations_migration_jobs_verify_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_verify(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &VerifyMigrationJobRequest,
+    args: &DatamigrationProjectsLocationsMigrationJobsVerifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        datamigration_projects_locations_migration_jobs_verify_builder(client, name, body)?;
+    let builder = datamigration_projects_locations_migration_jobs_verify_builder(
+        client, &args.name, &args.body,
+    )?;
     datamigration_projects_locations_migration_jobs_verify_execute(builder)
 }
 
@@ -6481,6 +6987,13 @@ pub fn datamigration_projects_locations_migration_jobs_objects_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_objects_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsObjectsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}/objects/{objectsId}
 /// Use this method to get details about a migration job object.
 ///
@@ -6493,7 +7006,7 @@ pub fn datamigration_projects_locations_migration_jobs_objects_get_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_objects_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatamigrationProjectsLocationsMigrationJobsObjectsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MigrationJobObject>, ApiError>, P = ApiPending>
         + Send
@@ -6501,7 +7014,7 @@ pub fn datamigration_projects_locations_migration_jobs_objects_get(
     ApiError,
 > {
     let builder =
-        datamigration_projects_locations_migration_jobs_objects_get_builder(client, name)?;
+        datamigration_projects_locations_migration_jobs_objects_get_builder(client, &args.name)?;
     datamigration_projects_locations_migration_jobs_objects_get_execute(builder)
 }
 
@@ -6607,6 +7120,15 @@ pub fn datamigration_projects_locations_migration_jobs_objects_get_iam_policy_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_objects_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsObjectsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}/objects/{objectsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -6619,16 +7141,15 @@ pub fn datamigration_projects_locations_migration_jobs_objects_get_iam_policy_ex
 
 pub fn datamigration_projects_locations_migration_jobs_objects_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DatamigrationProjectsLocationsMigrationJobsObjectsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_migration_jobs_objects_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     datamigration_projects_locations_migration_jobs_objects_get_iam_policy_execute(builder)
 }
@@ -6743,6 +7264,17 @@ pub fn datamigration_projects_locations_migration_jobs_objects_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_objects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsObjectsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}/objects
 /// Use this method to list the objects of a specific migration job.
 ///
@@ -6755,9 +7287,7 @@ pub fn datamigration_projects_locations_migration_jobs_objects_list_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_objects_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatamigrationProjectsLocationsMigrationJobsObjectsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMigrationJobObjectsResponse>, ApiError>,
@@ -6767,7 +7297,10 @@ pub fn datamigration_projects_locations_migration_jobs_objects_list(
     ApiError,
 > {
     let builder = datamigration_projects_locations_migration_jobs_objects_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datamigration_projects_locations_migration_jobs_objects_list_execute(builder)
 }
@@ -6867,6 +7400,15 @@ pub fn datamigration_projects_locations_migration_jobs_objects_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_objects_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsObjectsLookupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: LookupMigrationJobObjectRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}/objects:lookup
 /// Use this method to look up a migration job object by its source object identifier.
 ///
@@ -6879,8 +7421,7 @@ pub fn datamigration_projects_locations_migration_jobs_objects_lookup_execute(
 
 pub fn datamigration_projects_locations_migration_jobs_objects_lookup(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &LookupMigrationJobObjectRequest,
+    args: &DatamigrationProjectsLocationsMigrationJobsObjectsLookupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MigrationJobObject>, ApiError>, P = ApiPending>
         + Send
@@ -6888,7 +7429,9 @@ pub fn datamigration_projects_locations_migration_jobs_objects_lookup(
     ApiError,
 > {
     let builder = datamigration_projects_locations_migration_jobs_objects_lookup_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     datamigration_projects_locations_migration_jobs_objects_lookup_execute(builder)
 }
@@ -6986,6 +7529,15 @@ pub fn datamigration_projects_locations_migration_jobs_objects_set_iam_policy_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_objects_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsObjectsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}/objects/{objectsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -6998,14 +7550,15 @@ pub fn datamigration_projects_locations_migration_jobs_objects_set_iam_policy_ex
 
 pub fn datamigration_projects_locations_migration_jobs_objects_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DatamigrationProjectsLocationsMigrationJobsObjectsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_migration_jobs_objects_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datamigration_projects_locations_migration_jobs_objects_set_iam_policy_execute(builder)
 }
@@ -7107,6 +7660,15 @@ pub fn datamigration_projects_locations_migration_jobs_objects_test_iam_permissi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_migration_jobs_objects_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsMigrationJobsObjectsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/migrationJobs/{migrationJobsId}/objects/{objectsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -7119,8 +7681,7 @@ pub fn datamigration_projects_locations_migration_jobs_objects_test_iam_permissi
 
 pub fn datamigration_projects_locations_migration_jobs_objects_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DatamigrationProjectsLocationsMigrationJobsObjectsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -7131,7 +7692,9 @@ pub fn datamigration_projects_locations_migration_jobs_objects_test_iam_permissi
 > {
     let builder =
         datamigration_projects_locations_migration_jobs_objects_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     datamigration_projects_locations_migration_jobs_objects_test_iam_permissions_execute(builder)
 }
@@ -7229,6 +7792,15 @@ pub fn datamigration_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -7241,13 +7813,13 @@ pub fn datamigration_projects_locations_operations_cancel_execute(
 
 pub fn datamigration_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &DatamigrationProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datamigration_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        datamigration_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     datamigration_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -7341,6 +7913,13 @@ pub fn datamigration_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -7353,12 +7932,12 @@ pub fn datamigration_projects_locations_operations_delete_execute(
 
 pub fn datamigration_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatamigrationProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datamigration_projects_locations_operations_delete_builder(client, name)?;
+    let builder = datamigration_projects_locations_operations_delete_builder(client, &args.name)?;
     datamigration_projects_locations_operations_delete_execute(builder)
 }
 
@@ -7452,6 +8031,13 @@ pub fn datamigration_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -7464,12 +8050,12 @@ pub fn datamigration_projects_locations_operations_get_execute(
 
 pub fn datamigration_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatamigrationProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = datamigration_projects_locations_operations_get_builder(client, name)?;
+    let builder = datamigration_projects_locations_operations_get_builder(client, &args.name)?;
     datamigration_projects_locations_operations_get_execute(builder)
 }
 
@@ -7589,6 +8175,21 @@ pub fn datamigration_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -7601,11 +8202,7 @@ pub fn datamigration_projects_locations_operations_list_execute(
 
 pub fn datamigration_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DatamigrationProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7614,11 +8211,11 @@ pub fn datamigration_projects_locations_operations_list(
 > {
     let builder = datamigration_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     datamigration_projects_locations_operations_list_execute(builder)
 }
@@ -7740,6 +8337,23 @@ pub fn datamigration_projects_locations_private_connections_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_private_connections_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsPrivateConnectionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: privateConnectionId
+    pub privateConnectionId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: skipValidation
+    pub skipValidation: Option<bool>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: PrivateConnection,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections
 /// Creates a new private connection in a given project and location.
 ///
@@ -7752,24 +8366,19 @@ pub fn datamigration_projects_locations_private_connections_create_execute(
 
 pub fn datamigration_projects_locations_private_connections_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    privateConnectionId: Option<&str>,
-    requestId: Option<&str>,
-    skipValidation: Option<bool>,
-    validateOnly: Option<bool>,
-    body: &PrivateConnection,
+    args: &DatamigrationProjectsLocationsPrivateConnectionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_private_connections_create_builder(
         client,
-        parent,
-        privateConnectionId,
-        requestId,
-        skipValidation,
-        validateOnly,
-        body,
+        &args.parent,
+        args.privateConnectionId.as_deref(),
+        args.requestId.as_deref(),
+        args.skipValidation,
+        args.validateOnly,
+        &args.body,
     )?;
     datamigration_projects_locations_private_connections_create_execute(builder)
 }
@@ -7876,6 +8485,15 @@ pub fn datamigration_projects_locations_private_connections_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_private_connections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsPrivateConnectionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
 /// Deletes a single Database Migration Service private connection.
 ///
@@ -7888,14 +8506,15 @@ pub fn datamigration_projects_locations_private_connections_delete_execute(
 
 pub fn datamigration_projects_locations_private_connections_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &DatamigrationProjectsLocationsPrivateConnectionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_private_connections_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     datamigration_projects_locations_private_connections_delete_execute(builder)
 }
@@ -7992,6 +8611,13 @@ pub fn datamigration_projects_locations_private_connections_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_private_connections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsPrivateConnectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}
 /// Gets details of a single private connection.
 ///
@@ -8004,14 +8630,15 @@ pub fn datamigration_projects_locations_private_connections_get_execute(
 
 pub fn datamigration_projects_locations_private_connections_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DatamigrationProjectsLocationsPrivateConnectionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PrivateConnection>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = datamigration_projects_locations_private_connections_get_builder(client, name)?;
+    let builder =
+        datamigration_projects_locations_private_connections_get_builder(client, &args.name)?;
     datamigration_projects_locations_private_connections_get_execute(builder)
 }
 
@@ -8117,6 +8744,15 @@ pub fn datamigration_projects_locations_private_connections_get_iam_policy_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_private_connections_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsPrivateConnectionsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -8129,16 +8765,15 @@ pub fn datamigration_projects_locations_private_connections_get_iam_policy_execu
 
 pub fn datamigration_projects_locations_private_connections_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DatamigrationProjectsLocationsPrivateConnectionsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_private_connections_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     datamigration_projects_locations_private_connections_get_iam_policy_execute(builder)
 }
@@ -8261,6 +8896,21 @@ pub fn datamigration_projects_locations_private_connections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_private_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsPrivateConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections
 /// Retrieves a list of private connections in a given project and location.
 ///
@@ -8273,11 +8923,7 @@ pub fn datamigration_projects_locations_private_connections_list_execute(
 
 pub fn datamigration_projects_locations_private_connections_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DatamigrationProjectsLocationsPrivateConnectionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPrivateConnectionsResponse>, ApiError>,
@@ -8287,7 +8933,12 @@ pub fn datamigration_projects_locations_private_connections_list(
     ApiError,
 > {
     let builder = datamigration_projects_locations_private_connections_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     datamigration_projects_locations_private_connections_list_execute(builder)
 }
@@ -8385,6 +9036,15 @@ pub fn datamigration_projects_locations_private_connections_set_iam_policy_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_private_connections_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsPrivateConnectionsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -8397,14 +9057,15 @@ pub fn datamigration_projects_locations_private_connections_set_iam_policy_execu
 
 pub fn datamigration_projects_locations_private_connections_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DatamigrationProjectsLocationsPrivateConnectionsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = datamigration_projects_locations_private_connections_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     datamigration_projects_locations_private_connections_set_iam_policy_execute(builder)
 }
@@ -8506,6 +9167,15 @@ pub fn datamigration_projects_locations_private_connections_test_iam_permissions
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`datamigration_projects_locations_private_connections_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DatamigrationProjectsLocationsPrivateConnectionsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/privateConnections/{privateConnectionsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -8518,8 +9188,7 @@ pub fn datamigration_projects_locations_private_connections_test_iam_permissions
 
 pub fn datamigration_projects_locations_private_connections_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DatamigrationProjectsLocationsPrivateConnectionsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -8530,7 +9199,9 @@ pub fn datamigration_projects_locations_private_connections_test_iam_permissions
 > {
     let builder =
         datamigration_projects_locations_private_connections_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     datamigration_projects_locations_private_connections_test_iam_permissions_execute(builder)
 }

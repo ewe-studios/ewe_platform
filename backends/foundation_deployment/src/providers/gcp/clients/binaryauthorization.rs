@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/policy
 /// A policy specifies the attestors that must attest to a container image, before the project is allowed to deploy that image. There is at most one policy per project. All image admission requests are permitted if a project has no policy. Gets the policy for this project. Returns a default policy if the project does not have one.
@@ -106,6 +108,13 @@ pub fn binaryauthorization_projects_get_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_get_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsGetPolicyArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/policy
 /// A policy specifies the attestors that must attest to a container image, before the project is allowed to deploy that image. There is at most one policy per project. All image admission requests are permitted if a project has no policy. Gets the policy for this project. Returns a default policy if the project does not have one.
 ///
@@ -118,12 +127,12 @@ pub fn binaryauthorization_projects_get_policy_execute(
 
 pub fn binaryauthorization_projects_get_policy(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BinaryauthorizationProjectsGetPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = binaryauthorization_projects_get_policy_builder(client, name)?;
+    let builder = binaryauthorization_projects_get_policy_builder(client, &args.name)?;
     binaryauthorization_projects_get_policy_execute(builder)
 }
 
@@ -220,6 +229,15 @@ pub fn binaryauthorization_projects_update_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_update_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsUpdatePolicyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Policy,
+}
+
 /// GET v1/projects/{projectsId}/policy
 /// Creates or updates a project's policy, and returns a copy of the new policy. A policy is always updated as a whole, to avoid race conditions with concurrent policy enforcement (or management!) requests. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed.
 ///
@@ -232,13 +250,13 @@ pub fn binaryauthorization_projects_update_policy_execute(
 
 pub fn binaryauthorization_projects_update_policy(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &Policy,
+    args: &BinaryauthorizationProjectsUpdatePolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = binaryauthorization_projects_update_policy_builder(client, name, body)?;
+    let builder =
+        binaryauthorization_projects_update_policy_builder(client, &args.name, &args.body)?;
     binaryauthorization_projects_update_policy_execute(builder)
 }
 
@@ -347,6 +365,17 @@ pub fn binaryauthorization_projects_attestors_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_attestors_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: attestorId
+    pub attestorId: Option<String>,
+    /// Request body.
+    pub body: Attestor,
+}
+
 /// GET v1/projects/{projectsId}/attestors
 /// Creates an attestor, and returns a copy of the new attestor. Returns NOT_FOUND if the project does not exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the attestor already exists.
 ///
@@ -359,15 +388,17 @@ pub fn binaryauthorization_projects_attestors_create_execute(
 
 pub fn binaryauthorization_projects_attestors_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    attestorId: Option<&str>,
-    body: &Attestor,
+    args: &BinaryauthorizationProjectsAttestorsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Attestor>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        binaryauthorization_projects_attestors_create_builder(client, parent, attestorId, body)?;
+    let builder = binaryauthorization_projects_attestors_create_builder(
+        client,
+        &args.parent,
+        args.attestorId.as_deref(),
+        &args.body,
+    )?;
     binaryauthorization_projects_attestors_create_execute(builder)
 }
 
@@ -461,6 +492,13 @@ pub fn binaryauthorization_projects_attestors_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_attestors_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/attestors/{attestorsId}
 /// Deletes an attestor. Returns NOT_FOUND if the attestor does not exist.
 ///
@@ -473,12 +511,12 @@ pub fn binaryauthorization_projects_attestors_delete_execute(
 
 pub fn binaryauthorization_projects_attestors_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BinaryauthorizationProjectsAttestorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = binaryauthorization_projects_attestors_delete_builder(client, name)?;
+    let builder = binaryauthorization_projects_attestors_delete_builder(client, &args.name)?;
     binaryauthorization_projects_attestors_delete_execute(builder)
 }
 
@@ -572,6 +610,13 @@ pub fn binaryauthorization_projects_attestors_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_attestors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/attestors/{attestorsId}
 /// Gets an attestor. Returns NOT_FOUND if the attestor does not exist.
 ///
@@ -584,12 +629,12 @@ pub fn binaryauthorization_projects_attestors_get_execute(
 
 pub fn binaryauthorization_projects_attestors_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BinaryauthorizationProjectsAttestorsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Attestor>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = binaryauthorization_projects_attestors_get_builder(client, name)?;
+    let builder = binaryauthorization_projects_attestors_get_builder(client, &args.name)?;
     binaryauthorization_projects_attestors_get_execute(builder)
 }
 
@@ -695,6 +740,15 @@ pub fn binaryauthorization_projects_attestors_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_attestors_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/attestors/{attestorsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -707,16 +761,15 @@ pub fn binaryauthorization_projects_attestors_get_iam_policy_execute(
 
 pub fn binaryauthorization_projects_attestors_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &BinaryauthorizationProjectsAttestorsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IamPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = binaryauthorization_projects_attestors_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     binaryauthorization_projects_attestors_get_iam_policy_execute(builder)
 }
@@ -829,6 +882,17 @@ pub fn binaryauthorization_projects_attestors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_attestors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/attestors
 /// Lists attestors. Returns INVALID_ARGUMENT if the project does not exist.
 ///
@@ -841,17 +905,19 @@ pub fn binaryauthorization_projects_attestors_list_execute(
 
 pub fn binaryauthorization_projects_attestors_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BinaryauthorizationProjectsAttestorsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAttestorsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        binaryauthorization_projects_attestors_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = binaryauthorization_projects_attestors_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     binaryauthorization_projects_attestors_list_execute(builder)
 }
 
@@ -948,6 +1014,15 @@ pub fn binaryauthorization_projects_attestors_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_attestors_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/attestors/{attestorsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -960,14 +1035,16 @@ pub fn binaryauthorization_projects_attestors_set_iam_policy_execute(
 
 pub fn binaryauthorization_projects_attestors_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BinaryauthorizationProjectsAttestorsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IamPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        binaryauthorization_projects_attestors_set_iam_policy_builder(client, resource, body)?;
+    let builder = binaryauthorization_projects_attestors_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     binaryauthorization_projects_attestors_set_iam_policy_execute(builder)
 }
 
@@ -1068,6 +1145,15 @@ pub fn binaryauthorization_projects_attestors_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_attestors_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/attestors/{attestorsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1080,8 +1166,7 @@ pub fn binaryauthorization_projects_attestors_test_iam_permissions_execute(
 
 pub fn binaryauthorization_projects_attestors_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BinaryauthorizationProjectsAttestorsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1091,7 +1176,9 @@ pub fn binaryauthorization_projects_attestors_test_iam_permissions(
     ApiError,
 > {
     let builder = binaryauthorization_projects_attestors_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     binaryauthorization_projects_attestors_test_iam_permissions_execute(builder)
 }
@@ -1189,6 +1276,15 @@ pub fn binaryauthorization_projects_attestors_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_attestors_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Attestor,
+}
+
 /// GET v1/projects/{projectsId}/attestors/{attestorsId}
 /// Updates an attestor. Returns NOT_FOUND if the attestor does not exist.
 ///
@@ -1201,13 +1297,13 @@ pub fn binaryauthorization_projects_attestors_update_execute(
 
 pub fn binaryauthorization_projects_attestors_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &Attestor,
+    args: &BinaryauthorizationProjectsAttestorsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Attestor>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = binaryauthorization_projects_attestors_update_builder(client, name, body)?;
+    let builder =
+        binaryauthorization_projects_attestors_update_builder(client, &args.name, &args.body)?;
     binaryauthorization_projects_attestors_update_execute(builder)
 }
 
@@ -1308,6 +1404,15 @@ pub fn binaryauthorization_projects_attestors_validate_attestation_occurrence_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_attestors_validate_attestation_occurrence`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsAttestorsValidateAttestationOccurrenceArgs {
+    /// Path parameter: attestor
+    pub attestor: String,
+    /// Request body.
+    pub body: ValidateAttestationOccurrenceRequest,
+}
+
 /// GET v1/projects/{projectsId}/attestors/{attestorsId}:validateAttestationOccurrence
 /// Returns whether the given Attestation for the given image URI was signed by the given Attestor
 ///
@@ -1320,8 +1425,7 @@ pub fn binaryauthorization_projects_attestors_validate_attestation_occurrence_ex
 
 pub fn binaryauthorization_projects_attestors_validate_attestation_occurrence(
     client: &SimpleHttpClient,
-    attestor: &str,
-    body: &ValidateAttestationOccurrenceRequest,
+    args: &BinaryauthorizationProjectsAttestorsValidateAttestationOccurrenceArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ValidateAttestationOccurrenceResponse>, ApiError>,
@@ -1331,7 +1435,9 @@ pub fn binaryauthorization_projects_attestors_validate_attestation_occurrence(
     ApiError,
 > {
     let builder = binaryauthorization_projects_attestors_validate_attestation_occurrence_builder(
-        client, attestor, body,
+        client,
+        &args.attestor,
+        &args.body,
     )?;
     binaryauthorization_projects_attestors_validate_attestation_occurrence_execute(builder)
 }
@@ -1431,6 +1537,15 @@ pub fn binaryauthorization_projects_platforms_gke_policies_evaluate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_platforms_gke_policies_evaluate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsPlatformsGkePoliciesEvaluateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EvaluateGkePolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/platforms/gke/policies/{policiesId}:evaluate
 /// Evaluates a Kubernetes object versus a GKE platform policy. Returns NOT_FOUND if the policy doesn't exist, INVALID_ARGUMENT if the policy or request is malformed and PERMISSION_DENIED if the client does not have sufficient permissions.
 ///
@@ -1443,16 +1558,16 @@ pub fn binaryauthorization_projects_platforms_gke_policies_evaluate_execute(
 
 pub fn binaryauthorization_projects_platforms_gke_policies_evaluate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EvaluateGkePolicyRequest,
+    args: &BinaryauthorizationProjectsPlatformsGkePoliciesEvaluateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EvaluateGkePolicyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        binaryauthorization_projects_platforms_gke_policies_evaluate_builder(client, name, body)?;
+    let builder = binaryauthorization_projects_platforms_gke_policies_evaluate_builder(
+        client, &args.name, &args.body,
+    )?;
     binaryauthorization_projects_platforms_gke_policies_evaluate_execute(builder)
 }
 
@@ -1563,6 +1678,17 @@ pub fn binaryauthorization_projects_platforms_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_platforms_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsPlatformsPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: policyId
+    pub policyId: Option<String>,
+    /// Request body.
+    pub body: PlatformPolicy,
+}
+
 /// GET v1/projects/{projectsId}/platforms/{platformsId}/policies
 /// Creates a platform policy, and returns a copy of it. Returns NOT_FOUND if the project or platform doesn't exist, INVALID_ARGUMENT if the request is malformed, ALREADY_EXISTS if the policy already exists, and INVALID_ARGUMENT if the policy contains a platform-specific policy that does not match the platform value specified in the URL.
 ///
@@ -1575,9 +1701,7 @@ pub fn binaryauthorization_projects_platforms_policies_create_execute(
 
 pub fn binaryauthorization_projects_platforms_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    policyId: Option<&str>,
-    body: &PlatformPolicy,
+    args: &BinaryauthorizationProjectsPlatformsPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlatformPolicy>, ApiError>, P = ApiPending>
         + Send
@@ -1585,7 +1709,10 @@ pub fn binaryauthorization_projects_platforms_policies_create(
     ApiError,
 > {
     let builder = binaryauthorization_projects_platforms_policies_create_builder(
-        client, parent, policyId, body,
+        client,
+        &args.parent,
+        args.policyId.as_deref(),
+        &args.body,
     )?;
     binaryauthorization_projects_platforms_policies_create_execute(builder)
 }
@@ -1692,6 +1819,15 @@ pub fn binaryauthorization_projects_platforms_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_platforms_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsPlatformsPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
 /// Deletes a platform policy. Returns NOT_FOUND if the policy doesn't exist.
 ///
@@ -1704,14 +1840,16 @@ pub fn binaryauthorization_projects_platforms_policies_delete_execute(
 
 pub fn binaryauthorization_projects_platforms_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &BinaryauthorizationProjectsPlatformsPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        binaryauthorization_projects_platforms_policies_delete_builder(client, name, etag)?;
+    let builder = binaryauthorization_projects_platforms_policies_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     binaryauthorization_projects_platforms_policies_delete_execute(builder)
 }
 
@@ -1807,6 +1945,13 @@ pub fn binaryauthorization_projects_platforms_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_platforms_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsPlatformsPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
 /// Gets a platform policy. Returns NOT_FOUND if the policy doesn't exist.
 ///
@@ -1819,14 +1964,14 @@ pub fn binaryauthorization_projects_platforms_policies_get_execute(
 
 pub fn binaryauthorization_projects_platforms_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BinaryauthorizationProjectsPlatformsPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlatformPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = binaryauthorization_projects_platforms_policies_get_builder(client, name)?;
+    let builder = binaryauthorization_projects_platforms_policies_get_builder(client, &args.name)?;
     binaryauthorization_projects_platforms_policies_get_execute(builder)
 }
 
@@ -1940,6 +2085,17 @@ pub fn binaryauthorization_projects_platforms_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_platforms_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsPlatformsPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/platforms/{platformsId}/policies
 /// Lists platform policies owned by a project in the specified platform. Returns INVALID_ARGUMENT if the project or the platform doesn't exist.
 ///
@@ -1952,9 +2108,7 @@ pub fn binaryauthorization_projects_platforms_policies_list_execute(
 
 pub fn binaryauthorization_projects_platforms_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BinaryauthorizationProjectsPlatformsPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPlatformPoliciesResponse>, ApiError>,
@@ -1964,7 +2118,10 @@ pub fn binaryauthorization_projects_platforms_policies_list(
     ApiError,
 > {
     let builder = binaryauthorization_projects_platforms_policies_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     binaryauthorization_projects_platforms_policies_list_execute(builder)
 }
@@ -2064,6 +2221,15 @@ pub fn binaryauthorization_projects_platforms_policies_replace_platform_policy_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_platforms_policies_replace_platform_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsPlatformsPoliciesReplacePlatformPolicyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: PlatformPolicy,
+}
+
 /// GET v1/projects/{projectsId}/platforms/{platformsId}/policies/{policiesId}
 /// Replaces a platform policy. Returns NOT_FOUND if the policy doesn't exist.
 ///
@@ -2076,8 +2242,7 @@ pub fn binaryauthorization_projects_platforms_policies_replace_platform_policy_e
 
 pub fn binaryauthorization_projects_platforms_policies_replace_platform_policy(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &PlatformPolicy,
+    args: &BinaryauthorizationProjectsPlatformsPoliciesReplacePlatformPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlatformPolicy>, ApiError>, P = ApiPending>
         + Send
@@ -2085,7 +2250,7 @@ pub fn binaryauthorization_projects_platforms_policies_replace_platform_policy(
     ApiError,
 > {
     let builder = binaryauthorization_projects_platforms_policies_replace_platform_policy_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     binaryauthorization_projects_platforms_policies_replace_platform_policy_execute(builder)
 }
@@ -2192,6 +2357,15 @@ pub fn binaryauthorization_projects_policy_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_policy_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsPolicyGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/policy:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2204,16 +2378,15 @@ pub fn binaryauthorization_projects_policy_get_iam_policy_execute(
 
 pub fn binaryauthorization_projects_policy_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &BinaryauthorizationProjectsPolicyGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IamPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = binaryauthorization_projects_policy_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     binaryauthorization_projects_policy_get_iam_policy_execute(builder)
 }
@@ -2311,6 +2484,15 @@ pub fn binaryauthorization_projects_policy_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_policy_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsPolicySetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/policy:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -2323,14 +2505,16 @@ pub fn binaryauthorization_projects_policy_set_iam_policy_execute(
 
 pub fn binaryauthorization_projects_policy_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BinaryauthorizationProjectsPolicySetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IamPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        binaryauthorization_projects_policy_set_iam_policy_builder(client, resource, body)?;
+    let builder = binaryauthorization_projects_policy_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     binaryauthorization_projects_policy_set_iam_policy_execute(builder)
 }
 
@@ -2431,6 +2615,15 @@ pub fn binaryauthorization_projects_policy_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_projects_policy_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationProjectsPolicyTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/policy:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2443,8 +2636,7 @@ pub fn binaryauthorization_projects_policy_test_iam_permissions_execute(
 
 pub fn binaryauthorization_projects_policy_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BinaryauthorizationProjectsPolicyTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2453,8 +2645,11 @@ pub fn binaryauthorization_projects_policy_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        binaryauthorization_projects_policy_test_iam_permissions_builder(client, resource, body)?;
+    let builder = binaryauthorization_projects_policy_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     binaryauthorization_projects_policy_test_iam_permissions_execute(builder)
 }
 
@@ -2548,6 +2743,13 @@ pub fn binaryauthorization_systempolicy_get_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`binaryauthorization_systempolicy_get_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BinaryauthorizationSystempolicyGetPolicyArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/locations/{locationsId}/policy
 /// Gets the current system policy in the specified location.
 ///
@@ -2560,11 +2762,11 @@ pub fn binaryauthorization_systempolicy_get_policy_execute(
 
 pub fn binaryauthorization_systempolicy_get_policy(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BinaryauthorizationSystempolicyGetPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = binaryauthorization_systempolicy_get_policy_builder(client, name)?;
+    let builder = binaryauthorization_systempolicy_get_policy_builder(client, &args.name)?;
     binaryauthorization_systempolicy_get_policy_execute(builder)
 }

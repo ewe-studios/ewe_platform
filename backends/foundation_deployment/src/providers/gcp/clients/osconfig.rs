@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/folders/{foldersId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given folder resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
@@ -125,6 +127,19 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_folders_locations_global_policy_orchestrators_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsGlobalPolicyOrchestratorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: policyOrchestratorId
+    pub policyOrchestratorId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudOsconfigV2__PolicyOrchestrator,
+}
+
 /// GET v2/folders/{foldersId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given folder resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
 ///
@@ -137,20 +152,17 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_create_execute(
 
 pub fn osconfig_folders_locations_global_policy_orchestrators_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    policyOrchestratorId: Option<&str>,
-    requestId: Option<&str>,
-    body: &GoogleCloudOsconfigV2__PolicyOrchestrator,
+    args: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = osconfig_folders_locations_global_policy_orchestrators_create_builder(
         client,
-        parent,
-        policyOrchestratorId,
-        requestId,
-        body,
+        &args.parent,
+        args.policyOrchestratorId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     osconfig_folders_locations_global_policy_orchestrators_create_execute(builder)
 }
@@ -261,6 +273,17 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_folders_locations_global_policy_orchestrators_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsGlobalPolicyOrchestratorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
 /// Deletes an existing policy orchestrator resource, parented by a folder.
 ///
@@ -273,15 +296,16 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_delete_execute(
 
 pub fn osconfig_folders_locations_global_policy_orchestrators_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
+    args: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = osconfig_folders_locations_global_policy_orchestrators_delete_builder(
-        client, name, etag, requestId,
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
     )?;
     osconfig_folders_locations_global_policy_orchestrators_delete_execute(builder)
 }
@@ -380,6 +404,13 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_folders_locations_global_policy_orchestrators_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsGlobalPolicyOrchestratorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
 /// Retrieves an existing policy orchestrator, parented by a folder.
 ///
@@ -392,7 +423,7 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_get_execute(
 
 pub fn osconfig_folders_locations_global_policy_orchestrators_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOsconfigV2__PolicyOrchestrator>, ApiError>,
@@ -401,7 +432,8 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_get(
         + 'static,
     ApiError,
 > {
-    let builder = osconfig_folders_locations_global_policy_orchestrators_get_builder(client, name)?;
+    let builder =
+        osconfig_folders_locations_global_policy_orchestrators_get_builder(client, &args.name)?;
     osconfig_folders_locations_global_policy_orchestrators_get_execute(builder)
 }
 
@@ -527,6 +559,21 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_folders_locations_global_policy_orchestrators_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsGlobalPolicyOrchestratorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/locations/global/policyOrchestrators
 /// Lists the policy orchestrators under the given parent folder resource.
 ///
@@ -539,11 +586,7 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_list_execute(
 
 pub fn osconfig_folders_locations_global_policy_orchestrators_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -556,7 +599,12 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_list(
     ApiError,
 > {
     let builder = osconfig_folders_locations_global_policy_orchestrators_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     osconfig_folders_locations_global_policy_orchestrators_list_execute(builder)
 }
@@ -666,6 +714,17 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_folders_locations_global_policy_orchestrators_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsGlobalPolicyOrchestratorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudOsconfigV2__PolicyOrchestrator,
+}
+
 /// GET v2/folders/{foldersId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
 /// Updates an existing policy orchestrator, parented by a folder.
 ///
@@ -678,15 +737,16 @@ pub fn osconfig_folders_locations_global_policy_orchestrators_patch_execute(
 
 pub fn osconfig_folders_locations_global_policy_orchestrators_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudOsconfigV2__PolicyOrchestrator,
+    args: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = osconfig_folders_locations_global_policy_orchestrators_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     osconfig_folders_locations_global_policy_orchestrators_patch_execute(builder)
 }
@@ -784,6 +844,15 @@ pub fn osconfig_folders_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_folders_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -796,13 +865,13 @@ pub fn osconfig_folders_locations_operations_cancel_execute(
 
 pub fn osconfig_folders_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &OsconfigFoldersLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = osconfig_folders_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        osconfig_folders_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     osconfig_folders_locations_operations_cancel_execute(builder)
 }
 
@@ -896,6 +965,13 @@ pub fn osconfig_folders_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_folders_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -908,12 +984,12 @@ pub fn osconfig_folders_locations_operations_delete_execute(
 
 pub fn osconfig_folders_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OsconfigFoldersLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = osconfig_folders_locations_operations_delete_builder(client, name)?;
+    let builder = osconfig_folders_locations_operations_delete_builder(client, &args.name)?;
     osconfig_folders_locations_operations_delete_execute(builder)
 }
 
@@ -1007,6 +1083,13 @@ pub fn osconfig_folders_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_folders_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1019,12 +1102,12 @@ pub fn osconfig_folders_locations_operations_get_execute(
 
 pub fn osconfig_folders_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OsconfigFoldersLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = osconfig_folders_locations_operations_get_builder(client, name)?;
+    let builder = osconfig_folders_locations_operations_get_builder(client, &args.name)?;
     osconfig_folders_locations_operations_get_execute(builder)
 }
 
@@ -1144,6 +1227,21 @@ pub fn osconfig_folders_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_folders_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigFoldersLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/folders/{foldersId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1156,11 +1254,7 @@ pub fn osconfig_folders_locations_operations_list_execute(
 
 pub fn osconfig_folders_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &OsconfigFoldersLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1169,11 +1263,11 @@ pub fn osconfig_folders_locations_operations_list(
 > {
     let builder = osconfig_folders_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     osconfig_folders_locations_operations_list_execute(builder)
 }
@@ -1287,6 +1381,19 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_organizations_locations_global_policy_orchestrators_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: policyOrchestratorId
+    pub policyOrchestratorId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudOsconfigV2__PolicyOrchestrator,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given organizations resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
 ///
@@ -1299,20 +1406,17 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_create_execu
 
 pub fn osconfig_organizations_locations_global_policy_orchestrators_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    policyOrchestratorId: Option<&str>,
-    requestId: Option<&str>,
-    body: &GoogleCloudOsconfigV2__PolicyOrchestrator,
+    args: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = osconfig_organizations_locations_global_policy_orchestrators_create_builder(
         client,
-        parent,
-        policyOrchestratorId,
-        requestId,
-        body,
+        &args.parent,
+        args.policyOrchestratorId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     osconfig_organizations_locations_global_policy_orchestrators_create_execute(builder)
 }
@@ -1423,6 +1527,17 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_organizations_locations_global_policy_orchestrators_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
 /// Deletes an existing policy orchestrator resource, parented by an organization.
 ///
@@ -1435,15 +1550,16 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_delete_execu
 
 pub fn osconfig_organizations_locations_global_policy_orchestrators_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
+    args: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = osconfig_organizations_locations_global_policy_orchestrators_delete_builder(
-        client, name, etag, requestId,
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
     )?;
     osconfig_organizations_locations_global_policy_orchestrators_delete_execute(builder)
 }
@@ -1542,6 +1658,13 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_organizations_locations_global_policy_orchestrators_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
 /// Retrieves an existing policy orchestrator, parented by an organization.
 ///
@@ -1554,7 +1677,7 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_get_execute(
 
 pub fn osconfig_organizations_locations_global_policy_orchestrators_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOsconfigV2__PolicyOrchestrator>, ApiError>,
@@ -1563,8 +1686,9 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        osconfig_organizations_locations_global_policy_orchestrators_get_builder(client, name)?;
+    let builder = osconfig_organizations_locations_global_policy_orchestrators_get_builder(
+        client, &args.name,
+    )?;
     osconfig_organizations_locations_global_policy_orchestrators_get_execute(builder)
 }
 
@@ -1690,6 +1814,21 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_organizations_locations_global_policy_orchestrators_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators
 /// Lists the policy orchestrators under the given parent organization resource.
 ///
@@ -1702,11 +1841,7 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_list_execute
 
 pub fn osconfig_organizations_locations_global_policy_orchestrators_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1719,7 +1854,12 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_list(
     ApiError,
 > {
     let builder = osconfig_organizations_locations_global_policy_orchestrators_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     osconfig_organizations_locations_global_policy_orchestrators_list_execute(builder)
 }
@@ -1829,6 +1969,17 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_patch_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_organizations_locations_global_policy_orchestrators_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudOsconfigV2__PolicyOrchestrator,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
 /// Updates an existing policy orchestrator, parented by an organization.
 ///
@@ -1841,15 +1992,16 @@ pub fn osconfig_organizations_locations_global_policy_orchestrators_patch_execut
 
 pub fn osconfig_organizations_locations_global_policy_orchestrators_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudOsconfigV2__PolicyOrchestrator,
+    args: &OsconfigOrganizationsLocationsGlobalPolicyOrchestratorsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = osconfig_organizations_locations_global_policy_orchestrators_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     osconfig_organizations_locations_global_policy_orchestrators_patch_execute(builder)
 }
@@ -1947,6 +2099,15 @@ pub fn osconfig_organizations_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_organizations_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1959,13 +2120,13 @@ pub fn osconfig_organizations_locations_operations_cancel_execute(
 
 pub fn osconfig_organizations_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &OsconfigOrganizationsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = osconfig_organizations_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        osconfig_organizations_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     osconfig_organizations_locations_operations_cancel_execute(builder)
 }
 
@@ -2059,6 +2220,13 @@ pub fn osconfig_organizations_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_organizations_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -2071,12 +2239,12 @@ pub fn osconfig_organizations_locations_operations_delete_execute(
 
 pub fn osconfig_organizations_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OsconfigOrganizationsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = osconfig_organizations_locations_operations_delete_builder(client, name)?;
+    let builder = osconfig_organizations_locations_operations_delete_builder(client, &args.name)?;
     osconfig_organizations_locations_operations_delete_execute(builder)
 }
 
@@ -2170,6 +2338,13 @@ pub fn osconfig_organizations_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_organizations_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2182,12 +2357,12 @@ pub fn osconfig_organizations_locations_operations_get_execute(
 
 pub fn osconfig_organizations_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OsconfigOrganizationsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = osconfig_organizations_locations_operations_get_builder(client, name)?;
+    let builder = osconfig_organizations_locations_operations_get_builder(client, &args.name)?;
     osconfig_organizations_locations_operations_get_execute(builder)
 }
 
@@ -2307,6 +2482,21 @@ pub fn osconfig_organizations_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_organizations_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigOrganizationsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -2319,11 +2509,7 @@ pub fn osconfig_organizations_locations_operations_list_execute(
 
 pub fn osconfig_organizations_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &OsconfigOrganizationsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2332,11 +2518,11 @@ pub fn osconfig_organizations_locations_operations_list(
 > {
     let builder = osconfig_organizations_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     osconfig_organizations_locations_operations_list_execute(builder)
 }
@@ -2450,6 +2636,19 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_projects_locations_global_policy_orchestrators_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsGlobalPolicyOrchestratorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: policyOrchestratorId
+    pub policyOrchestratorId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudOsconfigV2__PolicyOrchestrator,
+}
+
 /// GET v2/projects/{projectsId}/locations/global/policyOrchestrators
 /// Creates a new policy orchestrator under the given project resource. name field of the given orchestrator are ignored and instead replaced by a product of parent and policy_orchestrator_id. Orchestrator state field might be only set to `ACTIVE`, STOPPED or omitted (in which case, the created resource will be in `ACTIVE` state anyway).
 ///
@@ -2462,20 +2661,17 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_create_execute(
 
 pub fn osconfig_projects_locations_global_policy_orchestrators_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    policyOrchestratorId: Option<&str>,
-    requestId: Option<&str>,
-    body: &GoogleCloudOsconfigV2__PolicyOrchestrator,
+    args: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = osconfig_projects_locations_global_policy_orchestrators_create_builder(
         client,
-        parent,
-        policyOrchestratorId,
-        requestId,
-        body,
+        &args.parent,
+        args.policyOrchestratorId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     osconfig_projects_locations_global_policy_orchestrators_create_execute(builder)
 }
@@ -2586,6 +2782,17 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_projects_locations_global_policy_orchestrators_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsGlobalPolicyOrchestratorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
 /// Deletes an existing policy orchestrator resource, parented by a project.
 ///
@@ -2598,15 +2805,16 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_delete_execute(
 
 pub fn osconfig_projects_locations_global_policy_orchestrators_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
+    args: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = osconfig_projects_locations_global_policy_orchestrators_delete_builder(
-        client, name, etag, requestId,
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
     )?;
     osconfig_projects_locations_global_policy_orchestrators_delete_execute(builder)
 }
@@ -2705,6 +2913,13 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_projects_locations_global_policy_orchestrators_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsGlobalPolicyOrchestratorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
 /// Retrieves an existing policy orchestrator, parented by a project.
 ///
@@ -2717,7 +2932,7 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_get_execute(
 
 pub fn osconfig_projects_locations_global_policy_orchestrators_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOsconfigV2__PolicyOrchestrator>, ApiError>,
@@ -2727,7 +2942,7 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_get(
     ApiError,
 > {
     let builder =
-        osconfig_projects_locations_global_policy_orchestrators_get_builder(client, name)?;
+        osconfig_projects_locations_global_policy_orchestrators_get_builder(client, &args.name)?;
     osconfig_projects_locations_global_policy_orchestrators_get_execute(builder)
 }
 
@@ -2853,6 +3068,21 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_projects_locations_global_policy_orchestrators_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsGlobalPolicyOrchestratorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/global/policyOrchestrators
 /// Lists the policy orchestrators under the given parent project resource.
 ///
@@ -2865,11 +3095,7 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_list_execute(
 
 pub fn osconfig_projects_locations_global_policy_orchestrators_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2882,7 +3108,12 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_list(
     ApiError,
 > {
     let builder = osconfig_projects_locations_global_policy_orchestrators_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     osconfig_projects_locations_global_policy_orchestrators_list_execute(builder)
 }
@@ -2992,6 +3223,17 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_projects_locations_global_policy_orchestrators_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsGlobalPolicyOrchestratorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudOsconfigV2__PolicyOrchestrator,
+}
+
 /// GET v2/projects/{projectsId}/locations/global/policyOrchestrators/{policyOrchestratorsId}
 /// Updates an existing policy orchestrator, parented by a project.
 ///
@@ -3004,15 +3246,16 @@ pub fn osconfig_projects_locations_global_policy_orchestrators_patch_execute(
 
 pub fn osconfig_projects_locations_global_policy_orchestrators_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudOsconfigV2__PolicyOrchestrator,
+    args: &OsconfigProjectsLocationsGlobalPolicyOrchestratorsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = osconfig_projects_locations_global_policy_orchestrators_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     osconfig_projects_locations_global_policy_orchestrators_patch_execute(builder)
 }
@@ -3110,6 +3353,15 @@ pub fn osconfig_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -3122,13 +3374,13 @@ pub fn osconfig_projects_locations_operations_cancel_execute(
 
 pub fn osconfig_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &OsconfigProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = osconfig_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        osconfig_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     osconfig_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -3222,6 +3474,13 @@ pub fn osconfig_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -3234,12 +3493,12 @@ pub fn osconfig_projects_locations_operations_delete_execute(
 
 pub fn osconfig_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OsconfigProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = osconfig_projects_locations_operations_delete_builder(client, name)?;
+    let builder = osconfig_projects_locations_operations_delete_builder(client, &args.name)?;
     osconfig_projects_locations_operations_delete_execute(builder)
 }
 
@@ -3333,6 +3592,13 @@ pub fn osconfig_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3345,12 +3611,12 @@ pub fn osconfig_projects_locations_operations_get_execute(
 
 pub fn osconfig_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OsconfigProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = osconfig_projects_locations_operations_get_builder(client, name)?;
+    let builder = osconfig_projects_locations_operations_get_builder(client, &args.name)?;
     osconfig_projects_locations_operations_get_execute(builder)
 }
 
@@ -3470,6 +3736,21 @@ pub fn osconfig_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`osconfig_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OsconfigProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -3482,11 +3763,7 @@ pub fn osconfig_projects_locations_operations_list_execute(
 
 pub fn osconfig_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &OsconfigProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3495,11 +3772,11 @@ pub fn osconfig_projects_locations_operations_list(
 > {
     let builder = osconfig_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     osconfig_projects_locations_operations_list_execute(builder)
 }

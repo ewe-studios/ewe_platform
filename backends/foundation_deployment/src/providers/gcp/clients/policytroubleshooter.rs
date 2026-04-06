@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v3/iam:troubleshoot
 /// Checks whether a principal has a specific permission for a specific resource, and explains why the principal does or doesn't have that permission.
@@ -113,6 +115,13 @@ pub fn policytroubleshooter_iam_troubleshoot_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policytroubleshooter_iam_troubleshoot`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicytroubleshooterIamTroubleshootArgs {
+    /// Request body.
+    pub body: GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyRequest,
+}
+
 /// GET v3/iam:troubleshoot
 /// Checks whether a principal has a specific permission for a specific resource, and explains why the principal does or doesn't have that permission.
 ///
@@ -125,7 +134,7 @@ pub fn policytroubleshooter_iam_troubleshoot_execute(
 
 pub fn policytroubleshooter_iam_troubleshoot(
     client: &SimpleHttpClient,
-    body: &GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyRequest,
+    args: &PolicytroubleshooterIamTroubleshootArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -137,6 +146,6 @@ pub fn policytroubleshooter_iam_troubleshoot(
         + 'static,
     ApiError,
 > {
-    let builder = policytroubleshooter_iam_troubleshoot_builder(client, body)?;
+    let builder = policytroubleshooter_iam_troubleshoot_builder(client, &args.body)?;
     policytroubleshooter_iam_troubleshoot_execute(builder)
 }

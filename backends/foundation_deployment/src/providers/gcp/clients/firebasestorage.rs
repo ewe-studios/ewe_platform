@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1beta/projects/{projectsId}/defaultBucket
 /// Unlinks and deletes the default bucket.
@@ -106,6 +108,13 @@ pub fn firebasestorage_projects_delete_default_bucket_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasestorage_projects_delete_default_bucket`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasestorageProjectsDeleteDefaultBucketArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/projects/{projectsId}/defaultBucket
 /// Unlinks and deletes the default bucket.
 ///
@@ -118,12 +127,12 @@ pub fn firebasestorage_projects_delete_default_bucket_execute(
 
 pub fn firebasestorage_projects_delete_default_bucket(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebasestorageProjectsDeleteDefaultBucketArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebasestorage_projects_delete_default_bucket_builder(client, name)?;
+    let builder = firebasestorage_projects_delete_default_bucket_builder(client, &args.name)?;
     firebasestorage_projects_delete_default_bucket_execute(builder)
 }
 
@@ -219,6 +228,13 @@ pub fn firebasestorage_projects_get_default_bucket_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasestorage_projects_get_default_bucket`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasestorageProjectsGetDefaultBucketArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/projects/{projectsId}/defaultBucket
 /// Gets the default bucket.
 ///
@@ -231,14 +247,14 @@ pub fn firebasestorage_projects_get_default_bucket_execute(
 
 pub fn firebasestorage_projects_get_default_bucket(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebasestorageProjectsGetDefaultBucketArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DefaultBucket>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = firebasestorage_projects_get_default_bucket_builder(client, name)?;
+    let builder = firebasestorage_projects_get_default_bucket_builder(client, &args.name)?;
     firebasestorage_projects_get_default_bucket_execute(builder)
 }
 
@@ -335,6 +351,15 @@ pub fn firebasestorage_projects_buckets_add_firebase_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasestorage_projects_buckets_add_firebase`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasestorageProjectsBucketsAddFirebaseArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Request body.
+    pub body: AddFirebaseRequest,
+}
+
 /// GET v1beta/projects/{projectsId}/buckets/{bucketsId}:addFirebase
 /// Links a Google Cloud Storage bucket to a Firebase project.
 ///
@@ -347,13 +372,13 @@ pub fn firebasestorage_projects_buckets_add_firebase_execute(
 
 pub fn firebasestorage_projects_buckets_add_firebase(
     client: &SimpleHttpClient,
-    bucket: &str,
-    body: &AddFirebaseRequest,
+    args: &FirebasestorageProjectsBucketsAddFirebaseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebasestorage_projects_buckets_add_firebase_builder(client, bucket, body)?;
+    let builder =
+        firebasestorage_projects_buckets_add_firebase_builder(client, &args.bucket, &args.body)?;
     firebasestorage_projects_buckets_add_firebase_execute(builder)
 }
 
@@ -447,6 +472,13 @@ pub fn firebasestorage_projects_buckets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasestorage_projects_buckets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasestorageProjectsBucketsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/projects/{projectsId}/buckets/{bucketsId}
 /// Gets a single linked storage bucket.
 ///
@@ -459,12 +491,12 @@ pub fn firebasestorage_projects_buckets_get_execute(
 
 pub fn firebasestorage_projects_buckets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebasestorageProjectsBucketsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Bucket>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebasestorage_projects_buckets_get_builder(client, name)?;
+    let builder = firebasestorage_projects_buckets_get_builder(client, &args.name)?;
     firebasestorage_projects_buckets_get_execute(builder)
 }
 
@@ -576,6 +608,17 @@ pub fn firebasestorage_projects_buckets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasestorage_projects_buckets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasestorageProjectsBucketsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta/projects/{projectsId}/buckets
 /// Lists the linked storage buckets for a project.
 ///
@@ -588,17 +631,19 @@ pub fn firebasestorage_projects_buckets_list_execute(
 
 pub fn firebasestorage_projects_buckets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirebasestorageProjectsBucketsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBucketsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebasestorage_projects_buckets_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = firebasestorage_projects_buckets_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     firebasestorage_projects_buckets_list_execute(builder)
 }
 
@@ -695,6 +740,15 @@ pub fn firebasestorage_projects_buckets_remove_firebase_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasestorage_projects_buckets_remove_firebase`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasestorageProjectsBucketsRemoveFirebaseArgs {
+    /// Path parameter: bucket
+    pub bucket: String,
+    /// Request body.
+    pub body: RemoveFirebaseRequest,
+}
+
 /// GET v1beta/projects/{projectsId}/buckets/{bucketsId}:removeFirebase
 /// Unlinks a linked Google Cloud Storage bucket from a Firebase project.
 ///
@@ -707,13 +761,13 @@ pub fn firebasestorage_projects_buckets_remove_firebase_execute(
 
 pub fn firebasestorage_projects_buckets_remove_firebase(
     client: &SimpleHttpClient,
-    bucket: &str,
-    body: &RemoveFirebaseRequest,
+    args: &FirebasestorageProjectsBucketsRemoveFirebaseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebasestorage_projects_buckets_remove_firebase_builder(client, bucket, body)?;
+    let builder =
+        firebasestorage_projects_buckets_remove_firebase_builder(client, &args.bucket, &args.body)?;
     firebasestorage_projects_buckets_remove_firebase_execute(builder)
 }
 
@@ -812,6 +866,15 @@ pub fn firebasestorage_projects_default_bucket_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasestorage_projects_default_bucket_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasestorageProjectsDefaultBucketCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: DefaultBucket,
+}
+
 /// GET v1beta/projects/{projectsId}/defaultBucket
 /// Creates a Spark tier-eligible Cloud Storage bucket and links it to your Firebase project. If the default bucket already exists, this method will re-link it to your Firebase project. See <https://firebase.google.`com/pricing`> for pricing details.
 ///
@@ -824,14 +887,14 @@ pub fn firebasestorage_projects_default_bucket_create_execute(
 
 pub fn firebasestorage_projects_default_bucket_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &DefaultBucket,
+    args: &FirebasestorageProjectsDefaultBucketCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DefaultBucket>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = firebasestorage_projects_default_bucket_create_builder(client, parent, body)?;
+    let builder =
+        firebasestorage_projects_default_bucket_create_builder(client, &args.parent, &args.body)?;
     firebasestorage_projects_default_bucket_create_execute(builder)
 }

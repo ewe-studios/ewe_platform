@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn apim_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn apim_projects_locations_get_execute(
 
 pub fn apim_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApimProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apim_projects_locations_get_builder(client, name)?;
+    let builder = apim_projects_locations_get_builder(client, &args.name)?;
     apim_projects_locations_get_execute(builder)
 }
 
@@ -217,6 +226,13 @@ pub fn apim_projects_locations_get_entitlement_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_get_entitlement`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsGetEntitlementArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/entitlement
 /// GetEntitlement returns the entitlement for the provided project.
 ///
@@ -229,12 +245,12 @@ pub fn apim_projects_locations_get_entitlement_execute(
 
 pub fn apim_projects_locations_get_entitlement(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApimProjectsLocationsGetEntitlementArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Entitlement>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apim_projects_locations_get_entitlement_builder(client, name)?;
+    let builder = apim_projects_locations_get_entitlement_builder(client, &args.name)?;
     apim_projects_locations_get_entitlement_execute(builder)
 }
 
@@ -354,6 +370,21 @@ pub fn apim_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -366,11 +397,7 @@ pub fn apim_projects_locations_list_execute(
 
 pub fn apim_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApimProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -379,11 +406,11 @@ pub fn apim_projects_locations_list(
 > {
     let builder = apim_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apim_projects_locations_list_execute(builder)
 }
@@ -498,6 +525,17 @@ pub fn apim_projects_locations_list_api_observation_tags_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_list_api_observation_tags`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsListApiObservationTagsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}:listApiObservationTags
 /// ListApiObservationTags lists all extant tags on any observation in the given project.
 ///
@@ -510,9 +548,7 @@ pub fn apim_projects_locations_list_api_observation_tags_execute(
 
 pub fn apim_projects_locations_list_api_observation_tags(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApimProjectsLocationsListApiObservationTagsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListApiObservationTagsResponse>, ApiError>,
@@ -522,7 +558,10 @@ pub fn apim_projects_locations_list_api_observation_tags(
     ApiError,
 > {
     let builder = apim_projects_locations_list_api_observation_tags_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apim_projects_locations_list_api_observation_tags_execute(builder)
 }
@@ -636,6 +675,19 @@ pub fn apim_projects_locations_observation_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_observation_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsObservationJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: observationJobId
+    pub observationJobId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: ObservationJob,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationJobs
 /// CreateObservationJob creates a new ObservationJob but does not have any effecton its own. It is a configuration that can be used in an Observation Job to collect data about existing APIs.
 ///
@@ -648,20 +700,17 @@ pub fn apim_projects_locations_observation_jobs_create_execute(
 
 pub fn apim_projects_locations_observation_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    observationJobId: Option<&str>,
-    requestId: Option<&str>,
-    body: &ObservationJob,
+    args: &ApimProjectsLocationsObservationJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apim_projects_locations_observation_jobs_create_builder(
         client,
-        parent,
-        observationJobId,
-        requestId,
-        body,
+        &args.parent,
+        args.observationJobId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     apim_projects_locations_observation_jobs_create_execute(builder)
 }
@@ -756,6 +805,13 @@ pub fn apim_projects_locations_observation_jobs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_observation_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsObservationJobsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationJobs/{observationJobsId}
 /// DeleteObservationJob deletes an ObservationJob. This method will fail if the observation job is currently being used by any ObservationSource, even if not enabled.
 ///
@@ -768,12 +824,12 @@ pub fn apim_projects_locations_observation_jobs_delete_execute(
 
 pub fn apim_projects_locations_observation_jobs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApimProjectsLocationsObservationJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apim_projects_locations_observation_jobs_delete_builder(client, name)?;
+    let builder = apim_projects_locations_observation_jobs_delete_builder(client, &args.name)?;
     apim_projects_locations_observation_jobs_delete_execute(builder)
 }
 
@@ -870,6 +926,15 @@ pub fn apim_projects_locations_observation_jobs_disable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_observation_jobs_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsObservationJobsDisableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DisableObservationJobRequest,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationJobs/{observationJobsId}:disable
 /// Disables the given ObservationJob.
 ///
@@ -882,13 +947,13 @@ pub fn apim_projects_locations_observation_jobs_disable_execute(
 
 pub fn apim_projects_locations_observation_jobs_disable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DisableObservationJobRequest,
+    args: &ApimProjectsLocationsObservationJobsDisableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apim_projects_locations_observation_jobs_disable_builder(client, name, body)?;
+    let builder =
+        apim_projects_locations_observation_jobs_disable_builder(client, &args.name, &args.body)?;
     apim_projects_locations_observation_jobs_disable_execute(builder)
 }
 
@@ -985,6 +1050,15 @@ pub fn apim_projects_locations_observation_jobs_enable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_observation_jobs_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsObservationJobsEnableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EnableObservationJobRequest,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationJobs/{observationJobsId}:enable
 /// Enables the given ObservationJob.
 ///
@@ -997,13 +1071,13 @@ pub fn apim_projects_locations_observation_jobs_enable_execute(
 
 pub fn apim_projects_locations_observation_jobs_enable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EnableObservationJobRequest,
+    args: &ApimProjectsLocationsObservationJobsEnableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apim_projects_locations_observation_jobs_enable_builder(client, name, body)?;
+    let builder =
+        apim_projects_locations_observation_jobs_enable_builder(client, &args.name, &args.body)?;
     apim_projects_locations_observation_jobs_enable_execute(builder)
 }
 
@@ -1099,6 +1173,13 @@ pub fn apim_projects_locations_observation_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_observation_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsObservationJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationJobs/{observationJobsId}
 /// GetObservationJob retrieves a single ObservationJob by name.
 ///
@@ -1111,14 +1192,14 @@ pub fn apim_projects_locations_observation_jobs_get_execute(
 
 pub fn apim_projects_locations_observation_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApimProjectsLocationsObservationJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ObservationJob>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apim_projects_locations_observation_jobs_get_builder(client, name)?;
+    let builder = apim_projects_locations_observation_jobs_get_builder(client, &args.name)?;
     apim_projects_locations_observation_jobs_get_execute(builder)
 }
 
@@ -1232,6 +1313,17 @@ pub fn apim_projects_locations_observation_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_observation_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsObservationJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationJobs
 /// ListObservationJobs gets all ObservationJobs for a given project and location.
 ///
@@ -1244,9 +1336,7 @@ pub fn apim_projects_locations_observation_jobs_list_execute(
 
 pub fn apim_projects_locations_observation_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApimProjectsLocationsObservationJobsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListObservationJobsResponse>, ApiError>,
@@ -1255,8 +1345,12 @@ pub fn apim_projects_locations_observation_jobs_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apim_projects_locations_observation_jobs_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = apim_projects_locations_observation_jobs_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apim_projects_locations_observation_jobs_list_execute(builder)
 }
 
@@ -1357,6 +1451,15 @@ pub fn apim_projects_locations_observation_jobs_api_observations_batch_edit_tags
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_observation_jobs_api_observations_batch_edit_tags`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsObservationJobsApiObservationsBatchEditTagsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchEditTagsApiObservationsRequest,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationJobs/{observationJobsId}/apiObservations:batchEditTags
 /// BatchEditTagsApiObservations adds or removes Tags for ApiObservations.
 ///
@@ -1369,8 +1472,7 @@ pub fn apim_projects_locations_observation_jobs_api_observations_batch_edit_tags
 
 pub fn apim_projects_locations_observation_jobs_api_observations_batch_edit_tags(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchEditTagsApiObservationsRequest,
+    args: &ApimProjectsLocationsObservationJobsApiObservationsBatchEditTagsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchEditTagsApiObservationsResponse>, ApiError>,
@@ -1381,7 +1483,9 @@ pub fn apim_projects_locations_observation_jobs_api_observations_batch_edit_tags
 > {
     let builder =
         apim_projects_locations_observation_jobs_api_observations_batch_edit_tags_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     apim_projects_locations_observation_jobs_api_observations_batch_edit_tags_execute(builder)
 }
@@ -1478,6 +1582,13 @@ pub fn apim_projects_locations_observation_jobs_api_observations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_observation_jobs_api_observations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsObservationJobsApiObservationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationJobs/{observationJobsId}/apiObservations/{apiObservationsId}
 /// GetApiObservation retrieves a single ApiObservation by name.
 ///
@@ -1490,7 +1601,7 @@ pub fn apim_projects_locations_observation_jobs_api_observations_get_execute(
 
 pub fn apim_projects_locations_observation_jobs_api_observations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApimProjectsLocationsObservationJobsApiObservationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiObservation>, ApiError>, P = ApiPending>
         + Send
@@ -1498,7 +1609,7 @@ pub fn apim_projects_locations_observation_jobs_api_observations_get(
     ApiError,
 > {
     let builder =
-        apim_projects_locations_observation_jobs_api_observations_get_builder(client, name)?;
+        apim_projects_locations_observation_jobs_api_observations_get_builder(client, &args.name)?;
     apim_projects_locations_observation_jobs_api_observations_get_execute(builder)
 }
 
@@ -1612,6 +1723,17 @@ pub fn apim_projects_locations_observation_jobs_api_observations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_observation_jobs_api_observations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsObservationJobsApiObservationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationJobs/{observationJobsId}/apiObservations
 /// ListApiObservations gets all ApiObservations for a given project and location and ObservationJob.
 ///
@@ -1624,9 +1746,7 @@ pub fn apim_projects_locations_observation_jobs_api_observations_list_execute(
 
 pub fn apim_projects_locations_observation_jobs_api_observations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApimProjectsLocationsObservationJobsApiObservationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListApiObservationsResponse>, ApiError>,
@@ -1636,7 +1756,10 @@ pub fn apim_projects_locations_observation_jobs_api_observations_list(
     ApiError,
 > {
     let builder = apim_projects_locations_observation_jobs_api_observations_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apim_projects_locations_observation_jobs_api_observations_list_execute(builder)
 }
@@ -1733,6 +1856,13 @@ pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_observation_jobs_api_observations_api_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsObservationJobsApiObservationsApiOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationJobs/{observationJobsId}/apiObservations/{apiObservationsId}/apiOperations/{apiOperationsId}
 /// GetApiOperation retrieves a single ApiOperation by name.
 ///
@@ -1745,7 +1875,7 @@ pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_
 
 pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApimProjectsLocationsObservationJobsApiObservationsApiOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiOperation>, ApiError>, P = ApiPending>
         + Send
@@ -1754,7 +1884,7 @@ pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_
 > {
     let builder =
         apim_projects_locations_observation_jobs_api_observations_api_operations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     apim_projects_locations_observation_jobs_api_observations_api_operations_get_execute(builder)
 }
@@ -1867,6 +1997,17 @@ pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_observation_jobs_api_observations_api_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsObservationJobsApiObservationsApiOperationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationJobs/{observationJobsId}/apiObservations/{apiObservationsId}/apiOperations
 /// ListApiOperations gets all ApiOperations for a given project and location and ObservationJob and ApiObservation.
 ///
@@ -1879,9 +2020,7 @@ pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_
 
 pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApimProjectsLocationsObservationJobsApiObservationsApiOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListApiOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1890,7 +2029,10 @@ pub fn apim_projects_locations_observation_jobs_api_observations_api_operations_
 > {
     let builder =
         apim_projects_locations_observation_jobs_api_observations_api_operations_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     apim_projects_locations_observation_jobs_api_observations_api_operations_list_execute(builder)
 }
@@ -2004,6 +2146,19 @@ pub fn apim_projects_locations_observation_sources_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_observation_sources_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsObservationSourcesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: observationSourceId
+    pub observationSourceId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: ObservationSource,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationSources
 /// CreateObservationSource creates a new ObservationSource but does not affect any deployed infrastructure. It is a configuration that can be used in an Observation Job to collect data about APIs running in user's dataplane.
 ///
@@ -2016,20 +2171,17 @@ pub fn apim_projects_locations_observation_sources_create_execute(
 
 pub fn apim_projects_locations_observation_sources_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    observationSourceId: Option<&str>,
-    requestId: Option<&str>,
-    body: &ObservationSource,
+    args: &ApimProjectsLocationsObservationSourcesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apim_projects_locations_observation_sources_create_builder(
         client,
-        parent,
-        observationSourceId,
-        requestId,
-        body,
+        &args.parent,
+        args.observationSourceId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     apim_projects_locations_observation_sources_create_execute(builder)
 }
@@ -2124,6 +2276,13 @@ pub fn apim_projects_locations_observation_sources_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_observation_sources_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsObservationSourcesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationSources/{observationSourcesId}
 /// DeleteObservationSource deletes an observation source. This method will fail if the observation source is currently being used by any ObservationJob, even if not enabled.
 ///
@@ -2136,12 +2295,12 @@ pub fn apim_projects_locations_observation_sources_delete_execute(
 
 pub fn apim_projects_locations_observation_sources_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApimProjectsLocationsObservationSourcesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apim_projects_locations_observation_sources_delete_builder(client, name)?;
+    let builder = apim_projects_locations_observation_sources_delete_builder(client, &args.name)?;
     apim_projects_locations_observation_sources_delete_execute(builder)
 }
 
@@ -2237,6 +2396,13 @@ pub fn apim_projects_locations_observation_sources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_observation_sources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsObservationSourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationSources/{observationSourcesId}
 /// GetObservationSource retrieves a single ObservationSource by name.
 ///
@@ -2249,14 +2415,14 @@ pub fn apim_projects_locations_observation_sources_get_execute(
 
 pub fn apim_projects_locations_observation_sources_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApimProjectsLocationsObservationSourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ObservationSource>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apim_projects_locations_observation_sources_get_builder(client, name)?;
+    let builder = apim_projects_locations_observation_sources_get_builder(client, &args.name)?;
     apim_projects_locations_observation_sources_get_execute(builder)
 }
 
@@ -2370,6 +2536,17 @@ pub fn apim_projects_locations_observation_sources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_observation_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsObservationSourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/observationSources
 /// ListObservationSources gets all ObservationSources for a given project and location.
 ///
@@ -2382,9 +2559,7 @@ pub fn apim_projects_locations_observation_sources_list_execute(
 
 pub fn apim_projects_locations_observation_sources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApimProjectsLocationsObservationSourcesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListObservationSourcesResponse>, ApiError>,
@@ -2394,7 +2569,10 @@ pub fn apim_projects_locations_observation_sources_list(
     ApiError,
 > {
     let builder = apim_projects_locations_observation_sources_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apim_projects_locations_observation_sources_list_execute(builder)
 }
@@ -2492,6 +2670,15 @@ pub fn apim_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -2504,13 +2691,13 @@ pub fn apim_projects_locations_operations_cancel_execute(
 
 pub fn apim_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ApimProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apim_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        apim_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     apim_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -2604,6 +2791,13 @@ pub fn apim_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -2616,12 +2810,12 @@ pub fn apim_projects_locations_operations_delete_execute(
 
 pub fn apim_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApimProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apim_projects_locations_operations_delete_builder(client, name)?;
+    let builder = apim_projects_locations_operations_delete_builder(client, &args.name)?;
     apim_projects_locations_operations_delete_execute(builder)
 }
 
@@ -2715,6 +2909,13 @@ pub fn apim_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2727,12 +2928,12 @@ pub fn apim_projects_locations_operations_get_execute(
 
 pub fn apim_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApimProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apim_projects_locations_operations_get_builder(client, name)?;
+    let builder = apim_projects_locations_operations_get_builder(client, &args.name)?;
     apim_projects_locations_operations_get_execute(builder)
 }
 
@@ -2852,6 +3053,21 @@ pub fn apim_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apim_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApimProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1alpha/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -2864,11 +3080,7 @@ pub fn apim_projects_locations_operations_list_execute(
 
 pub fn apim_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ApimProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2877,11 +3089,11 @@ pub fn apim_projects_locations_operations_list(
 > {
     let builder = apim_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     apim_projects_locations_operations_list_execute(builder)
 }

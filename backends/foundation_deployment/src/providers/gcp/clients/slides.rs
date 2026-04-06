@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/presentations/{presentationId}:batchUpdate
 /// Applies one or more updates to the presentation. Each request is validated before being applied. If any request is not valid, then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. Other requests do not need to return information; these each return an empty reply. The order of replies matches that of the requests. For example, suppose you call `batchUpdate` with four updates, and only the third one returns information. The response would have two empty replies: the reply to the third request, and another empty reply, in that order. Because other users may be editing the presentation, the presentation might not exactly reflect your changes: your changes may be altered with respect to collaborator changes. If there are no collaborators, the presentation should reflect your changes. In any case, the updates in your request are guaranteed to be applied together atomically.
@@ -113,6 +115,15 @@ pub fn slides_presentations_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`slides_presentations_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SlidesPresentationsBatchUpdateArgs {
+    /// Path parameter: presentationId
+    pub presentationId: String,
+    /// Request body.
+    pub body: BatchUpdatePresentationRequest,
+}
+
 /// GET v1/presentations/{presentationId}:batchUpdate
 /// Applies one or more updates to the presentation. Each request is validated before being applied. If any request is not valid, then the entire request will fail and nothing will be applied. Some requests have replies to give you some information about how they are applied. Other requests do not need to return information; these each return an empty reply. The order of replies matches that of the requests. For example, suppose you call `batchUpdate` with four updates, and only the third one returns information. The response would have two empty replies: the reply to the third request, and another empty reply, in that order. Because other users may be editing the presentation, the presentation might not exactly reflect your changes: your changes may be altered with respect to collaborator changes. If there are no collaborators, the presentation should reflect your changes. In any case, the updates in your request are guaranteed to be applied together atomically.
 ///
@@ -125,8 +136,7 @@ pub fn slides_presentations_batch_update_execute(
 
 pub fn slides_presentations_batch_update(
     client: &SimpleHttpClient,
-    presentationId: &str,
-    body: &BatchUpdatePresentationRequest,
+    args: &SlidesPresentationsBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchUpdatePresentationResponse>, ApiError>,
@@ -135,7 +145,8 @@ pub fn slides_presentations_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder = slides_presentations_batch_update_builder(client, presentationId, body)?;
+    let builder =
+        slides_presentations_batch_update_builder(client, &args.presentationId, &args.body)?;
     slides_presentations_batch_update_execute(builder)
 }
 
@@ -230,6 +241,13 @@ pub fn slides_presentations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`slides_presentations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SlidesPresentationsCreateArgs {
+    /// Request body.
+    pub body: Presentation,
+}
+
 /// GET v1/presentations
 /// Creates a blank presentation using the title given in the request. If a `presentationId` is provided, it is used as the ID of the new presentation. Otherwise, a new ID is generated. Other fields in the request, including any provided content, are ignored. Returns the created presentation.
 ///
@@ -242,14 +260,14 @@ pub fn slides_presentations_create_execute(
 
 pub fn slides_presentations_create(
     client: &SimpleHttpClient,
-    body: &Presentation,
+    args: &SlidesPresentationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Presentation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = slides_presentations_create_builder(client, body)?;
+    let builder = slides_presentations_create_builder(client, &args.body)?;
     slides_presentations_create_execute(builder)
 }
 
@@ -345,6 +363,13 @@ pub fn slides_presentations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`slides_presentations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SlidesPresentationsGetArgs {
+    /// Path parameter: presentationId
+    pub presentationId: String,
+}
+
 /// GET v1/presentations/{presentationsId}
 /// Gets the latest version of the specified presentation.
 ///
@@ -357,14 +382,14 @@ pub fn slides_presentations_get_execute(
 
 pub fn slides_presentations_get(
     client: &SimpleHttpClient,
-    presentationId: &str,
+    args: &SlidesPresentationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Presentation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = slides_presentations_get_builder(client, presentationId)?;
+    let builder = slides_presentations_get_builder(client, &args.presentationId)?;
     slides_presentations_get_execute(builder)
 }
 
@@ -459,6 +484,15 @@ pub fn slides_presentations_pages_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`slides_presentations_pages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SlidesPresentationsPagesGetArgs {
+    /// Path parameter: presentationId
+    pub presentationId: String,
+    /// Path parameter: pageObjectId
+    pub pageObjectId: String,
+}
+
 /// GET v1/presentations/{presentationId}/pages/{pageObjectId}
 /// Gets the latest version of the specified page in the presentation.
 ///
@@ -471,13 +505,13 @@ pub fn slides_presentations_pages_get_execute(
 
 pub fn slides_presentations_pages_get(
     client: &SimpleHttpClient,
-    presentationId: &str,
-    pageObjectId: &str,
+    args: &SlidesPresentationsPagesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = slides_presentations_pages_get_builder(client, presentationId, pageObjectId)?;
+    let builder =
+        slides_presentations_pages_get_builder(client, &args.presentationId, &args.pageObjectId)?;
     slides_presentations_pages_get_execute(builder)
 }
 
@@ -588,6 +622,19 @@ pub fn slides_presentations_pages_get_thumbnail_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`slides_presentations_pages_get_thumbnail`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SlidesPresentationsPagesGetThumbnailArgs {
+    /// Path parameter: presentationId
+    pub presentationId: String,
+    /// Path parameter: pageObjectId
+    pub pageObjectId: String,
+    /// Query parameter: thumbnailProperties_mimeType
+    pub thumbnailProperties_mimeType: Option<String>,
+    /// Query parameter: thumbnailProperties_thumbnailSize
+    pub thumbnailProperties_thumbnailSize: Option<String>,
+}
+
 /// GET v1/presentations/{presentationId}/pages/{pageObjectId}/thumbnail
 /// Generates a thumbnail of the latest version of the specified page in the presentation and returns a URL to the thumbnail image. This request counts as an [expensive read request](<https://developers.google.`com/workspace/slides/limits`>) for quota purposes.
 ///
@@ -600,20 +647,17 @@ pub fn slides_presentations_pages_get_thumbnail_execute(
 
 pub fn slides_presentations_pages_get_thumbnail(
     client: &SimpleHttpClient,
-    presentationId: &str,
-    pageObjectId: &str,
-    thumbnailProperties_mimeType: Option<&str>,
-    thumbnailProperties_thumbnailSize: Option<&str>,
+    args: &SlidesPresentationsPagesGetThumbnailArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Thumbnail>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = slides_presentations_pages_get_thumbnail_builder(
         client,
-        presentationId,
-        pageObjectId,
-        thumbnailProperties_mimeType,
-        thumbnailProperties_thumbnailSize,
+        &args.presentationId,
+        &args.pageObjectId,
+        args.thumbnailProperties_mimeType.as_deref(),
+        args.thumbnailProperties_thumbnailSize.as_deref(),
     )?;
     slides_presentations_pages_get_thumbnail_execute(builder)
 }

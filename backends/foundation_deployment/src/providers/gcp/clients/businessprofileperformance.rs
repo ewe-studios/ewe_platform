@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/locations/{locationsId}:fetchMultiDailyMetricsTimeSeries
 /// Returns the values for each date from a given time range and optionally the sub entity type, where applicable, that are associated with the specific daily metrics. Example request: GET <https://businessprofileperformance.googleapis.`com/v1/locations/12345`:`fetchMultiDailyMetricsTimeSeries`?`dailyMetrics`=WEBSITE_CLICKS&`dailyMetrics`=CALL_CLICKS&daily_range.start_date.year=2022&daily_range.start_date.month=1&daily_range.start_date.day=1&daily_range.end_date.year=2022&daily_range.end_date.month=3&daily_range.end_date.day=31>
@@ -146,6 +148,27 @@ pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_serie
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`businessprofileperformance_locations_fetch_multi_daily_metrics_time_series`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BusinessprofileperformanceLocationsFetchMultiDailyMetricsTimeSeriesArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Query parameter: dailyMetrics
+    pub dailyMetrics: Option<String>,
+    /// Query parameter: dailyRange_endDate_day
+    pub dailyRange_endDate_day: Option<i32>,
+    /// Query parameter: dailyRange_endDate_month
+    pub dailyRange_endDate_month: Option<i32>,
+    /// Query parameter: dailyRange_endDate_year
+    pub dailyRange_endDate_year: Option<i32>,
+    /// Query parameter: dailyRange_startDate_day
+    pub dailyRange_startDate_day: Option<i32>,
+    /// Query parameter: dailyRange_startDate_month
+    pub dailyRange_startDate_month: Option<i32>,
+    /// Query parameter: dailyRange_startDate_year
+    pub dailyRange_startDate_year: Option<i32>,
+}
+
 /// GET v1/locations/{locationsId}:fetchMultiDailyMetricsTimeSeries
 /// Returns the values for each date from a given time range and optionally the sub entity type, where applicable, that are associated with the specific daily metrics. Example request: GET <https://businessprofileperformance.googleapis.`com/v1/locations/12345`:`fetchMultiDailyMetricsTimeSeries`?`dailyMetrics`=WEBSITE_CLICKS&`dailyMetrics`=CALL_CLICKS&daily_range.start_date.year=2022&daily_range.start_date.month=1&daily_range.start_date.day=1&daily_range.end_date.year=2022&daily_range.end_date.month=3&daily_range.end_date.day=31>
 ///
@@ -158,14 +181,7 @@ pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_serie
 
 pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_series(
     client: &SimpleHttpClient,
-    location: &str,
-    dailyMetrics: Option<&str>,
-    dailyRange_endDate_day: Option<i32>,
-    dailyRange_endDate_month: Option<i32>,
-    dailyRange_endDate_year: Option<i32>,
-    dailyRange_startDate_day: Option<i32>,
-    dailyRange_startDate_month: Option<i32>,
-    dailyRange_startDate_year: Option<i32>,
+    args: &BusinessprofileperformanceLocationsFetchMultiDailyMetricsTimeSeriesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchMultiDailyMetricsTimeSeriesResponse>, ApiError>,
@@ -177,14 +193,14 @@ pub fn businessprofileperformance_locations_fetch_multi_daily_metrics_time_serie
     let builder =
         businessprofileperformance_locations_fetch_multi_daily_metrics_time_series_builder(
             client,
-            location,
-            dailyMetrics,
-            dailyRange_endDate_day,
-            dailyRange_endDate_month,
-            dailyRange_endDate_year,
-            dailyRange_startDate_day,
-            dailyRange_startDate_month,
-            dailyRange_startDate_year,
+            &args.location,
+            args.dailyMetrics.as_deref(),
+            args.dailyRange_endDate_day,
+            args.dailyRange_endDate_month,
+            args.dailyRange_endDate_year,
+            args.dailyRange_startDate_day,
+            args.dailyRange_startDate_month,
+            args.dailyRange_startDate_year,
         )?;
     businessprofileperformance_locations_fetch_multi_daily_metrics_time_series_execute(builder)
 }
@@ -339,6 +355,37 @@ pub fn businessprofileperformance_locations_get_daily_metrics_time_series_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`businessprofileperformance_locations_get_daily_metrics_time_series`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BusinessprofileperformanceLocationsGetDailyMetricsTimeSeriesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: dailyMetric
+    pub dailyMetric: Option<String>,
+    /// Query parameter: dailyRange_endDate_day
+    pub dailyRange_endDate_day: Option<i32>,
+    /// Query parameter: dailyRange_endDate_month
+    pub dailyRange_endDate_month: Option<i32>,
+    /// Query parameter: dailyRange_endDate_year
+    pub dailyRange_endDate_year: Option<i32>,
+    /// Query parameter: dailyRange_startDate_day
+    pub dailyRange_startDate_day: Option<i32>,
+    /// Query parameter: dailyRange_startDate_month
+    pub dailyRange_startDate_month: Option<i32>,
+    /// Query parameter: dailyRange_startDate_year
+    pub dailyRange_startDate_year: Option<i32>,
+    /// Query parameter: dailySubEntityType_dayOfWeek
+    pub dailySubEntityType_dayOfWeek: Option<String>,
+    /// Query parameter: dailySubEntityType_timeOfDay_hours
+    pub dailySubEntityType_timeOfDay_hours: Option<i32>,
+    /// Query parameter: dailySubEntityType_timeOfDay_minutes
+    pub dailySubEntityType_timeOfDay_minutes: Option<i32>,
+    /// Query parameter: dailySubEntityType_timeOfDay_nanos
+    pub dailySubEntityType_timeOfDay_nanos: Option<i32>,
+    /// Query parameter: dailySubEntityType_timeOfDay_seconds
+    pub dailySubEntityType_timeOfDay_seconds: Option<i32>,
+}
+
 /// GET v1/locations/{locationsId}:getDailyMetricsTimeSeries
 /// Returns the values for each date from a given time range that are associated with the specific daily metric. Example request: GET <https://businessprofileperformance.googleapis.`com/v1/locations/12345`:`getDailyMetricsTimeSeries`?`dailyMetric`=WEBSITE_CLICKS&daily_range.start_date.year=2022&daily_range.start_date.month=1&daily_range.start_date.day=1&daily_range.end_date.year=2022&daily_range.end_date.month=3&daily_range.end_date.day=31>
 ///
@@ -351,19 +398,7 @@ pub fn businessprofileperformance_locations_get_daily_metrics_time_series_execut
 
 pub fn businessprofileperformance_locations_get_daily_metrics_time_series(
     client: &SimpleHttpClient,
-    name: &str,
-    dailyMetric: Option<&str>,
-    dailyRange_endDate_day: Option<i32>,
-    dailyRange_endDate_month: Option<i32>,
-    dailyRange_endDate_year: Option<i32>,
-    dailyRange_startDate_day: Option<i32>,
-    dailyRange_startDate_month: Option<i32>,
-    dailyRange_startDate_year: Option<i32>,
-    dailySubEntityType_dayOfWeek: Option<&str>,
-    dailySubEntityType_timeOfDay_hours: Option<i32>,
-    dailySubEntityType_timeOfDay_minutes: Option<i32>,
-    dailySubEntityType_timeOfDay_nanos: Option<i32>,
-    dailySubEntityType_timeOfDay_seconds: Option<i32>,
+    args: &BusinessprofileperformanceLocationsGetDailyMetricsTimeSeriesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetDailyMetricsTimeSeriesResponse>, ApiError>,
@@ -374,19 +409,19 @@ pub fn businessprofileperformance_locations_get_daily_metrics_time_series(
 > {
     let builder = businessprofileperformance_locations_get_daily_metrics_time_series_builder(
         client,
-        name,
-        dailyMetric,
-        dailyRange_endDate_day,
-        dailyRange_endDate_month,
-        dailyRange_endDate_year,
-        dailyRange_startDate_day,
-        dailyRange_startDate_month,
-        dailyRange_startDate_year,
-        dailySubEntityType_dayOfWeek,
-        dailySubEntityType_timeOfDay_hours,
-        dailySubEntityType_timeOfDay_minutes,
-        dailySubEntityType_timeOfDay_nanos,
-        dailySubEntityType_timeOfDay_seconds,
+        &args.name,
+        args.dailyMetric.as_deref(),
+        args.dailyRange_endDate_day,
+        args.dailyRange_endDate_month,
+        args.dailyRange_endDate_year,
+        args.dailyRange_startDate_day,
+        args.dailyRange_startDate_month,
+        args.dailyRange_startDate_year,
+        args.dailySubEntityType_dayOfWeek.as_deref(),
+        args.dailySubEntityType_timeOfDay_hours,
+        args.dailySubEntityType_timeOfDay_minutes,
+        args.dailySubEntityType_timeOfDay_nanos,
+        args.dailySubEntityType_timeOfDay_seconds,
     )?;
     businessprofileperformance_locations_get_daily_metrics_time_series_execute(builder)
 }
@@ -526,6 +561,29 @@ pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_l
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`businessprofileperformance_locations_searchkeywords_impressions_monthly_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BusinessprofileperformanceLocationsSearchkeywordsImpressionsMonthlyListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: monthlyRange_endMonth_day
+    pub monthlyRange_endMonth_day: Option<i32>,
+    /// Query parameter: monthlyRange_endMonth_month
+    pub monthlyRange_endMonth_month: Option<i32>,
+    /// Query parameter: monthlyRange_endMonth_year
+    pub monthlyRange_endMonth_year: Option<i32>,
+    /// Query parameter: monthlyRange_startMonth_day
+    pub monthlyRange_startMonth_day: Option<i32>,
+    /// Query parameter: monthlyRange_startMonth_month
+    pub monthlyRange_startMonth_month: Option<i32>,
+    /// Query parameter: monthlyRange_startMonth_year
+    pub monthlyRange_startMonth_year: Option<i32>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/locations/{locationsId}/searchkeywords/impressions/monthly
 /// Returns the search keywords used to find a business in search or maps. Each search keyword is accompanied by impressions which are aggregated on a monthly basis. Example request: GET <https://businessprofileperformance.googleapis.`com/v1/locations/12345/searchkeywords/impressions/monthly`?monthly_range.start_month.year=2022&monthly_range.start_month.month=1&monthly_range.end_month.year=2022&monthly_range.end_month.month=3>
 ///
@@ -538,15 +596,7 @@ pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_l
 
 pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    monthlyRange_endMonth_day: Option<i32>,
-    monthlyRange_endMonth_month: Option<i32>,
-    monthlyRange_endMonth_year: Option<i32>,
-    monthlyRange_startMonth_day: Option<i32>,
-    monthlyRange_startMonth_month: Option<i32>,
-    monthlyRange_startMonth_year: Option<i32>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BusinessprofileperformanceLocationsSearchkeywordsImpressionsMonthlyListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSearchKeywordImpressionsMonthlyResponse>, ApiError>,
@@ -558,15 +608,15 @@ pub fn businessprofileperformance_locations_searchkeywords_impressions_monthly_l
     let builder =
         businessprofileperformance_locations_searchkeywords_impressions_monthly_list_builder(
             client,
-            parent,
-            monthlyRange_endMonth_day,
-            monthlyRange_endMonth_month,
-            monthlyRange_endMonth_year,
-            monthlyRange_startMonth_day,
-            monthlyRange_startMonth_month,
-            monthlyRange_startMonth_year,
-            pageSize,
-            pageToken,
+            &args.parent,
+            args.monthlyRange_endMonth_day,
+            args.monthlyRange_endMonth_month,
+            args.monthlyRange_endMonth_year,
+            args.monthlyRange_startMonth_day,
+            args.monthlyRange_startMonth_month,
+            args.monthlyRange_startMonth_year,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     businessprofileperformance_locations_searchkeywords_impressions_monthly_list_execute(builder)
 }

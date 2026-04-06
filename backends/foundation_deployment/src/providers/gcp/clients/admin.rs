@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET admin/reports/v1/activity/users/{userKey}/applications/{applicationName}
 /// Retrieves a list of activities for a specific customer's account and application such as the Admin console application or the Google Drive application. For more information, see the guides for administrator and Google Drive activity reports. For more information about the activity report's parameters, see the activity parameters reference guides.
@@ -175,6 +177,45 @@ pub fn reports_activities_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`reports_activities_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ReportsActivitiesListArgs {
+    /// Path parameter: userKey
+    pub userKey: String,
+    /// Path parameter: applicationName
+    pub applicationName: String,
+    /// Query parameter: actorIpAddress
+    pub actorIpAddress: Option<String>,
+    /// Query parameter: applicationInfoFilter
+    pub applicationInfoFilter: Option<String>,
+    /// Query parameter: customerId
+    pub customerId: Option<String>,
+    /// Query parameter: endTime
+    pub endTime: Option<String>,
+    /// Query parameter: eventName
+    pub eventName: Option<String>,
+    /// Query parameter: filters
+    pub filters: Option<String>,
+    /// Query parameter: groupIdFilter
+    pub groupIdFilter: Option<String>,
+    /// Query parameter: includeSensitiveData
+    pub includeSensitiveData: Option<bool>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: networkInfoFilter
+    pub networkInfoFilter: Option<String>,
+    /// Query parameter: orgUnitID
+    pub orgUnitID: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resourceDetailsFilter
+    pub resourceDetailsFilter: Option<String>,
+    /// Query parameter: startTime
+    pub startTime: Option<String>,
+    /// Query parameter: statusFilter
+    pub statusFilter: Option<String>,
+}
+
 /// GET admin/reports/v1/activity/users/{userKey}/applications/{applicationName}
 /// Retrieves a list of activities for a specific customer's account and application such as the Admin console application or the Google Drive application. For more information, see the guides for administrator and Google Drive activity reports. For more information about the activity report's parameters, see the activity parameters reference guides.
 ///
@@ -187,46 +228,30 @@ pub fn reports_activities_list_execute(
 
 pub fn reports_activities_list(
     client: &SimpleHttpClient,
-    userKey: &str,
-    applicationName: &str,
-    actorIpAddress: Option<&str>,
-    applicationInfoFilter: Option<&str>,
-    customerId: Option<&str>,
-    endTime: Option<&str>,
-    eventName: Option<&str>,
-    filters: Option<&str>,
-    groupIdFilter: Option<&str>,
-    includeSensitiveData: Option<bool>,
-    maxResults: Option<i32>,
-    networkInfoFilter: Option<&str>,
-    orgUnitID: Option<&str>,
-    pageToken: Option<&str>,
-    resourceDetailsFilter: Option<&str>,
-    startTime: Option<&str>,
-    statusFilter: Option<&str>,
+    args: &ReportsActivitiesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Activities>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = reports_activities_list_builder(
         client,
-        userKey,
-        applicationName,
-        actorIpAddress,
-        applicationInfoFilter,
-        customerId,
-        endTime,
-        eventName,
-        filters,
-        groupIdFilter,
-        includeSensitiveData,
-        maxResults,
-        networkInfoFilter,
-        orgUnitID,
-        pageToken,
-        resourceDetailsFilter,
-        startTime,
-        statusFilter,
+        &args.userKey,
+        &args.applicationName,
+        args.actorIpAddress.as_deref(),
+        args.applicationInfoFilter.as_deref(),
+        args.customerId.as_deref(),
+        args.endTime.as_deref(),
+        args.eventName.as_deref(),
+        args.filters.as_deref(),
+        args.groupIdFilter.as_deref(),
+        args.includeSensitiveData,
+        args.maxResults,
+        args.networkInfoFilter.as_deref(),
+        args.orgUnitID.as_deref(),
+        args.pageToken.as_deref(),
+        args.resourceDetailsFilter.as_deref(),
+        args.startTime.as_deref(),
+        args.statusFilter.as_deref(),
     )?;
     reports_activities_list_execute(builder)
 }
@@ -373,6 +398,37 @@ pub fn reports_activities_watch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`reports_activities_watch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ReportsActivitiesWatchArgs {
+    /// Path parameter: userKey
+    pub userKey: String,
+    /// Path parameter: applicationName
+    pub applicationName: String,
+    /// Query parameter: actorIpAddress
+    pub actorIpAddress: Option<String>,
+    /// Query parameter: customerId
+    pub customerId: Option<String>,
+    /// Query parameter: endTime
+    pub endTime: Option<String>,
+    /// Query parameter: eventName
+    pub eventName: Option<String>,
+    /// Query parameter: filters
+    pub filters: Option<String>,
+    /// Query parameter: groupIdFilter
+    pub groupIdFilter: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: orgUnitID
+    pub orgUnitID: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: startTime
+    pub startTime: Option<String>,
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET admin/reports/v1/activity/users/{userKey}/applications/{applicationName}/watch
 /// Start receiving notifications for account activities. For more information, see Receiving Push Notifications.
 ///
@@ -385,38 +441,26 @@ pub fn reports_activities_watch_execute(
 
 pub fn reports_activities_watch(
     client: &SimpleHttpClient,
-    userKey: &str,
-    applicationName: &str,
-    actorIpAddress: Option<&str>,
-    customerId: Option<&str>,
-    endTime: Option<&str>,
-    eventName: Option<&str>,
-    filters: Option<&str>,
-    groupIdFilter: Option<&str>,
-    maxResults: Option<i32>,
-    orgUnitID: Option<&str>,
-    pageToken: Option<&str>,
-    startTime: Option<&str>,
-    body: &Channel,
+    args: &ReportsActivitiesWatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = reports_activities_watch_builder(
         client,
-        userKey,
-        applicationName,
-        actorIpAddress,
-        customerId,
-        endTime,
-        eventName,
-        filters,
-        groupIdFilter,
-        maxResults,
-        orgUnitID,
-        pageToken,
-        startTime,
-        body,
+        &args.userKey,
+        &args.applicationName,
+        args.actorIpAddress.as_deref(),
+        args.customerId.as_deref(),
+        args.endTime.as_deref(),
+        args.eventName.as_deref(),
+        args.filters.as_deref(),
+        args.groupIdFilter.as_deref(),
+        args.maxResults,
+        args.orgUnitID.as_deref(),
+        args.pageToken.as_deref(),
+        args.startTime.as_deref(),
+        &args.body,
     )?;
     reports_activities_watch_execute(builder)
 }
@@ -507,6 +551,13 @@ pub fn admin_channels_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`admin_channels_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdminChannelsStopArgs {
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET admin/reports_v1/channels/stop
 /// Stop watching resources through this channel.
 ///
@@ -519,12 +570,12 @@ pub fn admin_channels_stop_execute(
 
 pub fn admin_channels_stop(
     client: &SimpleHttpClient,
-    body: &Channel,
+    args: &AdminChannelsStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = admin_channels_stop_builder(client, body)?;
+    let builder = admin_channels_stop_builder(client, &args.body)?;
     admin_channels_stop_execute(builder)
 }
 
@@ -640,6 +691,19 @@ pub fn reports_customer_usage_reports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`reports_customer_usage_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ReportsCustomerUsageReportsGetArgs {
+    /// Path parameter: date
+    pub date: String,
+    /// Query parameter: customerId
+    pub customerId: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parameters
+    pub parameters: Option<String>,
+}
+
 /// GET admin/reports/v1/usage/dates/{date}
 /// Retrieves a report which is a collection of properties and statistics for a specific customer's account. For more information, see the Customers Usage Report guide. For more information about the customer report's parameters, see the Customers Usage parameters reference guides.
 ///
@@ -652,10 +716,7 @@ pub fn reports_customer_usage_reports_get_execute(
 
 pub fn reports_customer_usage_reports_get(
     client: &SimpleHttpClient,
-    date: &str,
-    customerId: Option<&str>,
-    pageToken: Option<&str>,
-    parameters: Option<&str>,
+    args: &ReportsCustomerUsageReportsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UsageReports>, ApiError>, P = ApiPending>
         + Send
@@ -663,7 +724,11 @@ pub fn reports_customer_usage_reports_get(
     ApiError,
 > {
     let builder = reports_customer_usage_reports_get_builder(
-        client, date, customerId, pageToken, parameters,
+        client,
+        &args.date,
+        args.customerId.as_deref(),
+        args.pageToken.as_deref(),
+        args.parameters.as_deref(),
     )?;
     reports_customer_usage_reports_get_execute(builder)
 }
@@ -790,6 +855,27 @@ pub fn reports_entity_usage_reports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`reports_entity_usage_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ReportsEntityUsageReportsGetArgs {
+    /// Path parameter: entityType
+    pub entityType: String,
+    /// Path parameter: entityKey
+    pub entityKey: String,
+    /// Path parameter: date
+    pub date: String,
+    /// Query parameter: customerId
+    pub customerId: Option<String>,
+    /// Query parameter: filters
+    pub filters: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parameters
+    pub parameters: Option<String>,
+}
+
 /// GET admin/reports/v1/usage/{entityType}/{entityKey}/dates/{date}
 /// Retrieves a report which is a collection of properties and statistics for entities used by users within the account. For more information, see the Entities Usage Report guide. For more information about the entities report's parameters, see the Entities Usage parameters reference guides.
 ///
@@ -802,14 +888,7 @@ pub fn reports_entity_usage_reports_get_execute(
 
 pub fn reports_entity_usage_reports_get(
     client: &SimpleHttpClient,
-    entityType: &str,
-    entityKey: &str,
-    date: &str,
-    customerId: Option<&str>,
-    filters: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    parameters: Option<&str>,
+    args: &ReportsEntityUsageReportsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UsageReports>, ApiError>, P = ApiPending>
         + Send
@@ -817,7 +896,15 @@ pub fn reports_entity_usage_reports_get(
     ApiError,
 > {
     let builder = reports_entity_usage_reports_get_builder(
-        client, entityType, entityKey, date, customerId, filters, maxResults, pageToken, parameters,
+        client,
+        &args.entityType,
+        &args.entityKey,
+        &args.date,
+        args.customerId.as_deref(),
+        args.filters.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.parameters.as_deref(),
     )?;
     reports_entity_usage_reports_get_execute(builder)
 }
@@ -951,6 +1038,29 @@ pub fn reports_user_usage_report_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`reports_user_usage_report_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ReportsUserUsageReportGetArgs {
+    /// Path parameter: userKey
+    pub userKey: String,
+    /// Path parameter: date
+    pub date: String,
+    /// Query parameter: customerId
+    pub customerId: Option<String>,
+    /// Query parameter: filters
+    pub filters: Option<String>,
+    /// Query parameter: groupIdFilter
+    pub groupIdFilter: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: orgUnitID
+    pub orgUnitID: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parameters
+    pub parameters: Option<String>,
+}
+
 /// GET admin/reports/v1/usage/users/{userKey}/dates/{date}
 /// Retrieves a report which is a collection of properties and statistics for a set of users with the account. For more information, see the User Usage Report guide. For more information about the user report's parameters, see the Users Usage parameters reference guides.
 ///
@@ -963,15 +1073,7 @@ pub fn reports_user_usage_report_get_execute(
 
 pub fn reports_user_usage_report_get(
     client: &SimpleHttpClient,
-    userKey: &str,
-    date: &str,
-    customerId: Option<&str>,
-    filters: Option<&str>,
-    groupIdFilter: Option<&str>,
-    maxResults: Option<i32>,
-    orgUnitID: Option<&str>,
-    pageToken: Option<&str>,
-    parameters: Option<&str>,
+    args: &ReportsUserUsageReportGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UsageReports>, ApiError>, P = ApiPending>
         + Send
@@ -980,15 +1082,15 @@ pub fn reports_user_usage_report_get(
 > {
     let builder = reports_user_usage_report_get_builder(
         client,
-        userKey,
-        date,
-        customerId,
-        filters,
-        groupIdFilter,
-        maxResults,
-        orgUnitID,
-        pageToken,
-        parameters,
+        &args.userKey,
+        &args.date,
+        args.customerId.as_deref(),
+        args.filters.as_deref(),
+        args.groupIdFilter.as_deref(),
+        args.maxResults,
+        args.orgUnitID.as_deref(),
+        args.pageToken.as_deref(),
+        args.parameters.as_deref(),
     )?;
     reports_user_usage_report_get_execute(builder)
 }

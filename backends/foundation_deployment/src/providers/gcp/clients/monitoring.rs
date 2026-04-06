@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v3/folders/{foldersId}/timeSeries
 /// Lists time series that match a filter.
@@ -176,6 +178,43 @@ pub fn monitoring_folders_time_series_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_folders_time_series_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringFoldersTimeSeriesListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: aggregation_alignmentPeriod
+    pub aggregation_alignmentPeriod: Option<String>,
+    /// Query parameter: aggregation_crossSeriesReducer
+    pub aggregation_crossSeriesReducer: Option<String>,
+    /// Query parameter: aggregation_groupByFields
+    pub aggregation_groupByFields: Option<String>,
+    /// Query parameter: aggregation_perSeriesAligner
+    pub aggregation_perSeriesAligner: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: interval_endTime
+    pub interval_endTime: Option<String>,
+    /// Query parameter: interval_startTime
+    pub interval_startTime: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: secondaryAggregation_alignmentPeriod
+    pub secondaryAggregation_alignmentPeriod: Option<String>,
+    /// Query parameter: secondaryAggregation_crossSeriesReducer
+    pub secondaryAggregation_crossSeriesReducer: Option<String>,
+    /// Query parameter: secondaryAggregation_groupByFields
+    pub secondaryAggregation_groupByFields: Option<String>,
+    /// Query parameter: secondaryAggregation_perSeriesAligner
+    pub secondaryAggregation_perSeriesAligner: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/folders/{foldersId}/timeSeries
 /// Lists time series that match a filter.
 ///
@@ -188,22 +227,7 @@ pub fn monitoring_folders_time_series_list_execute(
 
 pub fn monitoring_folders_time_series_list(
     client: &SimpleHttpClient,
-    name: &str,
-    aggregation_alignmentPeriod: Option<&str>,
-    aggregation_crossSeriesReducer: Option<&str>,
-    aggregation_groupByFields: Option<&str>,
-    aggregation_perSeriesAligner: Option<&str>,
-    filter: Option<&str>,
-    interval_endTime: Option<&str>,
-    interval_startTime: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    secondaryAggregation_alignmentPeriod: Option<&str>,
-    secondaryAggregation_crossSeriesReducer: Option<&str>,
-    secondaryAggregation_groupByFields: Option<&str>,
-    secondaryAggregation_perSeriesAligner: Option<&str>,
-    view: Option<&str>,
+    args: &MonitoringFoldersTimeSeriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTimeSeriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -212,22 +236,22 @@ pub fn monitoring_folders_time_series_list(
 > {
     let builder = monitoring_folders_time_series_list_builder(
         client,
-        name,
-        aggregation_alignmentPeriod,
-        aggregation_crossSeriesReducer,
-        aggregation_groupByFields,
-        aggregation_perSeriesAligner,
-        filter,
-        interval_endTime,
-        interval_startTime,
-        orderBy,
-        pageSize,
-        pageToken,
-        secondaryAggregation_alignmentPeriod,
-        secondaryAggregation_crossSeriesReducer,
-        secondaryAggregation_groupByFields,
-        secondaryAggregation_perSeriesAligner,
-        view,
+        &args.name,
+        args.aggregation_alignmentPeriod.as_deref(),
+        args.aggregation_crossSeriesReducer.as_deref(),
+        args.aggregation_groupByFields.as_deref(),
+        args.aggregation_perSeriesAligner.as_deref(),
+        args.filter.as_deref(),
+        args.interval_endTime.as_deref(),
+        args.interval_startTime.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.secondaryAggregation_alignmentPeriod.as_deref(),
+        args.secondaryAggregation_crossSeriesReducer.as_deref(),
+        args.secondaryAggregation_groupByFields.as_deref(),
+        args.secondaryAggregation_perSeriesAligner.as_deref(),
+        args.view.as_deref(),
     )?;
     monitoring_folders_time_series_list_execute(builder)
 }
@@ -392,6 +416,43 @@ pub fn monitoring_organizations_time_series_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_organizations_time_series_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringOrganizationsTimeSeriesListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: aggregation_alignmentPeriod
+    pub aggregation_alignmentPeriod: Option<String>,
+    /// Query parameter: aggregation_crossSeriesReducer
+    pub aggregation_crossSeriesReducer: Option<String>,
+    /// Query parameter: aggregation_groupByFields
+    pub aggregation_groupByFields: Option<String>,
+    /// Query parameter: aggregation_perSeriesAligner
+    pub aggregation_perSeriesAligner: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: interval_endTime
+    pub interval_endTime: Option<String>,
+    /// Query parameter: interval_startTime
+    pub interval_startTime: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: secondaryAggregation_alignmentPeriod
+    pub secondaryAggregation_alignmentPeriod: Option<String>,
+    /// Query parameter: secondaryAggregation_crossSeriesReducer
+    pub secondaryAggregation_crossSeriesReducer: Option<String>,
+    /// Query parameter: secondaryAggregation_groupByFields
+    pub secondaryAggregation_groupByFields: Option<String>,
+    /// Query parameter: secondaryAggregation_perSeriesAligner
+    pub secondaryAggregation_perSeriesAligner: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/organizations/{organizationsId}/timeSeries
 /// Lists time series that match a filter.
 ///
@@ -404,22 +465,7 @@ pub fn monitoring_organizations_time_series_list_execute(
 
 pub fn monitoring_organizations_time_series_list(
     client: &SimpleHttpClient,
-    name: &str,
-    aggregation_alignmentPeriod: Option<&str>,
-    aggregation_crossSeriesReducer: Option<&str>,
-    aggregation_groupByFields: Option<&str>,
-    aggregation_perSeriesAligner: Option<&str>,
-    filter: Option<&str>,
-    interval_endTime: Option<&str>,
-    interval_startTime: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    secondaryAggregation_alignmentPeriod: Option<&str>,
-    secondaryAggregation_crossSeriesReducer: Option<&str>,
-    secondaryAggregation_groupByFields: Option<&str>,
-    secondaryAggregation_perSeriesAligner: Option<&str>,
-    view: Option<&str>,
+    args: &MonitoringOrganizationsTimeSeriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTimeSeriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -428,22 +474,22 @@ pub fn monitoring_organizations_time_series_list(
 > {
     let builder = monitoring_organizations_time_series_list_builder(
         client,
-        name,
-        aggregation_alignmentPeriod,
-        aggregation_crossSeriesReducer,
-        aggregation_groupByFields,
-        aggregation_perSeriesAligner,
-        filter,
-        interval_endTime,
-        interval_startTime,
-        orderBy,
-        pageSize,
-        pageToken,
-        secondaryAggregation_alignmentPeriod,
-        secondaryAggregation_crossSeriesReducer,
-        secondaryAggregation_groupByFields,
-        secondaryAggregation_perSeriesAligner,
-        view,
+        &args.name,
+        args.aggregation_alignmentPeriod.as_deref(),
+        args.aggregation_crossSeriesReducer.as_deref(),
+        args.aggregation_groupByFields.as_deref(),
+        args.aggregation_perSeriesAligner.as_deref(),
+        args.filter.as_deref(),
+        args.interval_endTime.as_deref(),
+        args.interval_startTime.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.secondaryAggregation_alignmentPeriod.as_deref(),
+        args.secondaryAggregation_crossSeriesReducer.as_deref(),
+        args.secondaryAggregation_groupByFields.as_deref(),
+        args.secondaryAggregation_perSeriesAligner.as_deref(),
+        args.view.as_deref(),
     )?;
     monitoring_organizations_time_series_list_execute(builder)
 }
@@ -541,6 +587,15 @@ pub fn monitoring_projects_alert_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_alert_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsAlertPoliciesCreateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AlertPolicy,
+}
+
 /// GET v3/projects/{projectsId}/alertPolicies
 /// Creates a new alerting policy.Design your application to single-thread API calls that modify the state of alerting policies in a single project. This includes calls to CreateAlertPolicy, DeleteAlertPolicy and UpdateAlertPolicy.
 ///
@@ -553,13 +608,13 @@ pub fn monitoring_projects_alert_policies_create_execute(
 
 pub fn monitoring_projects_alert_policies_create(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AlertPolicy,
+    args: &MonitoringProjectsAlertPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AlertPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_alert_policies_create_builder(client, name, body)?;
+    let builder =
+        monitoring_projects_alert_policies_create_builder(client, &args.name, &args.body)?;
     monitoring_projects_alert_policies_create_execute(builder)
 }
 
@@ -653,6 +708,13 @@ pub fn monitoring_projects_alert_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_alert_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsAlertPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
 /// Deletes an alerting policy.Design your application to single-thread API calls that modify the state of alerting policies in a single project. This includes calls to CreateAlertPolicy, DeleteAlertPolicy and UpdateAlertPolicy.
 ///
@@ -665,12 +727,12 @@ pub fn monitoring_projects_alert_policies_delete_execute(
 
 pub fn monitoring_projects_alert_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MonitoringProjectsAlertPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_alert_policies_delete_builder(client, name)?;
+    let builder = monitoring_projects_alert_policies_delete_builder(client, &args.name)?;
     monitoring_projects_alert_policies_delete_execute(builder)
 }
 
@@ -764,6 +826,13 @@ pub fn monitoring_projects_alert_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_alert_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsAlertPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
 /// Gets a single alerting policy.
 ///
@@ -776,12 +845,12 @@ pub fn monitoring_projects_alert_policies_get_execute(
 
 pub fn monitoring_projects_alert_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MonitoringProjectsAlertPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AlertPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_alert_policies_get_builder(client, name)?;
+    let builder = monitoring_projects_alert_policies_get_builder(client, &args.name)?;
     monitoring_projects_alert_policies_get_execute(builder)
 }
 
@@ -901,6 +970,21 @@ pub fn monitoring_projects_alert_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_alert_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsAlertPoliciesListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/alertPolicies
 /// Lists the existing alerting policies for the workspace.
 ///
@@ -913,11 +997,7 @@ pub fn monitoring_projects_alert_policies_list_execute(
 
 pub fn monitoring_projects_alert_policies_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MonitoringProjectsAlertPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAlertPoliciesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -925,7 +1005,12 @@ pub fn monitoring_projects_alert_policies_list(
     ApiError,
 > {
     let builder = monitoring_projects_alert_policies_list_builder(
-        client, name, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.name,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     monitoring_projects_alert_policies_list_execute(builder)
 }
@@ -1035,6 +1120,17 @@ pub fn monitoring_projects_alert_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_alert_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsAlertPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AlertPolicy,
+}
+
 /// GET v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
 /// Updates an alerting policy. You can either replace the entire policy with a new one or replace only certain fields in the current alerting policy by specifying the fields to be updated via `updateMask`. Returns the updated alerting policy.Design your application to single-thread API calls that modify the state of alerting policies in a single project. This includes calls to CreateAlertPolicy, DeleteAlertPolicy and UpdateAlertPolicy.
 ///
@@ -1047,14 +1143,17 @@ pub fn monitoring_projects_alert_policies_patch_execute(
 
 pub fn monitoring_projects_alert_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AlertPolicy,
+    args: &MonitoringProjectsAlertPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AlertPolicy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_alert_policies_patch_builder(client, name, updateMask, body)?;
+    let builder = monitoring_projects_alert_policies_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     monitoring_projects_alert_policies_patch_execute(builder)
 }
 
@@ -1148,6 +1247,13 @@ pub fn monitoring_projects_alerts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_alerts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsAlertsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/alerts/{alertsId}
 /// Gets a single alert.
 ///
@@ -1160,12 +1266,12 @@ pub fn monitoring_projects_alerts_get_execute(
 
 pub fn monitoring_projects_alerts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MonitoringProjectsAlertsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_alerts_get_builder(client, name)?;
+    let builder = monitoring_projects_alerts_get_builder(client, &args.name)?;
     monitoring_projects_alerts_get_execute(builder)
 }
 
@@ -1285,6 +1391,21 @@ pub fn monitoring_projects_alerts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_alerts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsAlertsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/alerts
 /// Lists the existing alerts for the metrics scope of the project.
 ///
@@ -1297,11 +1418,7 @@ pub fn monitoring_projects_alerts_list_execute(
 
 pub fn monitoring_projects_alerts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MonitoringProjectsAlertsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAlertsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1309,7 +1426,12 @@ pub fn monitoring_projects_alerts_list(
     ApiError,
 > {
     let builder = monitoring_projects_alerts_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     monitoring_projects_alerts_list_execute(builder)
 }
@@ -1411,6 +1533,15 @@ pub fn monitoring_projects_collectd_time_series_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_collectd_time_series_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsCollectdTimeSeriesCreateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CreateCollectdTimeSeriesRequest,
+}
+
 /// GET v3/projects/{projectsId}/collectdTimeSeries
 /// Cloud Monitoring Agent only: Creates a new time series.This method is only for use by the Cloud Monitoring Agent. Use projects.`timeSeries`.create instead.
 ///
@@ -1423,8 +1554,7 @@ pub fn monitoring_projects_collectd_time_series_create_execute(
 
 pub fn monitoring_projects_collectd_time_series_create(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CreateCollectdTimeSeriesRequest,
+    args: &MonitoringProjectsCollectdTimeSeriesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CreateCollectdTimeSeriesResponse>, ApiError>,
@@ -1433,7 +1563,8 @@ pub fn monitoring_projects_collectd_time_series_create(
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_collectd_time_series_create_builder(client, name, body)?;
+    let builder =
+        monitoring_projects_collectd_time_series_create_builder(client, &args.name, &args.body)?;
     monitoring_projects_collectd_time_series_create_execute(builder)
 }
 
@@ -1542,6 +1673,17 @@ pub fn monitoring_projects_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsGroupsCreateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Group,
+}
+
 /// GET v3/projects/{projectsId}/groups
 /// Creates a new group.
 ///
@@ -1554,14 +1696,17 @@ pub fn monitoring_projects_groups_create_execute(
 
 pub fn monitoring_projects_groups_create(
     client: &SimpleHttpClient,
-    name: &str,
-    validateOnly: Option<bool>,
-    body: &Group,
+    args: &MonitoringProjectsGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_groups_create_builder(client, name, validateOnly, body)?;
+    let builder = monitoring_projects_groups_create_builder(
+        client,
+        &args.name,
+        args.validateOnly,
+        &args.body,
+    )?;
     monitoring_projects_groups_create_execute(builder)
 }
 
@@ -1667,6 +1812,15 @@ pub fn monitoring_projects_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: recursive
+    pub recursive: Option<bool>,
+}
+
 /// GET v3/projects/{projectsId}/groups/{groupsId}
 /// Deletes an existing group.
 ///
@@ -1679,13 +1833,12 @@ pub fn monitoring_projects_groups_delete_execute(
 
 pub fn monitoring_projects_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    recursive: Option<bool>,
+    args: &MonitoringProjectsGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_groups_delete_builder(client, name, recursive)?;
+    let builder = monitoring_projects_groups_delete_builder(client, &args.name, args.recursive)?;
     monitoring_projects_groups_delete_execute(builder)
 }
 
@@ -1779,6 +1932,13 @@ pub fn monitoring_projects_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/groups/{groupsId}
 /// Gets a single group.
 ///
@@ -1791,12 +1951,12 @@ pub fn monitoring_projects_groups_get_execute(
 
 pub fn monitoring_projects_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MonitoringProjectsGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_groups_get_builder(client, name)?;
+    let builder = monitoring_projects_groups_get_builder(client, &args.name)?;
     monitoring_projects_groups_get_execute(builder)
 }
 
@@ -1920,6 +2080,23 @@ pub fn monitoring_projects_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsGroupsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: ancestorsOfGroup
+    pub ancestorsOfGroup: Option<String>,
+    /// Query parameter: childrenOfGroup
+    pub childrenOfGroup: Option<String>,
+    /// Query parameter: descendantsOfGroup
+    pub descendantsOfGroup: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/groups
 /// Lists the existing groups.
 ///
@@ -1932,12 +2109,7 @@ pub fn monitoring_projects_groups_list_execute(
 
 pub fn monitoring_projects_groups_list(
     client: &SimpleHttpClient,
-    name: &str,
-    ancestorsOfGroup: Option<&str>,
-    childrenOfGroup: Option<&str>,
-    descendantsOfGroup: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MonitoringProjectsGroupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGroupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1946,12 +2118,12 @@ pub fn monitoring_projects_groups_list(
 > {
     let builder = monitoring_projects_groups_list_builder(
         client,
-        name,
-        ancestorsOfGroup,
-        childrenOfGroup,
-        descendantsOfGroup,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.ancestorsOfGroup.as_deref(),
+        args.childrenOfGroup.as_deref(),
+        args.descendantsOfGroup.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     monitoring_projects_groups_list_execute(builder)
 }
@@ -2061,6 +2233,17 @@ pub fn monitoring_projects_groups_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_groups_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsGroupsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Group,
+}
+
 /// GET v3/projects/{projectsId}/groups/{groupsId}
 /// Updates an existing group. You can change any group attributes except name.
 ///
@@ -2073,14 +2256,17 @@ pub fn monitoring_projects_groups_update_execute(
 
 pub fn monitoring_projects_groups_update(
     client: &SimpleHttpClient,
-    name: &str,
-    validateOnly: Option<bool>,
-    body: &Group,
+    args: &MonitoringProjectsGroupsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_groups_update_builder(client, name, validateOnly, body)?;
+    let builder = monitoring_projects_groups_update_builder(
+        client,
+        &args.name,
+        args.validateOnly,
+        &args.body,
+    )?;
     monitoring_projects_groups_update_execute(builder)
 }
 
@@ -2204,6 +2390,23 @@ pub fn monitoring_projects_groups_members_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_groups_members_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsGroupsMembersListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: interval_endTime
+    pub interval_endTime: Option<String>,
+    /// Query parameter: interval_startTime
+    pub interval_startTime: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/groups/{groupsId}/members
 /// Lists the monitored resources that are members of a group.
 ///
@@ -2216,12 +2419,7 @@ pub fn monitoring_projects_groups_members_list_execute(
 
 pub fn monitoring_projects_groups_members_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    interval_endTime: Option<&str>,
-    interval_startTime: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MonitoringProjectsGroupsMembersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGroupMembersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2230,12 +2428,12 @@ pub fn monitoring_projects_groups_members_list(
 > {
     let builder = monitoring_projects_groups_members_list_builder(
         client,
-        name,
-        filter,
-        interval_endTime,
-        interval_startTime,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.filter.as_deref(),
+        args.interval_endTime.as_deref(),
+        args.interval_startTime.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     monitoring_projects_groups_members_list_execute(builder)
 }
@@ -2335,6 +2533,15 @@ pub fn monitoring_projects_metric_descriptors_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_metric_descriptors_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsMetricDescriptorsCreateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MetricDescriptor,
+}
+
 /// GET v3/projects/{projectsId}/metricDescriptors
 /// Creates a new metric descriptor. The creation is executed asynchronously. User-created metric descriptors define custom metrics (<https://cloud.google.`com/monitoring/custom-metrics`>). The metric descriptor is updated if it already exists, except that metric labels are never removed.
 ///
@@ -2347,15 +2554,15 @@ pub fn monitoring_projects_metric_descriptors_create_execute(
 
 pub fn monitoring_projects_metric_descriptors_create(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MetricDescriptor,
+    args: &MonitoringProjectsMetricDescriptorsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MetricDescriptor>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_metric_descriptors_create_builder(client, name, body)?;
+    let builder =
+        monitoring_projects_metric_descriptors_create_builder(client, &args.name, &args.body)?;
     monitoring_projects_metric_descriptors_create_execute(builder)
 }
 
@@ -2449,6 +2656,13 @@ pub fn monitoring_projects_metric_descriptors_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_metric_descriptors_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsMetricDescriptorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/metricDescriptors/{metricDescriptorsId}
 /// Deletes a metric descriptor. Only user-created custom metrics (<https://cloud.google.`com/monitoring/custom-metrics`>) can be deleted.
 ///
@@ -2461,12 +2675,12 @@ pub fn monitoring_projects_metric_descriptors_delete_execute(
 
 pub fn monitoring_projects_metric_descriptors_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MonitoringProjectsMetricDescriptorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_metric_descriptors_delete_builder(client, name)?;
+    let builder = monitoring_projects_metric_descriptors_delete_builder(client, &args.name)?;
     monitoring_projects_metric_descriptors_delete_execute(builder)
 }
 
@@ -2562,6 +2776,13 @@ pub fn monitoring_projects_metric_descriptors_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_metric_descriptors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsMetricDescriptorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/metricDescriptors/{metricDescriptorsId}
 /// Gets a single metric descriptor.
 ///
@@ -2574,14 +2795,14 @@ pub fn monitoring_projects_metric_descriptors_get_execute(
 
 pub fn monitoring_projects_metric_descriptors_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MonitoringProjectsMetricDescriptorsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MetricDescriptor>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_metric_descriptors_get_builder(client, name)?;
+    let builder = monitoring_projects_metric_descriptors_get_builder(client, &args.name)?;
     monitoring_projects_metric_descriptors_get_execute(builder)
 }
 
@@ -2703,6 +2924,21 @@ pub fn monitoring_projects_metric_descriptors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_metric_descriptors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsMetricDescriptorsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: activeOnly
+    pub activeOnly: Option<bool>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/metricDescriptors
 /// Lists metric descriptors that match a filter.
 ///
@@ -2715,11 +2951,7 @@ pub fn monitoring_projects_metric_descriptors_list_execute(
 
 pub fn monitoring_projects_metric_descriptors_list(
     client: &SimpleHttpClient,
-    name: &str,
-    activeOnly: Option<bool>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MonitoringProjectsMetricDescriptorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMetricDescriptorsResponse>, ApiError>,
@@ -2729,7 +2961,12 @@ pub fn monitoring_projects_metric_descriptors_list(
     ApiError,
 > {
     let builder = monitoring_projects_metric_descriptors_list_builder(
-        client, name, activeOnly, filter, pageSize, pageToken,
+        client,
+        &args.name,
+        args.activeOnly,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     monitoring_projects_metric_descriptors_list_execute(builder)
 }
@@ -2828,6 +3065,13 @@ pub fn monitoring_projects_monitored_resource_descriptors_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_monitored_resource_descriptors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsMonitoredResourceDescriptorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/monitoredResourceDescriptors/{monitoredResourceDescriptorsId}
 /// Gets a single monitored resource descriptor.
 ///
@@ -2840,7 +3084,7 @@ pub fn monitoring_projects_monitored_resource_descriptors_get_execute(
 
 pub fn monitoring_projects_monitored_resource_descriptors_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MonitoringProjectsMonitoredResourceDescriptorsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<MonitoredResourceDescriptor>, ApiError>,
@@ -2849,7 +3093,8 @@ pub fn monitoring_projects_monitored_resource_descriptors_get(
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_monitored_resource_descriptors_get_builder(client, name)?;
+    let builder =
+        monitoring_projects_monitored_resource_descriptors_get_builder(client, &args.name)?;
     monitoring_projects_monitored_resource_descriptors_get_execute(builder)
 }
 
@@ -2967,6 +3212,19 @@ pub fn monitoring_projects_monitored_resource_descriptors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_monitored_resource_descriptors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsMonitoredResourceDescriptorsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/monitoredResourceDescriptors
 /// Lists monitored resource descriptors that match a filter.
 ///
@@ -2979,10 +3237,7 @@ pub fn monitoring_projects_monitored_resource_descriptors_list_execute(
 
 pub fn monitoring_projects_monitored_resource_descriptors_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MonitoringProjectsMonitoredResourceDescriptorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMonitoredResourceDescriptorsResponse>, ApiError>,
@@ -2992,7 +3247,11 @@ pub fn monitoring_projects_monitored_resource_descriptors_list(
     ApiError,
 > {
     let builder = monitoring_projects_monitored_resource_descriptors_list_builder(
-        client, name, filter, pageSize, pageToken,
+        client,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     monitoring_projects_monitored_resource_descriptors_list_execute(builder)
 }
@@ -3091,6 +3350,13 @@ pub fn monitoring_projects_notification_channel_descriptors_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_notification_channel_descriptors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsNotificationChannelDescriptorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/notificationChannelDescriptors/{notificationChannelDescriptorsId}
 /// Gets a single channel descriptor. The descriptor indicates which fields are expected / permitted for a notification channel of the given type.
 ///
@@ -3103,7 +3369,7 @@ pub fn monitoring_projects_notification_channel_descriptors_get_execute(
 
 pub fn monitoring_projects_notification_channel_descriptors_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MonitoringProjectsNotificationChannelDescriptorsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NotificationChannelDescriptor>, ApiError>,
@@ -3112,7 +3378,8 @@ pub fn monitoring_projects_notification_channel_descriptors_get(
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_notification_channel_descriptors_get_builder(client, name)?;
+    let builder =
+        monitoring_projects_notification_channel_descriptors_get_builder(client, &args.name)?;
     monitoring_projects_notification_channel_descriptors_get_execute(builder)
 }
 
@@ -3227,6 +3494,17 @@ pub fn monitoring_projects_notification_channel_descriptors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_notification_channel_descriptors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsNotificationChannelDescriptorsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/notificationChannelDescriptors
 /// Lists the descriptors for supported channel types. The use of descriptors makes it possible for new channel types to be dynamically added.
 ///
@@ -3239,9 +3517,7 @@ pub fn monitoring_projects_notification_channel_descriptors_list_execute(
 
 pub fn monitoring_projects_notification_channel_descriptors_list(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MonitoringProjectsNotificationChannelDescriptorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNotificationChannelDescriptorsResponse>, ApiError>,
@@ -3251,7 +3527,10 @@ pub fn monitoring_projects_notification_channel_descriptors_list(
     ApiError,
 > {
     let builder = monitoring_projects_notification_channel_descriptors_list_builder(
-        client, name, pageSize, pageToken,
+        client,
+        &args.name,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     monitoring_projects_notification_channel_descriptors_list_execute(builder)
 }
@@ -3351,6 +3630,15 @@ pub fn monitoring_projects_notification_channels_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_notification_channels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsNotificationChannelsCreateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: NotificationChannel,
+}
+
 /// GET v3/projects/{projectsId}/notificationChannels
 /// Creates a new notification channel, representing a single notification endpoint such as an email address, SMS number, or PagerDuty service.Design your application to single-thread API calls that modify the state of notification channels in a single project. This includes calls to CreateNotificationChannel, DeleteNotificationChannel and UpdateNotificationChannel.
 ///
@@ -3363,15 +3651,15 @@ pub fn monitoring_projects_notification_channels_create_execute(
 
 pub fn monitoring_projects_notification_channels_create(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &NotificationChannel,
+    args: &MonitoringProjectsNotificationChannelsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationChannel>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_notification_channels_create_builder(client, name, body)?;
+    let builder =
+        monitoring_projects_notification_channels_create_builder(client, &args.name, &args.body)?;
     monitoring_projects_notification_channels_create_execute(builder)
 }
 
@@ -3477,6 +3765,15 @@ pub fn monitoring_projects_notification_channels_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_notification_channels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsNotificationChannelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
 /// Deletes a notification channel.Design your application to single-thread API calls that modify the state of notification channels in a single project. This includes calls to CreateNotificationChannel, DeleteNotificationChannel and UpdateNotificationChannel.
 ///
@@ -3489,13 +3786,13 @@ pub fn monitoring_projects_notification_channels_delete_execute(
 
 pub fn monitoring_projects_notification_channels_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &MonitoringProjectsNotificationChannelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_notification_channels_delete_builder(client, name, force)?;
+    let builder =
+        monitoring_projects_notification_channels_delete_builder(client, &args.name, args.force)?;
     monitoring_projects_notification_channels_delete_execute(builder)
 }
 
@@ -3591,6 +3888,13 @@ pub fn monitoring_projects_notification_channels_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_notification_channels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsNotificationChannelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
 /// Gets a single notification channel. The channel includes the relevant configuration details with which the channel was created. However, the response may truncate or omit passwords, API keys, or other private key matter and thus the response may not be 100% identical to the information that was supplied in the call to the create method.
 ///
@@ -3603,14 +3907,14 @@ pub fn monitoring_projects_notification_channels_get_execute(
 
 pub fn monitoring_projects_notification_channels_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MonitoringProjectsNotificationChannelsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationChannel>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_notification_channels_get_builder(client, name)?;
+    let builder = monitoring_projects_notification_channels_get_builder(client, &args.name)?;
     monitoring_projects_notification_channels_get_execute(builder)
 }
 
@@ -3712,6 +4016,15 @@ pub fn monitoring_projects_notification_channels_get_verification_code_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_notification_channels_get_verification_code`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsNotificationChannelsGetVerificationCodeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GetNotificationChannelVerificationCodeRequest,
+}
+
 /// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}:getVerificationCode
 /// Requests a verification code for an already verified channel that can then be used in a call to VerifyNotificationChannel() on a different channel with an equivalent identity in the same or in a different project. This makes it possible to copy a channel between projects without requiring manual reverification of the channel. If the channel is not in the verified state, this method will fail (in other words, this may only be used if the SendNotificationChannelVerificationCode and VerifyNotificationChannel paths have already been used to put the given channel into the verified state).There is no guarantee that the verification codes returned by this method will be of a similar structure or form as the ones that are delivered to the channel via SendNotificationChannelVerificationCode; while VerifyNotificationChannel() will recognize both the codes delivered via SendNotificationChannelVerificationCode() and returned from GetNotificationChannelVerificationCode(), it is typically the case that the verification codes delivered via SendNotificationChannelVerificationCode() will be shorter and also have a shorter expiration (e.g. codes such as "G-123456") whereas GetVerificationCode() will typically return a much longer, websafe base 64 encoded string that has a longer expiration time.
 ///
@@ -3724,8 +4037,7 @@ pub fn monitoring_projects_notification_channels_get_verification_code_execute(
 
 pub fn monitoring_projects_notification_channels_get_verification_code(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GetNotificationChannelVerificationCodeRequest,
+    args: &MonitoringProjectsNotificationChannelsGetVerificationCodeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetNotificationChannelVerificationCodeResponse>, ApiError>,
@@ -3735,7 +4047,7 @@ pub fn monitoring_projects_notification_channels_get_verification_code(
     ApiError,
 > {
     let builder = monitoring_projects_notification_channels_get_verification_code_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     monitoring_projects_notification_channels_get_verification_code_execute(builder)
 }
@@ -3858,6 +4170,21 @@ pub fn monitoring_projects_notification_channels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_notification_channels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsNotificationChannelsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/notificationChannels
 /// Lists the notification channels that have been created for the project. To list the types of notification channels that are supported, use the ListNotificationChannelDescriptors method.
 ///
@@ -3870,11 +4197,7 @@ pub fn monitoring_projects_notification_channels_list_execute(
 
 pub fn monitoring_projects_notification_channels_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MonitoringProjectsNotificationChannelsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNotificationChannelsResponse>, ApiError>,
@@ -3884,7 +4207,12 @@ pub fn monitoring_projects_notification_channels_list(
     ApiError,
 > {
     let builder = monitoring_projects_notification_channels_list_builder(
-        client, name, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.name,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     monitoring_projects_notification_channels_list_execute(builder)
 }
@@ -3996,6 +4324,17 @@ pub fn monitoring_projects_notification_channels_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_notification_channels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsNotificationChannelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: NotificationChannel,
+}
+
 /// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
 /// Updates a notification channel. Fields not specified in the field mask remain unchanged.Design your application to single-thread API calls that modify the state of notification channels in a single project. This includes calls to CreateNotificationChannel, DeleteNotificationChannel and UpdateNotificationChannel.
 ///
@@ -4008,17 +4347,19 @@ pub fn monitoring_projects_notification_channels_patch_execute(
 
 pub fn monitoring_projects_notification_channels_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &NotificationChannel,
+    args: &MonitoringProjectsNotificationChannelsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationChannel>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        monitoring_projects_notification_channels_patch_builder(client, name, updateMask, body)?;
+    let builder = monitoring_projects_notification_channels_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     monitoring_projects_notification_channels_patch_execute(builder)
 }
 
@@ -4115,6 +4456,15 @@ pub fn monitoring_projects_notification_channels_send_verification_code_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_notification_channels_send_verification_code`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsNotificationChannelsSendVerificationCodeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SendNotificationChannelVerificationCodeRequest,
+}
+
 /// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}:sendVerificationCode
 /// Causes a verification code to be delivered to the channel. The code can then be supplied in VerifyNotificationChannel to verify the channel.
 ///
@@ -4127,14 +4477,13 @@ pub fn monitoring_projects_notification_channels_send_verification_code_execute(
 
 pub fn monitoring_projects_notification_channels_send_verification_code(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SendNotificationChannelVerificationCodeRequest,
+    args: &MonitoringProjectsNotificationChannelsSendVerificationCodeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = monitoring_projects_notification_channels_send_verification_code_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     monitoring_projects_notification_channels_send_verification_code_execute(builder)
 }
@@ -4234,6 +4583,15 @@ pub fn monitoring_projects_notification_channels_verify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_notification_channels_verify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsNotificationChannelsVerifyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: VerifyNotificationChannelRequest,
+}
+
 /// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}:verify
 /// Verifies a NotificationChannel by proving receipt of the code delivered to the channel as a result of calling SendNotificationChannelVerificationCode.
 ///
@@ -4246,15 +4604,15 @@ pub fn monitoring_projects_notification_channels_verify_execute(
 
 pub fn monitoring_projects_notification_channels_verify(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &VerifyNotificationChannelRequest,
+    args: &MonitoringProjectsNotificationChannelsVerifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NotificationChannel>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_notification_channels_verify_builder(client, name, body)?;
+    let builder =
+        monitoring_projects_notification_channels_verify_builder(client, &args.name, &args.body)?;
     monitoring_projects_notification_channels_verify_execute(builder)
 }
 
@@ -4351,6 +4709,15 @@ pub fn monitoring_projects_snoozes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_snoozes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsSnoozesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Snooze,
+}
+
 /// GET v3/projects/{projectsId}/snoozes
 /// Creates a Snooze that will prevent alerts, which match the provided criteria, from being opened. The Snooze applies for a specific time interval.
 ///
@@ -4363,13 +4730,12 @@ pub fn monitoring_projects_snoozes_create_execute(
 
 pub fn monitoring_projects_snoozes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Snooze,
+    args: &MonitoringProjectsSnoozesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Snooze>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_snoozes_create_builder(client, parent, body)?;
+    let builder = monitoring_projects_snoozes_create_builder(client, &args.parent, &args.body)?;
     monitoring_projects_snoozes_create_execute(builder)
 }
 
@@ -4463,6 +4829,13 @@ pub fn monitoring_projects_snoozes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_snoozes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsSnoozesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/snoozes/{snoozesId}
 /// Retrieves a Snooze by name.
 ///
@@ -4475,12 +4848,12 @@ pub fn monitoring_projects_snoozes_get_execute(
 
 pub fn monitoring_projects_snoozes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MonitoringProjectsSnoozesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Snooze>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_snoozes_get_builder(client, name)?;
+    let builder = monitoring_projects_snoozes_get_builder(client, &args.name)?;
     monitoring_projects_snoozes_get_execute(builder)
 }
 
@@ -4596,6 +4969,19 @@ pub fn monitoring_projects_snoozes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_snoozes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsSnoozesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/snoozes
 /// Lists the Snoozes associated with a project. Can optionally pass in filter, which specifies predicates to match Snoozes.
 ///
@@ -4608,18 +4994,20 @@ pub fn monitoring_projects_snoozes_list_execute(
 
 pub fn monitoring_projects_snoozes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MonitoringProjectsSnoozesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSnoozesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        monitoring_projects_snoozes_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = monitoring_projects_snoozes_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     monitoring_projects_snoozes_list_execute(builder)
 }
 
@@ -4728,6 +5116,17 @@ pub fn monitoring_projects_snoozes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_snoozes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsSnoozesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Snooze,
+}
+
 /// GET v3/projects/{projectsId}/snoozes/{snoozesId}
 /// Updates a Snooze, identified by its name, with the parameters in the given Snooze object.
 ///
@@ -4740,14 +5139,17 @@ pub fn monitoring_projects_snoozes_patch_execute(
 
 pub fn monitoring_projects_snoozes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Snooze,
+    args: &MonitoringProjectsSnoozesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Snooze>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_snoozes_patch_builder(client, name, updateMask, body)?;
+    let builder = monitoring_projects_snoozes_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     monitoring_projects_snoozes_patch_execute(builder)
 }
 
@@ -4844,6 +5246,15 @@ pub fn monitoring_projects_time_series_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_time_series_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsTimeSeriesCreateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CreateTimeSeriesRequest,
+}
+
 /// GET v3/projects/{projectsId}/timeSeries
 /// Creates or adds data to one or more time series. The response is empty if all time series in the request were written. If any time series could not be written, a corresponding failure message is included in the error response. This method does not support resource locations constraint of an organization policy (<https://cloud.google.`com/resource-manager/docs/organization-policy/defining-locations`#setting_the_organization_policy>).
 ///
@@ -4856,13 +5267,12 @@ pub fn monitoring_projects_time_series_create_execute(
 
 pub fn monitoring_projects_time_series_create(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CreateTimeSeriesRequest,
+    args: &MonitoringProjectsTimeSeriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_time_series_create_builder(client, name, body)?;
+    let builder = monitoring_projects_time_series_create_builder(client, &args.name, &args.body)?;
     monitoring_projects_time_series_create_execute(builder)
 }
 
@@ -4959,6 +5369,15 @@ pub fn monitoring_projects_time_series_create_service_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_time_series_create_service`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsTimeSeriesCreateServiceArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CreateTimeSeriesRequest,
+}
+
 /// GET v3/projects/{projectsId}/timeSeries:createService
 /// Creates or adds data to one or more service time series. A service time series is a time series for a metric from a Google Cloud service. The response is empty if all time series in the request were written. If any time series could not be written, a corresponding failure message is included in the error response. This endpoint rejects writes to user-defined metrics. This method is only for use by Google Cloud services. Use projects.`timeSeries`.create instead.
 ///
@@ -4971,13 +5390,13 @@ pub fn monitoring_projects_time_series_create_service_execute(
 
 pub fn monitoring_projects_time_series_create_service(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CreateTimeSeriesRequest,
+    args: &MonitoringProjectsTimeSeriesCreateServiceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_time_series_create_service_builder(client, name, body)?;
+    let builder =
+        monitoring_projects_time_series_create_service_builder(client, &args.name, &args.body)?;
     monitoring_projects_time_series_create_service_execute(builder)
 }
 
@@ -5141,6 +5560,43 @@ pub fn monitoring_projects_time_series_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_time_series_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsTimeSeriesListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: aggregation_alignmentPeriod
+    pub aggregation_alignmentPeriod: Option<String>,
+    /// Query parameter: aggregation_crossSeriesReducer
+    pub aggregation_crossSeriesReducer: Option<String>,
+    /// Query parameter: aggregation_groupByFields
+    pub aggregation_groupByFields: Option<String>,
+    /// Query parameter: aggregation_perSeriesAligner
+    pub aggregation_perSeriesAligner: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: interval_endTime
+    pub interval_endTime: Option<String>,
+    /// Query parameter: interval_startTime
+    pub interval_startTime: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: secondaryAggregation_alignmentPeriod
+    pub secondaryAggregation_alignmentPeriod: Option<String>,
+    /// Query parameter: secondaryAggregation_crossSeriesReducer
+    pub secondaryAggregation_crossSeriesReducer: Option<String>,
+    /// Query parameter: secondaryAggregation_groupByFields
+    pub secondaryAggregation_groupByFields: Option<String>,
+    /// Query parameter: secondaryAggregation_perSeriesAligner
+    pub secondaryAggregation_perSeriesAligner: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/timeSeries
 /// Lists time series that match a filter.
 ///
@@ -5153,22 +5609,7 @@ pub fn monitoring_projects_time_series_list_execute(
 
 pub fn monitoring_projects_time_series_list(
     client: &SimpleHttpClient,
-    name: &str,
-    aggregation_alignmentPeriod: Option<&str>,
-    aggregation_crossSeriesReducer: Option<&str>,
-    aggregation_groupByFields: Option<&str>,
-    aggregation_perSeriesAligner: Option<&str>,
-    filter: Option<&str>,
-    interval_endTime: Option<&str>,
-    interval_startTime: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    secondaryAggregation_alignmentPeriod: Option<&str>,
-    secondaryAggregation_crossSeriesReducer: Option<&str>,
-    secondaryAggregation_groupByFields: Option<&str>,
-    secondaryAggregation_perSeriesAligner: Option<&str>,
-    view: Option<&str>,
+    args: &MonitoringProjectsTimeSeriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTimeSeriesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5177,22 +5618,22 @@ pub fn monitoring_projects_time_series_list(
 > {
     let builder = monitoring_projects_time_series_list_builder(
         client,
-        name,
-        aggregation_alignmentPeriod,
-        aggregation_crossSeriesReducer,
-        aggregation_groupByFields,
-        aggregation_perSeriesAligner,
-        filter,
-        interval_endTime,
-        interval_startTime,
-        orderBy,
-        pageSize,
-        pageToken,
-        secondaryAggregation_alignmentPeriod,
-        secondaryAggregation_crossSeriesReducer,
-        secondaryAggregation_groupByFields,
-        secondaryAggregation_perSeriesAligner,
-        view,
+        &args.name,
+        args.aggregation_alignmentPeriod.as_deref(),
+        args.aggregation_crossSeriesReducer.as_deref(),
+        args.aggregation_groupByFields.as_deref(),
+        args.aggregation_perSeriesAligner.as_deref(),
+        args.filter.as_deref(),
+        args.interval_endTime.as_deref(),
+        args.interval_startTime.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.secondaryAggregation_alignmentPeriod.as_deref(),
+        args.secondaryAggregation_crossSeriesReducer.as_deref(),
+        args.secondaryAggregation_groupByFields.as_deref(),
+        args.secondaryAggregation_perSeriesAligner.as_deref(),
+        args.view.as_deref(),
     )?;
     monitoring_projects_time_series_list_execute(builder)
 }
@@ -5292,6 +5733,15 @@ pub fn monitoring_projects_time_series_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_time_series_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsTimeSeriesQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: QueryTimeSeriesRequest,
+}
+
 /// GET v3/projects/{projectsId}/timeSeries:query
 /// Queries time series by using Monitoring Query Language (MQL). We recommend using PromQL instead of MQL. For more information about the status of MQL, see the MQL deprecation notice (<https://cloud.google.`com/stackdriver/docs/deprecations/mql`>).
 ///
@@ -5304,15 +5754,14 @@ pub fn monitoring_projects_time_series_query_execute(
 
 pub fn monitoring_projects_time_series_query(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &QueryTimeSeriesRequest,
+    args: &MonitoringProjectsTimeSeriesQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryTimeSeriesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_time_series_query_builder(client, name, body)?;
+    let builder = monitoring_projects_time_series_query_builder(client, &args.name, &args.body)?;
     monitoring_projects_time_series_query_execute(builder)
 }
 
@@ -5411,6 +5860,15 @@ pub fn monitoring_projects_uptime_check_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_uptime_check_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsUptimeCheckConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UptimeCheckConfig,
+}
+
 /// GET v3/projects/{projectsId}/uptimeCheckConfigs
 /// Creates a new Uptime check configuration.
 ///
@@ -5423,15 +5881,15 @@ pub fn monitoring_projects_uptime_check_configs_create_execute(
 
 pub fn monitoring_projects_uptime_check_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UptimeCheckConfig,
+    args: &MonitoringProjectsUptimeCheckConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UptimeCheckConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_uptime_check_configs_create_builder(client, parent, body)?;
+    let builder =
+        monitoring_projects_uptime_check_configs_create_builder(client, &args.parent, &args.body)?;
     monitoring_projects_uptime_check_configs_create_execute(builder)
 }
 
@@ -5525,6 +5983,13 @@ pub fn monitoring_projects_uptime_check_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_uptime_check_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsUptimeCheckConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
 /// Deletes an Uptime check configuration. Note that this method will fail if the Uptime check configuration is referenced by an alert policy or other dependent configs that would be rendered invalid by the deletion.
 ///
@@ -5537,12 +6002,12 @@ pub fn monitoring_projects_uptime_check_configs_delete_execute(
 
 pub fn monitoring_projects_uptime_check_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MonitoringProjectsUptimeCheckConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_uptime_check_configs_delete_builder(client, name)?;
+    let builder = monitoring_projects_uptime_check_configs_delete_builder(client, &args.name)?;
     monitoring_projects_uptime_check_configs_delete_execute(builder)
 }
 
@@ -5638,6 +6103,13 @@ pub fn monitoring_projects_uptime_check_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_uptime_check_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsUptimeCheckConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
 /// Gets a single Uptime check configuration.
 ///
@@ -5650,14 +6122,14 @@ pub fn monitoring_projects_uptime_check_configs_get_execute(
 
 pub fn monitoring_projects_uptime_check_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MonitoringProjectsUptimeCheckConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UptimeCheckConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_uptime_check_configs_get_builder(client, name)?;
+    let builder = monitoring_projects_uptime_check_configs_get_builder(client, &args.name)?;
     monitoring_projects_uptime_check_configs_get_execute(builder)
 }
 
@@ -5775,6 +6247,19 @@ pub fn monitoring_projects_uptime_check_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_uptime_check_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsUptimeCheckConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/uptimeCheckConfigs
 /// Lists the existing valid Uptime check configurations for the project (leaving out any invalid configurations).
 ///
@@ -5787,10 +6272,7 @@ pub fn monitoring_projects_uptime_check_configs_list_execute(
 
 pub fn monitoring_projects_uptime_check_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MonitoringProjectsUptimeCheckConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListUptimeCheckConfigsResponse>, ApiError>,
@@ -5800,7 +6282,11 @@ pub fn monitoring_projects_uptime_check_configs_list(
     ApiError,
 > {
     let builder = monitoring_projects_uptime_check_configs_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     monitoring_projects_uptime_check_configs_list_execute(builder)
 }
@@ -5912,6 +6398,17 @@ pub fn monitoring_projects_uptime_check_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_projects_uptime_check_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringProjectsUptimeCheckConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: UptimeCheckConfig,
+}
+
 /// GET v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
 /// Updates an Uptime check configuration. You can either replace the entire configuration with a new one or replace only certain fields in the current configuration by specifying the fields to be updated via `updateMask`. Returns the updated configuration.
 ///
@@ -5924,17 +6421,19 @@ pub fn monitoring_projects_uptime_check_configs_patch_execute(
 
 pub fn monitoring_projects_uptime_check_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &UptimeCheckConfig,
+    args: &MonitoringProjectsUptimeCheckConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UptimeCheckConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        monitoring_projects_uptime_check_configs_patch_builder(client, name, updateMask, body)?;
+    let builder = monitoring_projects_uptime_check_configs_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     monitoring_projects_uptime_check_configs_patch_execute(builder)
 }
 
@@ -6043,6 +6542,17 @@ pub fn monitoring_services_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_services_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringServicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: serviceId
+    pub serviceId: Option<String>,
+    /// Request body.
+    pub body: Service,
+}
+
 /// GET v3/{v3Id}/{v3Id1}/services
 /// Create a Service.
 ///
@@ -6055,14 +6565,17 @@ pub fn monitoring_services_create_execute(
 
 pub fn monitoring_services_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    serviceId: Option<&str>,
-    body: &Service,
+    args: &MonitoringServicesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_services_create_builder(client, parent, serviceId, body)?;
+    let builder = monitoring_services_create_builder(
+        client,
+        &args.parent,
+        args.serviceId.as_deref(),
+        &args.body,
+    )?;
     monitoring_services_create_execute(builder)
 }
 
@@ -6156,6 +6669,13 @@ pub fn monitoring_services_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_services_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringServicesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/{v3Id}/{v3Id1}/services/{servicesId}
 /// Soft delete this Service.
 ///
@@ -6168,12 +6688,12 @@ pub fn monitoring_services_delete_execute(
 
 pub fn monitoring_services_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MonitoringServicesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_services_delete_builder(client, name)?;
+    let builder = monitoring_services_delete_builder(client, &args.name)?;
     monitoring_services_delete_execute(builder)
 }
 
@@ -6267,6 +6787,13 @@ pub fn monitoring_services_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringServicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/{v3Id}/{v3Id1}/services/{servicesId}
 /// Get the named Service.
 ///
@@ -6279,12 +6806,12 @@ pub fn monitoring_services_get_execute(
 
 pub fn monitoring_services_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MonitoringServicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_services_get_builder(client, name)?;
+    let builder = monitoring_services_get_builder(client, &args.name)?;
     monitoring_services_get_execute(builder)
 }
 
@@ -6400,6 +6927,19 @@ pub fn monitoring_services_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringServicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/{v3Id}/{v3Id1}/services
 /// List Services for this Metrics Scope.
 ///
@@ -6412,17 +6952,20 @@ pub fn monitoring_services_list_execute(
 
 pub fn monitoring_services_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MonitoringServicesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_services_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = monitoring_services_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     monitoring_services_list_execute(builder)
 }
 
@@ -6531,6 +7074,17 @@ pub fn monitoring_services_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_services_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringServicesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Service,
+}
+
 /// GET v3/{v3Id}/{v3Id1}/services/{servicesId}
 /// Update this Service.
 ///
@@ -6543,14 +7097,17 @@ pub fn monitoring_services_patch_execute(
 
 pub fn monitoring_services_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Service,
+    args: &MonitoringServicesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_services_patch_builder(client, name, updateMask, body)?;
+    let builder = monitoring_services_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     monitoring_services_patch_execute(builder)
 }
 
@@ -6661,6 +7218,17 @@ pub fn monitoring_services_service_level_objectives_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_services_service_level_objectives_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringServicesServiceLevelObjectivesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: serviceLevelObjectiveId
+    pub serviceLevelObjectiveId: Option<String>,
+    /// Request body.
+    pub body: ServiceLevelObjective,
+}
+
 /// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives
 /// Create a ServiceLevelObjective for the given Service.
 ///
@@ -6673,9 +7241,7 @@ pub fn monitoring_services_service_level_objectives_create_execute(
 
 pub fn monitoring_services_service_level_objectives_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    serviceLevelObjectiveId: Option<&str>,
-    body: &ServiceLevelObjective,
+    args: &MonitoringServicesServiceLevelObjectivesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ServiceLevelObjective>, ApiError>, P = ApiPending>
         + Send
@@ -6684,9 +7250,9 @@ pub fn monitoring_services_service_level_objectives_create(
 > {
     let builder = monitoring_services_service_level_objectives_create_builder(
         client,
-        parent,
-        serviceLevelObjectiveId,
-        body,
+        &args.parent,
+        args.serviceLevelObjectiveId.as_deref(),
+        &args.body,
     )?;
     monitoring_services_service_level_objectives_create_execute(builder)
 }
@@ -6781,6 +7347,13 @@ pub fn monitoring_services_service_level_objectives_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_services_service_level_objectives_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringServicesServiceLevelObjectivesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
 /// Delete the given ServiceLevelObjective.
 ///
@@ -6793,12 +7366,12 @@ pub fn monitoring_services_service_level_objectives_delete_execute(
 
 pub fn monitoring_services_service_level_objectives_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MonitoringServicesServiceLevelObjectivesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_services_service_level_objectives_delete_builder(client, name)?;
+    let builder = monitoring_services_service_level_objectives_delete_builder(client, &args.name)?;
     monitoring_services_service_level_objectives_delete_execute(builder)
 }
 
@@ -6906,6 +7479,15 @@ pub fn monitoring_services_service_level_objectives_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_services_service_level_objectives_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringServicesServiceLevelObjectivesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
 /// Get a ServiceLevelObjective by name.
 ///
@@ -6918,15 +7500,18 @@ pub fn monitoring_services_service_level_objectives_get_execute(
 
 pub fn monitoring_services_service_level_objectives_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &MonitoringServicesServiceLevelObjectivesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ServiceLevelObjective>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_services_service_level_objectives_get_builder(client, name, view)?;
+    let builder = monitoring_services_service_level_objectives_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     monitoring_services_service_level_objectives_get_execute(builder)
 }
 
@@ -7048,6 +7633,21 @@ pub fn monitoring_services_service_level_objectives_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_services_service_level_objectives_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringServicesServiceLevelObjectivesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives
 /// List the ServiceLevelObjectives for the given Service.
 ///
@@ -7060,11 +7660,7 @@ pub fn monitoring_services_service_level_objectives_list_execute(
 
 pub fn monitoring_services_service_level_objectives_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &MonitoringServicesServiceLevelObjectivesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListServiceLevelObjectivesResponse>, ApiError>,
@@ -7074,7 +7670,12 @@ pub fn monitoring_services_service_level_objectives_list(
     ApiError,
 > {
     let builder = monitoring_services_service_level_objectives_list_builder(
-        client, parent, filter, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     monitoring_services_service_level_objectives_list_execute(builder)
 }
@@ -7186,6 +7787,17 @@ pub fn monitoring_services_service_level_objectives_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_services_service_level_objectives_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringServicesServiceLevelObjectivesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ServiceLevelObjective,
+}
+
 /// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
 /// Update the given ServiceLevelObjective.
 ///
@@ -7198,17 +7810,19 @@ pub fn monitoring_services_service_level_objectives_patch_execute(
 
 pub fn monitoring_services_service_level_objectives_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ServiceLevelObjective,
+    args: &MonitoringServicesServiceLevelObjectivesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ServiceLevelObjective>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        monitoring_services_service_level_objectives_patch_builder(client, name, updateMask, body)?;
+    let builder = monitoring_services_service_level_objectives_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     monitoring_services_service_level_objectives_patch_execute(builder)
 }
 
@@ -7318,6 +7932,15 @@ pub fn monitoring_uptime_check_ips_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`monitoring_uptime_check_ips_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MonitoringUptimeCheckIpsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/uptimeCheckIps
 /// Returns the list of IP addresses that checkers run from.
 ///
@@ -7330,8 +7953,7 @@ pub fn monitoring_uptime_check_ips_list_execute(
 
 pub fn monitoring_uptime_check_ips_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MonitoringUptimeCheckIpsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListUptimeCheckIpsResponse>, ApiError>,
@@ -7340,6 +7962,7 @@ pub fn monitoring_uptime_check_ips_list(
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_uptime_check_ips_list_builder(client, pageSize, pageToken)?;
+    let builder =
+        monitoring_uptime_check_ips_list_builder(client, args.pageSize, args.pageToken.as_deref())?;
     monitoring_uptime_check_ips_list_execute(builder)
 }

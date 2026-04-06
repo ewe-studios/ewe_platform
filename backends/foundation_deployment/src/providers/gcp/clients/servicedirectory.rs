@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn servicedirectory_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn servicedirectory_projects_locations_get_execute(
 
 pub fn servicedirectory_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServicedirectoryProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicedirectory_projects_locations_get_builder(client, name)?;
+    let builder = servicedirectory_projects_locations_get_builder(client, &args.name)?;
     servicedirectory_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn servicedirectory_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn servicedirectory_projects_locations_list_execute(
 
 pub fn servicedirectory_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ServicedirectoryProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn servicedirectory_projects_locations_list(
 > {
     let builder = servicedirectory_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     servicedirectory_projects_locations_list_execute(builder)
 }
@@ -382,6 +402,17 @@ pub fn servicedirectory_projects_locations_namespaces_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: namespaceId
+    pub namespaceId: Option<String>,
+    /// Request body.
+    pub body: Namespace,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces
 /// Creates a namespace, and returns the new namespace.
 ///
@@ -394,18 +425,16 @@ pub fn servicedirectory_projects_locations_namespaces_create_execute(
 
 pub fn servicedirectory_projects_locations_namespaces_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    namespaceId: Option<&str>,
-    body: &Namespace,
+    args: &ServicedirectoryProjectsLocationsNamespacesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Namespace>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_create_builder(
         client,
-        parent,
-        namespaceId,
-        body,
+        &args.parent,
+        args.namespaceId.as_deref(),
+        &args.body,
     )?;
     servicedirectory_projects_locations_namespaces_create_execute(builder)
 }
@@ -500,6 +529,13 @@ pub fn servicedirectory_projects_locations_namespaces_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
 /// Deletes a namespace. This also deletes all services and endpoints in the namespace.
 ///
@@ -512,12 +548,13 @@ pub fn servicedirectory_projects_locations_namespaces_delete_execute(
 
 pub fn servicedirectory_projects_locations_namespaces_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServicedirectoryProjectsLocationsNamespacesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicedirectory_projects_locations_namespaces_delete_builder(client, name)?;
+    let builder =
+        servicedirectory_projects_locations_namespaces_delete_builder(client, &args.name)?;
     servicedirectory_projects_locations_namespaces_delete_execute(builder)
 }
 
@@ -611,6 +648,13 @@ pub fn servicedirectory_projects_locations_namespaces_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
 /// Gets a namespace.
 ///
@@ -623,12 +667,12 @@ pub fn servicedirectory_projects_locations_namespaces_get_execute(
 
 pub fn servicedirectory_projects_locations_namespaces_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServicedirectoryProjectsLocationsNamespacesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Namespace>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicedirectory_projects_locations_namespaces_get_builder(client, name)?;
+    let builder = servicedirectory_projects_locations_namespaces_get_builder(client, &args.name)?;
     servicedirectory_projects_locations_namespaces_get_execute(builder)
 }
 
@@ -725,6 +769,15 @@ pub fn servicedirectory_projects_locations_namespaces_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}:getIamPolicy
 /// Gets the IAM Policy for a resource (namespace or service only).
 ///
@@ -737,14 +790,15 @@ pub fn servicedirectory_projects_locations_namespaces_get_iam_policy_execute(
 
 pub fn servicedirectory_projects_locations_namespaces_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &ServicedirectoryProjectsLocationsNamespacesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     servicedirectory_projects_locations_namespaces_get_iam_policy_execute(builder)
 }
@@ -865,6 +919,21 @@ pub fn servicedirectory_projects_locations_namespaces_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces
 /// Lists all namespaces.
 ///
@@ -877,11 +946,7 @@ pub fn servicedirectory_projects_locations_namespaces_list_execute(
 
 pub fn servicedirectory_projects_locations_namespaces_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ServicedirectoryProjectsLocationsNamespacesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListNamespacesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -889,7 +954,12 @@ pub fn servicedirectory_projects_locations_namespaces_list(
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     servicedirectory_projects_locations_namespaces_list_execute(builder)
 }
@@ -999,6 +1069,17 @@ pub fn servicedirectory_projects_locations_namespaces_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Namespace,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}
 /// Updates a namespace.
 ///
@@ -1011,15 +1092,16 @@ pub fn servicedirectory_projects_locations_namespaces_patch_execute(
 
 pub fn servicedirectory_projects_locations_namespaces_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Namespace,
+    args: &ServicedirectoryProjectsLocationsNamespacesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Namespace>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     servicedirectory_projects_locations_namespaces_patch_execute(builder)
 }
@@ -1117,6 +1199,15 @@ pub fn servicedirectory_projects_locations_namespaces_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}:setIamPolicy
 /// Sets the IAM Policy for a resource (namespace or service only).
 ///
@@ -1129,14 +1220,15 @@ pub fn servicedirectory_projects_locations_namespaces_set_iam_policy_execute(
 
 pub fn servicedirectory_projects_locations_namespaces_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ServicedirectoryProjectsLocationsNamespacesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     servicedirectory_projects_locations_namespaces_set_iam_policy_execute(builder)
 }
@@ -1238,6 +1330,15 @@ pub fn servicedirectory_projects_locations_namespaces_test_iam_permissions_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}:testIamPermissions
 /// Tests IAM permissions for a resource (namespace or service only).
 ///
@@ -1250,8 +1351,7 @@ pub fn servicedirectory_projects_locations_namespaces_test_iam_permissions_execu
 
 pub fn servicedirectory_projects_locations_namespaces_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ServicedirectoryProjectsLocationsNamespacesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1261,7 +1361,9 @@ pub fn servicedirectory_projects_locations_namespaces_test_iam_permissions(
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     servicedirectory_projects_locations_namespaces_test_iam_permissions_execute(builder)
 }
@@ -1371,6 +1473,17 @@ pub fn servicedirectory_projects_locations_namespaces_services_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: serviceId
+    pub serviceId: Option<String>,
+    /// Request body.
+    pub body: Service,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services
 /// Creates a service, and returns the new service.
 ///
@@ -1383,15 +1496,16 @@ pub fn servicedirectory_projects_locations_namespaces_services_create_execute(
 
 pub fn servicedirectory_projects_locations_namespaces_services_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    serviceId: Option<&str>,
-    body: &Service,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_services_create_builder(
-        client, parent, serviceId, body,
+        client,
+        &args.parent,
+        args.serviceId.as_deref(),
+        &args.body,
     )?;
     servicedirectory_projects_locations_namespaces_services_create_execute(builder)
 }
@@ -1486,6 +1600,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
 /// Deletes a service. This also deletes all endpoints associated with the service.
 ///
@@ -1498,13 +1619,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_delete_execute(
 
 pub fn servicedirectory_projects_locations_namespaces_services_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        servicedirectory_projects_locations_namespaces_services_delete_builder(client, name)?;
+        servicedirectory_projects_locations_namespaces_services_delete_builder(client, &args.name)?;
     servicedirectory_projects_locations_namespaces_services_delete_execute(builder)
 }
 
@@ -1598,6 +1719,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
 /// Gets a service.
 ///
@@ -1610,13 +1738,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_get_execute(
 
 pub fn servicedirectory_projects_locations_namespaces_services_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        servicedirectory_projects_locations_namespaces_services_get_builder(client, name)?;
+        servicedirectory_projects_locations_namespaces_services_get_builder(client, &args.name)?;
     servicedirectory_projects_locations_namespaces_services_get_execute(builder)
 }
 
@@ -1713,6 +1841,15 @@ pub fn servicedirectory_projects_locations_namespaces_services_get_iam_policy_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:getIamPolicy
 /// Gets the IAM Policy for a resource (namespace or service only).
 ///
@@ -1725,14 +1862,15 @@ pub fn servicedirectory_projects_locations_namespaces_services_get_iam_policy_ex
 
 pub fn servicedirectory_projects_locations_namespaces_services_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_services_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     servicedirectory_projects_locations_namespaces_services_get_iam_policy_execute(builder)
 }
@@ -1853,6 +1991,21 @@ pub fn servicedirectory_projects_locations_namespaces_services_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services
 /// Lists all services belonging to a namespace.
 ///
@@ -1865,11 +2018,7 @@ pub fn servicedirectory_projects_locations_namespaces_services_list_execute(
 
 pub fn servicedirectory_projects_locations_namespaces_services_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1877,7 +2026,12 @@ pub fn servicedirectory_projects_locations_namespaces_services_list(
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_services_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     servicedirectory_projects_locations_namespaces_services_list_execute(builder)
 }
@@ -1987,6 +2141,17 @@ pub fn servicedirectory_projects_locations_namespaces_services_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Service,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}
 /// Updates a service.
 ///
@@ -1999,15 +2164,16 @@ pub fn servicedirectory_projects_locations_namespaces_services_patch_execute(
 
 pub fn servicedirectory_projects_locations_namespaces_services_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Service,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_services_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     servicedirectory_projects_locations_namespaces_services_patch_execute(builder)
 }
@@ -2107,6 +2273,15 @@ pub fn servicedirectory_projects_locations_namespaces_services_resolve_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_resolve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesResolveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResolveServiceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:resolve
 /// Returns a service and its associated endpoints. Resolving a service is not considered an active developer method.
 ///
@@ -2119,8 +2294,7 @@ pub fn servicedirectory_projects_locations_namespaces_services_resolve_execute(
 
 pub fn servicedirectory_projects_locations_namespaces_services_resolve(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResolveServiceRequest,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesResolveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResolveServiceResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2128,7 +2302,7 @@ pub fn servicedirectory_projects_locations_namespaces_services_resolve(
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_services_resolve_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     servicedirectory_projects_locations_namespaces_services_resolve_execute(builder)
 }
@@ -2226,6 +2400,15 @@ pub fn servicedirectory_projects_locations_namespaces_services_set_iam_policy_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:setIamPolicy
 /// Sets the IAM Policy for a resource (namespace or service only).
 ///
@@ -2238,14 +2421,15 @@ pub fn servicedirectory_projects_locations_namespaces_services_set_iam_policy_ex
 
 pub fn servicedirectory_projects_locations_namespaces_services_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_services_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     servicedirectory_projects_locations_namespaces_services_set_iam_policy_execute(builder)
 }
@@ -2347,6 +2531,15 @@ pub fn servicedirectory_projects_locations_namespaces_services_test_iam_permissi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}:testIamPermissions
 /// Tests IAM permissions for a resource (namespace or service only).
 ///
@@ -2359,8 +2552,7 @@ pub fn servicedirectory_projects_locations_namespaces_services_test_iam_permissi
 
 pub fn servicedirectory_projects_locations_namespaces_services_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2371,7 +2563,9 @@ pub fn servicedirectory_projects_locations_namespaces_services_test_iam_permissi
 > {
     let builder =
         servicedirectory_projects_locations_namespaces_services_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     servicedirectory_projects_locations_namespaces_services_test_iam_permissions_execute(builder)
 }
@@ -2481,6 +2675,17 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_create_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_endpoints_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesEndpointsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: endpointId
+    pub endpointId: Option<String>,
+    /// Request body.
+    pub body: Endpoint,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints
 /// Creates an endpoint, and returns the new endpoint.
 ///
@@ -2493,15 +2698,16 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_create_
 
 pub fn servicedirectory_projects_locations_namespaces_services_endpoints_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    endpointId: Option<&str>,
-    body: &Endpoint,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_services_endpoints_create_builder(
-        client, parent, endpointId, body,
+        client,
+        &args.parent,
+        args.endpointId.as_deref(),
+        &args.body,
     )?;
     servicedirectory_projects_locations_namespaces_services_endpoints_create_execute(builder)
 }
@@ -2596,6 +2802,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_delete_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_endpoints_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesEndpointsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}
 /// Deletes an endpoint.
 ///
@@ -2608,13 +2821,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_delete_
 
 pub fn servicedirectory_projects_locations_namespaces_services_endpoints_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_services_endpoints_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     servicedirectory_projects_locations_namespaces_services_endpoints_delete_execute(builder)
 }
@@ -2709,6 +2922,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_endpoints_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesEndpointsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}
 /// Gets an endpoint.
 ///
@@ -2721,13 +2941,13 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_get_exe
 
 pub fn servicedirectory_projects_locations_namespaces_services_endpoints_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_services_endpoints_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     servicedirectory_projects_locations_namespaces_services_endpoints_get_execute(builder)
 }
@@ -2848,6 +3068,21 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_endpoints_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesEndpointsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints
 /// Lists all endpoints.
 ///
@@ -2860,11 +3095,7 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_list_ex
 
 pub fn servicedirectory_projects_locations_namespaces_services_endpoints_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListEndpointsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2872,7 +3103,12 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_list(
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_services_endpoints_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     servicedirectory_projects_locations_namespaces_services_endpoints_list_execute(builder)
 }
@@ -2982,6 +3218,17 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_patch_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicedirectory_projects_locations_namespaces_services_endpoints_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicedirectoryProjectsLocationsNamespacesServicesEndpointsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Endpoint,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/namespaces/{namespacesId}/services/{servicesId}/endpoints/{endpointsId}
 /// Updates an endpoint.
 ///
@@ -2994,15 +3241,16 @@ pub fn servicedirectory_projects_locations_namespaces_services_endpoints_patch_e
 
 pub fn servicedirectory_projects_locations_namespaces_services_endpoints_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Endpoint,
+    args: &ServicedirectoryProjectsLocationsNamespacesServicesEndpointsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = servicedirectory_projects_locations_namespaces_services_endpoints_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     servicedirectory_projects_locations_namespaces_services_endpoints_patch_execute(builder)
 }

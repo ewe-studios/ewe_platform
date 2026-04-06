@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v4/advertisers/{advertisersId}:audit
 /// Audits an advertiser. Returns the counts of used entities per resource type under the advertiser provided. Used entities count towards their respective resource limit. See <https://support.google.`com/displayvideo/answer/6071450`.>
@@ -120,6 +122,15 @@ pub fn displayvideo_advertisers_audit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_audit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAuditArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}:audit
 /// Audits an advertiser. Returns the counts of used entities per resource type under the advertiser provided. Used entities count towards their respective resource limit. See <https://support.google.`com/displayvideo/answer/6071450`.>
 ///
@@ -132,15 +143,18 @@ pub fn displayvideo_advertisers_audit_execute(
 
 pub fn displayvideo_advertisers_audit(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    readMask: Option<&str>,
+    args: &DisplayvideoAdvertisersAuditArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuditAdvertiserResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_audit_builder(client, advertiserId, readMask)?;
+    let builder = displayvideo_advertisers_audit_builder(
+        client,
+        &args.advertiserId,
+        args.readMask.as_deref(),
+    )?;
     displayvideo_advertisers_audit_execute(builder)
 }
 
@@ -233,6 +247,13 @@ pub fn displayvideo_advertisers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCreateArgs {
+    /// Request body.
+    pub body: Advertiser,
+}
+
 /// GET v4/advertisers
 /// Creates a new advertiser. Returns the newly created advertiser if successful. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
@@ -245,12 +266,12 @@ pub fn displayvideo_advertisers_create_execute(
 
 pub fn displayvideo_advertisers_create(
     client: &SimpleHttpClient,
-    body: &Advertiser,
+    args: &DisplayvideoAdvertisersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_create_builder(client, body)?;
+    let builder = displayvideo_advertisers_create_builder(client, &args.body)?;
     displayvideo_advertisers_create_execute(builder)
 }
 
@@ -344,6 +365,13 @@ pub fn displayvideo_advertisers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}
 /// Deletes an advertiser. Deleting an advertiser will delete all of its child resources, for example, campaigns, insertion orders and line items. A deleted advertiser cannot be recovered.
 ///
@@ -356,12 +384,12 @@ pub fn displayvideo_advertisers_delete_execute(
 
 pub fn displayvideo_advertisers_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
+    args: &DisplayvideoAdvertisersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_delete_builder(client, advertiserId)?;
+    let builder = displayvideo_advertisers_delete_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_delete_execute(builder)
 }
 
@@ -463,6 +491,15 @@ pub fn displayvideo_advertisers_edit_assigned_targeting_options_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_edit_assigned_targeting_options`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersEditAssignedTargetingOptionsArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: BulkEditAdvertiserAssignedTargetingOptionsRequest,
+}
+
 /// GET v4/advertisers/{advertisersId}:editAssignedTargetingOptions
 /// Edits targeting options under a single advertiser. The operation will delete the assigned targeting options provided in BulkEditAdvertiserAssignedTargetingOptionsRequest.delete_requests and then create the assigned targeting options provided in BulkEditAdvertiserAssignedTargetingOptionsRequest.create_requests .
 ///
@@ -475,8 +512,7 @@ pub fn displayvideo_advertisers_edit_assigned_targeting_options_execute(
 
 pub fn displayvideo_advertisers_edit_assigned_targeting_options(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &BulkEditAdvertiserAssignedTargetingOptionsRequest,
+    args: &DisplayvideoAdvertisersEditAssignedTargetingOptionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BulkEditAdvertiserAssignedTargetingOptionsResponse>, ApiError>,
@@ -487,8 +523,8 @@ pub fn displayvideo_advertisers_edit_assigned_targeting_options(
 > {
     let builder = displayvideo_advertisers_edit_assigned_targeting_options_builder(
         client,
-        advertiserId,
-        body,
+        &args.advertiserId,
+        &args.body,
     )?;
     displayvideo_advertisers_edit_assigned_targeting_options_execute(builder)
 }
@@ -583,6 +619,13 @@ pub fn displayvideo_advertisers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}
 /// Gets an advertiser.
 ///
@@ -595,12 +638,12 @@ pub fn displayvideo_advertisers_get_execute(
 
 pub fn displayvideo_advertisers_get(
     client: &SimpleHttpClient,
-    advertiserId: &str,
+    args: &DisplayvideoAdvertisersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_get_builder(client, advertiserId)?;
+    let builder = displayvideo_advertisers_get_builder(client, &args.advertiserId)?;
     displayvideo_advertisers_get_execute(builder)
 }
 
@@ -720,6 +763,21 @@ pub fn displayvideo_advertisers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/advertisers
 /// Lists advertisers that are accessible to the current user. The order is defined by the order_by parameter. A single partner_id is required. Cross-partner listing is not supported.
 ///
@@ -732,11 +790,7 @@ pub fn displayvideo_advertisers_list_execute(
 
 pub fn displayvideo_advertisers_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoAdvertisersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAdvertisersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -744,7 +798,12 @@ pub fn displayvideo_advertisers_list(
     ApiError,
 > {
     let builder = displayvideo_advertisers_list_builder(
-        client, filter, orderBy, pageSize, pageToken, partnerId,
+        client,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_advertisers_list_execute(builder)
 }
@@ -868,6 +927,21 @@ pub fn displayvideo_advertisers_list_assigned_targeting_options_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_list_assigned_targeting_options`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersListAssignedTargetingOptionsArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}:listAssignedTargetingOptions
 /// Lists assigned targeting options of an advertiser across targeting types.
 ///
@@ -880,11 +954,7 @@ pub fn displayvideo_advertisers_list_assigned_targeting_options_execute(
 
 pub fn displayvideo_advertisers_list_assigned_targeting_options(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersListAssignedTargetingOptionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BulkListAdvertiserAssignedTargetingOptionsResponse>, ApiError>,
@@ -895,11 +965,11 @@ pub fn displayvideo_advertisers_list_assigned_targeting_options(
 > {
     let builder = displayvideo_advertisers_list_assigned_targeting_options_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_list_assigned_targeting_options_execute(builder)
 }
@@ -1009,6 +1079,17 @@ pub fn displayvideo_advertisers_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Advertiser,
+}
+
 /// GET v4/advertisers/{advertisersId}
 /// Updates an existing advertiser. Returns the updated advertiser if successful.
 ///
@@ -1021,14 +1102,17 @@ pub fn displayvideo_advertisers_patch_execute(
 
 pub fn displayvideo_advertisers_patch(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    updateMask: Option<&str>,
-    body: &Advertiser,
+    args: &DisplayvideoAdvertisersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Advertiser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_patch_builder(client, advertiserId, updateMask, body)?;
+    let builder = displayvideo_advertisers_patch_builder(
+        client,
+        &args.advertiserId,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     displayvideo_advertisers_patch_execute(builder)
 }
 
@@ -1129,6 +1213,15 @@ pub fn displayvideo_advertisers_ad_assets_bulk_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_assets_bulk_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdAssetsBulkCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: BulkCreateAdAssetsRequest,
+}
+
 /// GET v4/advertisers/{advertisersId}/adAssets:bulkCreate
 /// Creates multiple ad assets in a single request. Returns the newly-created ad assets if successful. Only supports the creation of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
 ///
@@ -1141,8 +1234,7 @@ pub fn displayvideo_advertisers_ad_assets_bulk_create_execute(
 
 pub fn displayvideo_advertisers_ad_assets_bulk_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &BulkCreateAdAssetsRequest,
+    args: &DisplayvideoAdvertisersAdAssetsBulkCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BulkCreateAdAssetsResponse>, ApiError>,
@@ -1151,8 +1243,11 @@ pub fn displayvideo_advertisers_ad_assets_bulk_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_ad_assets_bulk_create_builder(client, advertiserId, body)?;
+    let builder = displayvideo_advertisers_ad_assets_bulk_create_builder(
+        client,
+        &args.advertiserId,
+        &args.body,
+    )?;
     displayvideo_advertisers_ad_assets_bulk_create_execute(builder)
 }
 
@@ -1249,6 +1344,15 @@ pub fn displayvideo_advertisers_ad_assets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_assets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdAssetsCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: CreateAdAssetRequest,
+}
+
 /// GET v4/advertisers/{advertisersId}/adAssets
 /// Creates an ad asset. Returns the newly-created ad asset if successful. Only supports the creation of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
 ///
@@ -1261,13 +1365,13 @@ pub fn displayvideo_advertisers_ad_assets_create_execute(
 
 pub fn displayvideo_advertisers_ad_assets_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &CreateAdAssetRequest,
+    args: &DisplayvideoAdvertisersAdAssetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdAsset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_assets_create_builder(client, advertiserId, body)?;
+    let builder =
+        displayvideo_advertisers_ad_assets_create_builder(client, &args.advertiserId, &args.body)?;
     displayvideo_advertisers_ad_assets_create_execute(builder)
 }
 
@@ -1362,6 +1466,15 @@ pub fn displayvideo_advertisers_ad_assets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_assets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdAssetsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adAssetId
+    pub adAssetId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/adAssets/{adAssetsId}
 /// Gets an ad asset. Only supports the retrieval of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
 ///
@@ -1374,13 +1487,16 @@ pub fn displayvideo_advertisers_ad_assets_get_execute(
 
 pub fn displayvideo_advertisers_ad_assets_get(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    adAssetId: &str,
+    args: &DisplayvideoAdvertisersAdAssetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdAsset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_assets_get_builder(client, advertiserId, adAssetId)?;
+    let builder = displayvideo_advertisers_ad_assets_get_builder(
+        client,
+        &args.advertiserId,
+        &args.adAssetId,
+    )?;
     displayvideo_advertisers_ad_assets_get_execute(builder)
 }
 
@@ -1500,6 +1616,21 @@ pub fn displayvideo_advertisers_ad_assets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_assets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdAssetsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/adAssets
 /// Lists ad assets under an advertiser ID. Only supports the retrieval of assets of AdAssetType AD_ASSET_TYPE_YOUTUBE_VIDEO.
 ///
@@ -1512,11 +1643,7 @@ pub fn displayvideo_advertisers_ad_assets_list_execute(
 
 pub fn displayvideo_advertisers_ad_assets_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersAdAssetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAdAssetsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1525,11 +1652,11 @@ pub fn displayvideo_advertisers_ad_assets_list(
 > {
     let builder = displayvideo_advertisers_ad_assets_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_ad_assets_list_execute(builder)
 }
@@ -1629,6 +1756,15 @@ pub fn displayvideo_advertisers_ad_assets_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_assets_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdAssetsUploadArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: UploadAdAssetRequest,
+}
+
 /// GET v4/advertisers/{advertisersId}/adAssets:uploadAdAsset
 /// Uploads and creates an ad asset. Returns the ID of the newly-created ad asset if successful. Only supports the uploading of assets with the AdAssetType AD_ASSET_TYPE_IMAGE.
 ///
@@ -1641,15 +1777,15 @@ pub fn displayvideo_advertisers_ad_assets_upload_execute(
 
 pub fn displayvideo_advertisers_ad_assets_upload(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &UploadAdAssetRequest,
+    args: &DisplayvideoAdvertisersAdAssetsUploadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UploadAdAssetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_assets_upload_builder(client, advertiserId, body)?;
+    let builder =
+        displayvideo_advertisers_ad_assets_upload_builder(client, &args.advertiserId, &args.body)?;
     displayvideo_advertisers_ad_assets_upload_execute(builder)
 }
 
@@ -1746,6 +1882,15 @@ pub fn displayvideo_advertisers_ad_group_ads_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_group_ads_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupAdsCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: AdGroupAd,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroupAds
 /// Creates an ad group ad.
 ///
@@ -1758,13 +1903,16 @@ pub fn displayvideo_advertisers_ad_group_ads_create_execute(
 
 pub fn displayvideo_advertisers_ad_group_ads_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &AdGroupAd,
+    args: &DisplayvideoAdvertisersAdGroupAdsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdGroupAd>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_group_ads_create_builder(client, advertiserId, body)?;
+    let builder = displayvideo_advertisers_ad_group_ads_create_builder(
+        client,
+        &args.advertiserId,
+        &args.body,
+    )?;
     displayvideo_advertisers_ad_group_ads_create_execute(builder)
 }
 
@@ -1859,6 +2007,15 @@ pub fn displayvideo_advertisers_ad_group_ads_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_group_ads_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupAdsDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupAdId
+    pub adGroupAdId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
 /// Deletes an ad group ad.
 ///
@@ -1871,14 +2028,16 @@ pub fn displayvideo_advertisers_ad_group_ads_delete_execute(
 
 pub fn displayvideo_advertisers_ad_group_ads_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    adGroupAdId: &str,
+    args: &DisplayvideoAdvertisersAdGroupAdsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_ad_group_ads_delete_builder(client, advertiserId, adGroupAdId)?;
+    let builder = displayvideo_advertisers_ad_group_ads_delete_builder(
+        client,
+        &args.advertiserId,
+        &args.adGroupAdId,
+    )?;
     displayvideo_advertisers_ad_group_ads_delete_execute(builder)
 }
 
@@ -1973,6 +2132,15 @@ pub fn displayvideo_advertisers_ad_group_ads_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_group_ads_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupAdsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupAdId
+    pub adGroupAdId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
 /// Gets an ad group ad.
 ///
@@ -1985,14 +2153,16 @@ pub fn displayvideo_advertisers_ad_group_ads_get_execute(
 
 pub fn displayvideo_advertisers_ad_group_ads_get(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    adGroupAdId: &str,
+    args: &DisplayvideoAdvertisersAdGroupAdsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdGroupAd>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_ad_group_ads_get_builder(client, advertiserId, adGroupAdId)?;
+    let builder = displayvideo_advertisers_ad_group_ads_get_builder(
+        client,
+        &args.advertiserId,
+        &args.adGroupAdId,
+    )?;
     displayvideo_advertisers_ad_group_ads_get_execute(builder)
 }
 
@@ -2112,6 +2282,21 @@ pub fn displayvideo_advertisers_ad_group_ads_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_group_ads_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupAdsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroupAds
 /// Lists ad group ads.
 ///
@@ -2124,11 +2309,7 @@ pub fn displayvideo_advertisers_ad_group_ads_list_execute(
 
 pub fn displayvideo_advertisers_ad_group_ads_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersAdGroupAdsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAdGroupAdsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2137,11 +2318,11 @@ pub fn displayvideo_advertisers_ad_group_ads_list(
 > {
     let builder = displayvideo_advertisers_ad_group_ads_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_ad_group_ads_list_execute(builder)
 }
@@ -2252,6 +2433,19 @@ pub fn displayvideo_advertisers_ad_group_ads_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_group_ads_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupAdsPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupAdId
+    pub adGroupAdId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AdGroupAd,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroupAds/{adGroupAdsId}
 /// Updates an ad group ad.
 ///
@@ -2264,20 +2458,17 @@ pub fn displayvideo_advertisers_ad_group_ads_patch_execute(
 
 pub fn displayvideo_advertisers_ad_group_ads_patch(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    adGroupAdId: &str,
-    updateMask: Option<&str>,
-    body: &AdGroupAd,
+    args: &DisplayvideoAdvertisersAdGroupAdsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdGroupAd>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_advertisers_ad_group_ads_patch_builder(
         client,
-        advertiserId,
-        adGroupAdId,
-        updateMask,
-        body,
+        &args.advertiserId,
+        &args.adGroupAdId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_advertisers_ad_group_ads_patch_execute(builder)
 }
@@ -2380,6 +2571,15 @@ pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsBulkEditAssignedTargetingOptionsArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: BulkEditAdGroupAssignedTargetingOptionsRequest,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroups:bulkEditAssignedTargetingOptions
 /// Bulk edits targeting options for multiple ad groups. The same set of delete and create requests will be applied to all specified ad groups. Specifically, the operation will delete the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.delete_requests from each ad group, and then create the assigned targeting options provided in BulkEditAdGroupAssignedTargetingOptionsRequest.create_requests. Only ad groups under a line item of line_item_type LINE_ITEM_TYPE_DEMAND_GEN are supported for this method.
 ///
@@ -2392,8 +2592,7 @@ pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_e
 
 pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &BulkEditAdGroupAssignedTargetingOptionsRequest,
+    args: &DisplayvideoAdvertisersAdGroupsBulkEditAssignedTargetingOptionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BulkEditAdGroupAssignedTargetingOptionsResponse>, ApiError>,
@@ -2404,8 +2603,8 @@ pub fn displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options(
 > {
     let builder = displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_builder(
         client,
-        advertiserId,
-        body,
+        &args.advertiserId,
+        &args.body,
     )?;
     displayvideo_advertisers_ad_groups_bulk_edit_assigned_targeting_options_execute(builder)
 }
@@ -2533,6 +2732,23 @@ pub fn displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsBulkListAssignedTargetingOptionsArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: adGroupIds
+    pub adGroupIds: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroups:bulkListAssignedTargetingOptions
 /// Lists assigned targeting options for multiple ad groups across targeting types. Inherited assigned targeting options are not included.
 ///
@@ -2545,12 +2761,7 @@ pub fn displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options_e
 
 pub fn displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    adGroupIds: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersAdGroupsBulkListAssignedTargetingOptionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BulkListAdGroupAssignedTargetingOptionsResponse>, ApiError>,
@@ -2561,12 +2772,12 @@ pub fn displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options(
 > {
     let builder = displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options_builder(
         client,
-        advertiserId,
-        adGroupIds,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        args.adGroupIds.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_ad_groups_bulk_list_assigned_targeting_options_execute(builder)
 }
@@ -2664,6 +2875,15 @@ pub fn displayvideo_advertisers_ad_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: AdGroup,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroups
 /// Creates a new ad group. Returns the newly created ad group if successful.
 ///
@@ -2676,13 +2896,13 @@ pub fn displayvideo_advertisers_ad_groups_create_execute(
 
 pub fn displayvideo_advertisers_ad_groups_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &AdGroup,
+    args: &DisplayvideoAdvertisersAdGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdGroup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_groups_create_builder(client, advertiserId, body)?;
+    let builder =
+        displayvideo_advertisers_ad_groups_create_builder(client, &args.advertiserId, &args.body)?;
     displayvideo_advertisers_ad_groups_create_execute(builder)
 }
 
@@ -2777,6 +2997,15 @@ pub fn displayvideo_advertisers_ad_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupId
+    pub adGroupId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
 /// Deletes a AdGroup. Returns error code NOT_FOUND if the ad group does not exist.
 ///
@@ -2789,14 +3018,16 @@ pub fn displayvideo_advertisers_ad_groups_delete_execute(
 
 pub fn displayvideo_advertisers_ad_groups_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    adGroupId: &str,
+    args: &DisplayvideoAdvertisersAdGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_ad_groups_delete_builder(client, advertiserId, adGroupId)?;
+    let builder = displayvideo_advertisers_ad_groups_delete_builder(
+        client,
+        &args.advertiserId,
+        &args.adGroupId,
+    )?;
     displayvideo_advertisers_ad_groups_delete_execute(builder)
 }
 
@@ -2891,6 +3122,15 @@ pub fn displayvideo_advertisers_ad_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupId
+    pub adGroupId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
 /// Gets an ad group.
 ///
@@ -2903,13 +3143,16 @@ pub fn displayvideo_advertisers_ad_groups_get_execute(
 
 pub fn displayvideo_advertisers_ad_groups_get(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    adGroupId: &str,
+    args: &DisplayvideoAdvertisersAdGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdGroup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_groups_get_builder(client, advertiserId, adGroupId)?;
+    let builder = displayvideo_advertisers_ad_groups_get_builder(
+        client,
+        &args.advertiserId,
+        &args.adGroupId,
+    )?;
     displayvideo_advertisers_ad_groups_get_execute(builder)
 }
 
@@ -3029,6 +3272,21 @@ pub fn displayvideo_advertisers_ad_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroups
 /// Lists ad groups.
 ///
@@ -3041,11 +3299,7 @@ pub fn displayvideo_advertisers_ad_groups_list_execute(
 
 pub fn displayvideo_advertisers_ad_groups_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersAdGroupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAdGroupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3054,11 +3308,11 @@ pub fn displayvideo_advertisers_ad_groups_list(
 > {
     let builder = displayvideo_advertisers_ad_groups_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_ad_groups_list_execute(builder)
 }
@@ -3169,6 +3423,19 @@ pub fn displayvideo_advertisers_ad_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupId
+    pub adGroupId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AdGroup,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}
 /// Updates an existing ad group. Returns the updated ad group if successful.
 ///
@@ -3181,20 +3448,17 @@ pub fn displayvideo_advertisers_ad_groups_patch_execute(
 
 pub fn displayvideo_advertisers_ad_groups_patch(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    adGroupId: &str,
-    updateMask: Option<&str>,
-    body: &AdGroup,
+    args: &DisplayvideoAdvertisersAdGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdGroup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_advertisers_ad_groups_patch_builder(
         client,
-        advertiserId,
-        adGroupId,
-        updateMask,
-        body,
+        &args.advertiserId,
+        &args.adGroupId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_advertisers_ad_groups_patch_execute(builder)
 }
@@ -3298,6 +3562,19 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupId
+    pub adGroupId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Request body.
+    pub body: AssignedTargetingOption,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to an ad group. Returns the assigned targeting option if successful. Only ad groups under a line item of line_item_type LINE_ITEM_TYPE_DEMAND_GEN are supported for this method.
 ///
@@ -3310,17 +3587,14 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
 
 pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    adGroupId: &str,
-    targetingType: &str,
-    body: &AssignedTargetingOption,
+    args: &DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_builder(client, advertiserId, adGroupId, targetingType, body)?;
+    let builder = displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_builder(client, &args.advertiserId, &args.adGroupId, &args.targetingType, &args.body)?;
     displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_create_execute(
         builder,
     )
@@ -3422,6 +3696,19 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupId
+    pub adGroupId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Path parameter: assignedTargetingOptionId
+    pub assignedTargetingOptionId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from an ad group. Only ad groups under a line item of line_item_type LINE_ITEM_TYPE_DEMAND_GEN are supported for this method.
 ///
@@ -3434,15 +3721,12 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
 
 pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    adGroupId: &str,
-    targetingType: &str,
-    assignedTargetingOptionId: &str,
+    args: &DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete_builder(client, advertiserId, adGroupId, targetingType, assignedTargetingOptionId)?;
+    let builder = displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete_builder(client, &args.advertiserId, &args.adGroupId, &args.targetingType, &args.assignedTargetingOptionId)?;
     displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_delete_execute(
         builder,
     )
@@ -3546,6 +3830,19 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupId
+    pub adGroupId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Path parameter: assignedTargetingOptionId
+    pub assignedTargetingOptionId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Gets a single targeting option assigned to an ad group. Inherited assigned targeting options are not included.
 ///
@@ -3558,10 +3855,7 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
 
 pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    adGroupId: &str,
-    targetingType: &str,
-    assignedTargetingOptionId: &str,
+    args: &DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
         + Send
@@ -3571,10 +3865,10 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
     let builder =
         displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_builder(
             client,
-            advertiserId,
-            adGroupId,
-            targetingType,
-            assignedTargetingOptionId,
+            &args.advertiserId,
+            &args.adGroupId,
+            &args.targetingType,
+            &args.assignedTargetingOptionId,
         )?;
     displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_get_execute(
         builder,
@@ -3704,6 +3998,25 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupId
+    pub adGroupId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Lists the targeting options assigned to an ad group. Inherited assigned targeting options are not included.
 ///
@@ -3716,13 +4029,7 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
 
 pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    adGroupId: &str,
-    targetingType: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAdGroupAssignedTargetingOptionsResponse>, ApiError>,
@@ -3734,13 +4041,13 @@ pub fn displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_opt
     let builder =
         displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_builder(
             client,
-            advertiserId,
-            adGroupId,
-            targetingType,
-            filter,
-            orderBy,
-            pageSize,
-            pageToken,
+            &args.advertiserId,
+            &args.adGroupId,
+            &args.targetingType,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     displayvideo_advertisers_ad_groups_targeting_types_assigned_targeting_options_list_execute(
         builder,
@@ -3858,6 +4165,21 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupId
+    pub adGroupId: String,
+    /// Path parameter: youtubeAssetType
+    pub youtubeAssetType: String,
+    /// Query parameter: linkedEntity_lineItemId
+    pub linkedEntity_lineItemId: Option<String>,
+    /// Request body.
+    pub body: YoutubeAssetAssociation,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
 /// Creates a new association between the identified resource and a YouTube asset. Returns the newly-created association. *Warning:* This method is only available to an informed subset of users.
 ///
@@ -3870,18 +4192,14 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
 
 pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    adGroupId: &str,
-    youtubeAssetType: &str,
-    linkedEntity_lineItemId: Option<&str>,
-    body: &YoutubeAssetAssociation,
+    args: &DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<YoutubeAssetAssociation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create_builder(client, advertiserId, adGroupId, youtubeAssetType, linkedEntity_lineItemId, body)?;
+    let builder = displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create_builder(client, &args.advertiserId, &args.adGroupId, &args.youtubeAssetType, args.linkedEntity_lineItemId.as_deref(), &args.body)?;
     displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_create_execute(
         builder,
     )
@@ -3995,6 +4313,21 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupId
+    pub adGroupId: String,
+    /// Path parameter: youtubeAssetType
+    pub youtubeAssetType: String,
+    /// Path parameter: youtubeAssetAssociationId
+    pub youtubeAssetAssociationId: String,
+    /// Query parameter: linkedEntity_lineItemId
+    pub linkedEntity_lineItemId: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
 /// Deletes an existing association between the identified resource and a YouTube asset. *Warning:* This method is only available to an informed subset of users.
 ///
@@ -4007,16 +4340,12 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
 
 pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    adGroupId: &str,
-    youtubeAssetType: &str,
-    youtubeAssetAssociationId: &str,
-    linkedEntity_lineItemId: Option<&str>,
+    args: &DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_delete_builder(client, advertiserId, adGroupId, youtubeAssetType, youtubeAssetAssociationId, linkedEntity_lineItemId)?;
+    let builder = displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_delete_builder(client, &args.advertiserId, &args.adGroupId, &args.youtubeAssetType, &args.youtubeAssetAssociationId, args.linkedEntity_lineItemId.as_deref())?;
     displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_delete_execute(
         builder,
     )
@@ -4144,6 +4473,25 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: adGroupId
+    pub adGroupId: String,
+    /// Path parameter: youtubeAssetType
+    pub youtubeAssetType: String,
+    /// Query parameter: linkedEntity_lineItemId
+    pub linkedEntity_lineItemId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/adGroups/{adGroupsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
 /// Lists the YouTube asset associations linked to the given resource.
 ///
@@ -4156,13 +4504,7 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
 
 pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    adGroupId: &str,
-    youtubeAssetType: &str,
-    linkedEntity_lineItemId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListYoutubeAssetAssociationsResponse>, ApiError>,
@@ -4171,7 +4513,7 @@ pub fn displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_asso
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_builder(client, advertiserId, adGroupId, youtubeAssetType, linkedEntity_lineItemId, orderBy, pageSize, pageToken)?;
+    let builder = displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_builder(client, &args.advertiserId, &args.adGroupId, &args.youtubeAssetType, args.linkedEntity_lineItemId.as_deref(), args.orderBy.as_deref(), args.pageSize, args.pageToken.as_deref())?;
     displayvideo_advertisers_ad_groups_youtube_asset_types_youtube_asset_associations_list_execute(
         builder,
     )
@@ -4272,6 +4614,15 @@ pub fn displayvideo_advertisers_assets_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_assets_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersAssetsUploadArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: CreateAssetRequest,
+}
+
 /// GET v4/advertisers/{advertisersId}/assets
 /// Uploads an asset. Returns the ID of the newly uploaded asset if successful. The asset file size should be no more than 10 MB for images, 200 MB for ZIP files, and 1 GB for videos. Must be used within the [multipart media upload process](/display-`video/api/guides/how-tos/upload`#multipart). Examples using provided client libraries can be found in our [Creating Creatives guide](/display-`video/api/guides/creating-creatives/overview`#upload_an_asset).
 ///
@@ -4284,15 +4635,15 @@ pub fn displayvideo_advertisers_assets_upload_execute(
 
 pub fn displayvideo_advertisers_assets_upload(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &CreateAssetRequest,
+    args: &DisplayvideoAdvertisersAssetsUploadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreateAssetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_assets_upload_builder(client, advertiserId, body)?;
+    let builder =
+        displayvideo_advertisers_assets_upload_builder(client, &args.advertiserId, &args.body)?;
     displayvideo_advertisers_assets_upload_execute(builder)
 }
 
@@ -4389,6 +4740,15 @@ pub fn displayvideo_advertisers_campaigns_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_campaigns_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCampaignsCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: Campaign,
+}
+
 /// GET v4/advertisers/{advertisersId}/campaigns
 /// Creates a new campaign. Returns the newly created campaign if successful.
 ///
@@ -4401,13 +4761,13 @@ pub fn displayvideo_advertisers_campaigns_create_execute(
 
 pub fn displayvideo_advertisers_campaigns_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &Campaign,
+    args: &DisplayvideoAdvertisersCampaignsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_campaigns_create_builder(client, advertiserId, body)?;
+    let builder =
+        displayvideo_advertisers_campaigns_create_builder(client, &args.advertiserId, &args.body)?;
     displayvideo_advertisers_campaigns_create_execute(builder)
 }
 
@@ -4502,6 +4862,15 @@ pub fn displayvideo_advertisers_campaigns_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_campaigns_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCampaignsDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: campaignId
+    pub campaignId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/campaigns/{campaignsId}
 /// Permanently deletes a campaign. A deleted campaign cannot be recovered. The campaign should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, to be able to delete it. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
@@ -4514,14 +4883,16 @@ pub fn displayvideo_advertisers_campaigns_delete_execute(
 
 pub fn displayvideo_advertisers_campaigns_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    campaignId: &str,
+    args: &DisplayvideoAdvertisersCampaignsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_campaigns_delete_builder(client, advertiserId, campaignId)?;
+    let builder = displayvideo_advertisers_campaigns_delete_builder(
+        client,
+        &args.advertiserId,
+        &args.campaignId,
+    )?;
     displayvideo_advertisers_campaigns_delete_execute(builder)
 }
 
@@ -4616,6 +4987,15 @@ pub fn displayvideo_advertisers_campaigns_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_campaigns_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCampaignsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: campaignId
+    pub campaignId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/campaigns/{campaignsId}
 /// Gets a campaign.
 ///
@@ -4628,13 +5008,16 @@ pub fn displayvideo_advertisers_campaigns_get_execute(
 
 pub fn displayvideo_advertisers_campaigns_get(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    campaignId: &str,
+    args: &DisplayvideoAdvertisersCampaignsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_campaigns_get_builder(client, advertiserId, campaignId)?;
+    let builder = displayvideo_advertisers_campaigns_get_builder(
+        client,
+        &args.advertiserId,
+        &args.campaignId,
+    )?;
     displayvideo_advertisers_campaigns_get_execute(builder)
 }
 
@@ -4754,6 +5137,21 @@ pub fn displayvideo_advertisers_campaigns_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_campaigns_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCampaignsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/campaigns
 /// Lists campaigns in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, campaigns with ENTITY_STATUS_ARCHIVED will not be included in the results.
 ///
@@ -4766,11 +5164,7 @@ pub fn displayvideo_advertisers_campaigns_list_execute(
 
 pub fn displayvideo_advertisers_campaigns_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersCampaignsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCampaignsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4779,11 +5173,11 @@ pub fn displayvideo_advertisers_campaigns_list(
 > {
     let builder = displayvideo_advertisers_campaigns_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_campaigns_list_execute(builder)
 }
@@ -4894,6 +5288,19 @@ pub fn displayvideo_advertisers_campaigns_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_campaigns_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCampaignsPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: campaignId
+    pub campaignId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Campaign,
+}
+
 /// GET v4/advertisers/{advertisersId}/campaigns/{campaignsId}
 /// Updates an existing campaign. Returns the updated campaign if successful.
 ///
@@ -4906,20 +5313,17 @@ pub fn displayvideo_advertisers_campaigns_patch_execute(
 
 pub fn displayvideo_advertisers_campaigns_patch(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    campaignId: &str,
-    updateMask: Option<&str>,
-    body: &Campaign,
+    args: &DisplayvideoAdvertisersCampaignsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Campaign>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_advertisers_campaigns_patch_builder(
         client,
-        advertiserId,
-        campaignId,
-        updateMask,
-        body,
+        &args.advertiserId,
+        &args.campaignId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_advertisers_campaigns_patch_execute(builder)
 }
@@ -5029,6 +5433,17 @@ pub fn displayvideo_advertisers_channels_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_channels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersChannelsCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET v4/advertisers/{advertisersId}/channels
 /// Creates a new channel. Returns the newly created channel if successful.
 ///
@@ -5041,15 +5456,17 @@ pub fn displayvideo_advertisers_channels_create_execute(
 
 pub fn displayvideo_advertisers_channels_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    partnerId: Option<&str>,
-    body: &Channel,
+    args: &DisplayvideoAdvertisersChannelsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_channels_create_builder(client, advertiserId, partnerId, body)?;
+    let builder = displayvideo_advertisers_channels_create_builder(
+        client,
+        &args.advertiserId,
+        args.partnerId.as_deref(),
+        &args.body,
+    )?;
     displayvideo_advertisers_channels_create_execute(builder)
 }
 
@@ -5156,6 +5573,17 @@ pub fn displayvideo_advertisers_channels_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_channels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersChannelsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/channels/{channelsId}
 /// Gets a channel for a partner or advertiser.
 ///
@@ -5168,15 +5596,17 @@ pub fn displayvideo_advertisers_channels_get_execute(
 
 pub fn displayvideo_advertisers_channels_get(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    channelId: &str,
-    partnerId: Option<&str>,
+    args: &DisplayvideoAdvertisersChannelsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_channels_get_builder(client, advertiserId, channelId, partnerId)?;
+    let builder = displayvideo_advertisers_channels_get_builder(
+        client,
+        &args.advertiserId,
+        &args.channelId,
+        args.partnerId.as_deref(),
+    )?;
     displayvideo_advertisers_channels_get_execute(builder)
 }
 
@@ -5300,6 +5730,23 @@ pub fn displayvideo_advertisers_channels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_channels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersChannelsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/channels
 /// Lists channels for a partner or advertiser.
 ///
@@ -5312,12 +5759,7 @@ pub fn displayvideo_advertisers_channels_list_execute(
 
 pub fn displayvideo_advertisers_channels_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoAdvertisersChannelsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListChannelsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5326,12 +5768,12 @@ pub fn displayvideo_advertisers_channels_list(
 > {
     let builder = displayvideo_advertisers_channels_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        partnerId,
+        &args.advertiserId,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_advertisers_channels_list_execute(builder)
 }
@@ -5446,6 +5888,21 @@ pub fn displayvideo_advertisers_channels_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_channels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersChannelsPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET v4/advertisers/{advertisersId}/channels/{channelId}
 /// Updates a channel. Returns the updated channel if successful.
 ///
@@ -5458,22 +5915,18 @@ pub fn displayvideo_advertisers_channels_patch_execute(
 
 pub fn displayvideo_advertisers_channels_patch(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    channelId: &str,
-    partnerId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Channel,
+    args: &DisplayvideoAdvertisersChannelsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_advertisers_channels_patch_builder(
         client,
-        advertiserId,
-        channelId,
-        partnerId,
-        updateMask,
-        body,
+        &args.advertiserId,
+        &args.channelId,
+        args.partnerId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_advertisers_channels_patch_execute(builder)
 }
@@ -5574,6 +6027,17 @@ pub fn displayvideo_advertisers_channels_sites_bulk_edit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_channels_sites_bulk_edit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersChannelsSitesBulkEditArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Request body.
+    pub body: BulkEditSitesRequest,
+}
+
 /// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites:bulkEdit
 /// Bulk edits sites under a single channel. The operation will delete the sites provided in BulkEditSitesRequest.deleted_sites and then create the sites provided in BulkEditSitesRequest.created_sites.
 ///
@@ -5586,9 +6050,7 @@ pub fn displayvideo_advertisers_channels_sites_bulk_edit_execute(
 
 pub fn displayvideo_advertisers_channels_sites_bulk_edit(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    channelId: &str,
-    body: &BulkEditSitesRequest,
+    args: &DisplayvideoAdvertisersChannelsSitesBulkEditArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BulkEditSitesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5597,9 +6059,9 @@ pub fn displayvideo_advertisers_channels_sites_bulk_edit(
 > {
     let builder = displayvideo_advertisers_channels_sites_bulk_edit_builder(
         client,
-        advertiserId,
-        channelId,
-        body,
+        &args.advertiserId,
+        &args.channelId,
+        &args.body,
     )?;
     displayvideo_advertisers_channels_sites_bulk_edit_execute(builder)
 }
@@ -5710,6 +6172,19 @@ pub fn displayvideo_advertisers_channels_sites_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_channels_sites_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersChannelsSitesCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+    /// Request body.
+    pub body: Site,
+}
+
 /// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites
 /// Creates a site in a channel.
 ///
@@ -5722,20 +6197,17 @@ pub fn displayvideo_advertisers_channels_sites_create_execute(
 
 pub fn displayvideo_advertisers_channels_sites_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    channelId: &str,
-    partnerId: Option<&str>,
-    body: &Site,
+    args: &DisplayvideoAdvertisersChannelsSitesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_advertisers_channels_sites_create_builder(
         client,
-        advertiserId,
-        channelId,
-        partnerId,
-        body,
+        &args.advertiserId,
+        &args.channelId,
+        args.partnerId.as_deref(),
+        &args.body,
     )?;
     displayvideo_advertisers_channels_sites_create_execute(builder)
 }
@@ -5844,6 +6316,19 @@ pub fn displayvideo_advertisers_channels_sites_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_channels_sites_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersChannelsSitesDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Path parameter: urlOrAppId
+    pub urlOrAppId: String,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites/{sitesId}
 /// Deletes a site from a channel.
 ///
@@ -5856,20 +6341,17 @@ pub fn displayvideo_advertisers_channels_sites_delete_execute(
 
 pub fn displayvideo_advertisers_channels_sites_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    channelId: &str,
-    urlOrAppId: &str,
-    partnerId: Option<&str>,
+    args: &DisplayvideoAdvertisersChannelsSitesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_advertisers_channels_sites_delete_builder(
         client,
-        advertiserId,
-        channelId,
-        urlOrAppId,
-        partnerId,
+        &args.advertiserId,
+        &args.channelId,
+        &args.urlOrAppId,
+        args.partnerId.as_deref(),
     )?;
     displayvideo_advertisers_channels_sites_delete_execute(builder)
 }
@@ -5995,6 +6477,25 @@ pub fn displayvideo_advertisers_channels_sites_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_channels_sites_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersChannelsSitesListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/channels/{channelsId}/sites
 /// Lists sites in a channel.
 ///
@@ -6007,13 +6508,7 @@ pub fn displayvideo_advertisers_channels_sites_list_execute(
 
 pub fn displayvideo_advertisers_channels_sites_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    channelId: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoAdvertisersChannelsSitesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSitesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6022,13 +6517,13 @@ pub fn displayvideo_advertisers_channels_sites_list(
 > {
     let builder = displayvideo_advertisers_channels_sites_list_builder(
         client,
-        advertiserId,
-        channelId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        partnerId,
+        &args.advertiserId,
+        &args.channelId,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_advertisers_channels_sites_list_execute(builder)
 }
@@ -6129,6 +6624,17 @@ pub fn displayvideo_advertisers_channels_sites_replace_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_channels_sites_replace`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersChannelsSitesReplaceArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Request body.
+    pub body: ReplaceSitesRequest,
+}
+
 /// GET v4/advertisers/{advertiserId}/channels/{channelsId}/sites:replace
 /// Replaces all of the sites under a single channel. The operation will replace the sites under a channel with the sites provided in ReplaceSitesRequest.new_sites. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
@@ -6141,9 +6647,7 @@ pub fn displayvideo_advertisers_channels_sites_replace_execute(
 
 pub fn displayvideo_advertisers_channels_sites_replace(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    channelId: &str,
-    body: &ReplaceSitesRequest,
+    args: &DisplayvideoAdvertisersChannelsSitesReplaceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReplaceSitesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6152,9 +6656,9 @@ pub fn displayvideo_advertisers_channels_sites_replace(
 > {
     let builder = displayvideo_advertisers_channels_sites_replace_builder(
         client,
-        advertiserId,
-        channelId,
-        body,
+        &args.advertiserId,
+        &args.channelId,
+        &args.body,
     )?;
     displayvideo_advertisers_channels_sites_replace_execute(builder)
 }
@@ -6252,6 +6756,15 @@ pub fn displayvideo_advertisers_creatives_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_creatives_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCreativesCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: Creative,
+}
+
 /// GET v4/advertisers/{advertisersId}/creatives
 /// Creates a new creative. Returns the newly created creative if successful. A ["Standard" user role](//support.google.`com/displayvideo/answer/2723011`) or greater for the parent advertiser or partner is required to make this request.
 ///
@@ -6264,13 +6777,13 @@ pub fn displayvideo_advertisers_creatives_create_execute(
 
 pub fn displayvideo_advertisers_creatives_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &Creative,
+    args: &DisplayvideoAdvertisersCreativesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_creatives_create_builder(client, advertiserId, body)?;
+    let builder =
+        displayvideo_advertisers_creatives_create_builder(client, &args.advertiserId, &args.body)?;
     displayvideo_advertisers_creatives_create_execute(builder)
 }
 
@@ -6365,6 +6878,15 @@ pub fn displayvideo_advertisers_creatives_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_creatives_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCreativesDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: creativeId
+    pub creativeId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/creatives/{creativesId}
 /// Deletes a creative. Returns error code NOT_FOUND if the creative does not exist. The creative should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, before it can be deleted. A ["Standard" user role](//support.google.`com/displayvideo/answer/2723011`) or greater for the parent advertiser or partner is required to make this request.
 ///
@@ -6377,14 +6899,16 @@ pub fn displayvideo_advertisers_creatives_delete_execute(
 
 pub fn displayvideo_advertisers_creatives_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    creativeId: &str,
+    args: &DisplayvideoAdvertisersCreativesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_creatives_delete_builder(client, advertiserId, creativeId)?;
+    let builder = displayvideo_advertisers_creatives_delete_builder(
+        client,
+        &args.advertiserId,
+        &args.creativeId,
+    )?;
     displayvideo_advertisers_creatives_delete_execute(builder)
 }
 
@@ -6479,6 +7003,15 @@ pub fn displayvideo_advertisers_creatives_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_creatives_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCreativesGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: creativeId
+    pub creativeId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/creatives/{creativesId}
 /// Gets a creative.
 ///
@@ -6491,13 +7024,16 @@ pub fn displayvideo_advertisers_creatives_get_execute(
 
 pub fn displayvideo_advertisers_creatives_get(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    creativeId: &str,
+    args: &DisplayvideoAdvertisersCreativesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_creatives_get_builder(client, advertiserId, creativeId)?;
+    let builder = displayvideo_advertisers_creatives_get_builder(
+        client,
+        &args.advertiserId,
+        &args.creativeId,
+    )?;
     displayvideo_advertisers_creatives_get_execute(builder)
 }
 
@@ -6617,6 +7153,21 @@ pub fn displayvideo_advertisers_creatives_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_creatives_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCreativesListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/creatives
 /// Lists creatives in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, creatives with ENTITY_STATUS_ARCHIVED will not be included in the results.
 ///
@@ -6629,11 +7180,7 @@ pub fn displayvideo_advertisers_creatives_list_execute(
 
 pub fn displayvideo_advertisers_creatives_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersCreativesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCreativesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6642,11 +7189,11 @@ pub fn displayvideo_advertisers_creatives_list(
 > {
     let builder = displayvideo_advertisers_creatives_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_creatives_list_execute(builder)
 }
@@ -6757,6 +7304,19 @@ pub fn displayvideo_advertisers_creatives_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_creatives_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersCreativesPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: creativeId
+    pub creativeId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Creative,
+}
+
 /// GET v4/advertisers/{advertisersId}/creatives/{creativesId}
 /// Updates an existing creative. Returns the updated creative if successful. A ["Standard" user role](//support.google.`com/displayvideo/answer/2723011`) or greater for the parent advertiser or partner is required to make this request.
 ///
@@ -6769,20 +7329,17 @@ pub fn displayvideo_advertisers_creatives_patch_execute(
 
 pub fn displayvideo_advertisers_creatives_patch(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    creativeId: &str,
-    updateMask: Option<&str>,
-    body: &Creative,
+    args: &DisplayvideoAdvertisersCreativesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_advertisers_creatives_patch_builder(
         client,
-        advertiserId,
-        creativeId,
-        updateMask,
-        body,
+        &args.advertiserId,
+        &args.creativeId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_advertisers_creatives_patch_execute(builder)
 }
@@ -6882,6 +7439,15 @@ pub fn displayvideo_advertisers_insertion_orders_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_insertion_orders_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersInsertionOrdersCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: InsertionOrder,
+}
+
 /// GET v4/advertisers/{advertisersId}/insertionOrders
 /// Creates a new insertion order. Returns the newly created insertion order if successful.
 ///
@@ -6894,16 +7460,18 @@ pub fn displayvideo_advertisers_insertion_orders_create_execute(
 
 pub fn displayvideo_advertisers_insertion_orders_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &InsertionOrder,
+    args: &DisplayvideoAdvertisersInsertionOrdersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InsertionOrder>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_insertion_orders_create_builder(client, advertiserId, body)?;
+    let builder = displayvideo_advertisers_insertion_orders_create_builder(
+        client,
+        &args.advertiserId,
+        &args.body,
+    )?;
     displayvideo_advertisers_insertion_orders_create_execute(builder)
 }
 
@@ -6998,6 +7566,15 @@ pub fn displayvideo_advertisers_insertion_orders_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_insertion_orders_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersInsertionOrdersDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: insertionOrderId
+    pub insertionOrderId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
 /// Deletes an insertion order. Returns error code NOT_FOUND if the insertion order does not exist. The insertion order should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, to be able to delete it.
 ///
@@ -7010,16 +7587,15 @@ pub fn displayvideo_advertisers_insertion_orders_delete_execute(
 
 pub fn displayvideo_advertisers_insertion_orders_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    insertionOrderId: &str,
+    args: &DisplayvideoAdvertisersInsertionOrdersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_advertisers_insertion_orders_delete_builder(
         client,
-        advertiserId,
-        insertionOrderId,
+        &args.advertiserId,
+        &args.insertionOrderId,
     )?;
     displayvideo_advertisers_insertion_orders_delete_execute(builder)
 }
@@ -7117,6 +7693,15 @@ pub fn displayvideo_advertisers_insertion_orders_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_insertion_orders_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersInsertionOrdersGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: insertionOrderId
+    pub insertionOrderId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
 /// Gets an insertion order. Returns error code NOT_FOUND if the insertion order does not exist.
 ///
@@ -7129,8 +7714,7 @@ pub fn displayvideo_advertisers_insertion_orders_get_execute(
 
 pub fn displayvideo_advertisers_insertion_orders_get(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    insertionOrderId: &str,
+    args: &DisplayvideoAdvertisersInsertionOrdersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InsertionOrder>, ApiError>, P = ApiPending>
         + Send
@@ -7139,8 +7723,8 @@ pub fn displayvideo_advertisers_insertion_orders_get(
 > {
     let builder = displayvideo_advertisers_insertion_orders_get_builder(
         client,
-        advertiserId,
-        insertionOrderId,
+        &args.advertiserId,
+        &args.insertionOrderId,
     )?;
     displayvideo_advertisers_insertion_orders_get_execute(builder)
 }
@@ -7263,6 +7847,21 @@ pub fn displayvideo_advertisers_insertion_orders_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_insertion_orders_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersInsertionOrdersListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/insertionOrders
 /// Lists insertion orders in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, insertion orders with ENTITY_STATUS_ARCHIVED will not be included in the results.
 ///
@@ -7275,11 +7874,7 @@ pub fn displayvideo_advertisers_insertion_orders_list_execute(
 
 pub fn displayvideo_advertisers_insertion_orders_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersInsertionOrdersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInsertionOrdersResponse>, ApiError>,
@@ -7290,11 +7885,11 @@ pub fn displayvideo_advertisers_insertion_orders_list(
 > {
     let builder = displayvideo_advertisers_insertion_orders_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_insertion_orders_list_execute(builder)
 }
@@ -7407,6 +8002,19 @@ pub fn displayvideo_advertisers_insertion_orders_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_insertion_orders_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersInsertionOrdersPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: insertionOrderId
+    pub insertionOrderId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: InsertionOrder,
+}
+
 /// GET v4/advertisers/{advertisersId}/insertionOrders/{insertionOrdersId}
 /// Updates an existing insertion order. Returns the updated insertion order if successful.
 ///
@@ -7419,10 +8027,7 @@ pub fn displayvideo_advertisers_insertion_orders_patch_execute(
 
 pub fn displayvideo_advertisers_insertion_orders_patch(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    insertionOrderId: &str,
-    updateMask: Option<&str>,
-    body: &InsertionOrder,
+    args: &DisplayvideoAdvertisersInsertionOrdersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InsertionOrder>, ApiError>, P = ApiPending>
         + Send
@@ -7431,10 +8036,10 @@ pub fn displayvideo_advertisers_insertion_orders_patch(
 > {
     let builder = displayvideo_advertisers_insertion_orders_patch_builder(
         client,
-        advertiserId,
-        insertionOrderId,
-        updateMask,
-        body,
+        &args.advertiserId,
+        &args.insertionOrderId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_advertisers_insertion_orders_patch_execute(builder)
 }
@@ -7555,6 +8160,21 @@ pub fn displayvideo_advertisers_invoices_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_invoices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersInvoicesListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: issueMonth
+    pub issueMonth: Option<String>,
+    /// Query parameter: loiSapinInvoiceType
+    pub loiSapinInvoiceType: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/invoices
 /// Lists invoices posted for an advertiser in a given month. Invoices generated by billing profiles with a "Partner" invoice level are not retrievable through this method.
 ///
@@ -7567,11 +8187,7 @@ pub fn displayvideo_advertisers_invoices_list_execute(
 
 pub fn displayvideo_advertisers_invoices_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    issueMonth: Option<&str>,
-    loiSapinInvoiceType: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersInvoicesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInvoicesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7580,11 +8196,11 @@ pub fn displayvideo_advertisers_invoices_list(
 > {
     let builder = displayvideo_advertisers_invoices_list_builder(
         client,
-        advertiserId,
-        issueMonth,
-        loiSapinInvoiceType,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        args.issueMonth.as_deref(),
+        args.loiSapinInvoiceType.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_invoices_list_execute(builder)
 }
@@ -7695,6 +8311,15 @@ pub fn displayvideo_advertisers_invoices_lookup_invoice_currency_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_invoices_lookup_invoice_currency`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersInvoicesLookupInvoiceCurrencyArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: invoiceMonth
+    pub invoiceMonth: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/invoices:lookupInvoiceCurrency
 /// Retrieves the invoice currency used by an advertiser in a given month.
 ///
@@ -7707,8 +8332,7 @@ pub fn displayvideo_advertisers_invoices_lookup_invoice_currency_execute(
 
 pub fn displayvideo_advertisers_invoices_lookup_invoice_currency(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    invoiceMonth: Option<&str>,
+    args: &DisplayvideoAdvertisersInvoicesLookupInvoiceCurrencyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LookupInvoiceCurrencyResponse>, ApiError>,
@@ -7719,8 +8343,8 @@ pub fn displayvideo_advertisers_invoices_lookup_invoice_currency(
 > {
     let builder = displayvideo_advertisers_invoices_lookup_invoice_currency_builder(
         client,
-        advertiserId,
-        invoiceMonth,
+        &args.advertiserId,
+        args.invoiceMonth.as_deref(),
     )?;
     displayvideo_advertisers_invoices_lookup_invoice_currency_execute(builder)
 }
@@ -7822,6 +8446,15 @@ pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsBulkEditAssignedTargetingOptionsArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: BulkEditAssignedTargetingOptionsRequest,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems:bulkEditAssignedTargetingOptions
 /// Bulk edits targeting options under multiple line items. The operation will delete the assigned targeting options provided in BulkEditAssignedTargetingOptionsRequest.delete_requests and then create the assigned targeting options provided in BulkEditAssignedTargetingOptionsRequest.create_requests. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * `lineItems`.`bulkUpdate` * `lineItems`.patch * `assignedTargetingOptions`.create * `assignedTargetingOptions`.delete YouTube & Partners line items cannot be created or updated using the API.
 ///
@@ -7834,8 +8467,7 @@ pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options_
 
 pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &BulkEditAssignedTargetingOptionsRequest,
+    args: &DisplayvideoAdvertisersLineItemsBulkEditAssignedTargetingOptionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BulkEditAssignedTargetingOptionsResponse>, ApiError>,
@@ -7846,8 +8478,8 @@ pub fn displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options(
 > {
     let builder = displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options_builder(
         client,
-        advertiserId,
-        body,
+        &args.advertiserId,
+        &args.body,
     )?;
     displayvideo_advertisers_line_items_bulk_edit_assigned_targeting_options_execute(builder)
 }
@@ -7974,6 +8606,23 @@ pub fn displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsBulkListAssignedTargetingOptionsArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: lineItemIds
+    pub lineItemIds: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems:bulkListAssignedTargetingOptions
 /// Lists assigned targeting options for multiple line items across targeting types.
 ///
@@ -7986,12 +8635,7 @@ pub fn displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options_
 
 pub fn displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    filter: Option<&str>,
-    lineItemIds: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersLineItemsBulkListAssignedTargetingOptionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BulkListAssignedTargetingOptionsResponse>, ApiError>,
@@ -8002,12 +8646,12 @@ pub fn displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options(
 > {
     let builder = displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options_builder(
         client,
-        advertiserId,
-        filter,
-        lineItemIds,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        args.filter.as_deref(),
+        args.lineItemIds.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_line_items_bulk_list_assigned_targeting_options_execute(builder)
 }
@@ -8109,6 +8753,15 @@ pub fn displayvideo_advertisers_line_items_bulk_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_bulk_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsBulkUpdateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: BulkUpdateLineItemsRequest,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems:bulkUpdate
 /// Updates multiple line items. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * BulkEditAssignedTargetingOptions * UpdateLineItem * `assignedTargetingOptions`.create * `assignedTargetingOptions`.delete YouTube & Partners line items cannot be created or updated using the API.
 ///
@@ -8121,8 +8774,7 @@ pub fn displayvideo_advertisers_line_items_bulk_update_execute(
 
 pub fn displayvideo_advertisers_line_items_bulk_update(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &BulkUpdateLineItemsRequest,
+    args: &DisplayvideoAdvertisersLineItemsBulkUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BulkUpdateLineItemsResponse>, ApiError>,
@@ -8131,8 +8783,11 @@ pub fn displayvideo_advertisers_line_items_bulk_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_line_items_bulk_update_builder(client, advertiserId, body)?;
+    let builder = displayvideo_advertisers_line_items_bulk_update_builder(
+        client,
+        &args.advertiserId,
+        &args.body,
+    )?;
     displayvideo_advertisers_line_items_bulk_update_execute(builder)
 }
 
@@ -8229,6 +8884,15 @@ pub fn displayvideo_advertisers_line_items_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: LineItem,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems
 /// Creates a new line item. Returns the newly created line item if successful. YouTube & Partners line items cannot be created or updated using the API.
 ///
@@ -8241,13 +8905,13 @@ pub fn displayvideo_advertisers_line_items_create_execute(
 
 pub fn displayvideo_advertisers_line_items_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &LineItem,
+    args: &DisplayvideoAdvertisersLineItemsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LineItem>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_line_items_create_builder(client, advertiserId, body)?;
+    let builder =
+        displayvideo_advertisers_line_items_create_builder(client, &args.advertiserId, &args.body)?;
     displayvideo_advertisers_line_items_create_execute(builder)
 }
 
@@ -8342,6 +9006,15 @@ pub fn displayvideo_advertisers_line_items_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
 /// Deletes a line item. Returns error code NOT_FOUND if the line item does not exist. The line item should be archived first, i.e. set entity_status to ENTITY_STATUS_ARCHIVED, to be able to delete it. YouTube & Partners line items cannot be created or updated using the API.
 ///
@@ -8354,14 +9027,16 @@ pub fn displayvideo_advertisers_line_items_delete_execute(
 
 pub fn displayvideo_advertisers_line_items_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    lineItemId: &str,
+    args: &DisplayvideoAdvertisersLineItemsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_line_items_delete_builder(client, advertiserId, lineItemId)?;
+    let builder = displayvideo_advertisers_line_items_delete_builder(
+        client,
+        &args.advertiserId,
+        &args.lineItemId,
+    )?;
     displayvideo_advertisers_line_items_delete_execute(builder)
 }
 
@@ -8461,6 +9136,17 @@ pub fn displayvideo_advertisers_line_items_duplicate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_duplicate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsDuplicateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+    /// Request body.
+    pub body: DuplicateLineItemRequest,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}:duplicate
 /// Duplicates a line item. Returns the ID of the created line item if successful. YouTube & Partners line items cannot be created or updated using the API. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
@@ -8473,9 +9159,7 @@ pub fn displayvideo_advertisers_line_items_duplicate_execute(
 
 pub fn displayvideo_advertisers_line_items_duplicate(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    lineItemId: &str,
-    body: &DuplicateLineItemRequest,
+    args: &DisplayvideoAdvertisersLineItemsDuplicateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DuplicateLineItemResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8484,9 +9168,9 @@ pub fn displayvideo_advertisers_line_items_duplicate(
 > {
     let builder = displayvideo_advertisers_line_items_duplicate_builder(
         client,
-        advertiserId,
-        lineItemId,
-        body,
+        &args.advertiserId,
+        &args.lineItemId,
+        &args.body,
     )?;
     displayvideo_advertisers_line_items_duplicate_execute(builder)
 }
@@ -8582,6 +9266,15 @@ pub fn displayvideo_advertisers_line_items_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
 /// Gets a line item.
 ///
@@ -8594,14 +9287,16 @@ pub fn displayvideo_advertisers_line_items_get_execute(
 
 pub fn displayvideo_advertisers_line_items_get(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    lineItemId: &str,
+    args: &DisplayvideoAdvertisersLineItemsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LineItem>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_line_items_get_builder(client, advertiserId, lineItemId)?;
+    let builder = displayvideo_advertisers_line_items_get_builder(
+        client,
+        &args.advertiserId,
+        &args.lineItemId,
+    )?;
     displayvideo_advertisers_line_items_get_execute(builder)
 }
 
@@ -8721,6 +9416,21 @@ pub fn displayvideo_advertisers_line_items_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems
 /// Lists line items in an advertiser. The order is defined by the order_by parameter. If a filter by entity_status is not specified, line items with ENTITY_STATUS_ARCHIVED will not be included in the results.
 ///
@@ -8733,11 +9443,7 @@ pub fn displayvideo_advertisers_line_items_list_execute(
 
 pub fn displayvideo_advertisers_line_items_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersLineItemsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLineItemsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8746,11 +9452,11 @@ pub fn displayvideo_advertisers_line_items_list(
 > {
     let builder = displayvideo_advertisers_line_items_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_line_items_list_execute(builder)
 }
@@ -8861,6 +9567,19 @@ pub fn displayvideo_advertisers_line_items_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LineItem,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}
 /// Updates an existing line item. Returns the updated line item if successful. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * BulkEditAssignedTargetingOptions * BulkUpdateLineItems * `assignedTargetingOptions`.create * `assignedTargetingOptions`.delete YouTube & Partners line items cannot be created or updated using the API. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
@@ -8873,20 +9592,17 @@ pub fn displayvideo_advertisers_line_items_patch_execute(
 
 pub fn displayvideo_advertisers_line_items_patch(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    lineItemId: &str,
-    updateMask: Option<&str>,
-    body: &LineItem,
+    args: &DisplayvideoAdvertisersLineItemsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LineItem>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_advertisers_line_items_patch_builder(
         client,
-        advertiserId,
-        lineItemId,
-        updateMask,
-        body,
+        &args.advertiserId,
+        &args.lineItemId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_advertisers_line_items_patch_execute(builder)
 }
@@ -8990,6 +9706,19 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Request body.
+    pub body: AssignedTargetingOption,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to a line item. Returns the assigned targeting option if successful. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * `lineItems`.`bulkEditAssignedTargetingOptions` * `lineItems`.`bulkUpdate` * `lineItems`.patch * DeleteLineItemAssignedTargetingOption YouTube & Partners line items cannot be created or updated using the API.
 ///
@@ -9002,17 +9731,14 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
 
 pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    lineItemId: &str,
-    targetingType: &str,
-    body: &AssignedTargetingOption,
+    args: &DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create_builder(client, advertiserId, lineItemId, targetingType, body)?;
+    let builder = displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create_builder(client, &args.advertiserId, &args.lineItemId, &args.targetingType, &args.body)?;
     displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_create_execute(
         builder,
     )
@@ -9114,6 +9840,19 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Path parameter: assignedTargetingOptionId
+    pub assignedTargetingOptionId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from a line item. Requests to this endpoint cannot be made concurrently with the following requests updating the same line item: * `lineItems`.`bulkEditAssignedTargetingOptions` * `lineItems`.`bulkUpdate` * `lineItems`.patch * CreateLineItemAssignedTargetingOption YouTube & Partners line items cannot be created or updated using the API.
 ///
@@ -9126,15 +9865,12 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
 
 pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    lineItemId: &str,
-    targetingType: &str,
-    assignedTargetingOptionId: &str,
+    args: &DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_delete_builder(client, advertiserId, lineItemId, targetingType, assignedTargetingOptionId)?;
+    let builder = displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_delete_builder(client, &args.advertiserId, &args.lineItemId, &args.targetingType, &args.assignedTargetingOptionId)?;
     displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_delete_execute(
         builder,
     )
@@ -9238,6 +9974,19 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Path parameter: assignedTargetingOptionId
+    pub assignedTargetingOptionId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Gets a single targeting option assigned to a line item.
 ///
@@ -9250,10 +9999,7 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
 
 pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    lineItemId: &str,
-    targetingType: &str,
-    assignedTargetingOptionId: &str,
+    args: &DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
         + Send
@@ -9263,10 +10009,10 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
     let builder =
         displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_builder(
             client,
-            advertiserId,
-            lineItemId,
-            targetingType,
-            assignedTargetingOptionId,
+            &args.advertiserId,
+            &args.lineItemId,
+            &args.targetingType,
+            &args.assignedTargetingOptionId,
         )?;
     displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_get_execute(
         builder,
@@ -9396,6 +10142,25 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Lists the targeting options assigned to a line item.
 ///
@@ -9408,13 +10173,7 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
 
 pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    lineItemId: &str,
-    targetingType: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListLineItemAssignedTargetingOptionsResponse>, ApiError>,
@@ -9423,7 +10182,7 @@ pub fn displayvideo_advertisers_line_items_targeting_types_assigned_targeting_op
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_builder(client, advertiserId, lineItemId, targetingType, filter, orderBy, pageSize, pageToken)?;
+    let builder = displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_builder(client, &args.advertiserId, &args.lineItemId, &args.targetingType, args.filter.as_deref(), args.orderBy.as_deref(), args.pageSize, args.pageToken.as_deref())?;
     displayvideo_advertisers_line_items_targeting_types_assigned_targeting_options_list_execute(
         builder,
     )
@@ -9540,6 +10299,21 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+    /// Path parameter: youtubeAssetType
+    pub youtubeAssetType: String,
+    /// Query parameter: linkedEntity_adGroupId
+    pub linkedEntity_adGroupId: Option<String>,
+    /// Request body.
+    pub body: YoutubeAssetAssociation,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
 /// Creates a new association between the identified resource and a YouTube asset. Returns the newly-created association. *Warning:* This method is only available to an informed subset of users.
 ///
@@ -9552,18 +10326,14 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
 
 pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    lineItemId: &str,
-    youtubeAssetType: &str,
-    linkedEntity_adGroupId: Option<&str>,
-    body: &YoutubeAssetAssociation,
+    args: &DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<YoutubeAssetAssociation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create_builder(client, advertiserId, lineItemId, youtubeAssetType, linkedEntity_adGroupId, body)?;
+    let builder = displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create_builder(client, &args.advertiserId, &args.lineItemId, &args.youtubeAssetType, args.linkedEntity_adGroupId.as_deref(), &args.body)?;
     displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_create_execute(builder)
 }
 
@@ -9675,6 +10445,21 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+    /// Path parameter: youtubeAssetType
+    pub youtubeAssetType: String,
+    /// Path parameter: youtubeAssetAssociationId
+    pub youtubeAssetAssociationId: String,
+    /// Query parameter: linkedEntity_adGroupId
+    pub linkedEntity_adGroupId: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations/{youtubeAssetAssociationsId}
 /// Deletes an existing association between the identified resource and a YouTube asset. *Warning:* This method is only available to an informed subset of users.
 ///
@@ -9687,16 +10472,12 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
 
 pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    lineItemId: &str,
-    youtubeAssetType: &str,
-    youtubeAssetAssociationId: &str,
-    linkedEntity_adGroupId: Option<&str>,
+    args: &DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_delete_builder(client, advertiserId, lineItemId, youtubeAssetType, youtubeAssetAssociationId, linkedEntity_adGroupId)?;
+    let builder = displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_delete_builder(client, &args.advertiserId, &args.lineItemId, &args.youtubeAssetType, &args.youtubeAssetAssociationId, args.linkedEntity_adGroupId.as_deref())?;
     displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_delete_execute(builder)
 }
 
@@ -9822,6 +10603,25 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: lineItemId
+    pub lineItemId: String,
+    /// Path parameter: youtubeAssetType
+    pub youtubeAssetType: String,
+    /// Query parameter: linkedEntity_adGroupId
+    pub linkedEntity_adGroupId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/lineItems/{lineItemsId}/youtubeAssetTypes/{youtubeAssetTypesId}/youtubeAssetAssociations
 /// Lists the YouTube asset associations linked to the given resource.
 ///
@@ -9834,13 +10634,7 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
 
 pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    lineItemId: &str,
-    youtubeAssetType: &str,
-    linkedEntity_adGroupId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersLineItemsYoutubeAssetTypesYoutubeAssetAssociationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListYoutubeAssetAssociationsResponse>, ApiError>,
@@ -9849,7 +10643,7 @@ pub fn displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_ass
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_builder(client, advertiserId, lineItemId, youtubeAssetType, linkedEntity_adGroupId, orderBy, pageSize, pageToken)?;
+    let builder = displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_builder(client, &args.advertiserId, &args.lineItemId, &args.youtubeAssetType, args.linkedEntity_adGroupId.as_deref(), args.orderBy.as_deref(), args.pageSize, args.pageToken.as_deref())?;
     displayvideo_advertisers_line_items_youtube_asset_types_youtube_asset_associations_list_execute(
         builder,
     )
@@ -9950,6 +10744,15 @@ pub fn displayvideo_advertisers_location_lists_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_location_lists_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLocationListsCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: LocationList,
+}
+
 /// GET v4/advertisers/{advertisersId}/locationLists
 /// Creates a new location list. Returns the newly created location list if successful.
 ///
@@ -9962,16 +10765,18 @@ pub fn displayvideo_advertisers_location_lists_create_execute(
 
 pub fn displayvideo_advertisers_location_lists_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &LocationList,
+    args: &DisplayvideoAdvertisersLocationListsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LocationList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_location_lists_create_builder(client, advertiserId, body)?;
+    let builder = displayvideo_advertisers_location_lists_create_builder(
+        client,
+        &args.advertiserId,
+        &args.body,
+    )?;
     displayvideo_advertisers_location_lists_create_execute(builder)
 }
 
@@ -10068,6 +10873,15 @@ pub fn displayvideo_advertisers_location_lists_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_location_lists_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLocationListsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: locationListId
+    pub locationListId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/locationLists/{locationListsId}
 /// Gets a location list.
 ///
@@ -10080,16 +10894,18 @@ pub fn displayvideo_advertisers_location_lists_get_execute(
 
 pub fn displayvideo_advertisers_location_lists_get(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    locationListId: &str,
+    args: &DisplayvideoAdvertisersLocationListsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LocationList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_location_lists_get_builder(client, advertiserId, locationListId)?;
+    let builder = displayvideo_advertisers_location_lists_get_builder(
+        client,
+        &args.advertiserId,
+        &args.locationListId,
+    )?;
     displayvideo_advertisers_location_lists_get_execute(builder)
 }
 
@@ -10209,6 +11025,21 @@ pub fn displayvideo_advertisers_location_lists_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_location_lists_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLocationListsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/locationLists
 /// Lists location lists based on a given advertiser id.
 ///
@@ -10221,11 +11052,7 @@ pub fn displayvideo_advertisers_location_lists_list_execute(
 
 pub fn displayvideo_advertisers_location_lists_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersLocationListsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationListsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -10234,11 +11061,11 @@ pub fn displayvideo_advertisers_location_lists_list(
 > {
     let builder = displayvideo_advertisers_location_lists_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_location_lists_list_execute(builder)
 }
@@ -10351,6 +11178,19 @@ pub fn displayvideo_advertisers_location_lists_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_location_lists_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLocationListsPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: locationListId
+    pub locationListId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: LocationList,
+}
+
 /// GET v4/advertisers/{advertisersId}/locationLists/{locationListId}
 /// Updates a location list. Returns the updated location list if successful.
 ///
@@ -10363,10 +11203,7 @@ pub fn displayvideo_advertisers_location_lists_patch_execute(
 
 pub fn displayvideo_advertisers_location_lists_patch(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    locationListId: &str,
-    updateMask: Option<&str>,
-    body: &LocationList,
+    args: &DisplayvideoAdvertisersLocationListsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LocationList>, ApiError>, P = ApiPending>
         + Send
@@ -10375,10 +11212,10 @@ pub fn displayvideo_advertisers_location_lists_patch(
 > {
     let builder = displayvideo_advertisers_location_lists_patch_builder(
         client,
-        advertiserId,
-        locationListId,
-        updateMask,
-        body,
+        &args.advertiserId,
+        &args.locationListId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_advertisers_location_lists_patch_execute(builder)
 }
@@ -10482,6 +11319,17 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_bulk_edit_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_location_lists_assigned_locations_bulk_edit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLocationListsAssignedLocationsBulkEditArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: locationListId
+    pub locationListId: String,
+    /// Request body.
+    pub body: BulkEditAssignedLocationsRequest,
+}
+
 /// GET v4/advertisers/{advertiserId}/locationLists/{locationListsId}/assignedLocations:bulkEdit
 /// Bulk edits multiple assignments between locations and a single location list. The operation will delete the assigned locations provided in `deletedAssignedLocations` and then create the assigned locations provided in `createdAssignedLocations`.
 ///
@@ -10494,9 +11342,7 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_bulk_edit_exec
 
 pub fn displayvideo_advertisers_location_lists_assigned_locations_bulk_edit(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    locationListId: &str,
-    body: &BulkEditAssignedLocationsRequest,
+    args: &DisplayvideoAdvertisersLocationListsAssignedLocationsBulkEditArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BulkEditAssignedLocationsResponse>, ApiError>,
@@ -10507,9 +11353,9 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_bulk_edit(
 > {
     let builder = displayvideo_advertisers_location_lists_assigned_locations_bulk_edit_builder(
         client,
-        advertiserId,
-        locationListId,
-        body,
+        &args.advertiserId,
+        &args.locationListId,
+        &args.body,
     )?;
     displayvideo_advertisers_location_lists_assigned_locations_bulk_edit_execute(builder)
 }
@@ -10610,6 +11456,17 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_location_lists_assigned_locations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLocationListsAssignedLocationsCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: locationListId
+    pub locationListId: String,
+    /// Request body.
+    pub body: AssignedLocation,
+}
+
 /// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations
 /// Creates an assignment between a location and a location list.
 ///
@@ -10622,9 +11479,7 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_create_execute
 
 pub fn displayvideo_advertisers_location_lists_assigned_locations_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    locationListId: &str,
-    body: &AssignedLocation,
+    args: &DisplayvideoAdvertisersLocationListsAssignedLocationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AssignedLocation>, ApiError>, P = ApiPending>
         + Send
@@ -10633,9 +11488,9 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_create(
 > {
     let builder = displayvideo_advertisers_location_lists_assigned_locations_create_builder(
         client,
-        advertiserId,
-        locationListId,
-        body,
+        &args.advertiserId,
+        &args.locationListId,
+        &args.body,
     )?;
     displayvideo_advertisers_location_lists_assigned_locations_create_execute(builder)
 }
@@ -10734,6 +11589,17 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_location_lists_assigned_locations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLocationListsAssignedLocationsDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: locationListId
+    pub locationListId: String,
+    /// Path parameter: assignedLocationId
+    pub assignedLocationId: String,
+}
+
 /// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations/{assignedLocationsId}
 /// Deletes the assignment between a location and a location list.
 ///
@@ -10746,18 +11612,16 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_delete_execute
 
 pub fn displayvideo_advertisers_location_lists_assigned_locations_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    locationListId: &str,
-    assignedLocationId: &str,
+    args: &DisplayvideoAdvertisersLocationListsAssignedLocationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_advertisers_location_lists_assigned_locations_delete_builder(
         client,
-        advertiserId,
-        locationListId,
-        assignedLocationId,
+        &args.advertiserId,
+        &args.locationListId,
+        &args.assignedLocationId,
     )?;
     displayvideo_advertisers_location_lists_assigned_locations_delete_execute(builder)
 }
@@ -10881,6 +11745,23 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_location_lists_assigned_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersLocationListsAssignedLocationsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: locationListId
+    pub locationListId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertiserId}/locationLists/{locationListId}/assignedLocations
 /// Lists locations assigned to a location list.
 ///
@@ -10893,12 +11774,7 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_list_execute(
 
 pub fn displayvideo_advertisers_location_lists_assigned_locations_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    locationListId: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersLocationListsAssignedLocationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAssignedLocationsResponse>, ApiError>,
@@ -10909,12 +11785,12 @@ pub fn displayvideo_advertisers_location_lists_assigned_locations_list(
 > {
     let builder = displayvideo_advertisers_location_lists_assigned_locations_list_builder(
         client,
-        advertiserId,
-        locationListId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        &args.locationListId,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_location_lists_assigned_locations_list_execute(builder)
 }
@@ -11014,6 +11890,15 @@ pub fn displayvideo_advertisers_negative_keyword_lists_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_negative_keyword_lists_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersNegativeKeywordListsCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Request body.
+    pub body: NegativeKeywordList,
+}
+
 /// GET v4/advertisers/{advertisersId}/negativeKeywordLists
 /// Creates a new negative keyword list. Returns the newly created negative keyword list if successful.
 ///
@@ -11026,16 +11911,18 @@ pub fn displayvideo_advertisers_negative_keyword_lists_create_execute(
 
 pub fn displayvideo_advertisers_negative_keyword_lists_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    body: &NegativeKeywordList,
+    args: &DisplayvideoAdvertisersNegativeKeywordListsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NegativeKeywordList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_advertisers_negative_keyword_lists_create_builder(client, advertiserId, body)?;
+    let builder = displayvideo_advertisers_negative_keyword_lists_create_builder(
+        client,
+        &args.advertiserId,
+        &args.body,
+    )?;
     displayvideo_advertisers_negative_keyword_lists_create_execute(builder)
 }
 
@@ -11130,6 +12017,15 @@ pub fn displayvideo_advertisers_negative_keyword_lists_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_negative_keyword_lists_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersNegativeKeywordListsDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: negativeKeywordListId
+    pub negativeKeywordListId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}
 /// Deletes a negative keyword list given an advertiser ID and a negative keyword list ID.
 ///
@@ -11142,16 +12038,15 @@ pub fn displayvideo_advertisers_negative_keyword_lists_delete_execute(
 
 pub fn displayvideo_advertisers_negative_keyword_lists_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    negativeKeywordListId: &str,
+    args: &DisplayvideoAdvertisersNegativeKeywordListsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_advertisers_negative_keyword_lists_delete_builder(
         client,
-        advertiserId,
-        negativeKeywordListId,
+        &args.advertiserId,
+        &args.negativeKeywordListId,
     )?;
     displayvideo_advertisers_negative_keyword_lists_delete_execute(builder)
 }
@@ -11249,6 +12144,15 @@ pub fn displayvideo_advertisers_negative_keyword_lists_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_negative_keyword_lists_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersNegativeKeywordListsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: negativeKeywordListId
+    pub negativeKeywordListId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}
 /// Gets a negative keyword list given an advertiser ID and a negative keyword list ID.
 ///
@@ -11261,8 +12165,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_get_execute(
 
 pub fn displayvideo_advertisers_negative_keyword_lists_get(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    negativeKeywordListId: &str,
+    args: &DisplayvideoAdvertisersNegativeKeywordListsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NegativeKeywordList>, ApiError>, P = ApiPending>
         + Send
@@ -11271,8 +12174,8 @@ pub fn displayvideo_advertisers_negative_keyword_lists_get(
 > {
     let builder = displayvideo_advertisers_negative_keyword_lists_get_builder(
         client,
-        advertiserId,
-        negativeKeywordListId,
+        &args.advertiserId,
+        &args.negativeKeywordListId,
     )?;
     displayvideo_advertisers_negative_keyword_lists_get_execute(builder)
 }
@@ -11387,6 +12290,17 @@ pub fn displayvideo_advertisers_negative_keyword_lists_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_negative_keyword_lists_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersNegativeKeywordListsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/negativeKeywordLists
 /// Lists negative keyword lists based on a given advertiser id.
 ///
@@ -11399,9 +12313,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_list_execute(
 
 pub fn displayvideo_advertisers_negative_keyword_lists_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersNegativeKeywordListsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNegativeKeywordListsResponse>, ApiError>,
@@ -11412,9 +12324,9 @@ pub fn displayvideo_advertisers_negative_keyword_lists_list(
 > {
     let builder = displayvideo_advertisers_negative_keyword_lists_list_builder(
         client,
-        advertiserId,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_negative_keyword_lists_list_execute(builder)
 }
@@ -11527,6 +12439,19 @@ pub fn displayvideo_advertisers_negative_keyword_lists_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_negative_keyword_lists_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersNegativeKeywordListsPatchArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: negativeKeywordListId
+    pub negativeKeywordListId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: NegativeKeywordList,
+}
+
 /// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListId}
 /// Updates a negative keyword list. Returns the updated negative keyword list if successful.
 ///
@@ -11539,10 +12464,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_patch_execute(
 
 pub fn displayvideo_advertisers_negative_keyword_lists_patch(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    negativeKeywordListId: &str,
-    updateMask: Option<&str>,
-    body: &NegativeKeywordList,
+    args: &DisplayvideoAdvertisersNegativeKeywordListsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NegativeKeywordList>, ApiError>, P = ApiPending>
         + Send
@@ -11551,10 +12473,10 @@ pub fn displayvideo_advertisers_negative_keyword_lists_patch(
 > {
     let builder = displayvideo_advertisers_negative_keyword_lists_patch_builder(
         client,
-        advertiserId,
-        negativeKeywordListId,
-        updateMask,
-        body,
+        &args.advertiserId,
+        &args.negativeKeywordListId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_advertisers_negative_keyword_lists_patch_execute(builder)
 }
@@ -11658,6 +12580,17 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_ed
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_edit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsBulkEditArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: negativeKeywordListId
+    pub negativeKeywordListId: String,
+    /// Request body.
+    pub body: BulkEditNegativeKeywordsRequest,
+}
+
 /// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:bulkEdit
 /// Bulk edits negative keywords in a single negative keyword list. The operation will delete the negative keywords provided in BulkEditNegativeKeywordsRequest.deleted_negative_keywords and then create the negative keywords provided in BulkEditNegativeKeywordsRequest.created_negative_keywords. This operation is guaranteed to be atomic and will never result in a partial success or partial failure.
 ///
@@ -11670,9 +12603,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_ed
 
 pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_edit(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    negativeKeywordListId: &str,
-    body: &BulkEditNegativeKeywordsRequest,
+    args: &DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsBulkEditArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BulkEditNegativeKeywordsResponse>, ApiError>,
@@ -11684,9 +12615,9 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_ed
     let builder =
         displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_edit_builder(
             client,
-            advertiserId,
-            negativeKeywordListId,
-            body,
+            &args.advertiserId,
+            &args.negativeKeywordListId,
+            &args.body,
         )?;
     displayvideo_advertisers_negative_keyword_lists_negative_keywords_bulk_edit_execute(builder)
 }
@@ -11788,6 +12719,17 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_create_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_negative_keyword_lists_negative_keywords_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: negativeKeywordListId
+    pub negativeKeywordListId: String,
+    /// Request body.
+    pub body: NegativeKeyword,
+}
+
 /// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords
 /// Creates a negative keyword in a negative keyword list.
 ///
@@ -11800,9 +12742,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_create_
 
 pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    negativeKeywordListId: &str,
-    body: &NegativeKeyword,
+    args: &DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NegativeKeyword>, ApiError>, P = ApiPending>
         + Send
@@ -11811,9 +12751,9 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_create(
 > {
     let builder = displayvideo_advertisers_negative_keyword_lists_negative_keywords_create_builder(
         client,
-        advertiserId,
-        negativeKeywordListId,
-        body,
+        &args.advertiserId,
+        &args.negativeKeywordListId,
+        &args.body,
     )?;
     displayvideo_advertisers_negative_keyword_lists_negative_keywords_create_execute(builder)
 }
@@ -11912,6 +12852,17 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: negativeKeywordListId
+    pub negativeKeywordListId: String,
+    /// Path parameter: keywordValue
+    pub keywordValue: String,
+}
+
 /// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords/{negativeKeywordsId}
 /// Deletes a negative keyword from a negative keyword list.
 ///
@@ -11924,18 +12875,16 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete_
 
 pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    negativeKeywordListId: &str,
-    keywordValue: &str,
+    args: &DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete_builder(
         client,
-        advertiserId,
-        negativeKeywordListId,
-        keywordValue,
+        &args.advertiserId,
+        &args.negativeKeywordListId,
+        &args.keywordValue,
     )?;
     displayvideo_advertisers_negative_keyword_lists_negative_keywords_delete_execute(builder)
 }
@@ -12060,6 +13009,23 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_negative_keyword_lists_negative_keywords_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: negativeKeywordListId
+    pub negativeKeywordListId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords
 /// Lists negative keywords in a negative keyword list.
 ///
@@ -12072,12 +13038,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_list_ex
 
 pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    negativeKeywordListId: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListNegativeKeywordsResponse>, ApiError>,
@@ -12088,12 +13049,12 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_list(
 > {
     let builder = displayvideo_advertisers_negative_keyword_lists_negative_keywords_list_builder(
         client,
-        advertiserId,
-        negativeKeywordListId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        &args.negativeKeywordListId,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_negative_keyword_lists_negative_keywords_list_execute(builder)
 }
@@ -12197,6 +13158,17 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsReplaceArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: negativeKeywordListId
+    pub negativeKeywordListId: String,
+    /// Request body.
+    pub body: ReplaceNegativeKeywordsRequest,
+}
+
 /// GET v4/advertisers/{advertiserId}/negativeKeywordLists/{negativeKeywordListsId}/negativeKeywords:replace
 /// Replaces all negative keywords in a single negative keyword list. The operation will replace the keywords in a negative keyword list with keywords provided in ReplaceNegativeKeywordsRequest.new_negative_keywords.
 ///
@@ -12209,9 +13181,7 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace
 
 pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    negativeKeywordListId: &str,
-    body: &ReplaceNegativeKeywordsRequest,
+    args: &DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsReplaceArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ReplaceNegativeKeywordsResponse>, ApiError>,
@@ -12223,9 +13193,9 @@ pub fn displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace
     let builder =
         displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace_builder(
             client,
-            advertiserId,
-            negativeKeywordListId,
-            body,
+            &args.advertiserId,
+            &args.negativeKeywordListId,
+            &args.body,
         )?;
     displayvideo_advertisers_negative_keyword_lists_negative_keywords_replace_execute(builder)
 }
@@ -12327,6 +13297,17 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_creat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_targeting_types_assigned_targeting_options_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsCreateArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Request body.
+    pub body: AssignedTargetingOption,
+}
+
 /// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to an advertiser. Returns the assigned targeting option if successful.
 ///
@@ -12339,9 +13320,7 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_creat
 
 pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_create(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    targetingType: &str,
-    body: &AssignedTargetingOption,
+    args: &DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
         + Send
@@ -12351,9 +13330,9 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_creat
     let builder =
         displayvideo_advertisers_targeting_types_assigned_targeting_options_create_builder(
             client,
-            advertiserId,
-            targetingType,
-            body,
+            &args.advertiserId,
+            &args.targetingType,
+            &args.body,
         )?;
     displayvideo_advertisers_targeting_types_assigned_targeting_options_create_execute(builder)
 }
@@ -12452,6 +13431,17 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_delet
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_targeting_types_assigned_targeting_options_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsDeleteArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Path parameter: assignedTargetingOptionId
+    pub assignedTargetingOptionId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from an advertiser.
 ///
@@ -12464,9 +13454,7 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_delet
 
 pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_delete(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    targetingType: &str,
-    assignedTargetingOptionId: &str,
+    args: &DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -12474,9 +13462,9 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_delet
     let builder =
         displayvideo_advertisers_targeting_types_assigned_targeting_options_delete_builder(
             client,
-            advertiserId,
-            targetingType,
-            assignedTargetingOptionId,
+            &args.advertiserId,
+            &args.targetingType,
+            &args.assignedTargetingOptionId,
         )?;
     displayvideo_advertisers_targeting_types_assigned_targeting_options_delete_execute(builder)
 }
@@ -12577,6 +13565,17 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_get_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_targeting_types_assigned_targeting_options_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsGetArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Path parameter: assignedTargetingOptionId
+    pub assignedTargetingOptionId: String,
+}
+
 /// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Gets a single targeting option assigned to an advertiser.
 ///
@@ -12589,9 +13588,7 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_get_e
 
 pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_get(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    targetingType: &str,
-    assignedTargetingOptionId: &str,
+    args: &DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
         + Send
@@ -12600,9 +13597,9 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_get(
 > {
     let builder = displayvideo_advertisers_targeting_types_assigned_targeting_options_get_builder(
         client,
-        advertiserId,
-        targetingType,
-        assignedTargetingOptionId,
+        &args.advertiserId,
+        &args.targetingType,
+        &args.assignedTargetingOptionId,
     )?;
     displayvideo_advertisers_targeting_types_assigned_targeting_options_get_execute(builder)
 }
@@ -12728,6 +13725,23 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_list_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_advertisers_targeting_types_assigned_targeting_options_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsListArgs {
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/advertisers/{advertisersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Lists the targeting options assigned to an advertiser.
 ///
@@ -12740,12 +13754,7 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_list_
 
 pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_list(
     client: &SimpleHttpClient,
-    advertiserId: &str,
-    targetingType: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAdvertiserAssignedTargetingOptionsResponse>, ApiError>,
@@ -12756,12 +13765,12 @@ pub fn displayvideo_advertisers_targeting_types_assigned_targeting_options_list(
 > {
     let builder = displayvideo_advertisers_targeting_types_assigned_targeting_options_list_builder(
         client,
-        advertiserId,
-        targetingType,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.advertiserId,
+        &args.targetingType,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_advertisers_targeting_types_assigned_targeting_options_list_execute(builder)
 }
@@ -12874,6 +13883,17 @@ pub fn displayvideo_combined_audiences_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_combined_audiences_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCombinedAudiencesGetArgs {
+    /// Path parameter: combinedAudienceId
+    pub combinedAudienceId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/combinedAudiences/{combinedAudiencesId}
 /// Gets a combined audience.
 ///
@@ -12886,9 +13906,7 @@ pub fn displayvideo_combined_audiences_get_execute(
 
 pub fn displayvideo_combined_audiences_get(
     client: &SimpleHttpClient,
-    combinedAudienceId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoCombinedAudiencesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CombinedAudience>, ApiError>, P = ApiPending>
         + Send
@@ -12897,9 +13915,9 @@ pub fn displayvideo_combined_audiences_get(
 > {
     let builder = displayvideo_combined_audiences_get_builder(
         client,
-        combinedAudienceId,
-        advertiserId,
-        partnerId,
+        &args.combinedAudienceId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_combined_audiences_get_execute(builder)
 }
@@ -13026,6 +14044,23 @@ pub fn displayvideo_combined_audiences_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_combined_audiences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCombinedAudiencesListArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/combinedAudiences
 /// Lists combined audiences. The order is defined by the order_by parameter.
 ///
@@ -13038,12 +14073,7 @@ pub fn displayvideo_combined_audiences_list_execute(
 
 pub fn displayvideo_combined_audiences_list(
     client: &SimpleHttpClient,
-    advertiserId: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoCombinedAudiencesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCombinedAudiencesResponse>, ApiError>,
@@ -13054,12 +14084,12 @@ pub fn displayvideo_combined_audiences_list(
 > {
     let builder = displayvideo_combined_audiences_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        partnerId,
+        args.advertiserId.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_combined_audiences_list_execute(builder)
 }
@@ -13155,6 +14185,13 @@ pub fn displayvideo_custom_bidding_algorithms_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_custom_bidding_algorithms_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsCreateArgs {
+    /// Request body.
+    pub body: CustomBiddingAlgorithm,
+}
+
 /// GET v4/customBiddingAlgorithms
 /// Creates a new custom bidding algorithm. Returns the newly created custom bidding algorithm if successful.
 ///
@@ -13167,14 +14204,14 @@ pub fn displayvideo_custom_bidding_algorithms_create_execute(
 
 pub fn displayvideo_custom_bidding_algorithms_create(
     client: &SimpleHttpClient,
-    body: &CustomBiddingAlgorithm,
+    args: &DisplayvideoCustomBiddingAlgorithmsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomBiddingAlgorithm>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_custom_bidding_algorithms_create_builder(client, body)?;
+    let builder = displayvideo_custom_bidding_algorithms_create_builder(client, &args.body)?;
     displayvideo_custom_bidding_algorithms_create_execute(builder)
 }
 
@@ -13286,6 +14323,17 @@ pub fn displayvideo_custom_bidding_algorithms_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_custom_bidding_algorithms_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsGetArgs {
+    /// Path parameter: customBiddingAlgorithmId
+    pub customBiddingAlgorithmId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}
 /// Gets a custom bidding algorithm.
 ///
@@ -13298,9 +14346,7 @@ pub fn displayvideo_custom_bidding_algorithms_get_execute(
 
 pub fn displayvideo_custom_bidding_algorithms_get(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoCustomBiddingAlgorithmsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomBiddingAlgorithm>, ApiError>, P = ApiPending>
         + Send
@@ -13309,9 +14355,9 @@ pub fn displayvideo_custom_bidding_algorithms_get(
 > {
     let builder = displayvideo_custom_bidding_algorithms_get_builder(
         client,
-        customBiddingAlgorithmId,
-        advertiserId,
-        partnerId,
+        &args.customBiddingAlgorithmId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_custom_bidding_algorithms_get_execute(builder)
 }
@@ -13438,6 +14484,23 @@ pub fn displayvideo_custom_bidding_algorithms_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_custom_bidding_algorithms_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsListArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/customBiddingAlgorithms
 /// Lists custom bidding algorithms that are accessible to the current user and can be used in bidding stratgies. The order is defined by the order_by parameter.
 ///
@@ -13450,12 +14513,7 @@ pub fn displayvideo_custom_bidding_algorithms_list_execute(
 
 pub fn displayvideo_custom_bidding_algorithms_list(
     client: &SimpleHttpClient,
-    advertiserId: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoCustomBiddingAlgorithmsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCustomBiddingAlgorithmsResponse>, ApiError>,
@@ -13466,12 +14524,12 @@ pub fn displayvideo_custom_bidding_algorithms_list(
 > {
     let builder = displayvideo_custom_bidding_algorithms_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        partnerId,
+        args.advertiserId.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_custom_bidding_algorithms_list_execute(builder)
 }
@@ -13583,6 +14641,17 @@ pub fn displayvideo_custom_bidding_algorithms_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_custom_bidding_algorithms_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsPatchArgs {
+    /// Path parameter: customBiddingAlgorithmId
+    pub customBiddingAlgorithmId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CustomBiddingAlgorithm,
+}
+
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}
 /// Updates an existing custom bidding algorithm. Returns the updated custom bidding algorithm if successful. Requests updating a custom bidding algorithm assigned to a line item will return an error.
 ///
@@ -13595,9 +14664,7 @@ pub fn displayvideo_custom_bidding_algorithms_patch_execute(
 
 pub fn displayvideo_custom_bidding_algorithms_patch(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: &str,
-    updateMask: Option<&str>,
-    body: &CustomBiddingAlgorithm,
+    args: &DisplayvideoCustomBiddingAlgorithmsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomBiddingAlgorithm>, ApiError>, P = ApiPending>
         + Send
@@ -13606,9 +14673,9 @@ pub fn displayvideo_custom_bidding_algorithms_patch(
 > {
     let builder = displayvideo_custom_bidding_algorithms_patch_builder(
         client,
-        customBiddingAlgorithmId,
-        updateMask,
-        body,
+        &args.customBiddingAlgorithmId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_custom_bidding_algorithms_patch_execute(builder)
 }
@@ -13723,6 +14790,17 @@ pub fn displayvideo_custom_bidding_algorithms_upload_rules_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_custom_bidding_algorithms_upload_rules`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsUploadRulesArgs {
+    /// Path parameter: customBiddingAlgorithmId
+    pub customBiddingAlgorithmId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}:uploadRules
 /// Creates a rules reference object for an AlgorithmRules file. The resulting reference object provides a resource path where the AlgorithmRules file should be uploaded. This reference object should be included when creating a new CustomBiddingAlgorithmRules resource.
 ///
@@ -13735,9 +14813,7 @@ pub fn displayvideo_custom_bidding_algorithms_upload_rules_execute(
 
 pub fn displayvideo_custom_bidding_algorithms_upload_rules(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoCustomBiddingAlgorithmsUploadRulesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CustomBiddingAlgorithmRulesRef>, ApiError>,
@@ -13748,9 +14824,9 @@ pub fn displayvideo_custom_bidding_algorithms_upload_rules(
 > {
     let builder = displayvideo_custom_bidding_algorithms_upload_rules_builder(
         client,
-        customBiddingAlgorithmId,
-        advertiserId,
-        partnerId,
+        &args.customBiddingAlgorithmId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_custom_bidding_algorithms_upload_rules_execute(builder)
 }
@@ -13863,6 +14939,17 @@ pub fn displayvideo_custom_bidding_algorithms_upload_script_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_custom_bidding_algorithms_upload_script`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsUploadScriptArgs {
+    /// Path parameter: customBiddingAlgorithmId
+    pub customBiddingAlgorithmId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}:uploadScript
 /// Creates a custom bidding script reference object for a script file. The resulting reference object provides a resource path to which the script file should be uploaded. This reference object should be included in when creating a new custom bidding script object.
 ///
@@ -13875,9 +14962,7 @@ pub fn displayvideo_custom_bidding_algorithms_upload_script_execute(
 
 pub fn displayvideo_custom_bidding_algorithms_upload_script(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoCustomBiddingAlgorithmsUploadScriptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomBiddingScriptRef>, ApiError>, P = ApiPending>
         + Send
@@ -13886,9 +14971,9 @@ pub fn displayvideo_custom_bidding_algorithms_upload_script(
 > {
     let builder = displayvideo_custom_bidding_algorithms_upload_script_builder(
         client,
-        customBiddingAlgorithmId,
-        advertiserId,
-        partnerId,
+        &args.customBiddingAlgorithmId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_custom_bidding_algorithms_upload_script_execute(builder)
 }
@@ -14006,6 +15091,19 @@ pub fn displayvideo_custom_bidding_algorithms_rules_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_custom_bidding_algorithms_rules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsRulesCreateArgs {
+    /// Path parameter: customBiddingAlgorithmId
+    pub customBiddingAlgorithmId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+    /// Request body.
+    pub body: CustomBiddingAlgorithmRules,
+}
+
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
 /// Creates a new rules resource. Returns the newly created rules resource if successful. Requests creating a custom bidding rules resource under an algorithm assigned to a line item will return an error.
 ///
@@ -14018,10 +15116,7 @@ pub fn displayvideo_custom_bidding_algorithms_rules_create_execute(
 
 pub fn displayvideo_custom_bidding_algorithms_rules_create(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
-    body: &CustomBiddingAlgorithmRules,
+    args: &DisplayvideoCustomBiddingAlgorithmsRulesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CustomBiddingAlgorithmRules>, ApiError>,
@@ -14032,10 +15127,10 @@ pub fn displayvideo_custom_bidding_algorithms_rules_create(
 > {
     let builder = displayvideo_custom_bidding_algorithms_rules_create_builder(
         client,
-        customBiddingAlgorithmId,
-        advertiserId,
-        partnerId,
-        body,
+        &args.customBiddingAlgorithmId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
+        &args.body,
     )?;
     displayvideo_custom_bidding_algorithms_rules_create_execute(builder)
 }
@@ -14151,6 +15246,19 @@ pub fn displayvideo_custom_bidding_algorithms_rules_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_custom_bidding_algorithms_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsRulesGetArgs {
+    /// Path parameter: customBiddingAlgorithmId
+    pub customBiddingAlgorithmId: String,
+    /// Path parameter: customBiddingAlgorithmRulesId
+    pub customBiddingAlgorithmRulesId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules/{rulesId}
 /// Retrieves a rules resource.
 ///
@@ -14163,10 +15271,7 @@ pub fn displayvideo_custom_bidding_algorithms_rules_get_execute(
 
 pub fn displayvideo_custom_bidding_algorithms_rules_get(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: &str,
-    customBiddingAlgorithmRulesId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoCustomBiddingAlgorithmsRulesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CustomBiddingAlgorithmRules>, ApiError>,
@@ -14177,10 +15282,10 @@ pub fn displayvideo_custom_bidding_algorithms_rules_get(
 > {
     let builder = displayvideo_custom_bidding_algorithms_rules_get_builder(
         client,
-        customBiddingAlgorithmId,
-        customBiddingAlgorithmRulesId,
-        advertiserId,
-        partnerId,
+        &args.customBiddingAlgorithmId,
+        &args.customBiddingAlgorithmRulesId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_custom_bidding_algorithms_rules_get_execute(builder)
 }
@@ -14308,6 +15413,23 @@ pub fn displayvideo_custom_bidding_algorithms_rules_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_custom_bidding_algorithms_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsRulesListArgs {
+    /// Path parameter: customBiddingAlgorithmId
+    pub customBiddingAlgorithmId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/rules
 /// Lists rules resources that belong to the given algorithm. The order is defined by the order_by parameter.
 ///
@@ -14320,12 +15442,7 @@ pub fn displayvideo_custom_bidding_algorithms_rules_list_execute(
 
 pub fn displayvideo_custom_bidding_algorithms_rules_list(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: &str,
-    advertiserId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoCustomBiddingAlgorithmsRulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCustomBiddingAlgorithmRulesResponse>, ApiError>,
@@ -14336,12 +15453,12 @@ pub fn displayvideo_custom_bidding_algorithms_rules_list(
 > {
     let builder = displayvideo_custom_bidding_algorithms_rules_list_builder(
         client,
-        customBiddingAlgorithmId,
-        advertiserId,
-        orderBy,
-        pageSize,
-        pageToken,
-        partnerId,
+        &args.customBiddingAlgorithmId,
+        args.advertiserId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_custom_bidding_algorithms_rules_list_execute(builder)
 }
@@ -14457,6 +15574,19 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_custom_bidding_algorithms_scripts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsScriptsCreateArgs {
+    /// Path parameter: customBiddingAlgorithmId
+    pub customBiddingAlgorithmId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+    /// Request body.
+    pub body: CustomBiddingScript,
+}
+
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
 /// Creates a new custom bidding script. Returns the newly created script if successful. Requests creating a custom bidding script under an algorithm assigned to a line item will return an error.
 ///
@@ -14469,10 +15599,7 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_create_execute(
 
 pub fn displayvideo_custom_bidding_algorithms_scripts_create(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
-    body: &CustomBiddingScript,
+    args: &DisplayvideoCustomBiddingAlgorithmsScriptsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomBiddingScript>, ApiError>, P = ApiPending>
         + Send
@@ -14481,10 +15608,10 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_create(
 > {
     let builder = displayvideo_custom_bidding_algorithms_scripts_create_builder(
         client,
-        customBiddingAlgorithmId,
-        advertiserId,
-        partnerId,
-        body,
+        &args.customBiddingAlgorithmId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
+        &args.body,
     )?;
     displayvideo_custom_bidding_algorithms_scripts_create_execute(builder)
 }
@@ -14598,6 +15725,19 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_custom_bidding_algorithms_scripts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsScriptsGetArgs {
+    /// Path parameter: customBiddingAlgorithmId
+    pub customBiddingAlgorithmId: String,
+    /// Path parameter: customBiddingScriptId
+    pub customBiddingScriptId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts/{scriptsId}
 /// Gets a custom bidding script.
 ///
@@ -14610,10 +15750,7 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_get_execute(
 
 pub fn displayvideo_custom_bidding_algorithms_scripts_get(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: &str,
-    customBiddingScriptId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoCustomBiddingAlgorithmsScriptsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomBiddingScript>, ApiError>, P = ApiPending>
         + Send
@@ -14622,10 +15759,10 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_get(
 > {
     let builder = displayvideo_custom_bidding_algorithms_scripts_get_builder(
         client,
-        customBiddingAlgorithmId,
-        customBiddingScriptId,
-        advertiserId,
-        partnerId,
+        &args.customBiddingAlgorithmId,
+        &args.customBiddingScriptId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_custom_bidding_algorithms_scripts_get_execute(builder)
 }
@@ -14752,6 +15889,23 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_custom_bidding_algorithms_scripts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomBiddingAlgorithmsScriptsListArgs {
+    /// Path parameter: customBiddingAlgorithmId
+    pub customBiddingAlgorithmId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/customBiddingAlgorithms/{customBiddingAlgorithmsId}/scripts
 /// Lists custom bidding scripts that belong to the given algorithm. The order is defined by the order_by parameter.
 ///
@@ -14764,12 +15918,7 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_list_execute(
 
 pub fn displayvideo_custom_bidding_algorithms_scripts_list(
     client: &SimpleHttpClient,
-    customBiddingAlgorithmId: &str,
-    advertiserId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoCustomBiddingAlgorithmsScriptsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCustomBiddingScriptsResponse>, ApiError>,
@@ -14780,12 +15929,12 @@ pub fn displayvideo_custom_bidding_algorithms_scripts_list(
 > {
     let builder = displayvideo_custom_bidding_algorithms_scripts_list_builder(
         client,
-        customBiddingAlgorithmId,
-        advertiserId,
-        orderBy,
-        pageSize,
-        pageToken,
-        partnerId,
+        &args.customBiddingAlgorithmId,
+        args.advertiserId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_custom_bidding_algorithms_scripts_list_execute(builder)
 }
@@ -14892,6 +16041,15 @@ pub fn displayvideo_custom_lists_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_custom_lists_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomListsGetArgs {
+    /// Path parameter: customListId
+    pub customListId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+}
+
 /// GET v4/customLists/{customListsId}
 /// Gets a custom list.
 ///
@@ -14904,13 +16062,16 @@ pub fn displayvideo_custom_lists_get_execute(
 
 pub fn displayvideo_custom_lists_get(
     client: &SimpleHttpClient,
-    customListId: &str,
-    advertiserId: Option<&str>,
+    args: &DisplayvideoCustomListsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_custom_lists_get_builder(client, customListId, advertiserId)?;
+    let builder = displayvideo_custom_lists_get_builder(
+        client,
+        &args.customListId,
+        args.advertiserId.as_deref(),
+    )?;
     displayvideo_custom_lists_get_execute(builder)
 }
 
@@ -15030,6 +16191,21 @@ pub fn displayvideo_custom_lists_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_custom_lists_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoCustomListsListArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/customLists
 /// Lists custom lists. The order is defined by the order_by parameter.
 ///
@@ -15042,11 +16218,7 @@ pub fn displayvideo_custom_lists_list_execute(
 
 pub fn displayvideo_custom_lists_list(
     client: &SimpleHttpClient,
-    advertiserId: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoCustomListsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCustomListsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -15055,11 +16227,11 @@ pub fn displayvideo_custom_lists_list(
 > {
     let builder = displayvideo_custom_lists_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        args.advertiserId.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_custom_lists_list_execute(builder)
 }
@@ -15169,6 +16341,15 @@ pub fn displayvideo_first_party_and_partner_audiences_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_first_party_and_partner_audiences_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoFirstPartyAndPartnerAudiencesCreateArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Request body.
+    pub body: FirstPartyAndPartnerAudience,
+}
+
 /// GET v4/firstPartyAndPartnerAudiences
 /// Creates a FirstPartyAndPartnerAudience. Only supported for the following audience_type: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
 ///
@@ -15181,8 +16362,7 @@ pub fn displayvideo_first_party_and_partner_audiences_create_execute(
 
 pub fn displayvideo_first_party_and_partner_audiences_create(
     client: &SimpleHttpClient,
-    advertiserId: Option<&str>,
-    body: &FirstPartyAndPartnerAudience,
+    args: &DisplayvideoFirstPartyAndPartnerAudiencesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FirstPartyAndPartnerAudience>, ApiError>,
@@ -15191,8 +16371,11 @@ pub fn displayvideo_first_party_and_partner_audiences_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_first_party_and_partner_audiences_create_builder(client, advertiserId, body)?;
+    let builder = displayvideo_first_party_and_partner_audiences_create_builder(
+        client,
+        args.advertiserId.as_deref(),
+        &args.body,
+    )?;
     displayvideo_first_party_and_partner_audiences_create_execute(builder)
 }
 
@@ -15293,6 +16476,15 @@ pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_member
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_first_party_and_partner_audiences_edit_customer_match_members`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoFirstPartyAndPartnerAudiencesEditCustomerMatchMembersArgs {
+    /// Path parameter: firstPartyAndPartnerAudienceId
+    pub firstPartyAndPartnerAudienceId: String,
+    /// Request body.
+    pub body: EditCustomerMatchMembersRequest,
+}
+
 /// GET v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}:editCustomerMatchMembers
 /// Updates the member list of a Customer Match audience. Only supported for the following audience_type: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
 ///
@@ -15305,8 +16497,7 @@ pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_member
 
 pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_members(
     client: &SimpleHttpClient,
-    firstPartyAndPartnerAudienceId: &str,
-    body: &EditCustomerMatchMembersRequest,
+    args: &DisplayvideoFirstPartyAndPartnerAudiencesEditCustomerMatchMembersArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EditCustomerMatchMembersResponse>, ApiError>,
@@ -15318,8 +16509,8 @@ pub fn displayvideo_first_party_and_partner_audiences_edit_customer_match_member
     let builder =
         displayvideo_first_party_and_partner_audiences_edit_customer_match_members_builder(
             client,
-            firstPartyAndPartnerAudienceId,
-            body,
+            &args.firstPartyAndPartnerAudienceId,
+            &args.body,
         )?;
     displayvideo_first_party_and_partner_audiences_edit_customer_match_members_execute(builder)
 }
@@ -15434,6 +16625,17 @@ pub fn displayvideo_first_party_and_partner_audiences_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_first_party_and_partner_audiences_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoFirstPartyAndPartnerAudiencesGetArgs {
+    /// Path parameter: firstPartyAndPartnerAudienceId
+    pub firstPartyAndPartnerAudienceId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}
 /// Gets a first party or partner audience.
 ///
@@ -15446,9 +16648,7 @@ pub fn displayvideo_first_party_and_partner_audiences_get_execute(
 
 pub fn displayvideo_first_party_and_partner_audiences_get(
     client: &SimpleHttpClient,
-    firstPartyAndPartnerAudienceId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoFirstPartyAndPartnerAudiencesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FirstPartyAndPartnerAudience>, ApiError>,
@@ -15459,9 +16659,9 @@ pub fn displayvideo_first_party_and_partner_audiences_get(
 > {
     let builder = displayvideo_first_party_and_partner_audiences_get_builder(
         client,
-        firstPartyAndPartnerAudienceId,
-        advertiserId,
-        partnerId,
+        &args.firstPartyAndPartnerAudienceId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_first_party_and_partner_audiences_get_execute(builder)
 }
@@ -15588,6 +16788,23 @@ pub fn displayvideo_first_party_and_partner_audiences_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_first_party_and_partner_audiences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoFirstPartyAndPartnerAudiencesListArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/firstPartyAndPartnerAudiences
 /// Lists first party and partner audiences. The order is defined by the order_by parameter.
 ///
@@ -15600,12 +16817,7 @@ pub fn displayvideo_first_party_and_partner_audiences_list_execute(
 
 pub fn displayvideo_first_party_and_partner_audiences_list(
     client: &SimpleHttpClient,
-    advertiserId: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoFirstPartyAndPartnerAudiencesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListFirstPartyAndPartnerAudiencesResponse>, ApiError>,
@@ -15616,12 +16828,12 @@ pub fn displayvideo_first_party_and_partner_audiences_list(
 > {
     let builder = displayvideo_first_party_and_partner_audiences_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        partnerId,
+        args.advertiserId.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_first_party_and_partner_audiences_list_execute(builder)
 }
@@ -15739,6 +16951,19 @@ pub fn displayvideo_first_party_and_partner_audiences_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_first_party_and_partner_audiences_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoFirstPartyAndPartnerAudiencesPatchArgs {
+    /// Path parameter: firstPartyAndPartnerAudienceId
+    pub firstPartyAndPartnerAudienceId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: FirstPartyAndPartnerAudience,
+}
+
 /// GET v4/firstPartyAndPartnerAudiences/{firstPartyAndPartnerAudiencesId}
 /// Updates an existing FirstPartyAndPartnerAudience. Only supported for the following audience_type: * CUSTOMER_MATCH_CONTACT_INFO * CUSTOMER_MATCH_DEVICE_ID
 ///
@@ -15751,10 +16976,7 @@ pub fn displayvideo_first_party_and_partner_audiences_patch_execute(
 
 pub fn displayvideo_first_party_and_partner_audiences_patch(
     client: &SimpleHttpClient,
-    firstPartyAndPartnerAudienceId: &str,
-    advertiserId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &FirstPartyAndPartnerAudience,
+    args: &DisplayvideoFirstPartyAndPartnerAudiencesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FirstPartyAndPartnerAudience>, ApiError>,
@@ -15765,10 +16987,10 @@ pub fn displayvideo_first_party_and_partner_audiences_patch(
 > {
     let builder = displayvideo_first_party_and_partner_audiences_patch_builder(
         client,
-        firstPartyAndPartnerAudienceId,
-        advertiserId,
-        updateMask,
-        body,
+        &args.firstPartyAndPartnerAudienceId,
+        args.advertiserId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_first_party_and_partner_audiences_patch_execute(builder)
 }
@@ -15877,6 +17099,15 @@ pub fn displayvideo_floodlight_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_floodlight_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoFloodlightGroupsGetArgs {
+    /// Path parameter: floodlightGroupId
+    pub floodlightGroupId: String,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/floodlightGroups/{floodlightGroupsId}
 /// Gets a Floodlight group.
 ///
@@ -15889,15 +17120,18 @@ pub fn displayvideo_floodlight_groups_get_execute(
 
 pub fn displayvideo_floodlight_groups_get(
     client: &SimpleHttpClient,
-    floodlightGroupId: &str,
-    partnerId: Option<&str>,
+    args: &DisplayvideoFloodlightGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FloodlightGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_floodlight_groups_get_builder(client, floodlightGroupId, partnerId)?;
+    let builder = displayvideo_floodlight_groups_get_builder(
+        client,
+        &args.floodlightGroupId,
+        args.partnerId.as_deref(),
+    )?;
     displayvideo_floodlight_groups_get_execute(builder)
 }
 
@@ -16012,6 +17246,19 @@ pub fn displayvideo_floodlight_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_floodlight_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoFloodlightGroupsPatchArgs {
+    /// Path parameter: floodlightGroupId
+    pub floodlightGroupId: String,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: FloodlightGroup,
+}
+
 /// GET v4/floodlightGroups/{floodlightGroupId}
 /// Updates an existing Floodlight group. Returns the updated Floodlight group if successful.
 ///
@@ -16024,10 +17271,7 @@ pub fn displayvideo_floodlight_groups_patch_execute(
 
 pub fn displayvideo_floodlight_groups_patch(
     client: &SimpleHttpClient,
-    floodlightGroupId: &str,
-    partnerId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &FloodlightGroup,
+    args: &DisplayvideoFloodlightGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FloodlightGroup>, ApiError>, P = ApiPending>
         + Send
@@ -16036,10 +17280,10 @@ pub fn displayvideo_floodlight_groups_patch(
 > {
     let builder = displayvideo_floodlight_groups_patch_builder(
         client,
-        floodlightGroupId,
-        partnerId,
-        updateMask,
-        body,
+        &args.floodlightGroupId,
+        args.partnerId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_floodlight_groups_patch_execute(builder)
 }
@@ -16149,6 +17393,17 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_floodlight_groups_floodlight_activities_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoFloodlightGroupsFloodlightActivitiesGetArgs {
+    /// Path parameter: floodlightGroupId
+    pub floodlightGroupId: String,
+    /// Path parameter: floodlightActivityId
+    pub floodlightActivityId: String,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/floodlightGroups/{floodlightGroupsId}/floodlightActivities/{floodlightActivitiesId}
 /// Gets a Floodlight activity.
 ///
@@ -16161,9 +17416,7 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_get_execute(
 
 pub fn displayvideo_floodlight_groups_floodlight_activities_get(
     client: &SimpleHttpClient,
-    floodlightGroupId: &str,
-    floodlightActivityId: &str,
-    partnerId: Option<&str>,
+    args: &DisplayvideoFloodlightGroupsFloodlightActivitiesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FloodlightActivity>, ApiError>, P = ApiPending>
         + Send
@@ -16172,9 +17425,9 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_get(
 > {
     let builder = displayvideo_floodlight_groups_floodlight_activities_get_builder(
         client,
-        floodlightGroupId,
-        floodlightActivityId,
-        partnerId,
+        &args.floodlightGroupId,
+        &args.floodlightActivityId,
+        args.partnerId.as_deref(),
     )?;
     displayvideo_floodlight_groups_floodlight_activities_get_execute(builder)
 }
@@ -16297,6 +17550,21 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_floodlight_groups_floodlight_activities_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoFloodlightGroupsFloodlightActivitiesListArgs {
+    /// Path parameter: floodlightGroupId
+    pub floodlightGroupId: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/floodlightGroups/{floodlightGroupsId}/floodlightActivities
 /// Lists Floodlight activities in a Floodlight group.
 ///
@@ -16309,11 +17577,7 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_list_execute(
 
 pub fn displayvideo_floodlight_groups_floodlight_activities_list(
     client: &SimpleHttpClient,
-    floodlightGroupId: &str,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoFloodlightGroupsFloodlightActivitiesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListFloodlightActivitiesResponse>, ApiError>,
@@ -16324,11 +17588,11 @@ pub fn displayvideo_floodlight_groups_floodlight_activities_list(
 > {
     let builder = displayvideo_floodlight_groups_floodlight_activities_list_builder(
         client,
-        floodlightGroupId,
-        orderBy,
-        pageSize,
-        pageToken,
-        partnerId,
+        &args.floodlightGroupId,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_floodlight_groups_floodlight_activities_list_execute(builder)
 }
@@ -16441,6 +17705,17 @@ pub fn displayvideo_google_audiences_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_google_audiences_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoGoogleAudiencesGetArgs {
+    /// Path parameter: googleAudienceId
+    pub googleAudienceId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/googleAudiences/{googleAudiencesId}
 /// Gets a Google audience.
 ///
@@ -16453,9 +17728,7 @@ pub fn displayvideo_google_audiences_get_execute(
 
 pub fn displayvideo_google_audiences_get(
     client: &SimpleHttpClient,
-    googleAudienceId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoGoogleAudiencesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleAudience>, ApiError>, P = ApiPending>
         + Send
@@ -16464,9 +17737,9 @@ pub fn displayvideo_google_audiences_get(
 > {
     let builder = displayvideo_google_audiences_get_builder(
         client,
-        googleAudienceId,
-        advertiserId,
-        partnerId,
+        &args.googleAudienceId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_google_audiences_get_execute(builder)
 }
@@ -16593,6 +17866,23 @@ pub fn displayvideo_google_audiences_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_google_audiences_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoGoogleAudiencesListArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/googleAudiences
 /// Lists Google audiences. The order is defined by the order_by parameter.
 ///
@@ -16605,12 +17895,7 @@ pub fn displayvideo_google_audiences_list_execute(
 
 pub fn displayvideo_google_audiences_list(
     client: &SimpleHttpClient,
-    advertiserId: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoGoogleAudiencesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListGoogleAudiencesResponse>, ApiError>,
@@ -16621,12 +17906,12 @@ pub fn displayvideo_google_audiences_list(
 > {
     let builder = displayvideo_google_audiences_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        partnerId,
+        args.advertiserId.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_google_audiences_list_execute(builder)
 }
@@ -16738,6 +18023,17 @@ pub fn displayvideo_guaranteed_orders_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_guaranteed_orders_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoGuaranteedOrdersCreateArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+    /// Request body.
+    pub body: GuaranteedOrder,
+}
+
 /// GET v4/guaranteedOrders
 /// Creates a new guaranteed order. Returns the newly created guaranteed order if successful.
 ///
@@ -16750,17 +18046,19 @@ pub fn displayvideo_guaranteed_orders_create_execute(
 
 pub fn displayvideo_guaranteed_orders_create(
     client: &SimpleHttpClient,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
-    body: &GuaranteedOrder,
+    args: &DisplayvideoGuaranteedOrdersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GuaranteedOrder>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_guaranteed_orders_create_builder(client, advertiserId, partnerId, body)?;
+    let builder = displayvideo_guaranteed_orders_create_builder(
+        client,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
+        &args.body,
+    )?;
     displayvideo_guaranteed_orders_create_execute(builder)
 }
 
@@ -16861,6 +18159,15 @@ pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoGuaranteedOrdersEditGuaranteedOrderReadAccessorsArgs {
+    /// Path parameter: guaranteedOrderId
+    pub guaranteedOrderId: String,
+    /// Request body.
+    pub body: EditGuaranteedOrderReadAccessorsRequest,
+}
+
 /// GET v4/guaranteedOrders/{guaranteedOrdersId}:editGuaranteedOrderReadAccessors
 /// Edits read advertisers of a guaranteed order.
 ///
@@ -16873,8 +18180,7 @@ pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors_execu
 
 pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors(
     client: &SimpleHttpClient,
-    guaranteedOrderId: &str,
-    body: &EditGuaranteedOrderReadAccessorsRequest,
+    args: &DisplayvideoGuaranteedOrdersEditGuaranteedOrderReadAccessorsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EditGuaranteedOrderReadAccessorsResponse>, ApiError>,
@@ -16885,8 +18191,8 @@ pub fn displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors(
 > {
     let builder = displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors_builder(
         client,
-        guaranteedOrderId,
-        body,
+        &args.guaranteedOrderId,
+        &args.body,
     )?;
     displayvideo_guaranteed_orders_edit_guaranteed_order_read_accessors_execute(builder)
 }
@@ -16999,6 +18305,17 @@ pub fn displayvideo_guaranteed_orders_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_guaranteed_orders_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoGuaranteedOrdersGetArgs {
+    /// Path parameter: guaranteedOrderId
+    pub guaranteedOrderId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/guaranteedOrders/{guaranteedOrdersId}
 /// Gets a guaranteed order.
 ///
@@ -17011,9 +18328,7 @@ pub fn displayvideo_guaranteed_orders_get_execute(
 
 pub fn displayvideo_guaranteed_orders_get(
     client: &SimpleHttpClient,
-    guaranteedOrderId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoGuaranteedOrdersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GuaranteedOrder>, ApiError>, P = ApiPending>
         + Send
@@ -17022,9 +18337,9 @@ pub fn displayvideo_guaranteed_orders_get(
 > {
     let builder = displayvideo_guaranteed_orders_get_builder(
         client,
-        guaranteedOrderId,
-        advertiserId,
-        partnerId,
+        &args.guaranteedOrderId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_guaranteed_orders_get_execute(builder)
 }
@@ -17151,6 +18466,23 @@ pub fn displayvideo_guaranteed_orders_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_guaranteed_orders_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoGuaranteedOrdersListArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/guaranteedOrders
 /// Lists guaranteed orders that are accessible to the current user. The order is defined by the order_by parameter. If a filter by entity_status is not specified, guaranteed orders with entity status ENTITY_STATUS_ARCHIVED will not be included in the results.
 ///
@@ -17163,12 +18495,7 @@ pub fn displayvideo_guaranteed_orders_list_execute(
 
 pub fn displayvideo_guaranteed_orders_list(
     client: &SimpleHttpClient,
-    advertiserId: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoGuaranteedOrdersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListGuaranteedOrdersResponse>, ApiError>,
@@ -17179,12 +18506,12 @@ pub fn displayvideo_guaranteed_orders_list(
 > {
     let builder = displayvideo_guaranteed_orders_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        partnerId,
+        args.advertiserId.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_guaranteed_orders_list_execute(builder)
 }
@@ -17304,6 +18631,21 @@ pub fn displayvideo_guaranteed_orders_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_guaranteed_orders_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoGuaranteedOrdersPatchArgs {
+    /// Path parameter: guaranteedOrderId
+    pub guaranteedOrderId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GuaranteedOrder,
+}
+
 /// GET v4/guaranteedOrders/{guaranteedOrdersId}
 /// Updates an existing guaranteed order. Returns the updated guaranteed order if successful.
 ///
@@ -17316,11 +18658,7 @@ pub fn displayvideo_guaranteed_orders_patch_execute(
 
 pub fn displayvideo_guaranteed_orders_patch(
     client: &SimpleHttpClient,
-    guaranteedOrderId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &GuaranteedOrder,
+    args: &DisplayvideoGuaranteedOrdersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GuaranteedOrder>, ApiError>, P = ApiPending>
         + Send
@@ -17329,11 +18667,11 @@ pub fn displayvideo_guaranteed_orders_patch(
 > {
     let builder = displayvideo_guaranteed_orders_patch_builder(
         client,
-        guaranteedOrderId,
-        advertiserId,
-        partnerId,
-        updateMask,
-        body,
+        &args.guaranteedOrderId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_guaranteed_orders_patch_execute(builder)
 }
@@ -17445,6 +18783,17 @@ pub fn displayvideo_inventory_source_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_inventory_source_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourceGroupsCreateArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+    /// Request body.
+    pub body: InventorySourceGroup,
+}
+
 /// GET v4/inventorySourceGroups
 /// Creates a new inventory source group. Returns the newly created inventory source group if successful.
 ///
@@ -17457,17 +18806,19 @@ pub fn displayvideo_inventory_source_groups_create_execute(
 
 pub fn displayvideo_inventory_source_groups_create(
     client: &SimpleHttpClient,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
-    body: &InventorySourceGroup,
+    args: &DisplayvideoInventorySourceGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InventorySourceGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_inventory_source_groups_create_builder(client, advertiserId, partnerId, body)?;
+    let builder = displayvideo_inventory_source_groups_create_builder(
+        client,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
+        &args.body,
+    )?;
     displayvideo_inventory_source_groups_create_execute(builder)
 }
 
@@ -17577,6 +18928,17 @@ pub fn displayvideo_inventory_source_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_inventory_source_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourceGroupsDeleteArgs {
+    /// Path parameter: inventorySourceGroupId
+    pub inventorySourceGroupId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/inventorySourceGroups/{inventorySourceGroupsId}
 /// Deletes an inventory source group.
 ///
@@ -17589,18 +18951,16 @@ pub fn displayvideo_inventory_source_groups_delete_execute(
 
 pub fn displayvideo_inventory_source_groups_delete(
     client: &SimpleHttpClient,
-    inventorySourceGroupId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoInventorySourceGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_inventory_source_groups_delete_builder(
         client,
-        inventorySourceGroupId,
-        advertiserId,
-        partnerId,
+        &args.inventorySourceGroupId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_inventory_source_groups_delete_execute(builder)
 }
@@ -17713,6 +19073,17 @@ pub fn displayvideo_inventory_source_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_inventory_source_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourceGroupsGetArgs {
+    /// Path parameter: inventorySourceGroupId
+    pub inventorySourceGroupId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/inventorySourceGroups/{inventorySourceGroupsId}
 /// Gets an inventory source group.
 ///
@@ -17725,9 +19096,7 @@ pub fn displayvideo_inventory_source_groups_get_execute(
 
 pub fn displayvideo_inventory_source_groups_get(
     client: &SimpleHttpClient,
-    inventorySourceGroupId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoInventorySourceGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InventorySourceGroup>, ApiError>, P = ApiPending>
         + Send
@@ -17736,9 +19105,9 @@ pub fn displayvideo_inventory_source_groups_get(
 > {
     let builder = displayvideo_inventory_source_groups_get_builder(
         client,
-        inventorySourceGroupId,
-        advertiserId,
-        partnerId,
+        &args.inventorySourceGroupId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_inventory_source_groups_get_execute(builder)
 }
@@ -17865,6 +19234,23 @@ pub fn displayvideo_inventory_source_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_inventory_source_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourceGroupsListArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/inventorySourceGroups
 /// Lists inventory source groups that are accessible to the current user. The order is defined by the order_by parameter.
 ///
@@ -17877,12 +19263,7 @@ pub fn displayvideo_inventory_source_groups_list_execute(
 
 pub fn displayvideo_inventory_source_groups_list(
     client: &SimpleHttpClient,
-    advertiserId: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoInventorySourceGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInventorySourceGroupsResponse>, ApiError>,
@@ -17893,12 +19274,12 @@ pub fn displayvideo_inventory_source_groups_list(
 > {
     let builder = displayvideo_inventory_source_groups_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        partnerId,
+        args.advertiserId.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_inventory_source_groups_list_execute(builder)
 }
@@ -18018,6 +19399,21 @@ pub fn displayvideo_inventory_source_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_inventory_source_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourceGroupsPatchArgs {
+    /// Path parameter: inventorySourceGroupId
+    pub inventorySourceGroupId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: InventorySourceGroup,
+}
+
 /// GET v4/inventorySourceGroups/{inventorySourceGroupId}
 /// Updates an inventory source group. Returns the updated inventory source group if successful.
 ///
@@ -18030,11 +19426,7 @@ pub fn displayvideo_inventory_source_groups_patch_execute(
 
 pub fn displayvideo_inventory_source_groups_patch(
     client: &SimpleHttpClient,
-    inventorySourceGroupId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &InventorySourceGroup,
+    args: &DisplayvideoInventorySourceGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InventorySourceGroup>, ApiError>, P = ApiPending>
         + Send
@@ -18043,11 +19435,11 @@ pub fn displayvideo_inventory_source_groups_patch(
 > {
     let builder = displayvideo_inventory_source_groups_patch_builder(
         client,
-        inventorySourceGroupId,
-        advertiserId,
-        partnerId,
-        updateMask,
-        body,
+        &args.inventorySourceGroupId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_inventory_source_groups_patch_execute(builder)
 }
@@ -18149,6 +19541,15 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourceGroupsAssignedInventorySourcesBulkEditArgs {
+    /// Path parameter: inventorySourceGroupId
+    pub inventorySourceGroupId: String,
+    /// Request body.
+    pub body: BulkEditAssignedInventorySourcesRequest,
+}
+
 /// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources:bulkEdit
 /// Bulk edits multiple assignments between inventory sources and a single inventory source group. The operation will delete the assigned inventory sources provided in BulkEditAssignedInventorySourcesRequest.deleted_assigned_inventory_sources and then create the assigned inventory sources provided in BulkEditAssignedInventorySourcesRequest.created_assigned_inventory_sources.
 ///
@@ -18161,8 +19562,7 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit
 
 pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit(
     client: &SimpleHttpClient,
-    inventorySourceGroupId: &str,
-    body: &BulkEditAssignedInventorySourcesRequest,
+    args: &DisplayvideoInventorySourceGroupsAssignedInventorySourcesBulkEditArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BulkEditAssignedInventorySourcesResponse>, ApiError>,
@@ -18174,8 +19574,8 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit
     let builder =
         displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit_builder(
             client,
-            inventorySourceGroupId,
-            body,
+            &args.inventorySourceGroupId,
+            &args.body,
         )?;
     displayvideo_inventory_source_groups_assigned_inventory_sources_bulk_edit_execute(builder)
 }
@@ -18291,6 +19691,19 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_inventory_source_groups_assigned_inventory_sources_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourceGroupsAssignedInventorySourcesCreateArgs {
+    /// Path parameter: inventorySourceGroupId
+    pub inventorySourceGroupId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+    /// Request body.
+    pub body: AssignedInventorySource,
+}
+
 /// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
 /// Creates an assignment between an inventory source and an inventory source group.
 ///
@@ -18303,10 +19716,7 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create_ex
 
 pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create(
     client: &SimpleHttpClient,
-    inventorySourceGroupId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
-    body: &AssignedInventorySource,
+    args: &DisplayvideoInventorySourceGroupsAssignedInventorySourcesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AssignedInventorySource>, ApiError>, P = ApiPending>
         + Send
@@ -18315,10 +19725,10 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_create(
 > {
     let builder = displayvideo_inventory_source_groups_assigned_inventory_sources_create_builder(
         client,
-        inventorySourceGroupId,
-        advertiserId,
-        partnerId,
-        body,
+        &args.inventorySourceGroupId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
+        &args.body,
     )?;
     displayvideo_inventory_source_groups_assigned_inventory_sources_create_execute(builder)
 }
@@ -18431,6 +19841,19 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_inventory_source_groups_assigned_inventory_sources_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourceGroupsAssignedInventorySourcesDeleteArgs {
+    /// Path parameter: inventorySourceGroupId
+    pub inventorySourceGroupId: String,
+    /// Path parameter: assignedInventorySourceId
+    pub assignedInventorySourceId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources/{assignedInventorySourcesId}
 /// Deletes the assignment between an inventory source and an inventory source group.
 ///
@@ -18443,20 +19866,17 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete_ex
 
 pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_delete(
     client: &SimpleHttpClient,
-    inventorySourceGroupId: &str,
-    assignedInventorySourceId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoInventorySourceGroupsAssignedInventorySourcesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_inventory_source_groups_assigned_inventory_sources_delete_builder(
         client,
-        inventorySourceGroupId,
-        assignedInventorySourceId,
-        advertiserId,
-        partnerId,
+        &args.inventorySourceGroupId,
+        &args.assignedInventorySourceId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_inventory_source_groups_assigned_inventory_sources_delete_execute(builder)
 }
@@ -18587,6 +20007,25 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_inventory_source_groups_assigned_inventory_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourceGroupsAssignedInventorySourcesListArgs {
+    /// Path parameter: inventorySourceGroupId
+    pub inventorySourceGroupId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/inventorySourceGroups/{inventorySourceGroupsId}/assignedInventorySources
 /// Lists inventory sources assigned to an inventory source group.
 ///
@@ -18599,13 +20038,7 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_list_exec
 
 pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_list(
     client: &SimpleHttpClient,
-    inventorySourceGroupId: &str,
-    advertiserId: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoInventorySourceGroupsAssignedInventorySourcesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAssignedInventorySourcesResponse>, ApiError>,
@@ -18616,13 +20049,13 @@ pub fn displayvideo_inventory_source_groups_assigned_inventory_sources_list(
 > {
     let builder = displayvideo_inventory_source_groups_assigned_inventory_sources_list_builder(
         client,
-        inventorySourceGroupId,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        partnerId,
+        &args.inventorySourceGroupId,
+        args.advertiserId.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_inventory_source_groups_assigned_inventory_sources_list_execute(builder)
 }
@@ -18734,6 +20167,17 @@ pub fn displayvideo_inventory_sources_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_inventory_sources_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourcesCreateArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+    /// Request body.
+    pub body: InventorySource,
+}
+
 /// GET v4/inventorySources
 /// Creates a new inventory source. Returns the newly created inventory source if successful.
 ///
@@ -18746,17 +20190,19 @@ pub fn displayvideo_inventory_sources_create_execute(
 
 pub fn displayvideo_inventory_sources_create(
     client: &SimpleHttpClient,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
-    body: &InventorySource,
+    args: &DisplayvideoInventorySourcesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InventorySource>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_inventory_sources_create_builder(client, advertiserId, partnerId, body)?;
+    let builder = displayvideo_inventory_sources_create_builder(
+        client,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
+        &args.body,
+    )?;
     displayvideo_inventory_sources_create_execute(builder)
 }
 
@@ -18855,6 +20301,15 @@ pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_inventory_sources_edit_inventory_source_read_write_accessors`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourcesEditInventorySourceReadWriteAccessorsArgs {
+    /// Path parameter: inventorySourceId
+    pub inventorySourceId: String,
+    /// Request body.
+    pub body: EditInventorySourceReadWriteAccessorsRequest,
+}
+
 /// GET v4/inventorySources/{inventorySourcesId}:editInventorySourceReadWriteAccessors
 /// Edits `read/write` accessors of an inventory source. Returns the updated read_write_accessors for the inventory source.
 ///
@@ -18867,8 +20322,7 @@ pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors
 
 pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors(
     client: &SimpleHttpClient,
-    inventorySourceId: &str,
-    body: &EditInventorySourceReadWriteAccessorsRequest,
+    args: &DisplayvideoInventorySourcesEditInventorySourceReadWriteAccessorsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InventorySourceAccessors>, ApiError>, P = ApiPending>
         + Send
@@ -18878,8 +20332,8 @@ pub fn displayvideo_inventory_sources_edit_inventory_source_read_write_accessors
     let builder =
         displayvideo_inventory_sources_edit_inventory_source_read_write_accessors_builder(
             client,
-            inventorySourceId,
-            body,
+            &args.inventorySourceId,
+            &args.body,
         )?;
     displayvideo_inventory_sources_edit_inventory_source_read_write_accessors_execute(builder)
 }
@@ -18992,6 +20446,17 @@ pub fn displayvideo_inventory_sources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_inventory_sources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourcesGetArgs {
+    /// Path parameter: inventorySourceId
+    pub inventorySourceId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/inventorySources/{inventorySourcesId}
 /// Gets an inventory source.
 ///
@@ -19004,9 +20469,7 @@ pub fn displayvideo_inventory_sources_get_execute(
 
 pub fn displayvideo_inventory_sources_get(
     client: &SimpleHttpClient,
-    inventorySourceId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoInventorySourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InventorySource>, ApiError>, P = ApiPending>
         + Send
@@ -19015,9 +20478,9 @@ pub fn displayvideo_inventory_sources_get(
 > {
     let builder = displayvideo_inventory_sources_get_builder(
         client,
-        inventorySourceId,
-        advertiserId,
-        partnerId,
+        &args.inventorySourceId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_inventory_sources_get_execute(builder)
 }
@@ -19144,6 +20607,23 @@ pub fn displayvideo_inventory_sources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_inventory_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourcesListArgs {
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+}
+
 /// GET v4/inventorySources
 /// Lists inventory sources that are accessible to the current user. The order is defined by the order_by parameter. If a filter by entity_status is not specified, inventory sources with entity status ENTITY_STATUS_ARCHIVED will not be included in the results.
 ///
@@ -19156,12 +20636,7 @@ pub fn displayvideo_inventory_sources_list_execute(
 
 pub fn displayvideo_inventory_sources_list(
     client: &SimpleHttpClient,
-    advertiserId: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerId: Option<&str>,
+    args: &DisplayvideoInventorySourcesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInventorySourcesResponse>, ApiError>,
@@ -19172,12 +20647,12 @@ pub fn displayvideo_inventory_sources_list(
 > {
     let builder = displayvideo_inventory_sources_list_builder(
         client,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        partnerId,
+        args.advertiserId.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.partnerId.as_deref(),
     )?;
     displayvideo_inventory_sources_list_execute(builder)
 }
@@ -19297,6 +20772,21 @@ pub fn displayvideo_inventory_sources_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_inventory_sources_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoInventorySourcesPatchArgs {
+    /// Path parameter: inventorySourceId
+    pub inventorySourceId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: partnerId
+    pub partnerId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: InventorySource,
+}
+
 /// GET v4/inventorySources/{inventorySourcesId}
 /// Updates an existing inventory source. Returns the updated inventory source if successful.
 ///
@@ -19309,11 +20799,7 @@ pub fn displayvideo_inventory_sources_patch_execute(
 
 pub fn displayvideo_inventory_sources_patch(
     client: &SimpleHttpClient,
-    inventorySourceId: &str,
-    advertiserId: Option<&str>,
-    partnerId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &InventorySource,
+    args: &DisplayvideoInventorySourcesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InventorySource>, ApiError>, P = ApiPending>
         + Send
@@ -19322,11 +20808,11 @@ pub fn displayvideo_inventory_sources_patch(
 > {
     let builder = displayvideo_inventory_sources_patch_builder(
         client,
-        inventorySourceId,
-        advertiserId,
-        partnerId,
-        updateMask,
-        body,
+        &args.inventorySourceId,
+        args.advertiserId.as_deref(),
+        args.partnerId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_inventory_sources_patch_execute(builder)
 }
@@ -19423,6 +20909,13 @@ pub fn displayvideo_media_download_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_media_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoMediaDownloadArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+}
+
 /// GET download/{downloadId}
 /// Downloads media. Download is supported on the URI /`download/{resource_name`=**}?alt=media. **Note**: Download requests will not be successful without including alt=media query string.
 ///
@@ -19435,14 +20928,14 @@ pub fn displayvideo_media_download_execute(
 
 pub fn displayvideo_media_download(
     client: &SimpleHttpClient,
-    resourceName: &str,
+    args: &DisplayvideoMediaDownloadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleBytestreamMedia>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_media_download_builder(client, resourceName)?;
+    let builder = displayvideo_media_download_builder(client, &args.resourceName)?;
     displayvideo_media_download_execute(builder)
 }
 
@@ -19538,6 +21031,15 @@ pub fn displayvideo_media_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_media_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoMediaUploadArgs {
+    /// Path parameter: resourceName
+    pub resourceName: String,
+    /// Request body.
+    pub body: GoogleBytestreamMedia,
+}
+
 /// GET media/{mediaId}
 /// Uploads media. Upload is supported on the URI /`upload/media/{resource_name`=**}?upload_type=media. **Note**: Upload requests will not be successful without including upload_type=media query string.
 ///
@@ -19550,15 +21052,14 @@ pub fn displayvideo_media_upload_execute(
 
 pub fn displayvideo_media_upload(
     client: &SimpleHttpClient,
-    resourceName: &str,
-    body: &GoogleBytestreamMedia,
+    args: &DisplayvideoMediaUploadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleBytestreamMedia>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_media_upload_builder(client, resourceName, body)?;
+    let builder = displayvideo_media_upload_builder(client, &args.resourceName, &args.body)?;
     displayvideo_media_upload_execute(builder)
 }
 
@@ -19660,6 +21161,15 @@ pub fn displayvideo_partners_edit_assigned_targeting_options_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_edit_assigned_targeting_options`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersEditAssignedTargetingOptionsArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Request body.
+    pub body: BulkEditPartnerAssignedTargetingOptionsRequest,
+}
+
 /// GET v4/partners/{partnersId}:editAssignedTargetingOptions
 /// Edits targeting options under a single partner. The operation will delete the assigned targeting options provided in BulkEditPartnerAssignedTargetingOptionsRequest.`deleteRequests` and then create the assigned targeting options provided in BulkEditPartnerAssignedTargetingOptionsRequest.`createRequests` .
 ///
@@ -19672,8 +21182,7 @@ pub fn displayvideo_partners_edit_assigned_targeting_options_execute(
 
 pub fn displayvideo_partners_edit_assigned_targeting_options(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    body: &BulkEditPartnerAssignedTargetingOptionsRequest,
+    args: &DisplayvideoPartnersEditAssignedTargetingOptionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BulkEditPartnerAssignedTargetingOptionsResponse>, ApiError>,
@@ -19682,8 +21191,11 @@ pub fn displayvideo_partners_edit_assigned_targeting_options(
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_partners_edit_assigned_targeting_options_builder(client, partnerId, body)?;
+    let builder = displayvideo_partners_edit_assigned_targeting_options_builder(
+        client,
+        &args.partnerId,
+        &args.body,
+    )?;
     displayvideo_partners_edit_assigned_targeting_options_execute(builder)
 }
 
@@ -19777,6 +21289,13 @@ pub fn displayvideo_partners_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersGetArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+}
+
 /// GET v4/partners/{partnersId}
 /// Gets a partner.
 ///
@@ -19789,12 +21308,12 @@ pub fn displayvideo_partners_get_execute(
 
 pub fn displayvideo_partners_get(
     client: &SimpleHttpClient,
-    partnerId: &str,
+    args: &DisplayvideoPartnersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Partner>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_partners_get_builder(client, partnerId)?;
+    let builder = displayvideo_partners_get_builder(client, &args.partnerId)?;
     displayvideo_partners_get_execute(builder)
 }
 
@@ -19910,6 +21429,19 @@ pub fn displayvideo_partners_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/partners
 /// Lists partners that are accessible to the current user. The order is defined by the order_by parameter.
 ///
@@ -19922,17 +21454,20 @@ pub fn displayvideo_partners_list_execute(
 
 pub fn displayvideo_partners_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoPartnersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPartnersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_partners_list_builder(client, filter, orderBy, pageSize, pageToken)?;
+    let builder = displayvideo_partners_list_builder(
+        client,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     displayvideo_partners_list_execute(builder)
 }
 
@@ -20041,6 +21576,17 @@ pub fn displayvideo_partners_channels_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_channels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersChannelsCreateArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET v4/partners/{partnersId}/channels
 /// Creates a new channel. Returns the newly created channel if successful.
 ///
@@ -20053,15 +21599,17 @@ pub fn displayvideo_partners_channels_create_execute(
 
 pub fn displayvideo_partners_channels_create(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    advertiserId: Option<&str>,
-    body: &Channel,
+    args: &DisplayvideoPartnersChannelsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_partners_channels_create_builder(client, partnerId, advertiserId, body)?;
+    let builder = displayvideo_partners_channels_create_builder(
+        client,
+        &args.partnerId,
+        args.advertiserId.as_deref(),
+        &args.body,
+    )?;
     displayvideo_partners_channels_create_execute(builder)
 }
 
@@ -20168,6 +21716,17 @@ pub fn displayvideo_partners_channels_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_channels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersChannelsGetArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+}
+
 /// GET v4/partners/{partnersId}/channels/{channelsId}
 /// Gets a channel for a partner or advertiser.
 ///
@@ -20180,15 +21739,17 @@ pub fn displayvideo_partners_channels_get_execute(
 
 pub fn displayvideo_partners_channels_get(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    channelId: &str,
-    advertiserId: Option<&str>,
+    args: &DisplayvideoPartnersChannelsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_partners_channels_get_builder(client, partnerId, channelId, advertiserId)?;
+    let builder = displayvideo_partners_channels_get_builder(
+        client,
+        &args.partnerId,
+        &args.channelId,
+        args.advertiserId.as_deref(),
+    )?;
     displayvideo_partners_channels_get_execute(builder)
 }
 
@@ -20312,6 +21873,23 @@ pub fn displayvideo_partners_channels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_channels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersChannelsListArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/partners/{partnersId}/channels
 /// Lists channels for a partner or advertiser.
 ///
@@ -20324,12 +21902,7 @@ pub fn displayvideo_partners_channels_list_execute(
 
 pub fn displayvideo_partners_channels_list(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    advertiserId: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoPartnersChannelsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListChannelsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -20338,12 +21911,12 @@ pub fn displayvideo_partners_channels_list(
 > {
     let builder = displayvideo_partners_channels_list_builder(
         client,
-        partnerId,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.partnerId,
+        args.advertiserId.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_partners_channels_list_execute(builder)
 }
@@ -20458,6 +22031,21 @@ pub fn displayvideo_partners_channels_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_channels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersChannelsPatchArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET v4/partners/{partnersId}/channels/{channelId}
 /// Updates a channel. Returns the updated channel if successful.
 ///
@@ -20470,22 +22058,18 @@ pub fn displayvideo_partners_channels_patch_execute(
 
 pub fn displayvideo_partners_channels_patch(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    channelId: &str,
-    advertiserId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Channel,
+    args: &DisplayvideoPartnersChannelsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_partners_channels_patch_builder(
         client,
-        partnerId,
-        channelId,
-        advertiserId,
-        updateMask,
-        body,
+        &args.partnerId,
+        &args.channelId,
+        args.advertiserId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     displayvideo_partners_channels_patch_execute(builder)
 }
@@ -20586,6 +22170,17 @@ pub fn displayvideo_partners_channels_sites_bulk_edit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_channels_sites_bulk_edit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersChannelsSitesBulkEditArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Request body.
+    pub body: BulkEditSitesRequest,
+}
+
 /// GET v4/partners/{partnerId}/channels/{channelsId}/sites:bulkEdit
 /// Bulk edits sites under a single channel. The operation will delete the sites provided in BulkEditSitesRequest.deleted_sites and then create the sites provided in BulkEditSitesRequest.created_sites.
 ///
@@ -20598,17 +22193,19 @@ pub fn displayvideo_partners_channels_sites_bulk_edit_execute(
 
 pub fn displayvideo_partners_channels_sites_bulk_edit(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    channelId: &str,
-    body: &BulkEditSitesRequest,
+    args: &DisplayvideoPartnersChannelsSitesBulkEditArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BulkEditSitesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_partners_channels_sites_bulk_edit_builder(client, partnerId, channelId, body)?;
+    let builder = displayvideo_partners_channels_sites_bulk_edit_builder(
+        client,
+        &args.partnerId,
+        &args.channelId,
+        &args.body,
+    )?;
     displayvideo_partners_channels_sites_bulk_edit_execute(builder)
 }
 
@@ -20718,6 +22315,19 @@ pub fn displayvideo_partners_channels_sites_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_channels_sites_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersChannelsSitesCreateArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Request body.
+    pub body: Site,
+}
+
 /// GET v4/partners/{partnerId}/channels/{channelsId}/sites
 /// Creates a site in a channel.
 ///
@@ -20730,20 +22340,17 @@ pub fn displayvideo_partners_channels_sites_create_execute(
 
 pub fn displayvideo_partners_channels_sites_create(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    channelId: &str,
-    advertiserId: Option<&str>,
-    body: &Site,
+    args: &DisplayvideoPartnersChannelsSitesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_partners_channels_sites_create_builder(
         client,
-        partnerId,
-        channelId,
-        advertiserId,
-        body,
+        &args.partnerId,
+        &args.channelId,
+        args.advertiserId.as_deref(),
+        &args.body,
     )?;
     displayvideo_partners_channels_sites_create_execute(builder)
 }
@@ -20852,6 +22459,19 @@ pub fn displayvideo_partners_channels_sites_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_channels_sites_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersChannelsSitesDeleteArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Path parameter: urlOrAppId
+    pub urlOrAppId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+}
+
 /// GET v4/partners/{partnerId}/channels/{channelsId}/sites/{sitesId}
 /// Deletes a site from a channel.
 ///
@@ -20864,20 +22484,17 @@ pub fn displayvideo_partners_channels_sites_delete_execute(
 
 pub fn displayvideo_partners_channels_sites_delete(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    channelId: &str,
-    urlOrAppId: &str,
-    advertiserId: Option<&str>,
+    args: &DisplayvideoPartnersChannelsSitesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_partners_channels_sites_delete_builder(
         client,
-        partnerId,
-        channelId,
-        urlOrAppId,
-        advertiserId,
+        &args.partnerId,
+        &args.channelId,
+        &args.urlOrAppId,
+        args.advertiserId.as_deref(),
     )?;
     displayvideo_partners_channels_sites_delete_execute(builder)
 }
@@ -21003,6 +22620,25 @@ pub fn displayvideo_partners_channels_sites_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_channels_sites_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersChannelsSitesListArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/partners/{partnersId}/channels/{channelsId}/sites
 /// Lists sites in a channel.
 ///
@@ -21015,13 +22651,7 @@ pub fn displayvideo_partners_channels_sites_list_execute(
 
 pub fn displayvideo_partners_channels_sites_list(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    channelId: &str,
-    advertiserId: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoPartnersChannelsSitesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSitesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -21030,13 +22660,13 @@ pub fn displayvideo_partners_channels_sites_list(
 > {
     let builder = displayvideo_partners_channels_sites_list_builder(
         client,
-        partnerId,
-        channelId,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.partnerId,
+        &args.channelId,
+        args.advertiserId.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_partners_channels_sites_list_execute(builder)
 }
@@ -21137,6 +22767,17 @@ pub fn displayvideo_partners_channels_sites_replace_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_channels_sites_replace`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersChannelsSitesReplaceArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Request body.
+    pub body: ReplaceSitesRequest,
+}
+
 /// GET v4/partners/{partnerId}/channels/{channelsId}/sites:replace
 /// Replaces all of the sites under a single channel. The operation will replace the sites under a channel with the sites provided in ReplaceSitesRequest.new_sites. **This method regularly experiences high latency.** We recommend [increasing your default timeout](/display-`video/api/guides/best-practices/timeouts`#client_library_timeout) to avoid errors.
 ///
@@ -21149,17 +22790,19 @@ pub fn displayvideo_partners_channels_sites_replace_execute(
 
 pub fn displayvideo_partners_channels_sites_replace(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    channelId: &str,
-    body: &ReplaceSitesRequest,
+    args: &DisplayvideoPartnersChannelsSitesReplaceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReplaceSitesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_partners_channels_sites_replace_builder(client, partnerId, channelId, body)?;
+    let builder = displayvideo_partners_channels_sites_replace_builder(
+        client,
+        &args.partnerId,
+        &args.channelId,
+        &args.body,
+    )?;
     displayvideo_partners_channels_sites_replace_execute(builder)
 }
 
@@ -21260,6 +22903,17 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_create_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_targeting_types_assigned_targeting_options_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsCreateArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Request body.
+    pub body: AssignedTargetingOption,
+}
+
 /// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Assigns a targeting option to a partner. Returns the assigned targeting option if successful.
 ///
@@ -21272,9 +22926,7 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_create_e
 
 pub fn displayvideo_partners_targeting_types_assigned_targeting_options_create(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    targetingType: &str,
-    body: &AssignedTargetingOption,
+    args: &DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
         + Send
@@ -21283,9 +22935,9 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_create(
 > {
     let builder = displayvideo_partners_targeting_types_assigned_targeting_options_create_builder(
         client,
-        partnerId,
-        targetingType,
-        body,
+        &args.partnerId,
+        &args.targetingType,
+        &args.body,
     )?;
     displayvideo_partners_targeting_types_assigned_targeting_options_create_execute(builder)
 }
@@ -21384,6 +23036,17 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_delete_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_targeting_types_assigned_targeting_options_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsDeleteArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Path parameter: assignedTargetingOptionId
+    pub assignedTargetingOptionId: String,
+}
+
 /// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Deletes an assigned targeting option from a partner.
 ///
@@ -21396,18 +23059,16 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_delete_e
 
 pub fn displayvideo_partners_targeting_types_assigned_targeting_options_delete(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    targetingType: &str,
-    assignedTargetingOptionId: &str,
+    args: &DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = displayvideo_partners_targeting_types_assigned_targeting_options_delete_builder(
         client,
-        partnerId,
-        targetingType,
-        assignedTargetingOptionId,
+        &args.partnerId,
+        &args.targetingType,
+        &args.assignedTargetingOptionId,
     )?;
     displayvideo_partners_targeting_types_assigned_targeting_options_delete_execute(builder)
 }
@@ -21508,6 +23169,17 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_targeting_types_assigned_targeting_options_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsGetArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Path parameter: assignedTargetingOptionId
+    pub assignedTargetingOptionId: String,
+}
+
 /// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions/{assignedTargetingOptionsId}
 /// Gets a single targeting option assigned to a partner.
 ///
@@ -21520,9 +23192,7 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_get_exec
 
 pub fn displayvideo_partners_targeting_types_assigned_targeting_options_get(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    targetingType: &str,
-    assignedTargetingOptionId: &str,
+    args: &DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AssignedTargetingOption>, ApiError>, P = ApiPending>
         + Send
@@ -21531,9 +23201,9 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_get(
 > {
     let builder = displayvideo_partners_targeting_types_assigned_targeting_options_get_builder(
         client,
-        partnerId,
-        targetingType,
-        assignedTargetingOptionId,
+        &args.partnerId,
+        &args.targetingType,
+        &args.assignedTargetingOptionId,
     )?;
     displayvideo_partners_targeting_types_assigned_targeting_options_get_execute(builder)
 }
@@ -21659,6 +23329,23 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_list_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_partners_targeting_types_assigned_targeting_options_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsListArgs {
+    /// Path parameter: partnerId
+    pub partnerId: String,
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/partners/{partnersId}/targetingTypes/{targetingTypesId}/assignedTargetingOptions
 /// Lists the targeting options assigned to a partner.
 ///
@@ -21671,12 +23358,7 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_list_exe
 
 pub fn displayvideo_partners_targeting_types_assigned_targeting_options_list(
     client: &SimpleHttpClient,
-    partnerId: &str,
-    targetingType: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPartnerAssignedTargetingOptionsResponse>, ApiError>,
@@ -21687,12 +23369,12 @@ pub fn displayvideo_partners_targeting_types_assigned_targeting_options_list(
 > {
     let builder = displayvideo_partners_targeting_types_assigned_targeting_options_list_builder(
         client,
-        partnerId,
-        targetingType,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.partnerId,
+        &args.targetingType,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_partners_targeting_types_assigned_targeting_options_list_execute(builder)
 }
@@ -21786,6 +23468,13 @@ pub fn displayvideo_sdfdownloadtasks_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_sdfdownloadtasks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoSdfdownloadtasksCreateArgs {
+    /// Request body.
+    pub body: CreateSdfDownloadTaskRequest,
+}
+
 /// GET v4/sdfdownloadtasks
 /// Creates an SDF Download Task. Returns an Operation. An SDF Download Task is a long-running, asynchronous operation. The metadata type of this operation is SdfDownloadTaskMetadata. If the request is successful, the response type of the operation is SdfDownloadTask. The response will not include the download files, which must be retrieved with media.download. The state of operation can be retrieved with sdfdownloadtasks.operations.get. Any errors can be found in the error.message. Note that error.details is expected to be empty.
 ///
@@ -21798,12 +23487,12 @@ pub fn displayvideo_sdfdownloadtasks_create_execute(
 
 pub fn displayvideo_sdfdownloadtasks_create(
     client: &SimpleHttpClient,
-    body: &CreateSdfDownloadTaskRequest,
+    args: &DisplayvideoSdfdownloadtasksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_sdfdownloadtasks_create_builder(client, body)?;
+    let builder = displayvideo_sdfdownloadtasks_create_builder(client, &args.body)?;
     displayvideo_sdfdownloadtasks_create_execute(builder)
 }
 
@@ -21897,6 +23586,13 @@ pub fn displayvideo_sdfdownloadtasks_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_sdfdownloadtasks_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoSdfdownloadtasksOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v4/sdfdownloadtasks/operations/{operationsId}
 /// Gets the latest state of an asynchronous SDF download task operation. Clients should poll this method at intervals of 30 seconds.
 ///
@@ -21909,12 +23605,12 @@ pub fn displayvideo_sdfdownloadtasks_operations_get_execute(
 
 pub fn displayvideo_sdfdownloadtasks_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DisplayvideoSdfdownloadtasksOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_sdfdownloadtasks_operations_get_builder(client, name)?;
+    let builder = displayvideo_sdfdownloadtasks_operations_get_builder(client, &args.name)?;
     displayvideo_sdfdownloadtasks_operations_get_execute(builder)
 }
 
@@ -22008,6 +23704,13 @@ pub fn displayvideo_sdfuploadtasks_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_sdfuploadtasks_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoSdfuploadtasksOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v4/sdfuploadtasks/operations/{operationsId}
 /// Gets the latest state of an asynchronous SDF download task operation. Clients should poll this method at intervals of 30 seconds.
 ///
@@ -22020,12 +23723,12 @@ pub fn displayvideo_sdfuploadtasks_operations_get_execute(
 
 pub fn displayvideo_sdfuploadtasks_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DisplayvideoSdfuploadtasksOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_sdfuploadtasks_operations_get_builder(client, name)?;
+    let builder = displayvideo_sdfuploadtasks_operations_get_builder(client, &args.name)?;
     displayvideo_sdfuploadtasks_operations_get_execute(builder)
 }
 
@@ -22134,6 +23837,17 @@ pub fn displayvideo_targeting_types_targeting_options_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_targeting_types_targeting_options_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoTargetingTypesTargetingOptionsGetArgs {
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Path parameter: targetingOptionId
+    pub targetingOptionId: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+}
+
 /// GET v4/targetingTypes/{targetingTypesId}/targetingOptions/{targetingOptionsId}
 /// Gets a single targeting option.
 ///
@@ -22146,9 +23860,7 @@ pub fn displayvideo_targeting_types_targeting_options_get_execute(
 
 pub fn displayvideo_targeting_types_targeting_options_get(
     client: &SimpleHttpClient,
-    targetingType: &str,
-    targetingOptionId: &str,
-    advertiserId: Option<&str>,
+    args: &DisplayvideoTargetingTypesTargetingOptionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TargetingOption>, ApiError>, P = ApiPending>
         + Send
@@ -22157,9 +23869,9 @@ pub fn displayvideo_targeting_types_targeting_options_get(
 > {
     let builder = displayvideo_targeting_types_targeting_options_get_builder(
         client,
-        targetingType,
-        targetingOptionId,
-        advertiserId,
+        &args.targetingType,
+        &args.targetingOptionId,
+        args.advertiserId.as_deref(),
     )?;
     displayvideo_targeting_types_targeting_options_get_execute(builder)
 }
@@ -22286,6 +23998,23 @@ pub fn displayvideo_targeting_types_targeting_options_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_targeting_types_targeting_options_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoTargetingTypesTargetingOptionsListArgs {
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/targetingTypes/{targetingTypesId}/targetingOptions
 /// Lists targeting options of a given type.
 ///
@@ -22298,12 +24027,7 @@ pub fn displayvideo_targeting_types_targeting_options_list_execute(
 
 pub fn displayvideo_targeting_types_targeting_options_list(
     client: &SimpleHttpClient,
-    targetingType: &str,
-    advertiserId: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoTargetingTypesTargetingOptionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTargetingOptionsResponse>, ApiError>,
@@ -22314,12 +24038,12 @@ pub fn displayvideo_targeting_types_targeting_options_list(
 > {
     let builder = displayvideo_targeting_types_targeting_options_list_builder(
         client,
-        targetingType,
-        advertiserId,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
+        &args.targetingType,
+        args.advertiserId.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     displayvideo_targeting_types_targeting_options_list_execute(builder)
 }
@@ -22421,6 +24145,15 @@ pub fn displayvideo_targeting_types_targeting_options_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_targeting_types_targeting_options_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoTargetingTypesTargetingOptionsSearchArgs {
+    /// Path parameter: targetingType
+    pub targetingType: String,
+    /// Request body.
+    pub body: SearchTargetingOptionsRequest,
+}
+
 /// GET v4/targetingTypes/{targetingTypesId}/targetingOptions:search
 /// Searches for targeting options of a given type based on the given search terms.
 ///
@@ -22433,8 +24166,7 @@ pub fn displayvideo_targeting_types_targeting_options_search_execute(
 
 pub fn displayvideo_targeting_types_targeting_options_search(
     client: &SimpleHttpClient,
-    targetingType: &str,
-    body: &SearchTargetingOptionsRequest,
+    args: &DisplayvideoTargetingTypesTargetingOptionsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchTargetingOptionsResponse>, ApiError>,
@@ -22443,8 +24175,11 @@ pub fn displayvideo_targeting_types_targeting_options_search(
         + 'static,
     ApiError,
 > {
-    let builder =
-        displayvideo_targeting_types_targeting_options_search_builder(client, targetingType, body)?;
+    let builder = displayvideo_targeting_types_targeting_options_search_builder(
+        client,
+        &args.targetingType,
+        &args.body,
+    )?;
     displayvideo_targeting_types_targeting_options_search_execute(builder)
 }
 
@@ -22545,6 +24280,15 @@ pub fn displayvideo_users_bulk_edit_assigned_user_roles_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_users_bulk_edit_assigned_user_roles`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoUsersBulkEditAssignedUserRolesArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: BulkEditAssignedUserRolesRequest,
+}
+
 /// GET v4/users/{usersId}:bulkEditAssignedUserRoles
 /// Bulk edits user roles for a user. The operation will delete the assigned user roles provided in BulkEditAssignedUserRolesRequest.`deletedAssignedUserRoles` and then assign the user roles provided in BulkEditAssignedUserRolesRequest.`createdAssignedUserRoles`. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
@@ -22557,8 +24301,7 @@ pub fn displayvideo_users_bulk_edit_assigned_user_roles_execute(
 
 pub fn displayvideo_users_bulk_edit_assigned_user_roles(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &BulkEditAssignedUserRolesRequest,
+    args: &DisplayvideoUsersBulkEditAssignedUserRolesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BulkEditAssignedUserRolesResponse>, ApiError>,
@@ -22567,7 +24310,8 @@ pub fn displayvideo_users_bulk_edit_assigned_user_roles(
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_users_bulk_edit_assigned_user_roles_builder(client, userId, body)?;
+    let builder =
+        displayvideo_users_bulk_edit_assigned_user_roles_builder(client, &args.userId, &args.body)?;
     displayvideo_users_bulk_edit_assigned_user_roles_execute(builder)
 }
 
@@ -22660,6 +24404,13 @@ pub fn displayvideo_users_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_users_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoUsersCreateArgs {
+    /// Request body.
+    pub body: User,
+}
+
 /// GET v4/users
 /// Creates a new user. Returns the newly created user if successful. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
@@ -22672,12 +24423,12 @@ pub fn displayvideo_users_create_execute(
 
 pub fn displayvideo_users_create(
     client: &SimpleHttpClient,
-    body: &User,
+    args: &DisplayvideoUsersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_users_create_builder(client, body)?;
+    let builder = displayvideo_users_create_builder(client, &args.body)?;
     displayvideo_users_create_execute(builder)
 }
 
@@ -22768,6 +24519,13 @@ pub fn displayvideo_users_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_users_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoUsersDeleteArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET v4/users/{usersId}
 /// Deletes a user. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
@@ -22780,12 +24538,12 @@ pub fn displayvideo_users_delete_execute(
 
 pub fn displayvideo_users_delete(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &DisplayvideoUsersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_users_delete_builder(client, userId)?;
+    let builder = displayvideo_users_delete_builder(client, &args.userId)?;
     displayvideo_users_delete_execute(builder)
 }
 
@@ -22876,6 +24634,13 @@ pub fn displayvideo_users_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_users_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoUsersGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET v4/users/{usersId}
 /// Gets a user. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
@@ -22888,12 +24653,12 @@ pub fn displayvideo_users_get_execute(
 
 pub fn displayvideo_users_get(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &DisplayvideoUsersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_users_get_builder(client, userId)?;
+    let builder = displayvideo_users_get_builder(client, &args.userId)?;
     displayvideo_users_get_execute(builder)
 }
 
@@ -23009,6 +24774,19 @@ pub fn displayvideo_users_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_users_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoUsersListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/users
 /// Lists users that are accessible to the current user. If two users have user roles on the same partner or advertiser, they can access each other. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
@@ -23021,17 +24799,20 @@ pub fn displayvideo_users_list_execute(
 
 pub fn displayvideo_users_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DisplayvideoUsersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListUsersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = displayvideo_users_list_builder(client, filter, orderBy, pageSize, pageToken)?;
+    let builder = displayvideo_users_list_builder(
+        client,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     displayvideo_users_list_execute(builder)
 }
 
@@ -23137,6 +24918,17 @@ pub fn displayvideo_users_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`displayvideo_users_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DisplayvideoUsersPatchArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: User,
+}
+
 /// GET v4/users/{usersId}
 /// Updates an existing user. Returns the updated user if successful. This method has unique authentication requirements. Read the prerequisites in our [Managing Users guide](/display-`video/api/guides/users/overview`#prerequisites) before using this method. The "Try this method" feature does not work for this method.
 ///
@@ -23149,13 +24941,16 @@ pub fn displayvideo_users_patch_execute(
 
 pub fn displayvideo_users_patch(
     client: &SimpleHttpClient,
-    userId: &str,
-    updateMask: Option<&str>,
-    body: &User,
+    args: &DisplayvideoUsersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = displayvideo_users_patch_builder(client, userId, updateMask, body)?;
+    let builder = displayvideo_users_patch_builder(
+        client,
+        &args.userId,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     displayvideo_users_patch_execute(builder)
 }

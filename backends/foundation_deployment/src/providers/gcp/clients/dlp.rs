@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/infoTypes
 /// Returns a list of the sensitive information types that the DLP API supports. See <https://cloud.google.`com/sensitive-data-protection/docs/infotypes-reference`> to learn more.
@@ -131,6 +133,19 @@ pub fn dlp_info_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_info_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpInfoTypesListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v2/infoTypes
 /// Returns a list of the sensitive information types that the DLP API supports. See <https://cloud.google.`com/sensitive-data-protection/docs/infotypes-reference`> to learn more.
 ///
@@ -143,10 +158,7 @@ pub fn dlp_info_types_list_execute(
 
 pub fn dlp_info_types_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    languageCode: Option<&str>,
-    locationId: Option<&str>,
-    parent: Option<&str>,
+    args: &DlpInfoTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListInfoTypesResponse>, ApiError>,
@@ -155,7 +167,13 @@ pub fn dlp_info_types_list(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_info_types_list_builder(client, filter, languageCode, locationId, parent)?;
+    let builder = dlp_info_types_list_builder(
+        client,
+        args.filter.as_deref(),
+        args.languageCode.as_deref(),
+        args.locationId.as_deref(),
+        args.parent.as_deref(),
+    )?;
     dlp_info_types_list_execute(builder)
 }
 
@@ -274,6 +292,19 @@ pub fn dlp_locations_info_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_locations_info_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpLocationsInfoTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+}
+
 /// GET v2/locations/{locationsId}/infoTypes
 /// Returns a list of the sensitive information types that the DLP API supports. See <https://cloud.google.`com/sensitive-data-protection/docs/infotypes-reference`> to learn more.
 ///
@@ -286,10 +317,7 @@ pub fn dlp_locations_info_types_list_execute(
 
 pub fn dlp_locations_info_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    languageCode: Option<&str>,
-    locationId: Option<&str>,
+    args: &DlpLocationsInfoTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListInfoTypesResponse>, ApiError>,
@@ -298,8 +326,13 @@ pub fn dlp_locations_info_types_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dlp_locations_info_types_list_builder(client, parent, filter, languageCode, locationId)?;
+    let builder = dlp_locations_info_types_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.languageCode.as_deref(),
+        args.locationId.as_deref(),
+    )?;
     dlp_locations_info_types_list_execute(builder)
 }
 
@@ -400,6 +433,15 @@ pub fn dlp_organizations_deidentify_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_deidentify_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsDeidentifyTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateDeidentifyTemplateRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/deidentifyTemplates
 /// Creates a DeidentifyTemplate for reusing frequently used configuration for de-identifying content, images, and storage. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -412,8 +454,7 @@ pub fn dlp_organizations_deidentify_templates_create_execute(
 
 pub fn dlp_organizations_deidentify_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateDeidentifyTemplateRequest,
+    args: &DlpOrganizationsDeidentifyTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DeidentifyTemplate>, ApiError>,
@@ -422,7 +463,8 @@ pub fn dlp_organizations_deidentify_templates_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_deidentify_templates_create_builder(client, parent, body)?;
+    let builder =
+        dlp_organizations_deidentify_templates_create_builder(client, &args.parent, &args.body)?;
     dlp_organizations_deidentify_templates_create_execute(builder)
 }
 
@@ -518,6 +560,13 @@ pub fn dlp_organizations_deidentify_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_deidentify_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsDeidentifyTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/deidentifyTemplates/{deidentifyTemplatesId}
 /// Deletes a DeidentifyTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -530,14 +579,14 @@ pub fn dlp_organizations_deidentify_templates_delete_execute(
 
 pub fn dlp_organizations_deidentify_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsDeidentifyTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_deidentify_templates_delete_builder(client, name)?;
+    let builder = dlp_organizations_deidentify_templates_delete_builder(client, &args.name)?;
     dlp_organizations_deidentify_templates_delete_execute(builder)
 }
 
@@ -635,6 +684,13 @@ pub fn dlp_organizations_deidentify_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_deidentify_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsDeidentifyTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/deidentifyTemplates/{deidentifyTemplatesId}
 /// Gets a DeidentifyTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -647,7 +703,7 @@ pub fn dlp_organizations_deidentify_templates_get_execute(
 
 pub fn dlp_organizations_deidentify_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsDeidentifyTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DeidentifyTemplate>, ApiError>,
@@ -656,7 +712,7 @@ pub fn dlp_organizations_deidentify_templates_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_deidentify_templates_get_builder(client, name)?;
+    let builder = dlp_organizations_deidentify_templates_get_builder(client, &args.name)?;
     dlp_organizations_deidentify_templates_get_execute(builder)
 }
 
@@ -779,6 +835,21 @@ pub fn dlp_organizations_deidentify_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_deidentify_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsDeidentifyTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/deidentifyTemplates
 /// Lists DeidentifyTemplates. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -791,11 +862,7 @@ pub fn dlp_organizations_deidentify_templates_list_execute(
 
 pub fn dlp_organizations_deidentify_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpOrganizationsDeidentifyTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListDeidentifyTemplatesResponse>, ApiError>,
@@ -805,7 +872,12 @@ pub fn dlp_organizations_deidentify_templates_list(
     ApiError,
 > {
     let builder = dlp_organizations_deidentify_templates_list_builder(
-        client, parent, locationId, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_organizations_deidentify_templates_list_execute(builder)
 }
@@ -907,6 +979,15 @@ pub fn dlp_organizations_deidentify_templates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_deidentify_templates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsDeidentifyTemplatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateDeidentifyTemplateRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/deidentifyTemplates/{deidentifyTemplatesId}
 /// Updates the DeidentifyTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -919,8 +1000,7 @@ pub fn dlp_organizations_deidentify_templates_patch_execute(
 
 pub fn dlp_organizations_deidentify_templates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateDeidentifyTemplateRequest,
+    args: &DlpOrganizationsDeidentifyTemplatesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DeidentifyTemplate>, ApiError>,
@@ -929,7 +1009,8 @@ pub fn dlp_organizations_deidentify_templates_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_deidentify_templates_patch_builder(client, name, body)?;
+    let builder =
+        dlp_organizations_deidentify_templates_patch_builder(client, &args.name, &args.body)?;
     dlp_organizations_deidentify_templates_patch_execute(builder)
 }
 
@@ -1030,6 +1111,15 @@ pub fn dlp_organizations_inspect_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_inspect_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsInspectTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateInspectTemplateRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/inspectTemplates
 /// Creates an InspectTemplate for reusing frequently used configuration for inspecting content, images, and storage. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -1042,8 +1132,7 @@ pub fn dlp_organizations_inspect_templates_create_execute(
 
 pub fn dlp_organizations_inspect_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateInspectTemplateRequest,
+    args: &DlpOrganizationsInspectTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2InspectTemplate>, ApiError>,
@@ -1052,7 +1141,8 @@ pub fn dlp_organizations_inspect_templates_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_inspect_templates_create_builder(client, parent, body)?;
+    let builder =
+        dlp_organizations_inspect_templates_create_builder(client, &args.parent, &args.body)?;
     dlp_organizations_inspect_templates_create_execute(builder)
 }
 
@@ -1148,6 +1238,13 @@ pub fn dlp_organizations_inspect_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_inspect_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsInspectTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/inspectTemplates/{inspectTemplatesId}
 /// Deletes an InspectTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -1160,14 +1257,14 @@ pub fn dlp_organizations_inspect_templates_delete_execute(
 
 pub fn dlp_organizations_inspect_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsInspectTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_inspect_templates_delete_builder(client, name)?;
+    let builder = dlp_organizations_inspect_templates_delete_builder(client, &args.name)?;
     dlp_organizations_inspect_templates_delete_execute(builder)
 }
 
@@ -1265,6 +1362,13 @@ pub fn dlp_organizations_inspect_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_inspect_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsInspectTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/inspectTemplates/{inspectTemplatesId}
 /// Gets an InspectTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -1277,7 +1381,7 @@ pub fn dlp_organizations_inspect_templates_get_execute(
 
 pub fn dlp_organizations_inspect_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsInspectTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2InspectTemplate>, ApiError>,
@@ -1286,7 +1390,7 @@ pub fn dlp_organizations_inspect_templates_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_inspect_templates_get_builder(client, name)?;
+    let builder = dlp_organizations_inspect_templates_get_builder(client, &args.name)?;
     dlp_organizations_inspect_templates_get_execute(builder)
 }
 
@@ -1409,6 +1513,21 @@ pub fn dlp_organizations_inspect_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_inspect_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsInspectTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/inspectTemplates
 /// Lists InspectTemplates. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -1421,11 +1540,7 @@ pub fn dlp_organizations_inspect_templates_list_execute(
 
 pub fn dlp_organizations_inspect_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpOrganizationsInspectTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListInspectTemplatesResponse>, ApiError>,
@@ -1435,7 +1550,12 @@ pub fn dlp_organizations_inspect_templates_list(
     ApiError,
 > {
     let builder = dlp_organizations_inspect_templates_list_builder(
-        client, parent, locationId, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_organizations_inspect_templates_list_execute(builder)
 }
@@ -1537,6 +1657,15 @@ pub fn dlp_organizations_inspect_templates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_inspect_templates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsInspectTemplatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateInspectTemplateRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/inspectTemplates/{inspectTemplatesId}
 /// Updates the InspectTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -1549,8 +1678,7 @@ pub fn dlp_organizations_inspect_templates_patch_execute(
 
 pub fn dlp_organizations_inspect_templates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateInspectTemplateRequest,
+    args: &DlpOrganizationsInspectTemplatesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2InspectTemplate>, ApiError>,
@@ -1559,7 +1687,8 @@ pub fn dlp_organizations_inspect_templates_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_inspect_templates_patch_builder(client, name, body)?;
+    let builder =
+        dlp_organizations_inspect_templates_patch_builder(client, &args.name, &args.body)?;
     dlp_organizations_inspect_templates_patch_execute(builder)
 }
 
@@ -1657,6 +1786,13 @@ pub fn dlp_organizations_locations_column_data_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_column_data_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsColumnDataProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/columnDataProfiles/{columnDataProfilesId}
 /// Gets a column data profile.
 ///
@@ -1669,7 +1805,7 @@ pub fn dlp_organizations_locations_column_data_profiles_get_execute(
 
 pub fn dlp_organizations_locations_column_data_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsColumnDataProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ColumnDataProfile>, ApiError>,
@@ -1678,7 +1814,7 @@ pub fn dlp_organizations_locations_column_data_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_column_data_profiles_get_builder(client, name)?;
+    let builder = dlp_organizations_locations_column_data_profiles_get_builder(client, &args.name)?;
     dlp_organizations_locations_column_data_profiles_get_execute(builder)
 }
 
@@ -1801,6 +1937,21 @@ pub fn dlp_organizations_locations_column_data_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_column_data_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsColumnDataProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/columnDataProfiles
 /// Lists column data profiles for an organization.
 ///
@@ -1813,11 +1964,7 @@ pub fn dlp_organizations_locations_column_data_profiles_list_execute(
 
 pub fn dlp_organizations_locations_column_data_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpOrganizationsLocationsColumnDataProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListColumnDataProfilesResponse>, ApiError>,
@@ -1827,7 +1974,12 @@ pub fn dlp_organizations_locations_column_data_profiles_list(
     ApiError,
 > {
     let builder = dlp_organizations_locations_column_data_profiles_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_organizations_locations_column_data_profiles_list_execute(builder)
 }
@@ -1929,6 +2081,15 @@ pub fn dlp_organizations_locations_connections_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_connections_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsConnectionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateConnectionRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/connections
 /// Create a Connection to an external data source.
 ///
@@ -1941,8 +2102,7 @@ pub fn dlp_organizations_locations_connections_create_execute(
 
 pub fn dlp_organizations_locations_connections_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateConnectionRequest,
+    args: &DlpOrganizationsLocationsConnectionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2Connection>, ApiError>,
@@ -1951,7 +2111,8 @@ pub fn dlp_organizations_locations_connections_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_connections_create_builder(client, parent, body)?;
+    let builder =
+        dlp_organizations_locations_connections_create_builder(client, &args.parent, &args.body)?;
     dlp_organizations_locations_connections_create_execute(builder)
 }
 
@@ -2047,6 +2208,13 @@ pub fn dlp_organizations_locations_connections_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_connections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsConnectionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/connections/{connectionsId}
 /// Delete a Connection.
 ///
@@ -2059,14 +2227,14 @@ pub fn dlp_organizations_locations_connections_delete_execute(
 
 pub fn dlp_organizations_locations_connections_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsConnectionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_connections_delete_builder(client, name)?;
+    let builder = dlp_organizations_locations_connections_delete_builder(client, &args.name)?;
     dlp_organizations_locations_connections_delete_execute(builder)
 }
 
@@ -2164,6 +2332,13 @@ pub fn dlp_organizations_locations_connections_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_connections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsConnectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/connections/{connectionsId}
 /// Get a Connection by name.
 ///
@@ -2176,7 +2351,7 @@ pub fn dlp_organizations_locations_connections_get_execute(
 
 pub fn dlp_organizations_locations_connections_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsConnectionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2Connection>, ApiError>,
@@ -2185,7 +2360,7 @@ pub fn dlp_organizations_locations_connections_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_connections_get_builder(client, name)?;
+    let builder = dlp_organizations_locations_connections_get_builder(client, &args.name)?;
     dlp_organizations_locations_connections_get_execute(builder)
 }
 
@@ -2303,6 +2478,19 @@ pub fn dlp_organizations_locations_connections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/connections
 /// Lists Connections in a parent. Use SearchConnections to see all connections within an organization.
 ///
@@ -2315,10 +2503,7 @@ pub fn dlp_organizations_locations_connections_list_execute(
 
 pub fn dlp_organizations_locations_connections_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpOrganizationsLocationsConnectionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListConnectionsResponse>, ApiError>,
@@ -2328,7 +2513,11 @@ pub fn dlp_organizations_locations_connections_list(
     ApiError,
 > {
     let builder = dlp_organizations_locations_connections_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_organizations_locations_connections_list_execute(builder)
 }
@@ -2430,6 +2619,15 @@ pub fn dlp_organizations_locations_connections_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_connections_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsConnectionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateConnectionRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/connections/{connectionsId}
 /// Update a Connection.
 ///
@@ -2442,8 +2640,7 @@ pub fn dlp_organizations_locations_connections_patch_execute(
 
 pub fn dlp_organizations_locations_connections_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateConnectionRequest,
+    args: &DlpOrganizationsLocationsConnectionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2Connection>, ApiError>,
@@ -2452,7 +2649,8 @@ pub fn dlp_organizations_locations_connections_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_connections_patch_builder(client, name, body)?;
+    let builder =
+        dlp_organizations_locations_connections_patch_builder(client, &args.name, &args.body)?;
     dlp_organizations_locations_connections_patch_execute(builder)
 }
 
@@ -2571,6 +2769,19 @@ pub fn dlp_organizations_locations_connections_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_connections_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsConnectionsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/connections:search
 /// Searches for Connections in a parent.
 ///
@@ -2583,10 +2794,7 @@ pub fn dlp_organizations_locations_connections_search_execute(
 
 pub fn dlp_organizations_locations_connections_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpOrganizationsLocationsConnectionsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2SearchConnectionsResponse>, ApiError>,
@@ -2596,7 +2804,11 @@ pub fn dlp_organizations_locations_connections_search(
     ApiError,
 > {
     let builder = dlp_organizations_locations_connections_search_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_organizations_locations_connections_search_execute(builder)
 }
@@ -2698,6 +2910,15 @@ pub fn dlp_organizations_locations_deidentify_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_deidentify_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsDeidentifyTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateDeidentifyTemplateRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/deidentifyTemplates
 /// Creates a DeidentifyTemplate for reusing frequently used configuration for de-identifying content, images, and storage. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -2710,8 +2931,7 @@ pub fn dlp_organizations_locations_deidentify_templates_create_execute(
 
 pub fn dlp_organizations_locations_deidentify_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateDeidentifyTemplateRequest,
+    args: &DlpOrganizationsLocationsDeidentifyTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DeidentifyTemplate>, ApiError>,
@@ -2720,8 +2940,11 @@ pub fn dlp_organizations_locations_deidentify_templates_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dlp_organizations_locations_deidentify_templates_create_builder(client, parent, body)?;
+    let builder = dlp_organizations_locations_deidentify_templates_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dlp_organizations_locations_deidentify_templates_create_execute(builder)
 }
 
@@ -2817,6 +3040,13 @@ pub fn dlp_organizations_locations_deidentify_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_deidentify_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsDeidentifyTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/deidentifyTemplates/{deidentifyTemplatesId}
 /// Deletes a DeidentifyTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -2829,14 +3059,15 @@ pub fn dlp_organizations_locations_deidentify_templates_delete_execute(
 
 pub fn dlp_organizations_locations_deidentify_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsDeidentifyTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_deidentify_templates_delete_builder(client, name)?;
+    let builder =
+        dlp_organizations_locations_deidentify_templates_delete_builder(client, &args.name)?;
     dlp_organizations_locations_deidentify_templates_delete_execute(builder)
 }
 
@@ -2934,6 +3165,13 @@ pub fn dlp_organizations_locations_deidentify_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_deidentify_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsDeidentifyTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/deidentifyTemplates/{deidentifyTemplatesId}
 /// Gets a DeidentifyTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -2946,7 +3184,7 @@ pub fn dlp_organizations_locations_deidentify_templates_get_execute(
 
 pub fn dlp_organizations_locations_deidentify_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsDeidentifyTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DeidentifyTemplate>, ApiError>,
@@ -2955,7 +3193,7 @@ pub fn dlp_organizations_locations_deidentify_templates_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_deidentify_templates_get_builder(client, name)?;
+    let builder = dlp_organizations_locations_deidentify_templates_get_builder(client, &args.name)?;
     dlp_organizations_locations_deidentify_templates_get_execute(builder)
 }
 
@@ -3078,6 +3316,21 @@ pub fn dlp_organizations_locations_deidentify_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_deidentify_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsDeidentifyTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/deidentifyTemplates
 /// Lists DeidentifyTemplates. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -3090,11 +3343,7 @@ pub fn dlp_organizations_locations_deidentify_templates_list_execute(
 
 pub fn dlp_organizations_locations_deidentify_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpOrganizationsLocationsDeidentifyTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListDeidentifyTemplatesResponse>, ApiError>,
@@ -3104,7 +3353,12 @@ pub fn dlp_organizations_locations_deidentify_templates_list(
     ApiError,
 > {
     let builder = dlp_organizations_locations_deidentify_templates_list_builder(
-        client, parent, locationId, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_organizations_locations_deidentify_templates_list_execute(builder)
 }
@@ -3206,6 +3460,15 @@ pub fn dlp_organizations_locations_deidentify_templates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_deidentify_templates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsDeidentifyTemplatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateDeidentifyTemplateRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/deidentifyTemplates/{deidentifyTemplatesId}
 /// Updates the DeidentifyTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -3218,8 +3481,7 @@ pub fn dlp_organizations_locations_deidentify_templates_patch_execute(
 
 pub fn dlp_organizations_locations_deidentify_templates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateDeidentifyTemplateRequest,
+    args: &DlpOrganizationsLocationsDeidentifyTemplatesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DeidentifyTemplate>, ApiError>,
@@ -3228,8 +3490,9 @@ pub fn dlp_organizations_locations_deidentify_templates_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dlp_organizations_locations_deidentify_templates_patch_builder(client, name, body)?;
+    let builder = dlp_organizations_locations_deidentify_templates_patch_builder(
+        client, &args.name, &args.body,
+    )?;
     dlp_organizations_locations_deidentify_templates_patch_execute(builder)
 }
 
@@ -3330,6 +3593,15 @@ pub fn dlp_organizations_locations_discovery_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_discovery_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsDiscoveryConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateDiscoveryConfigRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/discoveryConfigs
 /// Creates a config for discovery to scan and profile storage.
 ///
@@ -3342,8 +3614,7 @@ pub fn dlp_organizations_locations_discovery_configs_create_execute(
 
 pub fn dlp_organizations_locations_discovery_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateDiscoveryConfigRequest,
+    args: &DlpOrganizationsLocationsDiscoveryConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DiscoveryConfig>, ApiError>,
@@ -3352,8 +3623,11 @@ pub fn dlp_organizations_locations_discovery_configs_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dlp_organizations_locations_discovery_configs_create_builder(client, parent, body)?;
+    let builder = dlp_organizations_locations_discovery_configs_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dlp_organizations_locations_discovery_configs_create_execute(builder)
 }
 
@@ -3449,6 +3723,13 @@ pub fn dlp_organizations_locations_discovery_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_discovery_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsDiscoveryConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/discoveryConfigs/{discoveryConfigsId}
 /// Deletes a discovery configuration.
 ///
@@ -3461,14 +3742,14 @@ pub fn dlp_organizations_locations_discovery_configs_delete_execute(
 
 pub fn dlp_organizations_locations_discovery_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsDiscoveryConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_discovery_configs_delete_builder(client, name)?;
+    let builder = dlp_organizations_locations_discovery_configs_delete_builder(client, &args.name)?;
     dlp_organizations_locations_discovery_configs_delete_execute(builder)
 }
 
@@ -3566,6 +3847,13 @@ pub fn dlp_organizations_locations_discovery_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_discovery_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsDiscoveryConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/discoveryConfigs/{discoveryConfigsId}
 /// Gets a discovery configuration.
 ///
@@ -3578,7 +3866,7 @@ pub fn dlp_organizations_locations_discovery_configs_get_execute(
 
 pub fn dlp_organizations_locations_discovery_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsDiscoveryConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DiscoveryConfig>, ApiError>,
@@ -3587,7 +3875,7 @@ pub fn dlp_organizations_locations_discovery_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_discovery_configs_get_builder(client, name)?;
+    let builder = dlp_organizations_locations_discovery_configs_get_builder(client, &args.name)?;
     dlp_organizations_locations_discovery_configs_get_execute(builder)
 }
 
@@ -3706,6 +3994,19 @@ pub fn dlp_organizations_locations_discovery_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_discovery_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsDiscoveryConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/discoveryConfigs
 /// Lists discovery configurations.
 ///
@@ -3718,10 +4019,7 @@ pub fn dlp_organizations_locations_discovery_configs_list_execute(
 
 pub fn dlp_organizations_locations_discovery_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpOrganizationsLocationsDiscoveryConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListDiscoveryConfigsResponse>, ApiError>,
@@ -3731,7 +4029,11 @@ pub fn dlp_organizations_locations_discovery_configs_list(
     ApiError,
 > {
     let builder = dlp_organizations_locations_discovery_configs_list_builder(
-        client, parent, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_organizations_locations_discovery_configs_list_execute(builder)
 }
@@ -3833,6 +4135,15 @@ pub fn dlp_organizations_locations_discovery_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_discovery_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsDiscoveryConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateDiscoveryConfigRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/discoveryConfigs/{discoveryConfigsId}
 /// Updates a discovery configuration.
 ///
@@ -3845,8 +4156,7 @@ pub fn dlp_organizations_locations_discovery_configs_patch_execute(
 
 pub fn dlp_organizations_locations_discovery_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateDiscoveryConfigRequest,
+    args: &DlpOrganizationsLocationsDiscoveryConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DiscoveryConfig>, ApiError>,
@@ -3855,7 +4165,9 @@ pub fn dlp_organizations_locations_discovery_configs_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_discovery_configs_patch_builder(client, name, body)?;
+    let builder = dlp_organizations_locations_discovery_configs_patch_builder(
+        client, &args.name, &args.body,
+    )?;
     dlp_organizations_locations_discovery_configs_patch_execute(builder)
 }
 
@@ -3985,6 +4297,25 @@ pub fn dlp_organizations_locations_dlp_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_dlp_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsDlpJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/dlpJobs
 /// Lists DlpJobs that match the specified filter in the request. See <https://cloud.google.`com/sensitive-data-protection/docs/inspecting-storage`> and <https://cloud.google.`com/sensitive-data-protection/docs/compute-risk-analysis`> to learn more.
 ///
@@ -3997,13 +4328,7 @@ pub fn dlp_organizations_locations_dlp_jobs_list_execute(
 
 pub fn dlp_organizations_locations_dlp_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    type_rs: Option<&str>,
+    args: &DlpOrganizationsLocationsDlpJobsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListDlpJobsResponse>, ApiError>,
@@ -4013,7 +4338,14 @@ pub fn dlp_organizations_locations_dlp_jobs_list(
     ApiError,
 > {
     let builder = dlp_organizations_locations_dlp_jobs_list_builder(
-        client, parent, filter, locationId, orderBy, pageSize, pageToken, type_rs,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.type_rs.as_deref(),
     )?;
     dlp_organizations_locations_dlp_jobs_list_execute(builder)
 }
@@ -4110,6 +4442,13 @@ pub fn dlp_organizations_locations_file_store_data_profiles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_file_store_data_profiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsFileStoreDataProfilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/fileStoreDataProfiles/{fileStoreDataProfilesId}
 /// Delete a FileStoreDataProfile. Will not prevent the profile from being regenerated if the resource is still included in a discovery configuration.
 ///
@@ -4122,7 +4461,7 @@ pub fn dlp_organizations_locations_file_store_data_profiles_delete_execute(
 
 pub fn dlp_organizations_locations_file_store_data_profiles_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsFileStoreDataProfilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -4130,7 +4469,7 @@ pub fn dlp_organizations_locations_file_store_data_profiles_delete(
     ApiError,
 > {
     let builder =
-        dlp_organizations_locations_file_store_data_profiles_delete_builder(client, name)?;
+        dlp_organizations_locations_file_store_data_profiles_delete_builder(client, &args.name)?;
     dlp_organizations_locations_file_store_data_profiles_delete_execute(builder)
 }
 
@@ -4228,6 +4567,13 @@ pub fn dlp_organizations_locations_file_store_data_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_file_store_data_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsFileStoreDataProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/fileStoreDataProfiles/{fileStoreDataProfilesId}
 /// Gets a file store data profile.
 ///
@@ -4240,7 +4586,7 @@ pub fn dlp_organizations_locations_file_store_data_profiles_get_execute(
 
 pub fn dlp_organizations_locations_file_store_data_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsFileStoreDataProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2FileStoreDataProfile>, ApiError>,
@@ -4249,7 +4595,8 @@ pub fn dlp_organizations_locations_file_store_data_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_file_store_data_profiles_get_builder(client, name)?;
+    let builder =
+        dlp_organizations_locations_file_store_data_profiles_get_builder(client, &args.name)?;
     dlp_organizations_locations_file_store_data_profiles_get_execute(builder)
 }
 
@@ -4372,6 +4719,21 @@ pub fn dlp_organizations_locations_file_store_data_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_file_store_data_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsFileStoreDataProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/fileStoreDataProfiles
 /// Lists file store data profiles for an organization.
 ///
@@ -4384,11 +4746,7 @@ pub fn dlp_organizations_locations_file_store_data_profiles_list_execute(
 
 pub fn dlp_organizations_locations_file_store_data_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpOrganizationsLocationsFileStoreDataProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListFileStoreDataProfilesResponse>, ApiError>,
@@ -4398,7 +4756,12 @@ pub fn dlp_organizations_locations_file_store_data_profiles_list(
     ApiError,
 > {
     let builder = dlp_organizations_locations_file_store_data_profiles_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_organizations_locations_file_store_data_profiles_list_execute(builder)
 }
@@ -4518,6 +4881,19 @@ pub fn dlp_organizations_locations_info_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_info_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsInfoTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/infoTypes
 /// Returns a list of the sensitive information types that the DLP API supports. See <https://cloud.google.`com/sensitive-data-protection/docs/infotypes-reference`> to learn more.
 ///
@@ -4530,10 +4906,7 @@ pub fn dlp_organizations_locations_info_types_list_execute(
 
 pub fn dlp_organizations_locations_info_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    languageCode: Option<&str>,
-    locationId: Option<&str>,
+    args: &DlpOrganizationsLocationsInfoTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListInfoTypesResponse>, ApiError>,
@@ -4544,10 +4917,10 @@ pub fn dlp_organizations_locations_info_types_list(
 > {
     let builder = dlp_organizations_locations_info_types_list_builder(
         client,
-        parent,
-        filter,
-        languageCode,
-        locationId,
+        &args.parent,
+        args.filter.as_deref(),
+        args.languageCode.as_deref(),
+        args.locationId.as_deref(),
     )?;
     dlp_organizations_locations_info_types_list_execute(builder)
 }
@@ -4649,6 +5022,15 @@ pub fn dlp_organizations_locations_inspect_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_inspect_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsInspectTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateInspectTemplateRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/inspectTemplates
 /// Creates an InspectTemplate for reusing frequently used configuration for inspecting content, images, and storage. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -4661,8 +5043,7 @@ pub fn dlp_organizations_locations_inspect_templates_create_execute(
 
 pub fn dlp_organizations_locations_inspect_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateInspectTemplateRequest,
+    args: &DlpOrganizationsLocationsInspectTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2InspectTemplate>, ApiError>,
@@ -4671,8 +5052,11 @@ pub fn dlp_organizations_locations_inspect_templates_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dlp_organizations_locations_inspect_templates_create_builder(client, parent, body)?;
+    let builder = dlp_organizations_locations_inspect_templates_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dlp_organizations_locations_inspect_templates_create_execute(builder)
 }
 
@@ -4768,6 +5152,13 @@ pub fn dlp_organizations_locations_inspect_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_inspect_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsInspectTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/inspectTemplates/{inspectTemplatesId}
 /// Deletes an InspectTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -4780,14 +5171,14 @@ pub fn dlp_organizations_locations_inspect_templates_delete_execute(
 
 pub fn dlp_organizations_locations_inspect_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsInspectTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_inspect_templates_delete_builder(client, name)?;
+    let builder = dlp_organizations_locations_inspect_templates_delete_builder(client, &args.name)?;
     dlp_organizations_locations_inspect_templates_delete_execute(builder)
 }
 
@@ -4885,6 +5276,13 @@ pub fn dlp_organizations_locations_inspect_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_inspect_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsInspectTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/inspectTemplates/{inspectTemplatesId}
 /// Gets an InspectTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -4897,7 +5295,7 @@ pub fn dlp_organizations_locations_inspect_templates_get_execute(
 
 pub fn dlp_organizations_locations_inspect_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsInspectTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2InspectTemplate>, ApiError>,
@@ -4906,7 +5304,7 @@ pub fn dlp_organizations_locations_inspect_templates_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_inspect_templates_get_builder(client, name)?;
+    let builder = dlp_organizations_locations_inspect_templates_get_builder(client, &args.name)?;
     dlp_organizations_locations_inspect_templates_get_execute(builder)
 }
 
@@ -5029,6 +5427,21 @@ pub fn dlp_organizations_locations_inspect_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_inspect_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsInspectTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/inspectTemplates
 /// Lists InspectTemplates. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -5041,11 +5454,7 @@ pub fn dlp_organizations_locations_inspect_templates_list_execute(
 
 pub fn dlp_organizations_locations_inspect_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpOrganizationsLocationsInspectTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListInspectTemplatesResponse>, ApiError>,
@@ -5055,7 +5464,12 @@ pub fn dlp_organizations_locations_inspect_templates_list(
     ApiError,
 > {
     let builder = dlp_organizations_locations_inspect_templates_list_builder(
-        client, parent, locationId, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_organizations_locations_inspect_templates_list_execute(builder)
 }
@@ -5157,6 +5571,15 @@ pub fn dlp_organizations_locations_inspect_templates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_inspect_templates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsInspectTemplatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateInspectTemplateRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/inspectTemplates/{inspectTemplatesId}
 /// Updates the InspectTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -5169,8 +5592,7 @@ pub fn dlp_organizations_locations_inspect_templates_patch_execute(
 
 pub fn dlp_organizations_locations_inspect_templates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateInspectTemplateRequest,
+    args: &DlpOrganizationsLocationsInspectTemplatesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2InspectTemplate>, ApiError>,
@@ -5179,7 +5601,9 @@ pub fn dlp_organizations_locations_inspect_templates_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_inspect_templates_patch_builder(client, name, body)?;
+    let builder = dlp_organizations_locations_inspect_templates_patch_builder(
+        client, &args.name, &args.body,
+    )?;
     dlp_organizations_locations_inspect_templates_patch_execute(builder)
 }
 
@@ -5280,6 +5704,15 @@ pub fn dlp_organizations_locations_job_triggers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_job_triggers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsJobTriggersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateJobTriggerRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/jobTriggers
 /// Creates a job trigger to run DLP actions such as scanning storage for sensitive information on a set schedule. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-job-triggers`> to learn more.
 ///
@@ -5292,8 +5725,7 @@ pub fn dlp_organizations_locations_job_triggers_create_execute(
 
 pub fn dlp_organizations_locations_job_triggers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateJobTriggerRequest,
+    args: &DlpOrganizationsLocationsJobTriggersCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2JobTrigger>, ApiError>,
@@ -5302,7 +5734,8 @@ pub fn dlp_organizations_locations_job_triggers_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_job_triggers_create_builder(client, parent, body)?;
+    let builder =
+        dlp_organizations_locations_job_triggers_create_builder(client, &args.parent, &args.body)?;
     dlp_organizations_locations_job_triggers_create_execute(builder)
 }
 
@@ -5398,6 +5831,13 @@ pub fn dlp_organizations_locations_job_triggers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_job_triggers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsJobTriggersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/jobTriggers/{jobTriggersId}
 /// Deletes a job trigger. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-job-triggers`> to learn more.
 ///
@@ -5410,14 +5850,14 @@ pub fn dlp_organizations_locations_job_triggers_delete_execute(
 
 pub fn dlp_organizations_locations_job_triggers_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsJobTriggersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_job_triggers_delete_builder(client, name)?;
+    let builder = dlp_organizations_locations_job_triggers_delete_builder(client, &args.name)?;
     dlp_organizations_locations_job_triggers_delete_execute(builder)
 }
 
@@ -5515,6 +5955,13 @@ pub fn dlp_organizations_locations_job_triggers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_job_triggers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsJobTriggersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/jobTriggers/{jobTriggersId}
 /// Gets a job trigger. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-job-triggers`> to learn more.
 ///
@@ -5527,7 +5974,7 @@ pub fn dlp_organizations_locations_job_triggers_get_execute(
 
 pub fn dlp_organizations_locations_job_triggers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsJobTriggersGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2JobTrigger>, ApiError>,
@@ -5536,7 +5983,7 @@ pub fn dlp_organizations_locations_job_triggers_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_job_triggers_get_builder(client, name)?;
+    let builder = dlp_organizations_locations_job_triggers_get_builder(client, &args.name)?;
     dlp_organizations_locations_job_triggers_get_execute(builder)
 }
 
@@ -5666,6 +6113,25 @@ pub fn dlp_organizations_locations_job_triggers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_job_triggers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsJobTriggersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/jobTriggers
 /// Lists job triggers. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-job-triggers`> to learn more.
 ///
@@ -5678,13 +6144,7 @@ pub fn dlp_organizations_locations_job_triggers_list_execute(
 
 pub fn dlp_organizations_locations_job_triggers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    type_rs: Option<&str>,
+    args: &DlpOrganizationsLocationsJobTriggersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListJobTriggersResponse>, ApiError>,
@@ -5694,7 +6154,14 @@ pub fn dlp_organizations_locations_job_triggers_list(
     ApiError,
 > {
     let builder = dlp_organizations_locations_job_triggers_list_builder(
-        client, parent, filter, locationId, orderBy, pageSize, pageToken, type_rs,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.type_rs.as_deref(),
     )?;
     dlp_organizations_locations_job_triggers_list_execute(builder)
 }
@@ -5796,6 +6263,15 @@ pub fn dlp_organizations_locations_job_triggers_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_job_triggers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsJobTriggersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateJobTriggerRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/jobTriggers/{jobTriggersId}
 /// Updates a job trigger. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-job-triggers`> to learn more.
 ///
@@ -5808,8 +6284,7 @@ pub fn dlp_organizations_locations_job_triggers_patch_execute(
 
 pub fn dlp_organizations_locations_job_triggers_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateJobTriggerRequest,
+    args: &DlpOrganizationsLocationsJobTriggersPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2JobTrigger>, ApiError>,
@@ -5818,7 +6293,8 @@ pub fn dlp_organizations_locations_job_triggers_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_job_triggers_patch_builder(client, name, body)?;
+    let builder =
+        dlp_organizations_locations_job_triggers_patch_builder(client, &args.name, &args.body)?;
     dlp_organizations_locations_job_triggers_patch_execute(builder)
 }
 
@@ -5916,6 +6392,13 @@ pub fn dlp_organizations_locations_project_data_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_project_data_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsProjectDataProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/projectDataProfiles/{projectDataProfilesId}
 /// Gets a project data profile.
 ///
@@ -5928,7 +6411,7 @@ pub fn dlp_organizations_locations_project_data_profiles_get_execute(
 
 pub fn dlp_organizations_locations_project_data_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsProjectDataProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ProjectDataProfile>, ApiError>,
@@ -5937,7 +6420,8 @@ pub fn dlp_organizations_locations_project_data_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_project_data_profiles_get_builder(client, name)?;
+    let builder =
+        dlp_organizations_locations_project_data_profiles_get_builder(client, &args.name)?;
     dlp_organizations_locations_project_data_profiles_get_execute(builder)
 }
 
@@ -6060,6 +6544,21 @@ pub fn dlp_organizations_locations_project_data_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_project_data_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsProjectDataProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/projectDataProfiles
 /// Lists project data profiles for an organization.
 ///
@@ -6072,11 +6571,7 @@ pub fn dlp_organizations_locations_project_data_profiles_list_execute(
 
 pub fn dlp_organizations_locations_project_data_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpOrganizationsLocationsProjectDataProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListProjectDataProfilesResponse>, ApiError>,
@@ -6086,7 +6581,12 @@ pub fn dlp_organizations_locations_project_data_profiles_list(
     ApiError,
 > {
     let builder = dlp_organizations_locations_project_data_profiles_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_organizations_locations_project_data_profiles_list_execute(builder)
 }
@@ -6188,6 +6688,15 @@ pub fn dlp_organizations_locations_stored_info_types_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_stored_info_types_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsStoredInfoTypesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateStoredInfoTypeRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/storedInfoTypes
 /// Creates a pre-built stored `infoType` to be used for inspection. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -6200,8 +6709,7 @@ pub fn dlp_organizations_locations_stored_info_types_create_execute(
 
 pub fn dlp_organizations_locations_stored_info_types_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateStoredInfoTypeRequest,
+    args: &DlpOrganizationsLocationsStoredInfoTypesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2StoredInfoType>, ApiError>,
@@ -6210,8 +6718,11 @@ pub fn dlp_organizations_locations_stored_info_types_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dlp_organizations_locations_stored_info_types_create_builder(client, parent, body)?;
+    let builder = dlp_organizations_locations_stored_info_types_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dlp_organizations_locations_stored_info_types_create_execute(builder)
 }
 
@@ -6307,6 +6818,13 @@ pub fn dlp_organizations_locations_stored_info_types_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_stored_info_types_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsStoredInfoTypesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/storedInfoTypes/{storedInfoTypesId}
 /// Deletes a stored `infoType`. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -6319,14 +6837,14 @@ pub fn dlp_organizations_locations_stored_info_types_delete_execute(
 
 pub fn dlp_organizations_locations_stored_info_types_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsStoredInfoTypesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_stored_info_types_delete_builder(client, name)?;
+    let builder = dlp_organizations_locations_stored_info_types_delete_builder(client, &args.name)?;
     dlp_organizations_locations_stored_info_types_delete_execute(builder)
 }
 
@@ -6424,6 +6942,13 @@ pub fn dlp_organizations_locations_stored_info_types_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_stored_info_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsStoredInfoTypesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/storedInfoTypes/{storedInfoTypesId}
 /// Gets a stored `infoType`. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -6436,7 +6961,7 @@ pub fn dlp_organizations_locations_stored_info_types_get_execute(
 
 pub fn dlp_organizations_locations_stored_info_types_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsStoredInfoTypesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2StoredInfoType>, ApiError>,
@@ -6445,7 +6970,7 @@ pub fn dlp_organizations_locations_stored_info_types_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_stored_info_types_get_builder(client, name)?;
+    let builder = dlp_organizations_locations_stored_info_types_get_builder(client, &args.name)?;
     dlp_organizations_locations_stored_info_types_get_execute(builder)
 }
 
@@ -6568,6 +7093,21 @@ pub fn dlp_organizations_locations_stored_info_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_stored_info_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsStoredInfoTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/storedInfoTypes
 /// Lists stored `infoTypes`. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -6580,11 +7120,7 @@ pub fn dlp_organizations_locations_stored_info_types_list_execute(
 
 pub fn dlp_organizations_locations_stored_info_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpOrganizationsLocationsStoredInfoTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListStoredInfoTypesResponse>, ApiError>,
@@ -6594,7 +7130,12 @@ pub fn dlp_organizations_locations_stored_info_types_list(
     ApiError,
 > {
     let builder = dlp_organizations_locations_stored_info_types_list_builder(
-        client, parent, locationId, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_organizations_locations_stored_info_types_list_execute(builder)
 }
@@ -6696,6 +7237,15 @@ pub fn dlp_organizations_locations_stored_info_types_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_stored_info_types_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsStoredInfoTypesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateStoredInfoTypeRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/storedInfoTypes/{storedInfoTypesId}
 /// Updates the stored `infoType` by creating a new version. The existing version will continue to be used until the new version is ready. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -6708,8 +7258,7 @@ pub fn dlp_organizations_locations_stored_info_types_patch_execute(
 
 pub fn dlp_organizations_locations_stored_info_types_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateStoredInfoTypeRequest,
+    args: &DlpOrganizationsLocationsStoredInfoTypesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2StoredInfoType>, ApiError>,
@@ -6718,7 +7267,9 @@ pub fn dlp_organizations_locations_stored_info_types_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_stored_info_types_patch_builder(client, name, body)?;
+    let builder = dlp_organizations_locations_stored_info_types_patch_builder(
+        client, &args.name, &args.body,
+    )?;
     dlp_organizations_locations_stored_info_types_patch_execute(builder)
 }
 
@@ -6814,6 +7365,13 @@ pub fn dlp_organizations_locations_table_data_profiles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_table_data_profiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsTableDataProfilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/tableDataProfiles/{tableDataProfilesId}
 /// Delete a TableDataProfile. Will not prevent the profile from being regenerated if the table is still included in a discovery configuration.
 ///
@@ -6826,14 +7384,15 @@ pub fn dlp_organizations_locations_table_data_profiles_delete_execute(
 
 pub fn dlp_organizations_locations_table_data_profiles_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsTableDataProfilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_table_data_profiles_delete_builder(client, name)?;
+    let builder =
+        dlp_organizations_locations_table_data_profiles_delete_builder(client, &args.name)?;
     dlp_organizations_locations_table_data_profiles_delete_execute(builder)
 }
 
@@ -6931,6 +7490,13 @@ pub fn dlp_organizations_locations_table_data_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_table_data_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsTableDataProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/tableDataProfiles/{tableDataProfilesId}
 /// Gets a table data profile.
 ///
@@ -6943,7 +7509,7 @@ pub fn dlp_organizations_locations_table_data_profiles_get_execute(
 
 pub fn dlp_organizations_locations_table_data_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsLocationsTableDataProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2TableDataProfile>, ApiError>,
@@ -6952,7 +7518,7 @@ pub fn dlp_organizations_locations_table_data_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_locations_table_data_profiles_get_builder(client, name)?;
+    let builder = dlp_organizations_locations_table_data_profiles_get_builder(client, &args.name)?;
     dlp_organizations_locations_table_data_profiles_get_execute(builder)
 }
 
@@ -7075,6 +7641,21 @@ pub fn dlp_organizations_locations_table_data_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_locations_table_data_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsLocationsTableDataProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/locations/{locationsId}/tableDataProfiles
 /// Lists table data profiles for an organization.
 ///
@@ -7087,11 +7668,7 @@ pub fn dlp_organizations_locations_table_data_profiles_list_execute(
 
 pub fn dlp_organizations_locations_table_data_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpOrganizationsLocationsTableDataProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListTableDataProfilesResponse>, ApiError>,
@@ -7101,7 +7678,12 @@ pub fn dlp_organizations_locations_table_data_profiles_list(
     ApiError,
 > {
     let builder = dlp_organizations_locations_table_data_profiles_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_organizations_locations_table_data_profiles_list_execute(builder)
 }
@@ -7203,6 +7785,15 @@ pub fn dlp_organizations_stored_info_types_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_stored_info_types_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsStoredInfoTypesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateStoredInfoTypeRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/storedInfoTypes
 /// Creates a pre-built stored `infoType` to be used for inspection. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -7215,8 +7806,7 @@ pub fn dlp_organizations_stored_info_types_create_execute(
 
 pub fn dlp_organizations_stored_info_types_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateStoredInfoTypeRequest,
+    args: &DlpOrganizationsStoredInfoTypesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2StoredInfoType>, ApiError>,
@@ -7225,7 +7815,8 @@ pub fn dlp_organizations_stored_info_types_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_stored_info_types_create_builder(client, parent, body)?;
+    let builder =
+        dlp_organizations_stored_info_types_create_builder(client, &args.parent, &args.body)?;
     dlp_organizations_stored_info_types_create_execute(builder)
 }
 
@@ -7321,6 +7912,13 @@ pub fn dlp_organizations_stored_info_types_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_stored_info_types_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsStoredInfoTypesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/storedInfoTypes/{storedInfoTypesId}
 /// Deletes a stored `infoType`. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -7333,14 +7931,14 @@ pub fn dlp_organizations_stored_info_types_delete_execute(
 
 pub fn dlp_organizations_stored_info_types_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsStoredInfoTypesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_stored_info_types_delete_builder(client, name)?;
+    let builder = dlp_organizations_stored_info_types_delete_builder(client, &args.name)?;
     dlp_organizations_stored_info_types_delete_execute(builder)
 }
 
@@ -7438,6 +8036,13 @@ pub fn dlp_organizations_stored_info_types_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_stored_info_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsStoredInfoTypesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/storedInfoTypes/{storedInfoTypesId}
 /// Gets a stored `infoType`. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -7450,7 +8055,7 @@ pub fn dlp_organizations_stored_info_types_get_execute(
 
 pub fn dlp_organizations_stored_info_types_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpOrganizationsStoredInfoTypesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2StoredInfoType>, ApiError>,
@@ -7459,7 +8064,7 @@ pub fn dlp_organizations_stored_info_types_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_stored_info_types_get_builder(client, name)?;
+    let builder = dlp_organizations_stored_info_types_get_builder(client, &args.name)?;
     dlp_organizations_stored_info_types_get_execute(builder)
 }
 
@@ -7582,6 +8187,21 @@ pub fn dlp_organizations_stored_info_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_stored_info_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsStoredInfoTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/storedInfoTypes
 /// Lists stored `infoTypes`. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -7594,11 +8214,7 @@ pub fn dlp_organizations_stored_info_types_list_execute(
 
 pub fn dlp_organizations_stored_info_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpOrganizationsStoredInfoTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListStoredInfoTypesResponse>, ApiError>,
@@ -7608,7 +8224,12 @@ pub fn dlp_organizations_stored_info_types_list(
     ApiError,
 > {
     let builder = dlp_organizations_stored_info_types_list_builder(
-        client, parent, locationId, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_organizations_stored_info_types_list_execute(builder)
 }
@@ -7710,6 +8331,15 @@ pub fn dlp_organizations_stored_info_types_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_organizations_stored_info_types_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpOrganizationsStoredInfoTypesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateStoredInfoTypeRequest,
+}
+
 /// GET v2/organizations/{organizationsId}/storedInfoTypes/{storedInfoTypesId}
 /// Updates the stored `infoType` by creating a new version. The existing version will continue to be used until the new version is ready. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -7722,8 +8352,7 @@ pub fn dlp_organizations_stored_info_types_patch_execute(
 
 pub fn dlp_organizations_stored_info_types_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateStoredInfoTypeRequest,
+    args: &DlpOrganizationsStoredInfoTypesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2StoredInfoType>, ApiError>,
@@ -7732,7 +8361,8 @@ pub fn dlp_organizations_stored_info_types_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_organizations_stored_info_types_patch_builder(client, name, body)?;
+    let builder =
+        dlp_organizations_stored_info_types_patch_builder(client, &args.name, &args.body)?;
     dlp_organizations_stored_info_types_patch_execute(builder)
 }
 
@@ -7834,6 +8464,15 @@ pub fn dlp_projects_content_deidentify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_content_deidentify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsContentDeidentifyArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2DeidentifyContentRequest,
+}
+
 /// GET v2/projects/{projectsId}/content:deidentify
 /// De-identifies potentially sensitive info from a ContentItem. This method has limits on input size and output size. See <https://cloud.google.`com/sensitive-data-protection/docs/deidentify-sensitive-data`> to learn more. When no InfoTypes or CustomInfoTypes are specified in this request, the system will automatically choose what detectors to run. By default this may be all types, but may change over time as detectors are updated.
 ///
@@ -7846,8 +8485,7 @@ pub fn dlp_projects_content_deidentify_execute(
 
 pub fn dlp_projects_content_deidentify(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2DeidentifyContentRequest,
+    args: &DlpProjectsContentDeidentifyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DeidentifyContentResponse>, ApiError>,
@@ -7856,7 +8494,7 @@ pub fn dlp_projects_content_deidentify(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_content_deidentify_builder(client, parent, body)?;
+    let builder = dlp_projects_content_deidentify_builder(client, &args.parent, &args.body)?;
     dlp_projects_content_deidentify_execute(builder)
 }
 
@@ -7957,6 +8595,15 @@ pub fn dlp_projects_content_inspect_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_content_inspect`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsContentInspectArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2InspectContentRequest,
+}
+
 /// GET v2/projects/{projectsId}/content:inspect
 /// Finds potentially sensitive info in content. This method has limits on input size, processing time, and output size. When no InfoTypes or CustomInfoTypes are specified in this request, the system will automatically choose what detectors to run. By default this may be all types, but may change over time as detectors are updated. For how to guides, see <https://cloud.google.`com/sensitive-data-protection/docs/inspecting-images`> and <https://cloud.google.`com/sensitive-data-protection/docs/inspecting-text`,>
 ///
@@ -7969,8 +8616,7 @@ pub fn dlp_projects_content_inspect_execute(
 
 pub fn dlp_projects_content_inspect(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2InspectContentRequest,
+    args: &DlpProjectsContentInspectArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2InspectContentResponse>, ApiError>,
@@ -7979,7 +8625,7 @@ pub fn dlp_projects_content_inspect(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_content_inspect_builder(client, parent, body)?;
+    let builder = dlp_projects_content_inspect_builder(client, &args.parent, &args.body)?;
     dlp_projects_content_inspect_execute(builder)
 }
 
@@ -8081,6 +8727,15 @@ pub fn dlp_projects_content_reidentify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_content_reidentify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsContentReidentifyArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2ReidentifyContentRequest,
+}
+
 /// GET v2/projects/{projectsId}/content:reidentify
 /// Re-identifies content that has been de-identified. See <https://cloud.google.`com/sensitive-data-protection/docs/pseudonymization`#re-identification_in_free_text_code_example> to learn more.
 ///
@@ -8093,8 +8748,7 @@ pub fn dlp_projects_content_reidentify_execute(
 
 pub fn dlp_projects_content_reidentify(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2ReidentifyContentRequest,
+    args: &DlpProjectsContentReidentifyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ReidentifyContentResponse>, ApiError>,
@@ -8103,7 +8757,7 @@ pub fn dlp_projects_content_reidentify(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_content_reidentify_builder(client, parent, body)?;
+    let builder = dlp_projects_content_reidentify_builder(client, &args.parent, &args.body)?;
     dlp_projects_content_reidentify_execute(builder)
 }
 
@@ -8204,6 +8858,15 @@ pub fn dlp_projects_deidentify_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_deidentify_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsDeidentifyTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateDeidentifyTemplateRequest,
+}
+
 /// GET v2/projects/{projectsId}/deidentifyTemplates
 /// Creates a DeidentifyTemplate for reusing frequently used configuration for de-identifying content, images, and storage. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -8216,8 +8879,7 @@ pub fn dlp_projects_deidentify_templates_create_execute(
 
 pub fn dlp_projects_deidentify_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateDeidentifyTemplateRequest,
+    args: &DlpProjectsDeidentifyTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DeidentifyTemplate>, ApiError>,
@@ -8226,7 +8888,8 @@ pub fn dlp_projects_deidentify_templates_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_deidentify_templates_create_builder(client, parent, body)?;
+    let builder =
+        dlp_projects_deidentify_templates_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_deidentify_templates_create_execute(builder)
 }
 
@@ -8322,6 +8985,13 @@ pub fn dlp_projects_deidentify_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_deidentify_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsDeidentifyTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/deidentifyTemplates/{deidentifyTemplatesId}
 /// Deletes a DeidentifyTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -8334,14 +9004,14 @@ pub fn dlp_projects_deidentify_templates_delete_execute(
 
 pub fn dlp_projects_deidentify_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsDeidentifyTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_deidentify_templates_delete_builder(client, name)?;
+    let builder = dlp_projects_deidentify_templates_delete_builder(client, &args.name)?;
     dlp_projects_deidentify_templates_delete_execute(builder)
 }
 
@@ -8439,6 +9109,13 @@ pub fn dlp_projects_deidentify_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_deidentify_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsDeidentifyTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/deidentifyTemplates/{deidentifyTemplatesId}
 /// Gets a DeidentifyTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -8451,7 +9128,7 @@ pub fn dlp_projects_deidentify_templates_get_execute(
 
 pub fn dlp_projects_deidentify_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsDeidentifyTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DeidentifyTemplate>, ApiError>,
@@ -8460,7 +9137,7 @@ pub fn dlp_projects_deidentify_templates_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_deidentify_templates_get_builder(client, name)?;
+    let builder = dlp_projects_deidentify_templates_get_builder(client, &args.name)?;
     dlp_projects_deidentify_templates_get_execute(builder)
 }
 
@@ -8583,6 +9260,21 @@ pub fn dlp_projects_deidentify_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_deidentify_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsDeidentifyTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/deidentifyTemplates
 /// Lists DeidentifyTemplates. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -8595,11 +9287,7 @@ pub fn dlp_projects_deidentify_templates_list_execute(
 
 pub fn dlp_projects_deidentify_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpProjectsDeidentifyTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListDeidentifyTemplatesResponse>, ApiError>,
@@ -8609,7 +9297,12 @@ pub fn dlp_projects_deidentify_templates_list(
     ApiError,
 > {
     let builder = dlp_projects_deidentify_templates_list_builder(
-        client, parent, locationId, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_projects_deidentify_templates_list_execute(builder)
 }
@@ -8711,6 +9404,15 @@ pub fn dlp_projects_deidentify_templates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_deidentify_templates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsDeidentifyTemplatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateDeidentifyTemplateRequest,
+}
+
 /// GET v2/projects/{projectsId}/deidentifyTemplates/{deidentifyTemplatesId}
 /// Updates the DeidentifyTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -8723,8 +9425,7 @@ pub fn dlp_projects_deidentify_templates_patch_execute(
 
 pub fn dlp_projects_deidentify_templates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateDeidentifyTemplateRequest,
+    args: &DlpProjectsDeidentifyTemplatesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DeidentifyTemplate>, ApiError>,
@@ -8733,7 +9434,7 @@ pub fn dlp_projects_deidentify_templates_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_deidentify_templates_patch_builder(client, name, body)?;
+    let builder = dlp_projects_deidentify_templates_patch_builder(client, &args.name, &args.body)?;
     dlp_projects_deidentify_templates_patch_execute(builder)
 }
 
@@ -8832,6 +9533,15 @@ pub fn dlp_projects_dlp_jobs_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_dlp_jobs_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsDlpJobsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CancelDlpJobRequest,
+}
+
 /// GET v2/projects/{projectsId}/dlpJobs/{dlpJobsId}:cancel
 /// Starts asynchronous cancellation on a long-running DlpJob. The server makes a best effort to cancel the DlpJob, but success is not guaranteed. See <https://cloud.google.`com/sensitive-data-protection/docs/inspecting-storage`> and <https://cloud.google.`com/sensitive-data-protection/docs/compute-risk-analysis`> to learn more.
 ///
@@ -8844,15 +9554,14 @@ pub fn dlp_projects_dlp_jobs_cancel_execute(
 
 pub fn dlp_projects_dlp_jobs_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2CancelDlpJobRequest,
+    args: &DlpProjectsDlpJobsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_dlp_jobs_cancel_builder(client, name, body)?;
+    let builder = dlp_projects_dlp_jobs_cancel_builder(client, &args.name, &args.body)?;
     dlp_projects_dlp_jobs_cancel_execute(builder)
 }
 
@@ -8948,6 +9657,15 @@ pub fn dlp_projects_dlp_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_dlp_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsDlpJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateDlpJobRequest,
+}
+
 /// GET v2/projects/{projectsId}/dlpJobs
 /// Creates a new job to inspect storage or calculate risk metrics. See <https://cloud.google.`com/sensitive-data-protection/docs/inspecting-storage`> and <https://cloud.google.`com/sensitive-data-protection/docs/compute-risk-analysis`> to learn more. When no InfoTypes or CustomInfoTypes are specified in inspect jobs, the system will automatically choose what detectors to run. By default this may be all types, but may change over time as detectors are updated.
 ///
@@ -8960,15 +9678,14 @@ pub fn dlp_projects_dlp_jobs_create_execute(
 
 pub fn dlp_projects_dlp_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateDlpJobRequest,
+    args: &DlpProjectsDlpJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GooglePrivacyDlpV2DlpJob>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_dlp_jobs_create_builder(client, parent, body)?;
+    let builder = dlp_projects_dlp_jobs_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_dlp_jobs_create_execute(builder)
 }
 
@@ -9061,6 +9778,13 @@ pub fn dlp_projects_dlp_jobs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_dlp_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsDlpJobsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/dlpJobs/{dlpJobsId}
 /// Deletes a long-running DlpJob. This method indicates that the client is no longer interested in the DlpJob result. The job will be canceled if possible. See <https://cloud.google.`com/sensitive-data-protection/docs/inspecting-storage`> and <https://cloud.google.`com/sensitive-data-protection/docs/compute-risk-analysis`> to learn more.
 ///
@@ -9073,14 +9797,14 @@ pub fn dlp_projects_dlp_jobs_delete_execute(
 
 pub fn dlp_projects_dlp_jobs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsDlpJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_dlp_jobs_delete_builder(client, name)?;
+    let builder = dlp_projects_dlp_jobs_delete_builder(client, &args.name)?;
     dlp_projects_dlp_jobs_delete_execute(builder)
 }
 
@@ -9173,6 +9897,13 @@ pub fn dlp_projects_dlp_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_dlp_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsDlpJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/dlpJobs/{dlpJobsId}
 /// Gets the latest state of a long-running DlpJob. See <https://cloud.google.`com/sensitive-data-protection/docs/inspecting-storage`> and <https://cloud.google.`com/sensitive-data-protection/docs/compute-risk-analysis`> to learn more.
 ///
@@ -9185,14 +9916,14 @@ pub fn dlp_projects_dlp_jobs_get_execute(
 
 pub fn dlp_projects_dlp_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsDlpJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GooglePrivacyDlpV2DlpJob>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_dlp_jobs_get_builder(client, name)?;
+    let builder = dlp_projects_dlp_jobs_get_builder(client, &args.name)?;
     dlp_projects_dlp_jobs_get_execute(builder)
 }
 
@@ -9319,6 +10050,25 @@ pub fn dlp_projects_dlp_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_dlp_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsDlpJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/dlpJobs
 /// Lists DlpJobs that match the specified filter in the request. See <https://cloud.google.`com/sensitive-data-protection/docs/inspecting-storage`> and <https://cloud.google.`com/sensitive-data-protection/docs/compute-risk-analysis`> to learn more.
 ///
@@ -9331,13 +10081,7 @@ pub fn dlp_projects_dlp_jobs_list_execute(
 
 pub fn dlp_projects_dlp_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    type_rs: Option<&str>,
+    args: &DlpProjectsDlpJobsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListDlpJobsResponse>, ApiError>,
@@ -9347,7 +10091,14 @@ pub fn dlp_projects_dlp_jobs_list(
     ApiError,
 > {
     let builder = dlp_projects_dlp_jobs_list_builder(
-        client, parent, filter, locationId, orderBy, pageSize, pageToken, type_rs,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.type_rs.as_deref(),
     )?;
     dlp_projects_dlp_jobs_list_execute(builder)
 }
@@ -9449,6 +10200,15 @@ pub fn dlp_projects_image_redact_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_image_redact`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsImageRedactArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2RedactImageRequest,
+}
+
 /// GET v2/projects/{projectsId}/image:redact
 /// Redacts potentially sensitive info from an image. This method has limits on input size, processing time, and output size. See <https://cloud.google.`com/sensitive-data-protection/docs/redacting-sensitive-data-images`> to learn more. When no InfoTypes or CustomInfoTypes are specified in this request, the system will automatically choose what detectors to run. By default this may be all types, but may change over time as detectors are updated. Only the first frame of each multiframe image is redacted. Metadata and other frames are omitted in the response.
 ///
@@ -9461,8 +10221,7 @@ pub fn dlp_projects_image_redact_execute(
 
 pub fn dlp_projects_image_redact(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2RedactImageRequest,
+    args: &DlpProjectsImageRedactArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2RedactImageResponse>, ApiError>,
@@ -9471,7 +10230,7 @@ pub fn dlp_projects_image_redact(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_image_redact_builder(client, parent, body)?;
+    let builder = dlp_projects_image_redact_builder(client, &args.parent, &args.body)?;
     dlp_projects_image_redact_execute(builder)
 }
 
@@ -9572,6 +10331,15 @@ pub fn dlp_projects_inspect_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_inspect_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsInspectTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateInspectTemplateRequest,
+}
+
 /// GET v2/projects/{projectsId}/inspectTemplates
 /// Creates an InspectTemplate for reusing frequently used configuration for inspecting content, images, and storage. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -9584,8 +10352,7 @@ pub fn dlp_projects_inspect_templates_create_execute(
 
 pub fn dlp_projects_inspect_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateInspectTemplateRequest,
+    args: &DlpProjectsInspectTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2InspectTemplate>, ApiError>,
@@ -9594,7 +10361,7 @@ pub fn dlp_projects_inspect_templates_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_inspect_templates_create_builder(client, parent, body)?;
+    let builder = dlp_projects_inspect_templates_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_inspect_templates_create_execute(builder)
 }
 
@@ -9690,6 +10457,13 @@ pub fn dlp_projects_inspect_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_inspect_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsInspectTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/inspectTemplates/{inspectTemplatesId}
 /// Deletes an InspectTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -9702,14 +10476,14 @@ pub fn dlp_projects_inspect_templates_delete_execute(
 
 pub fn dlp_projects_inspect_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsInspectTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_inspect_templates_delete_builder(client, name)?;
+    let builder = dlp_projects_inspect_templates_delete_builder(client, &args.name)?;
     dlp_projects_inspect_templates_delete_execute(builder)
 }
 
@@ -9807,6 +10581,13 @@ pub fn dlp_projects_inspect_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_inspect_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsInspectTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/inspectTemplates/{inspectTemplatesId}
 /// Gets an InspectTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -9819,7 +10600,7 @@ pub fn dlp_projects_inspect_templates_get_execute(
 
 pub fn dlp_projects_inspect_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsInspectTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2InspectTemplate>, ApiError>,
@@ -9828,7 +10609,7 @@ pub fn dlp_projects_inspect_templates_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_inspect_templates_get_builder(client, name)?;
+    let builder = dlp_projects_inspect_templates_get_builder(client, &args.name)?;
     dlp_projects_inspect_templates_get_execute(builder)
 }
 
@@ -9951,6 +10732,21 @@ pub fn dlp_projects_inspect_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_inspect_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsInspectTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/inspectTemplates
 /// Lists InspectTemplates. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -9963,11 +10759,7 @@ pub fn dlp_projects_inspect_templates_list_execute(
 
 pub fn dlp_projects_inspect_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpProjectsInspectTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListInspectTemplatesResponse>, ApiError>,
@@ -9977,7 +10769,12 @@ pub fn dlp_projects_inspect_templates_list(
     ApiError,
 > {
     let builder = dlp_projects_inspect_templates_list_builder(
-        client, parent, locationId, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_projects_inspect_templates_list_execute(builder)
 }
@@ -10079,6 +10876,15 @@ pub fn dlp_projects_inspect_templates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_inspect_templates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsInspectTemplatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateInspectTemplateRequest,
+}
+
 /// GET v2/projects/{projectsId}/inspectTemplates/{inspectTemplatesId}
 /// Updates the InspectTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -10091,8 +10897,7 @@ pub fn dlp_projects_inspect_templates_patch_execute(
 
 pub fn dlp_projects_inspect_templates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateInspectTemplateRequest,
+    args: &DlpProjectsInspectTemplatesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2InspectTemplate>, ApiError>,
@@ -10101,7 +10906,7 @@ pub fn dlp_projects_inspect_templates_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_inspect_templates_patch_builder(client, name, body)?;
+    let builder = dlp_projects_inspect_templates_patch_builder(client, &args.name, &args.body)?;
     dlp_projects_inspect_templates_patch_execute(builder)
 }
 
@@ -10200,6 +11005,15 @@ pub fn dlp_projects_job_triggers_activate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_job_triggers_activate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsJobTriggersActivateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2ActivateJobTriggerRequest,
+}
+
 /// GET v2/projects/{projectsId}/jobTriggers/{jobTriggersId}:activate
 /// Activate a job trigger. Causes the immediate execute of a trigger instead of waiting on the trigger event to occur.
 ///
@@ -10212,15 +11026,14 @@ pub fn dlp_projects_job_triggers_activate_execute(
 
 pub fn dlp_projects_job_triggers_activate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2ActivateJobTriggerRequest,
+    args: &DlpProjectsJobTriggersActivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GooglePrivacyDlpV2DlpJob>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_job_triggers_activate_builder(client, name, body)?;
+    let builder = dlp_projects_job_triggers_activate_builder(client, &args.name, &args.body)?;
     dlp_projects_job_triggers_activate_execute(builder)
 }
 
@@ -10321,6 +11134,15 @@ pub fn dlp_projects_job_triggers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_job_triggers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsJobTriggersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateJobTriggerRequest,
+}
+
 /// GET v2/projects/{projectsId}/jobTriggers
 /// Creates a job trigger to run DLP actions such as scanning storage for sensitive information on a set schedule. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-job-triggers`> to learn more.
 ///
@@ -10333,8 +11155,7 @@ pub fn dlp_projects_job_triggers_create_execute(
 
 pub fn dlp_projects_job_triggers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateJobTriggerRequest,
+    args: &DlpProjectsJobTriggersCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2JobTrigger>, ApiError>,
@@ -10343,7 +11164,7 @@ pub fn dlp_projects_job_triggers_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_job_triggers_create_builder(client, parent, body)?;
+    let builder = dlp_projects_job_triggers_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_job_triggers_create_execute(builder)
 }
 
@@ -10439,6 +11260,13 @@ pub fn dlp_projects_job_triggers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_job_triggers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsJobTriggersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/jobTriggers/{jobTriggersId}
 /// Deletes a job trigger. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-job-triggers`> to learn more.
 ///
@@ -10451,14 +11279,14 @@ pub fn dlp_projects_job_triggers_delete_execute(
 
 pub fn dlp_projects_job_triggers_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsJobTriggersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_job_triggers_delete_builder(client, name)?;
+    let builder = dlp_projects_job_triggers_delete_builder(client, &args.name)?;
     dlp_projects_job_triggers_delete_execute(builder)
 }
 
@@ -10556,6 +11384,13 @@ pub fn dlp_projects_job_triggers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_job_triggers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsJobTriggersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/jobTriggers/{jobTriggersId}
 /// Gets a job trigger. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-job-triggers`> to learn more.
 ///
@@ -10568,7 +11403,7 @@ pub fn dlp_projects_job_triggers_get_execute(
 
 pub fn dlp_projects_job_triggers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsJobTriggersGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2JobTrigger>, ApiError>,
@@ -10577,7 +11412,7 @@ pub fn dlp_projects_job_triggers_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_job_triggers_get_builder(client, name)?;
+    let builder = dlp_projects_job_triggers_get_builder(client, &args.name)?;
     dlp_projects_job_triggers_get_execute(builder)
 }
 
@@ -10707,6 +11542,25 @@ pub fn dlp_projects_job_triggers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_job_triggers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsJobTriggersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/jobTriggers
 /// Lists job triggers. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-job-triggers`> to learn more.
 ///
@@ -10719,13 +11573,7 @@ pub fn dlp_projects_job_triggers_list_execute(
 
 pub fn dlp_projects_job_triggers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    type_rs: Option<&str>,
+    args: &DlpProjectsJobTriggersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListJobTriggersResponse>, ApiError>,
@@ -10735,7 +11583,14 @@ pub fn dlp_projects_job_triggers_list(
     ApiError,
 > {
     let builder = dlp_projects_job_triggers_list_builder(
-        client, parent, filter, locationId, orderBy, pageSize, pageToken, type_rs,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.type_rs.as_deref(),
     )?;
     dlp_projects_job_triggers_list_execute(builder)
 }
@@ -10837,6 +11692,15 @@ pub fn dlp_projects_job_triggers_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_job_triggers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsJobTriggersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateJobTriggerRequest,
+}
+
 /// GET v2/projects/{projectsId}/jobTriggers/{jobTriggersId}
 /// Updates a job trigger. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-job-triggers`> to learn more.
 ///
@@ -10849,8 +11713,7 @@ pub fn dlp_projects_job_triggers_patch_execute(
 
 pub fn dlp_projects_job_triggers_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateJobTriggerRequest,
+    args: &DlpProjectsJobTriggersPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2JobTrigger>, ApiError>,
@@ -10859,7 +11722,7 @@ pub fn dlp_projects_job_triggers_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_job_triggers_patch_builder(client, name, body)?;
+    let builder = dlp_projects_job_triggers_patch_builder(client, &args.name, &args.body)?;
     dlp_projects_job_triggers_patch_execute(builder)
 }
 
@@ -10957,6 +11820,13 @@ pub fn dlp_projects_locations_column_data_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_column_data_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsColumnDataProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/columnDataProfiles/{columnDataProfilesId}
 /// Gets a column data profile.
 ///
@@ -10969,7 +11839,7 @@ pub fn dlp_projects_locations_column_data_profiles_get_execute(
 
 pub fn dlp_projects_locations_column_data_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsColumnDataProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ColumnDataProfile>, ApiError>,
@@ -10978,7 +11848,7 @@ pub fn dlp_projects_locations_column_data_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_column_data_profiles_get_builder(client, name)?;
+    let builder = dlp_projects_locations_column_data_profiles_get_builder(client, &args.name)?;
     dlp_projects_locations_column_data_profiles_get_execute(builder)
 }
 
@@ -11101,6 +11971,21 @@ pub fn dlp_projects_locations_column_data_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_column_data_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsColumnDataProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/columnDataProfiles
 /// Lists column data profiles for an organization.
 ///
@@ -11113,11 +11998,7 @@ pub fn dlp_projects_locations_column_data_profiles_list_execute(
 
 pub fn dlp_projects_locations_column_data_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpProjectsLocationsColumnDataProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListColumnDataProfilesResponse>, ApiError>,
@@ -11127,7 +12008,12 @@ pub fn dlp_projects_locations_column_data_profiles_list(
     ApiError,
 > {
     let builder = dlp_projects_locations_column_data_profiles_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_projects_locations_column_data_profiles_list_execute(builder)
 }
@@ -11229,6 +12115,15 @@ pub fn dlp_projects_locations_connections_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_connections_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsConnectionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateConnectionRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections
 /// Create a Connection to an external data source.
 ///
@@ -11241,8 +12136,7 @@ pub fn dlp_projects_locations_connections_create_execute(
 
 pub fn dlp_projects_locations_connections_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateConnectionRequest,
+    args: &DlpProjectsLocationsConnectionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2Connection>, ApiError>,
@@ -11251,7 +12145,8 @@ pub fn dlp_projects_locations_connections_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_connections_create_builder(client, parent, body)?;
+    let builder =
+        dlp_projects_locations_connections_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_locations_connections_create_execute(builder)
 }
 
@@ -11347,6 +12242,13 @@ pub fn dlp_projects_locations_connections_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_connections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsConnectionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
 /// Delete a Connection.
 ///
@@ -11359,14 +12261,14 @@ pub fn dlp_projects_locations_connections_delete_execute(
 
 pub fn dlp_projects_locations_connections_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsConnectionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_connections_delete_builder(client, name)?;
+    let builder = dlp_projects_locations_connections_delete_builder(client, &args.name)?;
     dlp_projects_locations_connections_delete_execute(builder)
 }
 
@@ -11464,6 +12366,13 @@ pub fn dlp_projects_locations_connections_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_connections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsConnectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
 /// Get a Connection by name.
 ///
@@ -11476,7 +12385,7 @@ pub fn dlp_projects_locations_connections_get_execute(
 
 pub fn dlp_projects_locations_connections_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsConnectionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2Connection>, ApiError>,
@@ -11485,7 +12394,7 @@ pub fn dlp_projects_locations_connections_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_connections_get_builder(client, name)?;
+    let builder = dlp_projects_locations_connections_get_builder(client, &args.name)?;
     dlp_projects_locations_connections_get_execute(builder)
 }
 
@@ -11603,6 +12512,19 @@ pub fn dlp_projects_locations_connections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections
 /// Lists Connections in a parent. Use SearchConnections to see all connections within an organization.
 ///
@@ -11615,10 +12537,7 @@ pub fn dlp_projects_locations_connections_list_execute(
 
 pub fn dlp_projects_locations_connections_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpProjectsLocationsConnectionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListConnectionsResponse>, ApiError>,
@@ -11628,7 +12547,11 @@ pub fn dlp_projects_locations_connections_list(
     ApiError,
 > {
     let builder = dlp_projects_locations_connections_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_projects_locations_connections_list_execute(builder)
 }
@@ -11730,6 +12653,15 @@ pub fn dlp_projects_locations_connections_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_connections_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsConnectionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateConnectionRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
 /// Update a Connection.
 ///
@@ -11742,8 +12674,7 @@ pub fn dlp_projects_locations_connections_patch_execute(
 
 pub fn dlp_projects_locations_connections_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateConnectionRequest,
+    args: &DlpProjectsLocationsConnectionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2Connection>, ApiError>,
@@ -11752,7 +12683,7 @@ pub fn dlp_projects_locations_connections_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_connections_patch_builder(client, name, body)?;
+    let builder = dlp_projects_locations_connections_patch_builder(client, &args.name, &args.body)?;
     dlp_projects_locations_connections_patch_execute(builder)
 }
 
@@ -11871,6 +12802,19 @@ pub fn dlp_projects_locations_connections_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_connections_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsConnectionsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections:search
 /// Searches for Connections in a parent.
 ///
@@ -11883,10 +12827,7 @@ pub fn dlp_projects_locations_connections_search_execute(
 
 pub fn dlp_projects_locations_connections_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpProjectsLocationsConnectionsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2SearchConnectionsResponse>, ApiError>,
@@ -11896,7 +12837,11 @@ pub fn dlp_projects_locations_connections_search(
     ApiError,
 > {
     let builder = dlp_projects_locations_connections_search_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_projects_locations_connections_search_execute(builder)
 }
@@ -11999,6 +12944,15 @@ pub fn dlp_projects_locations_content_deidentify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_content_deidentify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsContentDeidentifyArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2DeidentifyContentRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/content:deidentify
 /// De-identifies potentially sensitive info from a ContentItem. This method has limits on input size and output size. See <https://cloud.google.`com/sensitive-data-protection/docs/deidentify-sensitive-data`> to learn more. When no InfoTypes or CustomInfoTypes are specified in this request, the system will automatically choose what detectors to run. By default this may be all types, but may change over time as detectors are updated.
 ///
@@ -12011,8 +12965,7 @@ pub fn dlp_projects_locations_content_deidentify_execute(
 
 pub fn dlp_projects_locations_content_deidentify(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2DeidentifyContentRequest,
+    args: &DlpProjectsLocationsContentDeidentifyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DeidentifyContentResponse>, ApiError>,
@@ -12021,7 +12974,8 @@ pub fn dlp_projects_locations_content_deidentify(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_content_deidentify_builder(client, parent, body)?;
+    let builder =
+        dlp_projects_locations_content_deidentify_builder(client, &args.parent, &args.body)?;
     dlp_projects_locations_content_deidentify_execute(builder)
 }
 
@@ -12122,6 +13076,15 @@ pub fn dlp_projects_locations_content_inspect_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_content_inspect`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsContentInspectArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2InspectContentRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/content:inspect
 /// Finds potentially sensitive info in content. This method has limits on input size, processing time, and output size. When no InfoTypes or CustomInfoTypes are specified in this request, the system will automatically choose what detectors to run. By default this may be all types, but may change over time as detectors are updated. For how to guides, see <https://cloud.google.`com/sensitive-data-protection/docs/inspecting-images`> and <https://cloud.google.`com/sensitive-data-protection/docs/inspecting-text`,>
 ///
@@ -12134,8 +13097,7 @@ pub fn dlp_projects_locations_content_inspect_execute(
 
 pub fn dlp_projects_locations_content_inspect(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2InspectContentRequest,
+    args: &DlpProjectsLocationsContentInspectArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2InspectContentResponse>, ApiError>,
@@ -12144,7 +13106,7 @@ pub fn dlp_projects_locations_content_inspect(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_content_inspect_builder(client, parent, body)?;
+    let builder = dlp_projects_locations_content_inspect_builder(client, &args.parent, &args.body)?;
     dlp_projects_locations_content_inspect_execute(builder)
 }
 
@@ -12246,6 +13208,15 @@ pub fn dlp_projects_locations_content_reidentify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_content_reidentify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsContentReidentifyArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2ReidentifyContentRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/content:reidentify
 /// Re-identifies content that has been de-identified. See <https://cloud.google.`com/sensitive-data-protection/docs/pseudonymization`#re-identification_in_free_text_code_example> to learn more.
 ///
@@ -12258,8 +13229,7 @@ pub fn dlp_projects_locations_content_reidentify_execute(
 
 pub fn dlp_projects_locations_content_reidentify(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2ReidentifyContentRequest,
+    args: &DlpProjectsLocationsContentReidentifyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ReidentifyContentResponse>, ApiError>,
@@ -12268,7 +13238,8 @@ pub fn dlp_projects_locations_content_reidentify(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_content_reidentify_builder(client, parent, body)?;
+    let builder =
+        dlp_projects_locations_content_reidentify_builder(client, &args.parent, &args.body)?;
     dlp_projects_locations_content_reidentify_execute(builder)
 }
 
@@ -12369,6 +13340,15 @@ pub fn dlp_projects_locations_deidentify_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_deidentify_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDeidentifyTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateDeidentifyTemplateRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/deidentifyTemplates
 /// Creates a DeidentifyTemplate for reusing frequently used configuration for de-identifying content, images, and storage. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -12381,8 +13361,7 @@ pub fn dlp_projects_locations_deidentify_templates_create_execute(
 
 pub fn dlp_projects_locations_deidentify_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateDeidentifyTemplateRequest,
+    args: &DlpProjectsLocationsDeidentifyTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DeidentifyTemplate>, ApiError>,
@@ -12391,7 +13370,11 @@ pub fn dlp_projects_locations_deidentify_templates_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_deidentify_templates_create_builder(client, parent, body)?;
+    let builder = dlp_projects_locations_deidentify_templates_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dlp_projects_locations_deidentify_templates_create_execute(builder)
 }
 
@@ -12487,6 +13470,13 @@ pub fn dlp_projects_locations_deidentify_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_deidentify_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDeidentifyTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/deidentifyTemplates/{deidentifyTemplatesId}
 /// Deletes a DeidentifyTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -12499,14 +13489,14 @@ pub fn dlp_projects_locations_deidentify_templates_delete_execute(
 
 pub fn dlp_projects_locations_deidentify_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsDeidentifyTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_deidentify_templates_delete_builder(client, name)?;
+    let builder = dlp_projects_locations_deidentify_templates_delete_builder(client, &args.name)?;
     dlp_projects_locations_deidentify_templates_delete_execute(builder)
 }
 
@@ -12604,6 +13594,13 @@ pub fn dlp_projects_locations_deidentify_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_deidentify_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDeidentifyTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/deidentifyTemplates/{deidentifyTemplatesId}
 /// Gets a DeidentifyTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -12616,7 +13613,7 @@ pub fn dlp_projects_locations_deidentify_templates_get_execute(
 
 pub fn dlp_projects_locations_deidentify_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsDeidentifyTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DeidentifyTemplate>, ApiError>,
@@ -12625,7 +13622,7 @@ pub fn dlp_projects_locations_deidentify_templates_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_deidentify_templates_get_builder(client, name)?;
+    let builder = dlp_projects_locations_deidentify_templates_get_builder(client, &args.name)?;
     dlp_projects_locations_deidentify_templates_get_execute(builder)
 }
 
@@ -12748,6 +13745,21 @@ pub fn dlp_projects_locations_deidentify_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_deidentify_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDeidentifyTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/deidentifyTemplates
 /// Lists DeidentifyTemplates. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -12760,11 +13772,7 @@ pub fn dlp_projects_locations_deidentify_templates_list_execute(
 
 pub fn dlp_projects_locations_deidentify_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpProjectsLocationsDeidentifyTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListDeidentifyTemplatesResponse>, ApiError>,
@@ -12774,7 +13782,12 @@ pub fn dlp_projects_locations_deidentify_templates_list(
     ApiError,
 > {
     let builder = dlp_projects_locations_deidentify_templates_list_builder(
-        client, parent, locationId, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_projects_locations_deidentify_templates_list_execute(builder)
 }
@@ -12876,6 +13889,15 @@ pub fn dlp_projects_locations_deidentify_templates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_deidentify_templates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDeidentifyTemplatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateDeidentifyTemplateRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/deidentifyTemplates/{deidentifyTemplatesId}
 /// Updates the DeidentifyTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates-deid`> to learn more.
 ///
@@ -12888,8 +13910,7 @@ pub fn dlp_projects_locations_deidentify_templates_patch_execute(
 
 pub fn dlp_projects_locations_deidentify_templates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateDeidentifyTemplateRequest,
+    args: &DlpProjectsLocationsDeidentifyTemplatesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DeidentifyTemplate>, ApiError>,
@@ -12898,7 +13919,8 @@ pub fn dlp_projects_locations_deidentify_templates_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_deidentify_templates_patch_builder(client, name, body)?;
+    let builder =
+        dlp_projects_locations_deidentify_templates_patch_builder(client, &args.name, &args.body)?;
     dlp_projects_locations_deidentify_templates_patch_execute(builder)
 }
 
@@ -12999,6 +14021,15 @@ pub fn dlp_projects_locations_discovery_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_discovery_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDiscoveryConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateDiscoveryConfigRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/discoveryConfigs
 /// Creates a config for discovery to scan and profile storage.
 ///
@@ -13011,8 +14042,7 @@ pub fn dlp_projects_locations_discovery_configs_create_execute(
 
 pub fn dlp_projects_locations_discovery_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateDiscoveryConfigRequest,
+    args: &DlpProjectsLocationsDiscoveryConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DiscoveryConfig>, ApiError>,
@@ -13021,7 +14051,8 @@ pub fn dlp_projects_locations_discovery_configs_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_discovery_configs_create_builder(client, parent, body)?;
+    let builder =
+        dlp_projects_locations_discovery_configs_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_locations_discovery_configs_create_execute(builder)
 }
 
@@ -13117,6 +14148,13 @@ pub fn dlp_projects_locations_discovery_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_discovery_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDiscoveryConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/discoveryConfigs/{discoveryConfigsId}
 /// Deletes a discovery configuration.
 ///
@@ -13129,14 +14167,14 @@ pub fn dlp_projects_locations_discovery_configs_delete_execute(
 
 pub fn dlp_projects_locations_discovery_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsDiscoveryConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_discovery_configs_delete_builder(client, name)?;
+    let builder = dlp_projects_locations_discovery_configs_delete_builder(client, &args.name)?;
     dlp_projects_locations_discovery_configs_delete_execute(builder)
 }
 
@@ -13234,6 +14272,13 @@ pub fn dlp_projects_locations_discovery_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_discovery_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDiscoveryConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/discoveryConfigs/{discoveryConfigsId}
 /// Gets a discovery configuration.
 ///
@@ -13246,7 +14291,7 @@ pub fn dlp_projects_locations_discovery_configs_get_execute(
 
 pub fn dlp_projects_locations_discovery_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsDiscoveryConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DiscoveryConfig>, ApiError>,
@@ -13255,7 +14300,7 @@ pub fn dlp_projects_locations_discovery_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_discovery_configs_get_builder(client, name)?;
+    let builder = dlp_projects_locations_discovery_configs_get_builder(client, &args.name)?;
     dlp_projects_locations_discovery_configs_get_execute(builder)
 }
 
@@ -13374,6 +14419,19 @@ pub fn dlp_projects_locations_discovery_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_discovery_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDiscoveryConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/discoveryConfigs
 /// Lists discovery configurations.
 ///
@@ -13386,10 +14444,7 @@ pub fn dlp_projects_locations_discovery_configs_list_execute(
 
 pub fn dlp_projects_locations_discovery_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpProjectsLocationsDiscoveryConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListDiscoveryConfigsResponse>, ApiError>,
@@ -13399,7 +14454,11 @@ pub fn dlp_projects_locations_discovery_configs_list(
     ApiError,
 > {
     let builder = dlp_projects_locations_discovery_configs_list_builder(
-        client, parent, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_projects_locations_discovery_configs_list_execute(builder)
 }
@@ -13501,6 +14560,15 @@ pub fn dlp_projects_locations_discovery_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_discovery_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDiscoveryConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateDiscoveryConfigRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/discoveryConfigs/{discoveryConfigsId}
 /// Updates a discovery configuration.
 ///
@@ -13513,8 +14581,7 @@ pub fn dlp_projects_locations_discovery_configs_patch_execute(
 
 pub fn dlp_projects_locations_discovery_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateDiscoveryConfigRequest,
+    args: &DlpProjectsLocationsDiscoveryConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2DiscoveryConfig>, ApiError>,
@@ -13523,7 +14590,8 @@ pub fn dlp_projects_locations_discovery_configs_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_discovery_configs_patch_builder(client, name, body)?;
+    let builder =
+        dlp_projects_locations_discovery_configs_patch_builder(client, &args.name, &args.body)?;
     dlp_projects_locations_discovery_configs_patch_execute(builder)
 }
 
@@ -13622,6 +14690,15 @@ pub fn dlp_projects_locations_dlp_jobs_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_dlp_jobs_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDlpJobsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CancelDlpJobRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dlpJobs/{dlpJobsId}:cancel
 /// Starts asynchronous cancellation on a long-running DlpJob. The server makes a best effort to cancel the DlpJob, but success is not guaranteed. See <https://cloud.google.`com/sensitive-data-protection/docs/inspecting-storage`> and <https://cloud.google.`com/sensitive-data-protection/docs/compute-risk-analysis`> to learn more.
 ///
@@ -13634,15 +14711,14 @@ pub fn dlp_projects_locations_dlp_jobs_cancel_execute(
 
 pub fn dlp_projects_locations_dlp_jobs_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2CancelDlpJobRequest,
+    args: &DlpProjectsLocationsDlpJobsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_dlp_jobs_cancel_builder(client, name, body)?;
+    let builder = dlp_projects_locations_dlp_jobs_cancel_builder(client, &args.name, &args.body)?;
     dlp_projects_locations_dlp_jobs_cancel_execute(builder)
 }
 
@@ -13741,6 +14817,15 @@ pub fn dlp_projects_locations_dlp_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_dlp_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDlpJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateDlpJobRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dlpJobs
 /// Creates a new job to inspect storage or calculate risk metrics. See <https://cloud.google.`com/sensitive-data-protection/docs/inspecting-storage`> and <https://cloud.google.`com/sensitive-data-protection/docs/compute-risk-analysis`> to learn more. When no InfoTypes or CustomInfoTypes are specified in inspect jobs, the system will automatically choose what detectors to run. By default this may be all types, but may change over time as detectors are updated.
 ///
@@ -13753,15 +14838,14 @@ pub fn dlp_projects_locations_dlp_jobs_create_execute(
 
 pub fn dlp_projects_locations_dlp_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateDlpJobRequest,
+    args: &DlpProjectsLocationsDlpJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GooglePrivacyDlpV2DlpJob>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_dlp_jobs_create_builder(client, parent, body)?;
+    let builder = dlp_projects_locations_dlp_jobs_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_locations_dlp_jobs_create_execute(builder)
 }
 
@@ -13857,6 +14941,13 @@ pub fn dlp_projects_locations_dlp_jobs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_dlp_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDlpJobsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dlpJobs/{dlpJobsId}
 /// Deletes a long-running DlpJob. This method indicates that the client is no longer interested in the DlpJob result. The job will be canceled if possible. See <https://cloud.google.`com/sensitive-data-protection/docs/inspecting-storage`> and <https://cloud.google.`com/sensitive-data-protection/docs/compute-risk-analysis`> to learn more.
 ///
@@ -13869,14 +14960,14 @@ pub fn dlp_projects_locations_dlp_jobs_delete_execute(
 
 pub fn dlp_projects_locations_dlp_jobs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsDlpJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_dlp_jobs_delete_builder(client, name)?;
+    let builder = dlp_projects_locations_dlp_jobs_delete_builder(client, &args.name)?;
     dlp_projects_locations_dlp_jobs_delete_execute(builder)
 }
 
@@ -13975,6 +15066,15 @@ pub fn dlp_projects_locations_dlp_jobs_finish_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_dlp_jobs_finish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDlpJobsFinishArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2FinishDlpJobRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dlpJobs/{dlpJobsId}:finish
 /// Finish a running hybrid DlpJob. Triggers the finalization steps and running of any enabled actions that have not yet run.
 ///
@@ -13987,15 +15087,14 @@ pub fn dlp_projects_locations_dlp_jobs_finish_execute(
 
 pub fn dlp_projects_locations_dlp_jobs_finish(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2FinishDlpJobRequest,
+    args: &DlpProjectsLocationsDlpJobsFinishArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_dlp_jobs_finish_builder(client, name, body)?;
+    let builder = dlp_projects_locations_dlp_jobs_finish_builder(client, &args.name, &args.body)?;
     dlp_projects_locations_dlp_jobs_finish_execute(builder)
 }
 
@@ -14091,6 +15190,13 @@ pub fn dlp_projects_locations_dlp_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_dlp_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDlpJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dlpJobs/{dlpJobsId}
 /// Gets the latest state of a long-running DlpJob. See <https://cloud.google.`com/sensitive-data-protection/docs/inspecting-storage`> and <https://cloud.google.`com/sensitive-data-protection/docs/compute-risk-analysis`> to learn more.
 ///
@@ -14103,14 +15209,14 @@ pub fn dlp_projects_locations_dlp_jobs_get_execute(
 
 pub fn dlp_projects_locations_dlp_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsDlpJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GooglePrivacyDlpV2DlpJob>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_dlp_jobs_get_builder(client, name)?;
+    let builder = dlp_projects_locations_dlp_jobs_get_builder(client, &args.name)?;
     dlp_projects_locations_dlp_jobs_get_execute(builder)
 }
 
@@ -14212,6 +15318,15 @@ pub fn dlp_projects_locations_dlp_jobs_hybrid_inspect_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_dlp_jobs_hybrid_inspect`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDlpJobsHybridInspectArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2HybridInspectDlpJobRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dlpJobs/{dlpJobsId}:hybridInspect
 /// Inspect hybrid content and store findings to a job. To review the findings, inspect the job. Inspection will occur asynchronously.
 ///
@@ -14224,8 +15339,7 @@ pub fn dlp_projects_locations_dlp_jobs_hybrid_inspect_execute(
 
 pub fn dlp_projects_locations_dlp_jobs_hybrid_inspect(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2HybridInspectDlpJobRequest,
+    args: &DlpProjectsLocationsDlpJobsHybridInspectArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2HybridInspectResponse>, ApiError>,
@@ -14234,7 +15348,8 @@ pub fn dlp_projects_locations_dlp_jobs_hybrid_inspect(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_dlp_jobs_hybrid_inspect_builder(client, name, body)?;
+    let builder =
+        dlp_projects_locations_dlp_jobs_hybrid_inspect_builder(client, &args.name, &args.body)?;
     dlp_projects_locations_dlp_jobs_hybrid_inspect_execute(builder)
 }
 
@@ -14364,6 +15479,25 @@ pub fn dlp_projects_locations_dlp_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_dlp_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsDlpJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/dlpJobs
 /// Lists DlpJobs that match the specified filter in the request. See <https://cloud.google.`com/sensitive-data-protection/docs/inspecting-storage`> and <https://cloud.google.`com/sensitive-data-protection/docs/compute-risk-analysis`> to learn more.
 ///
@@ -14376,13 +15510,7 @@ pub fn dlp_projects_locations_dlp_jobs_list_execute(
 
 pub fn dlp_projects_locations_dlp_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    type_rs: Option<&str>,
+    args: &DlpProjectsLocationsDlpJobsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListDlpJobsResponse>, ApiError>,
@@ -14392,7 +15520,14 @@ pub fn dlp_projects_locations_dlp_jobs_list(
     ApiError,
 > {
     let builder = dlp_projects_locations_dlp_jobs_list_builder(
-        client, parent, filter, locationId, orderBy, pageSize, pageToken, type_rs,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.type_rs.as_deref(),
     )?;
     dlp_projects_locations_dlp_jobs_list_execute(builder)
 }
@@ -14489,6 +15624,13 @@ pub fn dlp_projects_locations_file_store_data_profiles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_file_store_data_profiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsFileStoreDataProfilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/fileStoreDataProfiles/{fileStoreDataProfilesId}
 /// Delete a FileStoreDataProfile. Will not prevent the profile from being regenerated if the resource is still included in a discovery configuration.
 ///
@@ -14501,14 +15643,15 @@ pub fn dlp_projects_locations_file_store_data_profiles_delete_execute(
 
 pub fn dlp_projects_locations_file_store_data_profiles_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsFileStoreDataProfilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_file_store_data_profiles_delete_builder(client, name)?;
+    let builder =
+        dlp_projects_locations_file_store_data_profiles_delete_builder(client, &args.name)?;
     dlp_projects_locations_file_store_data_profiles_delete_execute(builder)
 }
 
@@ -14606,6 +15749,13 @@ pub fn dlp_projects_locations_file_store_data_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_file_store_data_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsFileStoreDataProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/fileStoreDataProfiles/{fileStoreDataProfilesId}
 /// Gets a file store data profile.
 ///
@@ -14618,7 +15768,7 @@ pub fn dlp_projects_locations_file_store_data_profiles_get_execute(
 
 pub fn dlp_projects_locations_file_store_data_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsFileStoreDataProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2FileStoreDataProfile>, ApiError>,
@@ -14627,7 +15777,7 @@ pub fn dlp_projects_locations_file_store_data_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_file_store_data_profiles_get_builder(client, name)?;
+    let builder = dlp_projects_locations_file_store_data_profiles_get_builder(client, &args.name)?;
     dlp_projects_locations_file_store_data_profiles_get_execute(builder)
 }
 
@@ -14750,6 +15900,21 @@ pub fn dlp_projects_locations_file_store_data_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_file_store_data_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsFileStoreDataProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/fileStoreDataProfiles
 /// Lists file store data profiles for an organization.
 ///
@@ -14762,11 +15927,7 @@ pub fn dlp_projects_locations_file_store_data_profiles_list_execute(
 
 pub fn dlp_projects_locations_file_store_data_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpProjectsLocationsFileStoreDataProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListFileStoreDataProfilesResponse>, ApiError>,
@@ -14776,7 +15937,12 @@ pub fn dlp_projects_locations_file_store_data_profiles_list(
     ApiError,
 > {
     let builder = dlp_projects_locations_file_store_data_profiles_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_projects_locations_file_store_data_profiles_list_execute(builder)
 }
@@ -14878,6 +16044,15 @@ pub fn dlp_projects_locations_image_redact_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_image_redact`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsImageRedactArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2RedactImageRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/image:redact
 /// Redacts potentially sensitive info from an image. This method has limits on input size, processing time, and output size. See <https://cloud.google.`com/sensitive-data-protection/docs/redacting-sensitive-data-images`> to learn more. When no InfoTypes or CustomInfoTypes are specified in this request, the system will automatically choose what detectors to run. By default this may be all types, but may change over time as detectors are updated. Only the first frame of each multiframe image is redacted. Metadata and other frames are omitted in the response.
 ///
@@ -14890,8 +16065,7 @@ pub fn dlp_projects_locations_image_redact_execute(
 
 pub fn dlp_projects_locations_image_redact(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2RedactImageRequest,
+    args: &DlpProjectsLocationsImageRedactArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2RedactImageResponse>, ApiError>,
@@ -14900,7 +16074,7 @@ pub fn dlp_projects_locations_image_redact(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_image_redact_builder(client, parent, body)?;
+    let builder = dlp_projects_locations_image_redact_builder(client, &args.parent, &args.body)?;
     dlp_projects_locations_image_redact_execute(builder)
 }
 
@@ -15019,6 +16193,19 @@ pub fn dlp_projects_locations_info_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_info_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsInfoTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/infoTypes
 /// Returns a list of the sensitive information types that the DLP API supports. See <https://cloud.google.`com/sensitive-data-protection/docs/infotypes-reference`> to learn more.
 ///
@@ -15031,10 +16218,7 @@ pub fn dlp_projects_locations_info_types_list_execute(
 
 pub fn dlp_projects_locations_info_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    languageCode: Option<&str>,
-    locationId: Option<&str>,
+    args: &DlpProjectsLocationsInfoTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListInfoTypesResponse>, ApiError>,
@@ -15045,10 +16229,10 @@ pub fn dlp_projects_locations_info_types_list(
 > {
     let builder = dlp_projects_locations_info_types_list_builder(
         client,
-        parent,
-        filter,
-        languageCode,
-        locationId,
+        &args.parent,
+        args.filter.as_deref(),
+        args.languageCode.as_deref(),
+        args.locationId.as_deref(),
     )?;
     dlp_projects_locations_info_types_list_execute(builder)
 }
@@ -15150,6 +16334,15 @@ pub fn dlp_projects_locations_inspect_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_inspect_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsInspectTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateInspectTemplateRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/inspectTemplates
 /// Creates an InspectTemplate for reusing frequently used configuration for inspecting content, images, and storage. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -15162,8 +16355,7 @@ pub fn dlp_projects_locations_inspect_templates_create_execute(
 
 pub fn dlp_projects_locations_inspect_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateInspectTemplateRequest,
+    args: &DlpProjectsLocationsInspectTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2InspectTemplate>, ApiError>,
@@ -15172,7 +16364,8 @@ pub fn dlp_projects_locations_inspect_templates_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_inspect_templates_create_builder(client, parent, body)?;
+    let builder =
+        dlp_projects_locations_inspect_templates_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_locations_inspect_templates_create_execute(builder)
 }
 
@@ -15268,6 +16461,13 @@ pub fn dlp_projects_locations_inspect_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_inspect_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsInspectTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/inspectTemplates/{inspectTemplatesId}
 /// Deletes an InspectTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -15280,14 +16480,14 @@ pub fn dlp_projects_locations_inspect_templates_delete_execute(
 
 pub fn dlp_projects_locations_inspect_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsInspectTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_inspect_templates_delete_builder(client, name)?;
+    let builder = dlp_projects_locations_inspect_templates_delete_builder(client, &args.name)?;
     dlp_projects_locations_inspect_templates_delete_execute(builder)
 }
 
@@ -15385,6 +16585,13 @@ pub fn dlp_projects_locations_inspect_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_inspect_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsInspectTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/inspectTemplates/{inspectTemplatesId}
 /// Gets an InspectTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -15397,7 +16604,7 @@ pub fn dlp_projects_locations_inspect_templates_get_execute(
 
 pub fn dlp_projects_locations_inspect_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsInspectTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2InspectTemplate>, ApiError>,
@@ -15406,7 +16613,7 @@ pub fn dlp_projects_locations_inspect_templates_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_inspect_templates_get_builder(client, name)?;
+    let builder = dlp_projects_locations_inspect_templates_get_builder(client, &args.name)?;
     dlp_projects_locations_inspect_templates_get_execute(builder)
 }
 
@@ -15529,6 +16736,21 @@ pub fn dlp_projects_locations_inspect_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_inspect_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsInspectTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/inspectTemplates
 /// Lists InspectTemplates. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -15541,11 +16763,7 @@ pub fn dlp_projects_locations_inspect_templates_list_execute(
 
 pub fn dlp_projects_locations_inspect_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpProjectsLocationsInspectTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListInspectTemplatesResponse>, ApiError>,
@@ -15555,7 +16773,12 @@ pub fn dlp_projects_locations_inspect_templates_list(
     ApiError,
 > {
     let builder = dlp_projects_locations_inspect_templates_list_builder(
-        client, parent, locationId, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_projects_locations_inspect_templates_list_execute(builder)
 }
@@ -15657,6 +16880,15 @@ pub fn dlp_projects_locations_inspect_templates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_inspect_templates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsInspectTemplatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateInspectTemplateRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/inspectTemplates/{inspectTemplatesId}
 /// Updates the InspectTemplate. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-templates`> to learn more.
 ///
@@ -15669,8 +16901,7 @@ pub fn dlp_projects_locations_inspect_templates_patch_execute(
 
 pub fn dlp_projects_locations_inspect_templates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateInspectTemplateRequest,
+    args: &DlpProjectsLocationsInspectTemplatesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2InspectTemplate>, ApiError>,
@@ -15679,7 +16910,8 @@ pub fn dlp_projects_locations_inspect_templates_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_inspect_templates_patch_builder(client, name, body)?;
+    let builder =
+        dlp_projects_locations_inspect_templates_patch_builder(client, &args.name, &args.body)?;
     dlp_projects_locations_inspect_templates_patch_execute(builder)
 }
 
@@ -15778,6 +17010,15 @@ pub fn dlp_projects_locations_job_triggers_activate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_job_triggers_activate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsJobTriggersActivateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2ActivateJobTriggerRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobTriggers/{jobTriggersId}:activate
 /// Activate a job trigger. Causes the immediate execute of a trigger instead of waiting on the trigger event to occur.
 ///
@@ -15790,15 +17031,15 @@ pub fn dlp_projects_locations_job_triggers_activate_execute(
 
 pub fn dlp_projects_locations_job_triggers_activate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2ActivateJobTriggerRequest,
+    args: &DlpProjectsLocationsJobTriggersActivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GooglePrivacyDlpV2DlpJob>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_job_triggers_activate_builder(client, name, body)?;
+    let builder =
+        dlp_projects_locations_job_triggers_activate_builder(client, &args.name, &args.body)?;
     dlp_projects_locations_job_triggers_activate_execute(builder)
 }
 
@@ -15899,6 +17140,15 @@ pub fn dlp_projects_locations_job_triggers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_job_triggers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsJobTriggersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateJobTriggerRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobTriggers
 /// Creates a job trigger to run DLP actions such as scanning storage for sensitive information on a set schedule. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-job-triggers`> to learn more.
 ///
@@ -15911,8 +17161,7 @@ pub fn dlp_projects_locations_job_triggers_create_execute(
 
 pub fn dlp_projects_locations_job_triggers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateJobTriggerRequest,
+    args: &DlpProjectsLocationsJobTriggersCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2JobTrigger>, ApiError>,
@@ -15921,7 +17170,8 @@ pub fn dlp_projects_locations_job_triggers_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_job_triggers_create_builder(client, parent, body)?;
+    let builder =
+        dlp_projects_locations_job_triggers_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_locations_job_triggers_create_execute(builder)
 }
 
@@ -16017,6 +17267,13 @@ pub fn dlp_projects_locations_job_triggers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_job_triggers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsJobTriggersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobTriggers/{jobTriggersId}
 /// Deletes a job trigger. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-job-triggers`> to learn more.
 ///
@@ -16029,14 +17286,14 @@ pub fn dlp_projects_locations_job_triggers_delete_execute(
 
 pub fn dlp_projects_locations_job_triggers_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsJobTriggersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_job_triggers_delete_builder(client, name)?;
+    let builder = dlp_projects_locations_job_triggers_delete_builder(client, &args.name)?;
     dlp_projects_locations_job_triggers_delete_execute(builder)
 }
 
@@ -16134,6 +17391,13 @@ pub fn dlp_projects_locations_job_triggers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_job_triggers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsJobTriggersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobTriggers/{jobTriggersId}
 /// Gets a job trigger. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-job-triggers`> to learn more.
 ///
@@ -16146,7 +17410,7 @@ pub fn dlp_projects_locations_job_triggers_get_execute(
 
 pub fn dlp_projects_locations_job_triggers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsJobTriggersGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2JobTrigger>, ApiError>,
@@ -16155,7 +17419,7 @@ pub fn dlp_projects_locations_job_triggers_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_job_triggers_get_builder(client, name)?;
+    let builder = dlp_projects_locations_job_triggers_get_builder(client, &args.name)?;
     dlp_projects_locations_job_triggers_get_execute(builder)
 }
 
@@ -16257,6 +17521,15 @@ pub fn dlp_projects_locations_job_triggers_hybrid_inspect_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_job_triggers_hybrid_inspect`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsJobTriggersHybridInspectArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2HybridInspectJobTriggerRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobTriggers/{jobTriggersId}:hybridInspect
 /// Inspect hybrid content and store findings to a trigger. The inspection will be processed asynchronously. To review the findings monitor the jobs within the trigger.
 ///
@@ -16269,8 +17542,7 @@ pub fn dlp_projects_locations_job_triggers_hybrid_inspect_execute(
 
 pub fn dlp_projects_locations_job_triggers_hybrid_inspect(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2HybridInspectJobTriggerRequest,
+    args: &DlpProjectsLocationsJobTriggersHybridInspectArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2HybridInspectResponse>, ApiError>,
@@ -16279,7 +17551,8 @@ pub fn dlp_projects_locations_job_triggers_hybrid_inspect(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_job_triggers_hybrid_inspect_builder(client, name, body)?;
+    let builder =
+        dlp_projects_locations_job_triggers_hybrid_inspect_builder(client, &args.name, &args.body)?;
     dlp_projects_locations_job_triggers_hybrid_inspect_execute(builder)
 }
 
@@ -16409,6 +17682,25 @@ pub fn dlp_projects_locations_job_triggers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_job_triggers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsJobTriggersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobTriggers
 /// Lists job triggers. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-job-triggers`> to learn more.
 ///
@@ -16421,13 +17713,7 @@ pub fn dlp_projects_locations_job_triggers_list_execute(
 
 pub fn dlp_projects_locations_job_triggers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    type_rs: Option<&str>,
+    args: &DlpProjectsLocationsJobTriggersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListJobTriggersResponse>, ApiError>,
@@ -16437,7 +17723,14 @@ pub fn dlp_projects_locations_job_triggers_list(
     ApiError,
 > {
     let builder = dlp_projects_locations_job_triggers_list_builder(
-        client, parent, filter, locationId, orderBy, pageSize, pageToken, type_rs,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.type_rs.as_deref(),
     )?;
     dlp_projects_locations_job_triggers_list_execute(builder)
 }
@@ -16539,6 +17832,15 @@ pub fn dlp_projects_locations_job_triggers_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_job_triggers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsJobTriggersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateJobTriggerRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobTriggers/{jobTriggersId}
 /// Updates a job trigger. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-job-triggers`> to learn more.
 ///
@@ -16551,8 +17853,7 @@ pub fn dlp_projects_locations_job_triggers_patch_execute(
 
 pub fn dlp_projects_locations_job_triggers_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateJobTriggerRequest,
+    args: &DlpProjectsLocationsJobTriggersPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2JobTrigger>, ApiError>,
@@ -16561,7 +17862,8 @@ pub fn dlp_projects_locations_job_triggers_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_job_triggers_patch_builder(client, name, body)?;
+    let builder =
+        dlp_projects_locations_job_triggers_patch_builder(client, &args.name, &args.body)?;
     dlp_projects_locations_job_triggers_patch_execute(builder)
 }
 
@@ -16659,6 +17961,13 @@ pub fn dlp_projects_locations_project_data_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_project_data_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsProjectDataProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/projectDataProfiles/{projectDataProfilesId}
 /// Gets a project data profile.
 ///
@@ -16671,7 +17980,7 @@ pub fn dlp_projects_locations_project_data_profiles_get_execute(
 
 pub fn dlp_projects_locations_project_data_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsProjectDataProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ProjectDataProfile>, ApiError>,
@@ -16680,7 +17989,7 @@ pub fn dlp_projects_locations_project_data_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_project_data_profiles_get_builder(client, name)?;
+    let builder = dlp_projects_locations_project_data_profiles_get_builder(client, &args.name)?;
     dlp_projects_locations_project_data_profiles_get_execute(builder)
 }
 
@@ -16803,6 +18112,21 @@ pub fn dlp_projects_locations_project_data_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_project_data_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsProjectDataProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/projectDataProfiles
 /// Lists project data profiles for an organization.
 ///
@@ -16815,11 +18139,7 @@ pub fn dlp_projects_locations_project_data_profiles_list_execute(
 
 pub fn dlp_projects_locations_project_data_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpProjectsLocationsProjectDataProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListProjectDataProfilesResponse>, ApiError>,
@@ -16829,7 +18149,12 @@ pub fn dlp_projects_locations_project_data_profiles_list(
     ApiError,
 > {
     let builder = dlp_projects_locations_project_data_profiles_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_projects_locations_project_data_profiles_list_execute(builder)
 }
@@ -16931,6 +18256,15 @@ pub fn dlp_projects_locations_stored_info_types_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_stored_info_types_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsStoredInfoTypesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateStoredInfoTypeRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/storedInfoTypes
 /// Creates a pre-built stored `infoType` to be used for inspection. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -16943,8 +18277,7 @@ pub fn dlp_projects_locations_stored_info_types_create_execute(
 
 pub fn dlp_projects_locations_stored_info_types_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateStoredInfoTypeRequest,
+    args: &DlpProjectsLocationsStoredInfoTypesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2StoredInfoType>, ApiError>,
@@ -16953,7 +18286,8 @@ pub fn dlp_projects_locations_stored_info_types_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_stored_info_types_create_builder(client, parent, body)?;
+    let builder =
+        dlp_projects_locations_stored_info_types_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_locations_stored_info_types_create_execute(builder)
 }
 
@@ -17049,6 +18383,13 @@ pub fn dlp_projects_locations_stored_info_types_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_stored_info_types_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsStoredInfoTypesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/storedInfoTypes/{storedInfoTypesId}
 /// Deletes a stored `infoType`. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -17061,14 +18402,14 @@ pub fn dlp_projects_locations_stored_info_types_delete_execute(
 
 pub fn dlp_projects_locations_stored_info_types_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsStoredInfoTypesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_stored_info_types_delete_builder(client, name)?;
+    let builder = dlp_projects_locations_stored_info_types_delete_builder(client, &args.name)?;
     dlp_projects_locations_stored_info_types_delete_execute(builder)
 }
 
@@ -17166,6 +18507,13 @@ pub fn dlp_projects_locations_stored_info_types_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_stored_info_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsStoredInfoTypesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/storedInfoTypes/{storedInfoTypesId}
 /// Gets a stored `infoType`. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -17178,7 +18526,7 @@ pub fn dlp_projects_locations_stored_info_types_get_execute(
 
 pub fn dlp_projects_locations_stored_info_types_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsStoredInfoTypesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2StoredInfoType>, ApiError>,
@@ -17187,7 +18535,7 @@ pub fn dlp_projects_locations_stored_info_types_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_stored_info_types_get_builder(client, name)?;
+    let builder = dlp_projects_locations_stored_info_types_get_builder(client, &args.name)?;
     dlp_projects_locations_stored_info_types_get_execute(builder)
 }
 
@@ -17310,6 +18658,21 @@ pub fn dlp_projects_locations_stored_info_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_stored_info_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsStoredInfoTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/storedInfoTypes
 /// Lists stored `infoTypes`. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -17322,11 +18685,7 @@ pub fn dlp_projects_locations_stored_info_types_list_execute(
 
 pub fn dlp_projects_locations_stored_info_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpProjectsLocationsStoredInfoTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListStoredInfoTypesResponse>, ApiError>,
@@ -17336,7 +18695,12 @@ pub fn dlp_projects_locations_stored_info_types_list(
     ApiError,
 > {
     let builder = dlp_projects_locations_stored_info_types_list_builder(
-        client, parent, locationId, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_projects_locations_stored_info_types_list_execute(builder)
 }
@@ -17438,6 +18802,15 @@ pub fn dlp_projects_locations_stored_info_types_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_stored_info_types_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsStoredInfoTypesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateStoredInfoTypeRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/storedInfoTypes/{storedInfoTypesId}
 /// Updates the stored `infoType` by creating a new version. The existing version will continue to be used until the new version is ready. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -17450,8 +18823,7 @@ pub fn dlp_projects_locations_stored_info_types_patch_execute(
 
 pub fn dlp_projects_locations_stored_info_types_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateStoredInfoTypeRequest,
+    args: &DlpProjectsLocationsStoredInfoTypesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2StoredInfoType>, ApiError>,
@@ -17460,7 +18832,8 @@ pub fn dlp_projects_locations_stored_info_types_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_stored_info_types_patch_builder(client, name, body)?;
+    let builder =
+        dlp_projects_locations_stored_info_types_patch_builder(client, &args.name, &args.body)?;
     dlp_projects_locations_stored_info_types_patch_execute(builder)
 }
 
@@ -17556,6 +18929,13 @@ pub fn dlp_projects_locations_table_data_profiles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_table_data_profiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsTableDataProfilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/tableDataProfiles/{tableDataProfilesId}
 /// Delete a TableDataProfile. Will not prevent the profile from being regenerated if the table is still included in a discovery configuration.
 ///
@@ -17568,14 +18948,14 @@ pub fn dlp_projects_locations_table_data_profiles_delete_execute(
 
 pub fn dlp_projects_locations_table_data_profiles_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsTableDataProfilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_table_data_profiles_delete_builder(client, name)?;
+    let builder = dlp_projects_locations_table_data_profiles_delete_builder(client, &args.name)?;
     dlp_projects_locations_table_data_profiles_delete_execute(builder)
 }
 
@@ -17673,6 +19053,13 @@ pub fn dlp_projects_locations_table_data_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_table_data_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsTableDataProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/tableDataProfiles/{tableDataProfilesId}
 /// Gets a table data profile.
 ///
@@ -17685,7 +19072,7 @@ pub fn dlp_projects_locations_table_data_profiles_get_execute(
 
 pub fn dlp_projects_locations_table_data_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsLocationsTableDataProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2TableDataProfile>, ApiError>,
@@ -17694,7 +19081,7 @@ pub fn dlp_projects_locations_table_data_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_locations_table_data_profiles_get_builder(client, name)?;
+    let builder = dlp_projects_locations_table_data_profiles_get_builder(client, &args.name)?;
     dlp_projects_locations_table_data_profiles_get_execute(builder)
 }
 
@@ -17817,6 +19204,21 @@ pub fn dlp_projects_locations_table_data_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_locations_table_data_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsLocationsTableDataProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/tableDataProfiles
 /// Lists table data profiles for an organization.
 ///
@@ -17829,11 +19231,7 @@ pub fn dlp_projects_locations_table_data_profiles_list_execute(
 
 pub fn dlp_projects_locations_table_data_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpProjectsLocationsTableDataProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListTableDataProfilesResponse>, ApiError>,
@@ -17843,7 +19241,12 @@ pub fn dlp_projects_locations_table_data_profiles_list(
     ApiError,
 > {
     let builder = dlp_projects_locations_table_data_profiles_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_projects_locations_table_data_profiles_list_execute(builder)
 }
@@ -17945,6 +19348,15 @@ pub fn dlp_projects_stored_info_types_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_stored_info_types_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsStoredInfoTypesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2CreateStoredInfoTypeRequest,
+}
+
 /// GET v2/projects/{projectsId}/storedInfoTypes
 /// Creates a pre-built stored `infoType` to be used for inspection. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -17957,8 +19369,7 @@ pub fn dlp_projects_stored_info_types_create_execute(
 
 pub fn dlp_projects_stored_info_types_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GooglePrivacyDlpV2CreateStoredInfoTypeRequest,
+    args: &DlpProjectsStoredInfoTypesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2StoredInfoType>, ApiError>,
@@ -17967,7 +19378,7 @@ pub fn dlp_projects_stored_info_types_create(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_stored_info_types_create_builder(client, parent, body)?;
+    let builder = dlp_projects_stored_info_types_create_builder(client, &args.parent, &args.body)?;
     dlp_projects_stored_info_types_create_execute(builder)
 }
 
@@ -18063,6 +19474,13 @@ pub fn dlp_projects_stored_info_types_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_stored_info_types_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsStoredInfoTypesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/storedInfoTypes/{storedInfoTypesId}
 /// Deletes a stored `infoType`. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -18075,14 +19493,14 @@ pub fn dlp_projects_stored_info_types_delete_execute(
 
 pub fn dlp_projects_stored_info_types_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsStoredInfoTypesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_stored_info_types_delete_builder(client, name)?;
+    let builder = dlp_projects_stored_info_types_delete_builder(client, &args.name)?;
     dlp_projects_stored_info_types_delete_execute(builder)
 }
 
@@ -18180,6 +19598,13 @@ pub fn dlp_projects_stored_info_types_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_stored_info_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsStoredInfoTypesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/storedInfoTypes/{storedInfoTypesId}
 /// Gets a stored `infoType`. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -18192,7 +19617,7 @@ pub fn dlp_projects_stored_info_types_get_execute(
 
 pub fn dlp_projects_stored_info_types_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DlpProjectsStoredInfoTypesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2StoredInfoType>, ApiError>,
@@ -18201,7 +19626,7 @@ pub fn dlp_projects_stored_info_types_get(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_stored_info_types_get_builder(client, name)?;
+    let builder = dlp_projects_stored_info_types_get_builder(client, &args.name)?;
     dlp_projects_stored_info_types_get_execute(builder)
 }
 
@@ -18324,6 +19749,21 @@ pub fn dlp_projects_stored_info_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_stored_info_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsStoredInfoTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: locationId
+    pub locationId: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/storedInfoTypes
 /// Lists stored `infoTypes`. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -18336,11 +19776,7 @@ pub fn dlp_projects_stored_info_types_list_execute(
 
 pub fn dlp_projects_stored_info_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    locationId: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DlpProjectsStoredInfoTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2ListStoredInfoTypesResponse>, ApiError>,
@@ -18350,7 +19786,12 @@ pub fn dlp_projects_stored_info_types_list(
     ApiError,
 > {
     let builder = dlp_projects_stored_info_types_list_builder(
-        client, parent, locationId, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.locationId.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dlp_projects_stored_info_types_list_execute(builder)
 }
@@ -18452,6 +19893,15 @@ pub fn dlp_projects_stored_info_types_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dlp_projects_stored_info_types_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DlpProjectsStoredInfoTypesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GooglePrivacyDlpV2UpdateStoredInfoTypeRequest,
+}
+
 /// GET v2/projects/{projectsId}/storedInfoTypes/{storedInfoTypesId}
 /// Updates the stored `infoType` by creating a new version. The existing version will continue to be used until the new version is ready. See <https://cloud.google.`com/sensitive-data-protection/docs/creating-stored-infotypes`> to learn more.
 ///
@@ -18464,8 +19914,7 @@ pub fn dlp_projects_stored_info_types_patch_execute(
 
 pub fn dlp_projects_stored_info_types_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GooglePrivacyDlpV2UpdateStoredInfoTypeRequest,
+    args: &DlpProjectsStoredInfoTypesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GooglePrivacyDlpV2StoredInfoType>, ApiError>,
@@ -18474,6 +19923,6 @@ pub fn dlp_projects_stored_info_types_patch(
         + 'static,
     ApiError,
 > {
-    let builder = dlp_projects_stored_info_types_patch_builder(client, name, body)?;
+    let builder = dlp_projects_stored_info_types_patch_builder(client, &args.name, &args.body)?;
     dlp_projects_stored_info_types_patch_execute(builder)
 }

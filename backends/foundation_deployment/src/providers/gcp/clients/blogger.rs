@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v3/users/{userId}/blogs/{blogId}
 /// Gets one blog and user info pair by blog id and user id.
@@ -121,6 +123,17 @@ pub fn blogger_blog_user_infos_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_blog_user_infos_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerBlogUserInfosGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Query parameter: maxPosts
+    pub maxPosts: Option<i32>,
+}
+
 /// GET v3/users/{userId}/blogs/{blogId}
 /// Gets one blog and user info pair by blog id and user id.
 ///
@@ -133,16 +146,15 @@ pub fn blogger_blog_user_infos_get_execute(
 
 pub fn blogger_blog_user_infos_get(
     client: &SimpleHttpClient,
-    userId: &str,
-    blogId: &str,
-    maxPosts: Option<i32>,
+    args: &BloggerBlogUserInfosGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BlogUserInfo>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = blogger_blog_user_infos_get_builder(client, userId, blogId, maxPosts)?;
+    let builder =
+        blogger_blog_user_infos_get_builder(client, &args.userId, &args.blogId, args.maxPosts)?;
     blogger_blog_user_infos_get_execute(builder)
 }
 
@@ -249,6 +261,17 @@ pub fn blogger_blogs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_blogs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerBlogsGetArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Query parameter: maxPosts
+    pub maxPosts: Option<i32>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/blogs/{blogId}
 /// Gets a blog by id.
 ///
@@ -261,14 +284,13 @@ pub fn blogger_blogs_get_execute(
 
 pub fn blogger_blogs_get(
     client: &SimpleHttpClient,
-    blogId: &str,
-    maxPosts: Option<i32>,
-    view: Option<&str>,
+    args: &BloggerBlogsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Blog>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_blogs_get_builder(client, blogId, maxPosts, view)?;
+    let builder =
+        blogger_blogs_get_builder(client, &args.blogId, args.maxPosts, args.view.as_deref())?;
     blogger_blogs_get_execute(builder)
 }
 
@@ -371,6 +393,15 @@ pub fn blogger_blogs_get_by_url_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_blogs_get_by_url`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerBlogsGetByUrlArgs {
+    /// Path parameter: url
+    pub url: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/blogs/byurl
 /// Gets a blog by url.
 ///
@@ -383,13 +414,12 @@ pub fn blogger_blogs_get_by_url_execute(
 
 pub fn blogger_blogs_get_by_url(
     client: &SimpleHttpClient,
-    url: &str,
-    view: Option<&str>,
+    args: &BloggerBlogsGetByUrlArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Blog>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_blogs_get_by_url_builder(client, url, view)?;
+    let builder = blogger_blogs_get_by_url_builder(client, &args.url, args.view.as_deref())?;
     blogger_blogs_get_by_url_execute(builder)
 }
 
@@ -504,6 +534,21 @@ pub fn blogger_blogs_list_by_user_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_blogs_list_by_user`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerBlogsListByUserArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: fetchUserInfo
+    pub fetchUserInfo: Option<bool>,
+    /// Query parameter: role
+    pub role: Option<String>,
+    /// Query parameter: status
+    pub status: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/users/{userId}/blogs
 /// Lists blogs by user.
 ///
@@ -516,17 +561,19 @@ pub fn blogger_blogs_list_by_user_execute(
 
 pub fn blogger_blogs_list_by_user(
     client: &SimpleHttpClient,
-    userId: &str,
-    fetchUserInfo: Option<bool>,
-    role: Option<&str>,
-    status: Option<&str>,
-    view: Option<&str>,
+    args: &BloggerBlogsListByUserArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BlogList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        blogger_blogs_list_by_user_builder(client, userId, fetchUserInfo, role, status, view)?;
+    let builder = blogger_blogs_list_by_user_builder(
+        client,
+        &args.userId,
+        args.fetchUserInfo,
+        args.role.as_deref(),
+        args.status.as_deref(),
+        args.view.as_deref(),
+    )?;
     blogger_blogs_list_by_user_execute(builder)
 }
 
@@ -622,6 +669,17 @@ pub fn blogger_comments_approve_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_comments_approve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerCommentsApproveArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+}
+
 /// GET v3/blogs/{blogId}/posts/{postId}/comments/{commentId}/approve
 /// Marks a comment as not spam by blog id, post id and comment id.
 ///
@@ -634,14 +692,13 @@ pub fn blogger_comments_approve_execute(
 
 pub fn blogger_comments_approve(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    commentId: &str,
+    args: &BloggerCommentsApproveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_comments_approve_builder(client, blogId, postId, commentId)?;
+    let builder =
+        blogger_comments_approve_builder(client, &args.blogId, &args.postId, &args.commentId)?;
     blogger_comments_approve_execute(builder)
 }
 
@@ -734,6 +791,17 @@ pub fn blogger_comments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_comments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerCommentsDeleteArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+}
+
 /// GET v3/blogs/{blogId}/posts/{postId}/comments/{commentId}
 /// Deletes a comment by blog id, post id and comment id.
 ///
@@ -746,14 +814,13 @@ pub fn blogger_comments_delete_execute(
 
 pub fn blogger_comments_delete(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    commentId: &str,
+    args: &BloggerCommentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_comments_delete_builder(client, blogId, postId, commentId)?;
+    let builder =
+        blogger_comments_delete_builder(client, &args.blogId, &args.postId, &args.commentId)?;
     blogger_comments_delete_execute(builder)
 }
 
@@ -861,6 +928,19 @@ pub fn blogger_comments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_comments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerCommentsGetArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/blogs/{blogId}/posts/{postId}/comments/{commentId}
 /// Gets a comment by id.
 ///
@@ -873,15 +953,18 @@ pub fn blogger_comments_get_execute(
 
 pub fn blogger_comments_get(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    commentId: &str,
-    view: Option<&str>,
+    args: &BloggerCommentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_comments_get_builder(client, blogId, postId, commentId, view)?;
+    let builder = blogger_comments_get_builder(
+        client,
+        &args.blogId,
+        &args.postId,
+        &args.commentId,
+        args.view.as_deref(),
+    )?;
     blogger_comments_get_execute(builder)
 }
 
@@ -1012,6 +1095,29 @@ pub fn blogger_comments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_comments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerCommentsListArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Query parameter: endDate
+    pub endDate: Option<String>,
+    /// Query parameter: fetchBodies
+    pub fetchBodies: Option<bool>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: startDate
+    pub startDate: Option<String>,
+    /// Query parameter: status
+    pub status: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/blogs/{blogId}/posts/{postId}/comments
 /// Lists comments.
 ///
@@ -1024,30 +1130,22 @@ pub fn blogger_comments_list_execute(
 
 pub fn blogger_comments_list(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    endDate: Option<&str>,
-    fetchBodies: Option<bool>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    startDate: Option<&str>,
-    status: Option<&str>,
-    view: Option<&str>,
+    args: &BloggerCommentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CommentList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = blogger_comments_list_builder(
         client,
-        blogId,
-        postId,
-        endDate,
-        fetchBodies,
-        maxResults,
-        pageToken,
-        startDate,
-        status,
-        view,
+        &args.blogId,
+        &args.postId,
+        args.endDate.as_deref(),
+        args.fetchBodies,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.startDate.as_deref(),
+        args.status.as_deref(),
+        args.view.as_deref(),
     )?;
     blogger_comments_list_execute(builder)
 }
@@ -1174,6 +1272,25 @@ pub fn blogger_comments_list_by_blog_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_comments_list_by_blog`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerCommentsListByBlogArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Query parameter: endDate
+    pub endDate: Option<String>,
+    /// Query parameter: fetchBodies
+    pub fetchBodies: Option<bool>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: startDate
+    pub startDate: Option<String>,
+    /// Query parameter: status
+    pub status: Option<String>,
+}
+
 /// GET v3/blogs/{blogId}/comments
 /// Lists comments by blog.
 ///
@@ -1186,26 +1303,20 @@ pub fn blogger_comments_list_by_blog_execute(
 
 pub fn blogger_comments_list_by_blog(
     client: &SimpleHttpClient,
-    blogId: &str,
-    endDate: Option<&str>,
-    fetchBodies: Option<bool>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    startDate: Option<&str>,
-    status: Option<&str>,
+    args: &BloggerCommentsListByBlogArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CommentList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = blogger_comments_list_by_blog_builder(
         client,
-        blogId,
-        endDate,
-        fetchBodies,
-        maxResults,
-        pageToken,
-        startDate,
-        status,
+        &args.blogId,
+        args.endDate.as_deref(),
+        args.fetchBodies,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.startDate.as_deref(),
+        args.status.as_deref(),
     )?;
     blogger_comments_list_by_blog_execute(builder)
 }
@@ -1302,6 +1413,17 @@ pub fn blogger_comments_mark_as_spam_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_comments_mark_as_spam`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerCommentsMarkAsSpamArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+}
+
 /// GET v3/blogs/{blogId}/posts/{postId}/comments/{commentId}/spam
 /// Marks a comment as spam by blog id, post id and comment id.
 ///
@@ -1314,14 +1436,13 @@ pub fn blogger_comments_mark_as_spam_execute(
 
 pub fn blogger_comments_mark_as_spam(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    commentId: &str,
+    args: &BloggerCommentsMarkAsSpamArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_comments_mark_as_spam_builder(client, blogId, postId, commentId)?;
+    let builder =
+        blogger_comments_mark_as_spam_builder(client, &args.blogId, &args.postId, &args.commentId)?;
     blogger_comments_mark_as_spam_execute(builder)
 }
 
@@ -1417,6 +1538,17 @@ pub fn blogger_comments_remove_content_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_comments_remove_content`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerCommentsRemoveContentArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+}
+
 /// GET v3/blogs/{blogId}/posts/{postId}/comments/{commentId}/removecontent
 /// Removes the content of a comment by blog id, post id and comment id.
 ///
@@ -1429,14 +1561,17 @@ pub fn blogger_comments_remove_content_execute(
 
 pub fn blogger_comments_remove_content(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    commentId: &str,
+    args: &BloggerCommentsRemoveContentArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_comments_remove_content_builder(client, blogId, postId, commentId)?;
+    let builder = blogger_comments_remove_content_builder(
+        client,
+        &args.blogId,
+        &args.postId,
+        &args.commentId,
+    )?;
     blogger_comments_remove_content_execute(builder)
 }
 
@@ -1542,6 +1677,15 @@ pub fn blogger_page_views_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_page_views_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPageViewsGetArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Query parameter: range
+    pub range: Option<String>,
+}
+
 /// GET v3/blogs/{blogId}/pageviews
 /// Gets page views by blog id.
 ///
@@ -1554,13 +1698,12 @@ pub fn blogger_page_views_get_execute(
 
 pub fn blogger_page_views_get(
     client: &SimpleHttpClient,
-    blogId: &str,
-    range: Option<&str>,
+    args: &BloggerPageViewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Pageviews>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_page_views_get_builder(client, blogId, range)?;
+    let builder = blogger_page_views_get_builder(client, &args.blogId, args.range.as_deref())?;
     blogger_page_views_get_execute(builder)
 }
 
@@ -1664,6 +1807,17 @@ pub fn blogger_pages_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_pages_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPagesDeleteArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+    /// Query parameter: useTrash
+    pub useTrash: Option<bool>,
+}
+
 /// GET v3/blogs/{blogId}/pages/{pageId}
 /// Deletes a page by blog id and page id.
 ///
@@ -1676,14 +1830,12 @@ pub fn blogger_pages_delete_execute(
 
 pub fn blogger_pages_delete(
     client: &SimpleHttpClient,
-    blogId: &str,
-    pageId: &str,
-    useTrash: Option<bool>,
+    args: &BloggerPagesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_pages_delete_builder(client, blogId, pageId, useTrash)?;
+    let builder = blogger_pages_delete_builder(client, &args.blogId, &args.pageId, args.useTrash)?;
     blogger_pages_delete_execute(builder)
 }
 
@@ -1790,6 +1942,17 @@ pub fn blogger_pages_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_pages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPagesGetArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/blogs/{blogId}/pages/{pageId}
 /// Gets a page by blog id and page id.
 ///
@@ -1802,14 +1965,13 @@ pub fn blogger_pages_get_execute(
 
 pub fn blogger_pages_get(
     client: &SimpleHttpClient,
-    blogId: &str,
-    pageId: &str,
-    view: Option<&str>,
+    args: &BloggerPagesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_pages_get_builder(client, blogId, pageId, view)?;
+    let builder =
+        blogger_pages_get_builder(client, &args.blogId, &args.pageId, args.view.as_deref())?;
     blogger_pages_get_execute(builder)
 }
 
@@ -1915,6 +2077,17 @@ pub fn blogger_pages_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_pages_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPagesInsertArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Query parameter: isDraft
+    pub isDraft: Option<bool>,
+    /// Request body.
+    pub body: Page,
+}
+
 /// GET v3/blogs/{blogId}/pages
 /// Inserts a page.
 ///
@@ -1927,14 +2100,12 @@ pub fn blogger_pages_insert_execute(
 
 pub fn blogger_pages_insert(
     client: &SimpleHttpClient,
-    blogId: &str,
-    isDraft: Option<bool>,
-    body: &Page,
+    args: &BloggerPagesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_pages_insert_builder(client, blogId, isDraft, body)?;
+    let builder = blogger_pages_insert_builder(client, &args.blogId, args.isDraft, &args.body)?;
     blogger_pages_insert_execute(builder)
 }
 
@@ -2053,6 +2224,23 @@ pub fn blogger_pages_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_pages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPagesListArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Query parameter: fetchBodies
+    pub fetchBodies: Option<bool>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: status
+    pub status: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/blogs/{blogId}/pages
 /// Lists pages.
 ///
@@ -2065,24 +2253,19 @@ pub fn blogger_pages_list_execute(
 
 pub fn blogger_pages_list(
     client: &SimpleHttpClient,
-    blogId: &str,
-    fetchBodies: Option<bool>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    status: Option<&str>,
-    view: Option<&str>,
+    args: &BloggerPagesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PageList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = blogger_pages_list_builder(
         client,
-        blogId,
-        fetchBodies,
-        maxResults,
-        pageToken,
-        status,
-        view,
+        &args.blogId,
+        args.fetchBodies,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.status.as_deref(),
+        args.view.as_deref(),
     )?;
     blogger_pages_list_execute(builder)
 }
@@ -2197,6 +2380,21 @@ pub fn blogger_pages_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_pages_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPagesPatchArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+    /// Query parameter: publish
+    pub publish: Option<bool>,
+    /// Query parameter: revert
+    pub revert: Option<bool>,
+    /// Request body.
+    pub body: Page,
+}
+
 /// GET v3/blogs/{blogId}/pages/{pageId}
 /// Patches a page.
 ///
@@ -2209,16 +2407,19 @@ pub fn blogger_pages_patch_execute(
 
 pub fn blogger_pages_patch(
     client: &SimpleHttpClient,
-    blogId: &str,
-    pageId: &str,
-    publish: Option<bool>,
-    revert: Option<bool>,
-    body: &Page,
+    args: &BloggerPagesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_pages_patch_builder(client, blogId, pageId, publish, revert, body)?;
+    let builder = blogger_pages_patch_builder(
+        client,
+        &args.blogId,
+        &args.pageId,
+        args.publish,
+        args.revert,
+        &args.body,
+    )?;
     blogger_pages_patch_execute(builder)
 }
 
@@ -2313,6 +2514,15 @@ pub fn blogger_pages_publish_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_pages_publish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPagesPublishArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+}
+
 /// GET v3/blogs/{blogId}/pages/{pageId}/publish
 /// Publishes a page.
 ///
@@ -2325,13 +2535,12 @@ pub fn blogger_pages_publish_execute(
 
 pub fn blogger_pages_publish(
     client: &SimpleHttpClient,
-    blogId: &str,
-    pageId: &str,
+    args: &BloggerPagesPublishArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_pages_publish_builder(client, blogId, pageId)?;
+    let builder = blogger_pages_publish_builder(client, &args.blogId, &args.pageId)?;
     blogger_pages_publish_execute(builder)
 }
 
@@ -2426,6 +2635,15 @@ pub fn blogger_pages_revert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_pages_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPagesRevertArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+}
+
 /// GET v3/blogs/{blogId}/pages/{pageId}/revert
 /// Reverts a published or scheduled page to draft state.
 ///
@@ -2438,13 +2656,12 @@ pub fn blogger_pages_revert_execute(
 
 pub fn blogger_pages_revert(
     client: &SimpleHttpClient,
-    blogId: &str,
-    pageId: &str,
+    args: &BloggerPagesRevertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_pages_revert_builder(client, blogId, pageId)?;
+    let builder = blogger_pages_revert_builder(client, &args.blogId, &args.pageId)?;
     blogger_pages_revert_execute(builder)
 }
 
@@ -2558,6 +2775,21 @@ pub fn blogger_pages_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_pages_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPagesUpdateArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: pageId
+    pub pageId: String,
+    /// Query parameter: publish
+    pub publish: Option<bool>,
+    /// Query parameter: revert
+    pub revert: Option<bool>,
+    /// Request body.
+    pub body: Page,
+}
+
 /// GET v3/blogs/{blogId}/pages/{pageId}
 /// Updates a page by blog id and page id.
 ///
@@ -2570,16 +2802,19 @@ pub fn blogger_pages_update_execute(
 
 pub fn blogger_pages_update(
     client: &SimpleHttpClient,
-    blogId: &str,
-    pageId: &str,
-    publish: Option<bool>,
-    revert: Option<bool>,
-    body: &Page,
+    args: &BloggerPagesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_pages_update_builder(client, blogId, pageId, publish, revert, body)?;
+    let builder = blogger_pages_update_builder(
+        client,
+        &args.blogId,
+        &args.pageId,
+        args.publish,
+        args.revert,
+        &args.body,
+    )?;
     blogger_pages_update_execute(builder)
 }
 
@@ -2689,6 +2924,19 @@ pub fn blogger_post_user_infos_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_post_user_infos_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPostUserInfosGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Query parameter: maxComments
+    pub maxComments: Option<i32>,
+}
+
 /// GET v3/users/{userId}/blogs/{blogId}/posts/{postId}
 /// Gets one post and user info pair, by post_id and user_id.
 ///
@@ -2701,17 +2949,20 @@ pub fn blogger_post_user_infos_get_execute(
 
 pub fn blogger_post_user_infos_get(
     client: &SimpleHttpClient,
-    userId: &str,
-    blogId: &str,
-    postId: &str,
-    maxComments: Option<i32>,
+    args: &BloggerPostUserInfosGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PostUserInfo>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = blogger_post_user_infos_get_builder(client, userId, blogId, postId, maxComments)?;
+    let builder = blogger_post_user_infos_get_builder(
+        client,
+        &args.userId,
+        &args.blogId,
+        &args.postId,
+        args.maxComments,
+    )?;
     blogger_post_user_infos_get_execute(builder)
 }
 
@@ -2852,6 +3103,33 @@ pub fn blogger_post_user_infos_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_post_user_infos_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPostUserInfosListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Query parameter: endDate
+    pub endDate: Option<String>,
+    /// Query parameter: fetchBodies
+    pub fetchBodies: Option<bool>,
+    /// Query parameter: labels
+    pub labels: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: startDate
+    pub startDate: Option<String>,
+    /// Query parameter: status
+    pub status: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/users/{userId}/blogs/{blogId}/posts
 /// Lists post and user info pairs.
 ///
@@ -2864,17 +3142,7 @@ pub fn blogger_post_user_infos_list_execute(
 
 pub fn blogger_post_user_infos_list(
     client: &SimpleHttpClient,
-    userId: &str,
-    blogId: &str,
-    endDate: Option<&str>,
-    fetchBodies: Option<bool>,
-    labels: Option<&str>,
-    maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
-    startDate: Option<&str>,
-    status: Option<&str>,
-    view: Option<&str>,
+    args: &BloggerPostUserInfosListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PostUserInfosList>, ApiError>, P = ApiPending>
         + Send
@@ -2883,17 +3151,17 @@ pub fn blogger_post_user_infos_list(
 > {
     let builder = blogger_post_user_infos_list_builder(
         client,
-        userId,
-        blogId,
-        endDate,
-        fetchBodies,
-        labels,
-        maxResults,
-        orderBy,
-        pageToken,
-        startDate,
-        status,
-        view,
+        &args.userId,
+        &args.blogId,
+        args.endDate.as_deref(),
+        args.fetchBodies,
+        args.labels.as_deref(),
+        args.maxResults,
+        args.orderBy.as_deref(),
+        args.pageToken.as_deref(),
+        args.startDate.as_deref(),
+        args.status.as_deref(),
+        args.view.as_deref(),
     )?;
     blogger_post_user_infos_list_execute(builder)
 }
@@ -2998,6 +3266,17 @@ pub fn blogger_posts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_posts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPostsDeleteArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Query parameter: useTrash
+    pub useTrash: Option<bool>,
+}
+
 /// GET v3/blogs/{blogId}/posts/{postId}
 /// Deletes a post by blog id and post id.
 ///
@@ -3010,14 +3289,12 @@ pub fn blogger_posts_delete_execute(
 
 pub fn blogger_posts_delete(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    useTrash: Option<bool>,
+    args: &BloggerPostsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_posts_delete_builder(client, blogId, postId, useTrash)?;
+    let builder = blogger_posts_delete_builder(client, &args.blogId, &args.postId, args.useTrash)?;
     blogger_posts_delete_execute(builder)
 }
 
@@ -3136,6 +3413,23 @@ pub fn blogger_posts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_posts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPostsGetArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Query parameter: fetchBody
+    pub fetchBody: Option<bool>,
+    /// Query parameter: fetchImages
+    pub fetchImages: Option<bool>,
+    /// Query parameter: maxComments
+    pub maxComments: Option<i32>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/blogs/{blogId}/posts/{postId}
 /// Gets a post by blog id and post id
 ///
@@ -3148,24 +3442,19 @@ pub fn blogger_posts_get_execute(
 
 pub fn blogger_posts_get(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    fetchBody: Option<bool>,
-    fetchImages: Option<bool>,
-    maxComments: Option<i32>,
-    view: Option<&str>,
+    args: &BloggerPostsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = blogger_posts_get_builder(
         client,
-        blogId,
-        postId,
-        fetchBody,
-        fetchImages,
-        maxComments,
-        view,
+        &args.blogId,
+        &args.postId,
+        args.fetchBody,
+        args.fetchImages,
+        args.maxComments,
+        args.view.as_deref(),
     )?;
     blogger_posts_get_execute(builder)
 }
@@ -3277,6 +3566,19 @@ pub fn blogger_posts_get_by_path_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_posts_get_by_path`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPostsGetByPathArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: maxComments
+    pub maxComments: Option<i32>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/blogs/{blogId}/posts/bypath
 /// Gets a post by path.
 ///
@@ -3289,15 +3591,18 @@ pub fn blogger_posts_get_by_path_execute(
 
 pub fn blogger_posts_get_by_path(
     client: &SimpleHttpClient,
-    blogId: &str,
-    path: &str,
-    maxComments: Option<i32>,
-    view: Option<&str>,
+    args: &BloggerPostsGetByPathArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_posts_get_by_path_builder(client, blogId, path, maxComments, view)?;
+    let builder = blogger_posts_get_by_path_builder(
+        client,
+        &args.blogId,
+        &args.path,
+        args.maxComments,
+        args.view.as_deref(),
+    )?;
     blogger_posts_get_by_path_execute(builder)
 }
 
@@ -3411,6 +3716,21 @@ pub fn blogger_posts_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_posts_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPostsInsertArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Query parameter: fetchBody
+    pub fetchBody: Option<bool>,
+    /// Query parameter: fetchImages
+    pub fetchImages: Option<bool>,
+    /// Query parameter: isDraft
+    pub isDraft: Option<bool>,
+    /// Request body.
+    pub body: Post,
+}
+
 /// GET v3/blogs/{blogId}/posts
 /// Inserts a post.
 ///
@@ -3423,17 +3743,19 @@ pub fn blogger_posts_insert_execute(
 
 pub fn blogger_posts_insert(
     client: &SimpleHttpClient,
-    blogId: &str,
-    fetchBody: Option<bool>,
-    fetchImages: Option<bool>,
-    isDraft: Option<bool>,
-    body: &Post,
+    args: &BloggerPostsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        blogger_posts_insert_builder(client, blogId, fetchBody, fetchImages, isDraft, body)?;
+    let builder = blogger_posts_insert_builder(
+        client,
+        &args.blogId,
+        args.fetchBody,
+        args.fetchImages,
+        args.isDraft,
+        &args.body,
+    )?;
     blogger_posts_insert_execute(builder)
 }
 
@@ -3576,6 +3898,35 @@ pub fn blogger_posts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_posts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPostsListArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Query parameter: endDate
+    pub endDate: Option<String>,
+    /// Query parameter: fetchBodies
+    pub fetchBodies: Option<bool>,
+    /// Query parameter: fetchImages
+    pub fetchImages: Option<bool>,
+    /// Query parameter: labels
+    pub labels: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: sortOption
+    pub sortOption: Option<String>,
+    /// Query parameter: startDate
+    pub startDate: Option<String>,
+    /// Query parameter: status
+    pub status: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/blogs/{blogId}/posts
 /// Lists posts.
 ///
@@ -3588,36 +3939,25 @@ pub fn blogger_posts_list_execute(
 
 pub fn blogger_posts_list(
     client: &SimpleHttpClient,
-    blogId: &str,
-    endDate: Option<&str>,
-    fetchBodies: Option<bool>,
-    fetchImages: Option<bool>,
-    labels: Option<&str>,
-    maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
-    sortOption: Option<&str>,
-    startDate: Option<&str>,
-    status: Option<&str>,
-    view: Option<&str>,
+    args: &BloggerPostsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PostList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = blogger_posts_list_builder(
         client,
-        blogId,
-        endDate,
-        fetchBodies,
-        fetchImages,
-        labels,
-        maxResults,
-        orderBy,
-        pageToken,
-        sortOption,
-        startDate,
-        status,
-        view,
+        &args.blogId,
+        args.endDate.as_deref(),
+        args.fetchBodies,
+        args.fetchImages,
+        args.labels.as_deref(),
+        args.maxResults,
+        args.orderBy.as_deref(),
+        args.pageToken.as_deref(),
+        args.sortOption.as_deref(),
+        args.startDate.as_deref(),
+        args.status.as_deref(),
+        args.view.as_deref(),
     )?;
     blogger_posts_list_execute(builder)
 }
@@ -3744,6 +4084,27 @@ pub fn blogger_posts_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_posts_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPostsPatchArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Query parameter: fetchBody
+    pub fetchBody: Option<bool>,
+    /// Query parameter: fetchImages
+    pub fetchImages: Option<bool>,
+    /// Query parameter: maxComments
+    pub maxComments: Option<i32>,
+    /// Query parameter: publish
+    pub publish: Option<bool>,
+    /// Query parameter: revert
+    pub revert: Option<bool>,
+    /// Request body.
+    pub body: Post,
+}
+
 /// GET v3/blogs/{blogId}/posts/{postId}
 /// Patches a post.
 ///
@@ -3756,28 +4117,21 @@ pub fn blogger_posts_patch_execute(
 
 pub fn blogger_posts_patch(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    fetchBody: Option<bool>,
-    fetchImages: Option<bool>,
-    maxComments: Option<i32>,
-    publish: Option<bool>,
-    revert: Option<bool>,
-    body: &Post,
+    args: &BloggerPostsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = blogger_posts_patch_builder(
         client,
-        blogId,
-        postId,
-        fetchBody,
-        fetchImages,
-        maxComments,
-        publish,
-        revert,
-        body,
+        &args.blogId,
+        &args.postId,
+        args.fetchBody,
+        args.fetchImages,
+        args.maxComments,
+        args.publish,
+        args.revert,
+        &args.body,
     )?;
     blogger_posts_patch_execute(builder)
 }
@@ -3885,6 +4239,17 @@ pub fn blogger_posts_publish_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_posts_publish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPostsPublishArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Query parameter: publishDate
+    pub publishDate: Option<String>,
+}
+
 /// GET v3/blogs/{blogId}/posts/{postId}/publish
 /// Publishes a post.
 ///
@@ -3897,14 +4262,17 @@ pub fn blogger_posts_publish_execute(
 
 pub fn blogger_posts_publish(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    publishDate: Option<&str>,
+    args: &BloggerPostsPublishArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_posts_publish_builder(client, blogId, postId, publishDate)?;
+    let builder = blogger_posts_publish_builder(
+        client,
+        &args.blogId,
+        &args.postId,
+        args.publishDate.as_deref(),
+    )?;
     blogger_posts_publish_execute(builder)
 }
 
@@ -3999,6 +4367,15 @@ pub fn blogger_posts_revert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_posts_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPostsRevertArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: postId
+    pub postId: String,
+}
+
 /// GET v3/blogs/{blogId}/posts/{postId}/revert
 /// Reverts a published or scheduled post to draft state.
 ///
@@ -4011,13 +4388,12 @@ pub fn blogger_posts_revert_execute(
 
 pub fn blogger_posts_revert(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
+    args: &BloggerPostsRevertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_posts_revert_builder(client, blogId, postId)?;
+    let builder = blogger_posts_revert_builder(client, &args.blogId, &args.postId)?;
     blogger_posts_revert_execute(builder)
 }
 
@@ -4128,6 +4504,19 @@ pub fn blogger_posts_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_posts_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPostsSearchArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: q
+    pub q: String,
+    /// Query parameter: fetchBodies
+    pub fetchBodies: Option<bool>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+}
+
 /// GET v3/blogs/{blogId}/posts/search
 /// Searches for posts matching given query terms in the specified blog.
 ///
@@ -4140,15 +4529,18 @@ pub fn blogger_posts_search_execute(
 
 pub fn blogger_posts_search(
     client: &SimpleHttpClient,
-    blogId: &str,
-    q: &str,
-    fetchBodies: Option<bool>,
-    orderBy: Option<&str>,
+    args: &BloggerPostsSearchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PostList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_posts_search_builder(client, blogId, q, fetchBodies, orderBy)?;
+    let builder = blogger_posts_search_builder(
+        client,
+        &args.blogId,
+        &args.q,
+        args.fetchBodies,
+        args.orderBy.as_deref(),
+    )?;
     blogger_posts_search_execute(builder)
 }
 
@@ -4274,6 +4666,27 @@ pub fn blogger_posts_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_posts_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerPostsUpdateArgs {
+    /// Path parameter: blogId
+    pub blogId: String,
+    /// Path parameter: postId
+    pub postId: String,
+    /// Query parameter: fetchBody
+    pub fetchBody: Option<bool>,
+    /// Query parameter: fetchImages
+    pub fetchImages: Option<bool>,
+    /// Query parameter: maxComments
+    pub maxComments: Option<i32>,
+    /// Query parameter: publish
+    pub publish: Option<bool>,
+    /// Query parameter: revert
+    pub revert: Option<bool>,
+    /// Request body.
+    pub body: Post,
+}
+
 /// GET v3/blogs/{blogId}/posts/{postId}
 /// Updates a post by blog id and post id.
 ///
@@ -4286,28 +4699,21 @@ pub fn blogger_posts_update_execute(
 
 pub fn blogger_posts_update(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    fetchBody: Option<bool>,
-    fetchImages: Option<bool>,
-    maxComments: Option<i32>,
-    publish: Option<bool>,
-    revert: Option<bool>,
-    body: &Post,
+    args: &BloggerPostsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = blogger_posts_update_builder(
         client,
-        blogId,
-        postId,
-        fetchBody,
-        fetchImages,
-        maxComments,
-        publish,
-        revert,
-        body,
+        &args.blogId,
+        &args.postId,
+        args.fetchBody,
+        args.fetchImages,
+        args.maxComments,
+        args.publish,
+        args.revert,
+        &args.body,
     )?;
     blogger_posts_update_execute(builder)
 }
@@ -4399,6 +4805,13 @@ pub fn blogger_users_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blogger_users_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BloggerUsersGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET v3/users/{userId}
 /// Gets one user by user_id.
 ///
@@ -4411,11 +4824,11 @@ pub fn blogger_users_get_execute(
 
 pub fn blogger_users_get(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &BloggerUsersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_users_get_builder(client, userId)?;
+    let builder = blogger_users_get_builder(client, &args.userId)?;
     blogger_users_get_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn developerconnect_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn developerconnect_projects_locations_get_execute(
 
 pub fn developerconnect_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DeveloperconnectProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = developerconnect_projects_locations_get_builder(client, name)?;
+    let builder = developerconnect_projects_locations_get_builder(client, &args.name)?;
     developerconnect_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn developerconnect_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn developerconnect_projects_locations_list_execute(
 
 pub fn developerconnect_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DeveloperconnectProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn developerconnect_projects_locations_list(
 > {
     let builder = developerconnect_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     developerconnect_projects_locations_list_execute(builder)
 }
@@ -390,6 +410,21 @@ pub fn developerconnect_projects_locations_account_connectors_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_account_connectors_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsAccountConnectorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: accountConnectorId
+    pub accountConnectorId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: AccountConnector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors
 /// Creates a new AccountConnector in a given project and location.
 ///
@@ -402,22 +437,18 @@ pub fn developerconnect_projects_locations_account_connectors_create_execute(
 
 pub fn developerconnect_projects_locations_account_connectors_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    accountConnectorId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &AccountConnector,
+    args: &DeveloperconnectProjectsLocationsAccountConnectorsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = developerconnect_projects_locations_account_connectors_create_builder(
         client,
-        parent,
-        accountConnectorId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.accountConnectorId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     developerconnect_projects_locations_account_connectors_create_execute(builder)
 }
@@ -536,6 +567,21 @@ pub fn developerconnect_projects_locations_account_connectors_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_account_connectors_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsAccountConnectorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}
 /// Deletes a single AccountConnector.
 ///
@@ -548,22 +594,18 @@ pub fn developerconnect_projects_locations_account_connectors_delete_execute(
 
 pub fn developerconnect_projects_locations_account_connectors_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    force: Option<bool>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &DeveloperconnectProjectsLocationsAccountConnectorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = developerconnect_projects_locations_account_connectors_delete_builder(
         client,
-        name,
-        etag,
-        force,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.force,
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     developerconnect_projects_locations_account_connectors_delete_execute(builder)
 }
@@ -682,6 +724,19 @@ pub fn developerconnect_projects_locations_account_connectors_fetch_user_reposit
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_account_connectors_fetch_user_repositories`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsAccountConnectorsFetchUserRepositoriesArgs {
+    /// Path parameter: accountConnector
+    pub accountConnector: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: repository
+    pub repository: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}:fetchUserRepositories
 /// FetchUserRepositories returns a list of UserRepos that are available for an account connector resource.
 ///
@@ -694,10 +749,7 @@ pub fn developerconnect_projects_locations_account_connectors_fetch_user_reposit
 
 pub fn developerconnect_projects_locations_account_connectors_fetch_user_repositories(
     client: &SimpleHttpClient,
-    accountConnector: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    repository: Option<&str>,
+    args: &DeveloperconnectProjectsLocationsAccountConnectorsFetchUserRepositoriesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchUserRepositoriesResponse>, ApiError>,
@@ -709,10 +761,10 @@ pub fn developerconnect_projects_locations_account_connectors_fetch_user_reposit
     let builder =
         developerconnect_projects_locations_account_connectors_fetch_user_repositories_builder(
             client,
-            accountConnector,
-            pageSize,
-            pageToken,
-            repository,
+            &args.accountConnector,
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.repository.as_deref(),
         )?;
     developerconnect_projects_locations_account_connectors_fetch_user_repositories_execute(builder)
 }
@@ -809,6 +861,13 @@ pub fn developerconnect_projects_locations_account_connectors_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_account_connectors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsAccountConnectorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}
 /// Gets details of a single AccountConnector.
 ///
@@ -821,14 +880,15 @@ pub fn developerconnect_projects_locations_account_connectors_get_execute(
 
 pub fn developerconnect_projects_locations_account_connectors_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DeveloperconnectProjectsLocationsAccountConnectorsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountConnector>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = developerconnect_projects_locations_account_connectors_get_builder(client, name)?;
+    let builder =
+        developerconnect_projects_locations_account_connectors_get_builder(client, &args.name)?;
     developerconnect_projects_locations_account_connectors_get_execute(builder)
 }
 
@@ -950,6 +1010,21 @@ pub fn developerconnect_projects_locations_account_connectors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_account_connectors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsAccountConnectorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors
 /// Lists AccountConnectors in a given project and location.
 ///
@@ -962,11 +1037,7 @@ pub fn developerconnect_projects_locations_account_connectors_list_execute(
 
 pub fn developerconnect_projects_locations_account_connectors_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DeveloperconnectProjectsLocationsAccountConnectorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAccountConnectorsResponse>, ApiError>,
@@ -976,7 +1047,12 @@ pub fn developerconnect_projects_locations_account_connectors_list(
     ApiError,
 > {
     let builder = developerconnect_projects_locations_account_connectors_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     developerconnect_projects_locations_account_connectors_list_execute(builder)
 }
@@ -1098,6 +1174,23 @@ pub fn developerconnect_projects_locations_account_connectors_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_account_connectors_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsAccountConnectorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: AccountConnector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}
 /// Updates the parameters of a single AccountConnector.
 ///
@@ -1110,24 +1203,19 @@ pub fn developerconnect_projects_locations_account_connectors_patch_execute(
 
 pub fn developerconnect_projects_locations_account_connectors_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &AccountConnector,
+    args: &DeveloperconnectProjectsLocationsAccountConnectorsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = developerconnect_projects_locations_account_connectors_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     developerconnect_projects_locations_account_connectors_patch_execute(builder)
 }
@@ -1242,6 +1330,19 @@ pub fn developerconnect_projects_locations_account_connectors_users_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_account_connectors_users_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users/{usersId}
 /// Deletes a single User.
 ///
@@ -1254,20 +1355,17 @@ pub fn developerconnect_projects_locations_account_connectors_users_delete_execu
 
 pub fn developerconnect_projects_locations_account_connectors_users_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = developerconnect_projects_locations_account_connectors_users_delete_builder(
         client,
-        name,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     developerconnect_projects_locations_account_connectors_users_delete_execute(builder)
 }
@@ -1362,6 +1460,13 @@ pub fn developerconnect_projects_locations_account_connectors_users_delete_self_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_account_connectors_users_delete_self`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersDeleteSelfArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users:deleteSelf
 /// Delete the User based on the user credentials.
 ///
@@ -1374,13 +1479,13 @@ pub fn developerconnect_projects_locations_account_connectors_users_delete_self_
 
 pub fn developerconnect_projects_locations_account_connectors_users_delete_self(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersDeleteSelfArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = developerconnect_projects_locations_account_connectors_users_delete_self_builder(
-        client, name,
+        client, &args.name,
     )?;
     developerconnect_projects_locations_account_connectors_users_delete_self_execute(builder)
 }
@@ -1480,6 +1585,15 @@ pub fn developerconnect_projects_locations_account_connectors_users_fetch_access
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_account_connectors_users_fetch_access_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersFetchAccessTokenArgs {
+    /// Path parameter: accountConnector
+    pub accountConnector: String,
+    /// Request body.
+    pub body: FetchAccessTokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users:fetchAccessToken
 /// Fetches OAuth access token based on end user credentials.
 ///
@@ -1492,8 +1606,7 @@ pub fn developerconnect_projects_locations_account_connectors_users_fetch_access
 
 pub fn developerconnect_projects_locations_account_connectors_users_fetch_access_token(
     client: &SimpleHttpClient,
-    accountConnector: &str,
-    body: &FetchAccessTokenRequest,
+    args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersFetchAccessTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FetchAccessTokenResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1503,8 +1616,8 @@ pub fn developerconnect_projects_locations_account_connectors_users_fetch_access
     let builder =
         developerconnect_projects_locations_account_connectors_users_fetch_access_token_builder(
             client,
-            accountConnector,
-            body,
+            &args.accountConnector,
+            &args.body,
         )?;
     developerconnect_projects_locations_account_connectors_users_fetch_access_token_execute(builder)
 }
@@ -1599,6 +1712,13 @@ pub fn developerconnect_projects_locations_account_connectors_users_fetch_self_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_account_connectors_users_fetch_self`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersFetchSelfArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users:fetchSelf
 /// Fetch the User based on the user credentials.
 ///
@@ -1611,13 +1731,13 @@ pub fn developerconnect_projects_locations_account_connectors_users_fetch_self_e
 
 pub fn developerconnect_projects_locations_account_connectors_users_fetch_self(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersFetchSelfArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = developerconnect_projects_locations_account_connectors_users_fetch_self_builder(
-        client, name,
+        client, &args.name,
     )?;
     developerconnect_projects_locations_account_connectors_users_fetch_self_execute(builder)
 }
@@ -1742,6 +1862,23 @@ pub fn developerconnect_projects_locations_account_connectors_users_finish_oauth
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_account_connectors_users_finish_oauth_flow`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOauthFlowArgs {
+    /// Path parameter: accountConnector
+    pub accountConnector: String,
+    /// Query parameter: googleOauthParams_scopes
+    pub googleOauthParams_scopes: Option<String>,
+    /// Query parameter: googleOauthParams_ticket
+    pub googleOauthParams_ticket: Option<String>,
+    /// Query parameter: googleOauthParams_versionInfo
+    pub googleOauthParams_versionInfo: Option<String>,
+    /// Query parameter: oauthParams_code
+    pub oauthParams_code: Option<String>,
+    /// Query parameter: oauthParams_ticket
+    pub oauthParams_ticket: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users:finishOAuthFlow
 /// Finishes OAuth flow for an account connector.
 ///
@@ -1754,12 +1891,7 @@ pub fn developerconnect_projects_locations_account_connectors_users_finish_oauth
 
 pub fn developerconnect_projects_locations_account_connectors_users_finish_oauth_flow(
     client: &SimpleHttpClient,
-    accountConnector: &str,
-    googleOauthParams_scopes: Option<&str>,
-    googleOauthParams_ticket: Option<&str>,
-    googleOauthParams_versionInfo: Option<&str>,
-    oauthParams_code: Option<&str>,
-    oauthParams_ticket: Option<&str>,
+    args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOauthFlowArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FinishOAuthResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1769,12 +1901,12 @@ pub fn developerconnect_projects_locations_account_connectors_users_finish_oauth
     let builder =
         developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_builder(
             client,
-            accountConnector,
-            googleOauthParams_scopes,
-            googleOauthParams_ticket,
-            googleOauthParams_versionInfo,
-            oauthParams_code,
-            oauthParams_ticket,
+            &args.accountConnector,
+            args.googleOauthParams_scopes.as_deref(),
+            args.googleOauthParams_ticket.as_deref(),
+            args.googleOauthParams_versionInfo.as_deref(),
+            args.oauthParams_code.as_deref(),
+            args.oauthParams_ticket.as_deref(),
         )?;
     developerconnect_projects_locations_account_connectors_users_finish_oauth_flow_execute(builder)
 }
@@ -1895,6 +2027,21 @@ pub fn developerconnect_projects_locations_account_connectors_users_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_account_connectors_users_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users
 /// Lists Users in a given project, location, and account_connector.
 ///
@@ -1907,11 +2054,7 @@ pub fn developerconnect_projects_locations_account_connectors_users_list_execute
 
 pub fn developerconnect_projects_locations_account_connectors_users_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListUsersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1919,7 +2062,12 @@ pub fn developerconnect_projects_locations_account_connectors_users_list(
     ApiError,
 > {
     let builder = developerconnect_projects_locations_account_connectors_users_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     developerconnect_projects_locations_account_connectors_users_list_execute(builder)
 }
@@ -2016,6 +2164,13 @@ pub fn developerconnect_projects_locations_account_connectors_users_start_oauth_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_account_connectors_users_start_oauth_flow`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOauthFlowArgs {
+    /// Path parameter: accountConnector
+    pub accountConnector: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accountConnectors/{accountConnectorsId}/users:startOAuthFlow
 /// Starts OAuth flow for an account connector.
 ///
@@ -2028,7 +2183,7 @@ pub fn developerconnect_projects_locations_account_connectors_users_start_oauth_
 
 pub fn developerconnect_projects_locations_account_connectors_users_start_oauth_flow(
     client: &SimpleHttpClient,
-    accountConnector: &str,
+    args: &DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOauthFlowArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StartOAuthResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2038,7 +2193,7 @@ pub fn developerconnect_projects_locations_account_connectors_users_start_oauth_
     let builder =
         developerconnect_projects_locations_account_connectors_users_start_oauth_flow_builder(
             client,
-            accountConnector,
+            &args.accountConnector,
         )?;
     developerconnect_projects_locations_account_connectors_users_start_oauth_flow_execute(builder)
 }
@@ -2156,6 +2311,21 @@ pub fn developerconnect_projects_locations_connections_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: connectionId
+    pub connectionId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Connection,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections
 /// Creates a new Connection in a given project and location.
 ///
@@ -2168,22 +2338,18 @@ pub fn developerconnect_projects_locations_connections_create_execute(
 
 pub fn developerconnect_projects_locations_connections_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    connectionId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Connection,
+    args: &DeveloperconnectProjectsLocationsConnectionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = developerconnect_projects_locations_connections_create_builder(
         client,
-        parent,
-        connectionId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.connectionId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     developerconnect_projects_locations_connections_create_execute(builder)
 }
@@ -2298,6 +2464,19 @@ pub fn developerconnect_projects_locations_connections_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
 /// Deletes a single Connection.
 ///
@@ -2310,20 +2489,17 @@ pub fn developerconnect_projects_locations_connections_delete_execute(
 
 pub fn developerconnect_projects_locations_connections_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &DeveloperconnectProjectsLocationsConnectionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = developerconnect_projects_locations_connections_delete_builder(
         client,
-        name,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     developerconnect_projects_locations_connections_delete_execute(builder)
 }
@@ -2422,6 +2598,13 @@ pub fn developerconnect_projects_locations_connections_fetch_git_hub_installatio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_fetch_git_hub_installations`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsFetchGitHubInstallationsArgs {
+    /// Path parameter: connection
+    pub connection: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:fetchGitHubInstallations
 /// FetchGitHubInstallations returns the list of GitHub Installations that are available to be added to a Connection. For github.com, only installations accessible to the authorizer token are returned. For GitHub Enterprise, all installations are returned.
 ///
@@ -2434,7 +2617,7 @@ pub fn developerconnect_projects_locations_connections_fetch_git_hub_installatio
 
 pub fn developerconnect_projects_locations_connections_fetch_git_hub_installations(
     client: &SimpleHttpClient,
-    connection: &str,
+    args: &DeveloperconnectProjectsLocationsConnectionsFetchGitHubInstallationsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchGitHubInstallationsResponse>, ApiError>,
@@ -2445,7 +2628,8 @@ pub fn developerconnect_projects_locations_connections_fetch_git_hub_installatio
 > {
     let builder =
         developerconnect_projects_locations_connections_fetch_git_hub_installations_builder(
-            client, connection,
+            client,
+            &args.connection,
         )?;
     developerconnect_projects_locations_connections_fetch_git_hub_installations_execute(builder)
 }
@@ -2560,6 +2744,17 @@ pub fn developerconnect_projects_locations_connections_fetch_linkable_git_reposi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_fetch_linkable_git_repositories`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsFetchLinkableGitRepositoriesArgs {
+    /// Path parameter: connection
+    pub connection: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:fetchLinkableGitRepositories
 /// FetchLinkableGitRepositories returns a list of git repositories from an SCM that are available to be added to a Connection.
 ///
@@ -2572,9 +2767,7 @@ pub fn developerconnect_projects_locations_connections_fetch_linkable_git_reposi
 
 pub fn developerconnect_projects_locations_connections_fetch_linkable_git_repositories(
     client: &SimpleHttpClient,
-    connection: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DeveloperconnectProjectsLocationsConnectionsFetchLinkableGitRepositoriesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchLinkableGitRepositoriesResponse>, ApiError>,
@@ -2585,7 +2778,10 @@ pub fn developerconnect_projects_locations_connections_fetch_linkable_git_reposi
 > {
     let builder =
         developerconnect_projects_locations_connections_fetch_linkable_git_repositories_builder(
-            client, connection, pageSize, pageToken,
+            client,
+            &args.connection,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     developerconnect_projects_locations_connections_fetch_linkable_git_repositories_execute(builder)
 }
@@ -2680,6 +2876,13 @@ pub fn developerconnect_projects_locations_connections_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
 /// Gets details of a single Connection.
 ///
@@ -2692,12 +2895,12 @@ pub fn developerconnect_projects_locations_connections_get_execute(
 
 pub fn developerconnect_projects_locations_connections_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DeveloperconnectProjectsLocationsConnectionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Connection>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = developerconnect_projects_locations_connections_get_builder(client, name)?;
+    let builder = developerconnect_projects_locations_connections_get_builder(client, &args.name)?;
     developerconnect_projects_locations_connections_get_execute(builder)
 }
 
@@ -2817,6 +3020,21 @@ pub fn developerconnect_projects_locations_connections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections
 /// Lists Connections in a given project and location.
 ///
@@ -2829,11 +3047,7 @@ pub fn developerconnect_projects_locations_connections_list_execute(
 
 pub fn developerconnect_projects_locations_connections_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DeveloperconnectProjectsLocationsConnectionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListConnectionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2841,7 +3055,12 @@ pub fn developerconnect_projects_locations_connections_list(
     ApiError,
 > {
     let builder = developerconnect_projects_locations_connections_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     developerconnect_projects_locations_connections_list_execute(builder)
 }
@@ -2963,6 +3182,23 @@ pub fn developerconnect_projects_locations_connections_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Connection,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}
 /// Updates the parameters of a single Connection.
 ///
@@ -2975,24 +3211,19 @@ pub fn developerconnect_projects_locations_connections_patch_execute(
 
 pub fn developerconnect_projects_locations_connections_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Connection,
+    args: &DeveloperconnectProjectsLocationsConnectionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = developerconnect_projects_locations_connections_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     developerconnect_projects_locations_connections_patch_execute(builder)
 }
@@ -3090,6 +3321,15 @@ pub fn developerconnect_projects_locations_connections_process_git_hub_enterpris
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_process_git_hub_enterprise_webhook`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsProcessGitHubEnterpriseWebhookArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ProcessGitHubEnterpriseWebhookRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections:processGitHubEnterpriseWebhook
 /// ProcessGitHubEnterpriseWebhook is called by the external GitHub Enterprise instances for notifying events.
 ///
@@ -3102,15 +3342,16 @@ pub fn developerconnect_projects_locations_connections_process_git_hub_enterpris
 
 pub fn developerconnect_projects_locations_connections_process_git_hub_enterprise_webhook(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ProcessGitHubEnterpriseWebhookRequest,
+    args: &DeveloperconnectProjectsLocationsConnectionsProcessGitHubEnterpriseWebhookArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         developerconnect_projects_locations_connections_process_git_hub_enterprise_webhook_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     developerconnect_projects_locations_connections_process_git_hub_enterprise_webhook_execute(
         builder,
@@ -3230,6 +3471,21 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_crea
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_git_repository_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: gitRepositoryLinkId
+    pub gitRepositoryLinkId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GitRepositoryLink,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks
 /// Creates a GitRepositoryLink. Upon linking a Git Repository, Developer Connect will configure the Git Repository to send webhook events to Developer Connect. Connections that use Firebase GitHub Application will have events forwarded to the Firebase service. Connections that use Gemini Code Assist will have events forwarded to Gemini Code Assist service. All other Connections will have events forwarded to Cloud Build.
 ///
@@ -3242,11 +3498,7 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_crea
 
 pub fn developerconnect_projects_locations_connections_git_repository_links_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    gitRepositoryLinkId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GitRepositoryLink,
+    args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -3254,11 +3506,11 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_crea
     let builder =
         developerconnect_projects_locations_connections_git_repository_links_create_builder(
             client,
-            parent,
-            gitRepositoryLinkId,
-            requestId,
-            validateOnly,
-            body,
+            &args.parent,
+            args.gitRepositoryLinkId.as_deref(),
+            args.requestId.as_deref(),
+            args.validateOnly,
+            &args.body,
         )?;
     developerconnect_projects_locations_connections_git_repository_links_create_execute(builder)
 }
@@ -3373,6 +3625,19 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_dele
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_git_repository_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}
 /// Deletes a single GitRepositoryLink.
 ///
@@ -3385,10 +3650,7 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_dele
 
 pub fn developerconnect_projects_locations_connections_git_repository_links_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -3396,10 +3658,10 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_dele
     let builder =
         developerconnect_projects_locations_connections_git_repository_links_delete_builder(
             client,
-            name,
-            etag,
-            requestId,
-            validateOnly,
+            &args.name,
+            args.etag.as_deref(),
+            args.requestId.as_deref(),
+            args.validateOnly,
         )?;
     developerconnect_projects_locations_connections_git_repository_links_delete_execute(builder)
 }
@@ -3516,6 +3778,19 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_fetc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_git_repository_links_fetch_git_refs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchGitRefsArgs {
+    /// Path parameter: gitRepositoryLink
+    pub gitRepositoryLink: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: refType
+    pub refType: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}:fetchGitRefs
 /// Fetch the list of branches or tags for a given repository.
 ///
@@ -3528,17 +3803,14 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_fetc
 
 pub fn developerconnect_projects_locations_connections_git_repository_links_fetch_git_refs(
     client: &SimpleHttpClient,
-    gitRepositoryLink: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    refType: Option<&str>,
+    args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchGitRefsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FetchGitRefsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = developerconnect_projects_locations_connections_git_repository_links_fetch_git_refs_builder(client, gitRepositoryLink, pageSize, pageToken, refType)?;
+    let builder = developerconnect_projects_locations_connections_git_repository_links_fetch_git_refs_builder(client, &args.gitRepositoryLink, args.pageSize, args.pageToken.as_deref(), args.refType.as_deref())?;
     developerconnect_projects_locations_connections_git_repository_links_fetch_git_refs_execute(
         builder,
     )
@@ -3639,6 +3911,15 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_fetc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_git_repository_links_fetch_read_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchReadTokenArgs {
+    /// Path parameter: gitRepositoryLink
+    pub gitRepositoryLink: String,
+    /// Request body.
+    pub body: FetchReadTokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}:fetchReadToken
 /// Fetches read token of a given `gitRepositoryLink`.
 ///
@@ -3651,15 +3932,14 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_fetc
 
 pub fn developerconnect_projects_locations_connections_git_repository_links_fetch_read_token(
     client: &SimpleHttpClient,
-    gitRepositoryLink: &str,
-    body: &FetchReadTokenRequest,
+    args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchReadTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FetchReadTokenResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = developerconnect_projects_locations_connections_git_repository_links_fetch_read_token_builder(client, gitRepositoryLink, body)?;
+    let builder = developerconnect_projects_locations_connections_git_repository_links_fetch_read_token_builder(client, &args.gitRepositoryLink, &args.body)?;
     developerconnect_projects_locations_connections_git_repository_links_fetch_read_token_execute(
         builder,
     )
@@ -3762,6 +4042,15 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_fetc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_git_repository_links_fetch_read_write_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchReadWriteTokenArgs {
+    /// Path parameter: gitRepositoryLink
+    pub gitRepositoryLink: String,
+    /// Request body.
+    pub body: FetchReadWriteTokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}:fetchReadWriteToken
 /// Fetches `read/write` token of a given `gitRepositoryLink`.
 ///
@@ -3774,8 +4063,7 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_fetc
 
 pub fn developerconnect_projects_locations_connections_git_repository_links_fetch_read_write_token(
     client: &SimpleHttpClient,
-    gitRepositoryLink: &str,
-    body: &FetchReadWriteTokenRequest,
+    args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchReadWriteTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchReadWriteTokenResponse>, ApiError>,
@@ -3784,7 +4072,7 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_fetc
         + 'static,
     ApiError,
 > {
-    let builder = developerconnect_projects_locations_connections_git_repository_links_fetch_read_write_token_builder(client, gitRepositoryLink, body)?;
+    let builder = developerconnect_projects_locations_connections_git_repository_links_fetch_read_write_token_builder(client, &args.gitRepositoryLink, &args.body)?;
     developerconnect_projects_locations_connections_git_repository_links_fetch_read_write_token_execute(builder)
 }
 
@@ -3880,6 +4168,13 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_get_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_git_repository_links_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}
 /// Gets details of a single GitRepositoryLink.
 ///
@@ -3892,7 +4187,7 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_get_
 
 pub fn developerconnect_projects_locations_connections_git_repository_links_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GitRepositoryLink>, ApiError>, P = ApiPending>
         + Send
@@ -3900,7 +4195,7 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_get(
     ApiError,
 > {
     let builder = developerconnect_projects_locations_connections_git_repository_links_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     developerconnect_projects_locations_connections_git_repository_links_get_execute(builder)
 }
@@ -4023,6 +4318,21 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_list
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_git_repository_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks
 /// Lists GitRepositoryLinks in a given project, location, and connection.
 ///
@@ -4035,11 +4345,7 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_list
 
 pub fn developerconnect_projects_locations_connections_git_repository_links_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListGitRepositoryLinksResponse>, ApiError>,
@@ -4050,7 +4356,12 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_list
 > {
     let builder =
         developerconnect_projects_locations_connections_git_repository_links_list_builder(
-            client, parent, filter, orderBy, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     developerconnect_projects_locations_connections_git_repository_links_list_execute(builder)
 }
@@ -4148,6 +4459,16 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_proc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_cloud_webhook`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksProcessBitbucketCloudWebhookArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ProcessBitbucketCloudWebhookRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}:processBitbucketCloudWebhook
 /// ProcessBitbucketCloudWebhook is called by the external Bitbucket Cloud instances for notifying events.
 ///
@@ -4160,13 +4481,12 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_proc
 
 pub fn developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_cloud_webhook(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ProcessBitbucketCloudWebhookRequest,
+    args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksProcessBitbucketCloudWebhookArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_cloud_webhook_builder(client, name, body)?;
+    let builder = developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_cloud_webhook_builder(client, &args.name, &args.body)?;
     developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_cloud_webhook_execute(builder)
 }
 
@@ -4263,6 +4583,16 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_proc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_data_center_webhook`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksProcessBitbucketDataCenterWebhookArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ProcessBitbucketDataCenterWebhookRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}:processBitbucketDataCenterWebhook
 /// ProcessBitbucketDataCenterWebhook is called by the external Bitbucket Data Center instances for notifying events.
 ///
@@ -4275,13 +4605,12 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_proc
 
 pub fn developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_data_center_webhook(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ProcessBitbucketDataCenterWebhookRequest,
+    args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksProcessBitbucketDataCenterWebhookArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_data_center_webhook_builder(client, name, body)?;
+    let builder = developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_data_center_webhook_builder(client, &args.name, &args.body)?;
     developerconnect_projects_locations_connections_git_repository_links_process_bitbucket_data_center_webhook_execute(builder)
 }
 
@@ -4378,6 +4707,16 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_proc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_git_repository_links_process_git_lab_enterprise_webhook`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksProcessGitLabEnterpriseWebhookArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ProcessGitLabEnterpriseWebhookRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}:processGitLabEnterpriseWebhook
 /// ProcessGitLabEnterpriseWebhook is called by the external GitLab Enterprise instances for notifying events.
 ///
@@ -4390,13 +4729,12 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_proc
 
 pub fn developerconnect_projects_locations_connections_git_repository_links_process_git_lab_enterprise_webhook(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ProcessGitLabEnterpriseWebhookRequest,
+    args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksProcessGitLabEnterpriseWebhookArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = developerconnect_projects_locations_connections_git_repository_links_process_git_lab_enterprise_webhook_builder(client, name, body)?;
+    let builder = developerconnect_projects_locations_connections_git_repository_links_process_git_lab_enterprise_webhook_builder(client, &args.name, &args.body)?;
     developerconnect_projects_locations_connections_git_repository_links_process_git_lab_enterprise_webhook_execute(builder)
 }
 
@@ -4493,6 +4831,15 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_proc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_connections_git_repository_links_process_git_lab_webhook`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksProcessGitLabWebhookArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ProcessGitLabWebhookRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/gitRepositoryLinks/{gitRepositoryLinksId}:processGitLabWebhook
 /// ProcessGitLabWebhook is called by the GitLab.com for notifying events.
 ///
@@ -4505,13 +4852,12 @@ pub fn developerconnect_projects_locations_connections_git_repository_links_proc
 
 pub fn developerconnect_projects_locations_connections_git_repository_links_process_git_lab_webhook(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ProcessGitLabWebhookRequest,
+    args: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksProcessGitLabWebhookArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = developerconnect_projects_locations_connections_git_repository_links_process_git_lab_webhook_builder(client, name, body)?;
+    let builder = developerconnect_projects_locations_connections_git_repository_links_process_git_lab_webhook_builder(client, &args.name, &args.body)?;
     developerconnect_projects_locations_connections_git_repository_links_process_git_lab_webhook_execute(builder)
 }
 
@@ -4624,6 +4970,19 @@ pub fn developerconnect_projects_locations_insights_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_insights_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsInsightsConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: insightsConfigId
+    pub insightsConfigId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: InsightsConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insightsConfigs
 /// Creates a new InsightsConfig in a given project and location.
 ///
@@ -4636,20 +4995,17 @@ pub fn developerconnect_projects_locations_insights_configs_create_execute(
 
 pub fn developerconnect_projects_locations_insights_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    insightsConfigId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &InsightsConfig,
+    args: &DeveloperconnectProjectsLocationsInsightsConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = developerconnect_projects_locations_insights_configs_create_builder(
         client,
-        parent,
-        insightsConfigId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.insightsConfigId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     developerconnect_projects_locations_insights_configs_create_execute(builder)
 }
@@ -4764,6 +5120,19 @@ pub fn developerconnect_projects_locations_insights_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_insights_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsInsightsConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insightsConfigs/{insightsConfigsId}
 /// Deletes a single Insight.
 ///
@@ -4776,20 +5145,17 @@ pub fn developerconnect_projects_locations_insights_configs_delete_execute(
 
 pub fn developerconnect_projects_locations_insights_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &DeveloperconnectProjectsLocationsInsightsConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = developerconnect_projects_locations_insights_configs_delete_builder(
         client,
-        name,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     developerconnect_projects_locations_insights_configs_delete_execute(builder)
 }
@@ -4886,6 +5252,13 @@ pub fn developerconnect_projects_locations_insights_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_insights_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsInsightsConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insightsConfigs/{insightsConfigsId}
 /// Gets details of a single Insight.
 ///
@@ -4898,14 +5271,15 @@ pub fn developerconnect_projects_locations_insights_configs_get_execute(
 
 pub fn developerconnect_projects_locations_insights_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DeveloperconnectProjectsLocationsInsightsConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InsightsConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = developerconnect_projects_locations_insights_configs_get_builder(client, name)?;
+    let builder =
+        developerconnect_projects_locations_insights_configs_get_builder(client, &args.name)?;
     developerconnect_projects_locations_insights_configs_get_execute(builder)
 }
 
@@ -5027,6 +5401,21 @@ pub fn developerconnect_projects_locations_insights_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_insights_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsInsightsConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insightsConfigs
 /// Lists InsightsConfigs in a given project and location.
 ///
@@ -5039,11 +5428,7 @@ pub fn developerconnect_projects_locations_insights_configs_list_execute(
 
 pub fn developerconnect_projects_locations_insights_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DeveloperconnectProjectsLocationsInsightsConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInsightsConfigsResponse>, ApiError>,
@@ -5053,7 +5438,12 @@ pub fn developerconnect_projects_locations_insights_configs_list(
     ApiError,
 > {
     let builder = developerconnect_projects_locations_insights_configs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     developerconnect_projects_locations_insights_configs_list_execute(builder)
 }
@@ -5171,6 +5561,21 @@ pub fn developerconnect_projects_locations_insights_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_insights_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsInsightsConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: InsightsConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insightsConfigs/{insightsConfigsId}
 /// Updates the parameters of a single InsightsConfig.
 ///
@@ -5183,22 +5588,18 @@ pub fn developerconnect_projects_locations_insights_configs_patch_execute(
 
 pub fn developerconnect_projects_locations_insights_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &InsightsConfig,
+    args: &DeveloperconnectProjectsLocationsInsightsConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = developerconnect_projects_locations_insights_configs_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     developerconnect_projects_locations_insights_configs_patch_execute(builder)
 }
@@ -5295,6 +5696,13 @@ pub fn developerconnect_projects_locations_insights_configs_deployment_events_ge
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_insights_configs_deployment_events_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsInsightsConfigsDeploymentEventsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insightsConfigs/{insightsConfigsId}/deploymentEvents/{deploymentEventsId}
 /// Gets a single Deployment Event.
 ///
@@ -5307,7 +5715,7 @@ pub fn developerconnect_projects_locations_insights_configs_deployment_events_ge
 
 pub fn developerconnect_projects_locations_insights_configs_deployment_events_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DeveloperconnectProjectsLocationsInsightsConfigsDeploymentEventsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeploymentEvent>, ApiError>, P = ApiPending>
         + Send
@@ -5316,7 +5724,7 @@ pub fn developerconnect_projects_locations_insights_configs_deployment_events_ge
 > {
     let builder =
         developerconnect_projects_locations_insights_configs_deployment_events_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     developerconnect_projects_locations_insights_configs_deployment_events_get_execute(builder)
 }
@@ -5435,6 +5843,19 @@ pub fn developerconnect_projects_locations_insights_configs_deployment_events_li
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_insights_configs_deployment_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsInsightsConfigsDeploymentEventsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/insightsConfigs/{insightsConfigsId}/deploymentEvents
 /// Lists Deployment Events in a given insights config.
 ///
@@ -5447,10 +5868,7 @@ pub fn developerconnect_projects_locations_insights_configs_deployment_events_li
 
 pub fn developerconnect_projects_locations_insights_configs_deployment_events_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DeveloperconnectProjectsLocationsInsightsConfigsDeploymentEventsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDeploymentEventsResponse>, ApiError>,
@@ -5461,7 +5879,11 @@ pub fn developerconnect_projects_locations_insights_configs_deployment_events_li
 > {
     let builder =
         developerconnect_projects_locations_insights_configs_deployment_events_list_builder(
-            client, parent, filter, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     developerconnect_projects_locations_insights_configs_deployment_events_list_execute(builder)
 }
@@ -5559,6 +5981,15 @@ pub fn developerconnect_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -5571,14 +6002,14 @@ pub fn developerconnect_projects_locations_operations_cancel_execute(
 
 pub fn developerconnect_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &DeveloperconnectProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        developerconnect_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = developerconnect_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     developerconnect_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -5672,6 +6103,13 @@ pub fn developerconnect_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -5684,12 +6122,13 @@ pub fn developerconnect_projects_locations_operations_delete_execute(
 
 pub fn developerconnect_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DeveloperconnectProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = developerconnect_projects_locations_operations_delete_builder(client, name)?;
+    let builder =
+        developerconnect_projects_locations_operations_delete_builder(client, &args.name)?;
     developerconnect_projects_locations_operations_delete_execute(builder)
 }
 
@@ -5783,6 +6222,13 @@ pub fn developerconnect_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -5795,12 +6241,12 @@ pub fn developerconnect_projects_locations_operations_get_execute(
 
 pub fn developerconnect_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DeveloperconnectProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = developerconnect_projects_locations_operations_get_builder(client, name)?;
+    let builder = developerconnect_projects_locations_operations_get_builder(client, &args.name)?;
     developerconnect_projects_locations_operations_get_execute(builder)
 }
 
@@ -5920,6 +6366,21 @@ pub fn developerconnect_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`developerconnect_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeveloperconnectProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -5932,11 +6393,7 @@ pub fn developerconnect_projects_locations_operations_list_execute(
 
 pub fn developerconnect_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DeveloperconnectProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5945,11 +6402,11 @@ pub fn developerconnect_projects_locations_operations_list(
 > {
     let builder = developerconnect_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     developerconnect_projects_locations_operations_list_execute(builder)
 }

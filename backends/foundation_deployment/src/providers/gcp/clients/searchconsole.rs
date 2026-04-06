@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET webmasters/v3/sites/{siteUrl}/searchAnalytics/query
 /// Query your data with filters and parameters that you define. Returns zero or more rows grouped by the row keys that you define. You must define a date range of one or more days. When date is one of the group by values, any days without data are omitted from the result list. If you need to know which days have data, issue a broad date range query grouped by date for any metric, and see which day rows are returned.
@@ -113,6 +115,15 @@ pub fn webmasters_searchanalytics_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webmasters_searchanalytics_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebmastersSearchanalyticsQueryArgs {
+    /// Path parameter: siteUrl
+    pub siteUrl: String,
+    /// Request body.
+    pub body: SearchAnalyticsQueryRequest,
+}
+
 /// GET webmasters/v3/sites/{siteUrl}/searchAnalytics/query
 /// Query your data with filters and parameters that you define. Returns zero or more rows grouped by the row keys that you define. You must define a date range of one or more days. When date is one of the group by values, any days without data are omitted from the result list. If you need to know which days have data, issue a broad date range query grouped by date for any metric, and see which day rows are returned.
 ///
@@ -125,8 +136,7 @@ pub fn webmasters_searchanalytics_query_execute(
 
 pub fn webmasters_searchanalytics_query(
     client: &SimpleHttpClient,
-    siteUrl: &str,
-    body: &SearchAnalyticsQueryRequest,
+    args: &WebmastersSearchanalyticsQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchAnalyticsQueryResponse>, ApiError>,
@@ -135,7 +145,7 @@ pub fn webmasters_searchanalytics_query(
         + 'static,
     ApiError,
 > {
-    let builder = webmasters_searchanalytics_query_builder(client, siteUrl, body)?;
+    let builder = webmasters_searchanalytics_query_builder(client, &args.siteUrl, &args.body)?;
     webmasters_searchanalytics_query_execute(builder)
 }
 
@@ -227,6 +237,15 @@ pub fn webmasters_sitemaps_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webmasters_sitemaps_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebmastersSitemapsDeleteArgs {
+    /// Path parameter: siteUrl
+    pub siteUrl: String,
+    /// Path parameter: feedpath
+    pub feedpath: String,
+}
+
 /// GET webmasters/v3/sites/{siteUrl}/sitemaps/{feedpath}
 /// Deletes a sitemap from the Sitemaps report. Does not stop Google from crawling this sitemap or the URLs that were previously crawled in the deleted sitemap.
 ///
@@ -239,13 +258,12 @@ pub fn webmasters_sitemaps_delete_execute(
 
 pub fn webmasters_sitemaps_delete(
     client: &SimpleHttpClient,
-    siteUrl: &str,
-    feedpath: &str,
+    args: &WebmastersSitemapsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = webmasters_sitemaps_delete_builder(client, siteUrl, feedpath)?;
+    let builder = webmasters_sitemaps_delete_builder(client, &args.siteUrl, &args.feedpath)?;
     webmasters_sitemaps_delete_execute(builder)
 }
 
@@ -340,6 +358,15 @@ pub fn webmasters_sitemaps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webmasters_sitemaps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebmastersSitemapsGetArgs {
+    /// Path parameter: siteUrl
+    pub siteUrl: String,
+    /// Path parameter: feedpath
+    pub feedpath: String,
+}
+
 /// GET webmasters/v3/sites/{siteUrl}/sitemaps/{feedpath}
 /// Retrieves information about a specific sitemap.
 ///
@@ -352,13 +379,12 @@ pub fn webmasters_sitemaps_get_execute(
 
 pub fn webmasters_sitemaps_get(
     client: &SimpleHttpClient,
-    siteUrl: &str,
-    feedpath: &str,
+    args: &WebmastersSitemapsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WmxSitemap>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = webmasters_sitemaps_get_builder(client, siteUrl, feedpath)?;
+    let builder = webmasters_sitemaps_get_builder(client, &args.siteUrl, &args.feedpath)?;
     webmasters_sitemaps_get_execute(builder)
 }
 
@@ -466,6 +492,15 @@ pub fn webmasters_sitemaps_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webmasters_sitemaps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebmastersSitemapsListArgs {
+    /// Path parameter: siteUrl
+    pub siteUrl: String,
+    /// Query parameter: sitemapIndex
+    pub sitemapIndex: Option<String>,
+}
+
 /// GET webmasters/v3/sites/{siteUrl}/sitemaps
 /// Lists the [sitemaps-entries](/webmaster-`tools/v3/sitemaps`) submitted for this site, or included in the sitemap index file (if `sitemapIndex` is specified in the request).
 ///
@@ -478,15 +513,15 @@ pub fn webmasters_sitemaps_list_execute(
 
 pub fn webmasters_sitemaps_list(
     client: &SimpleHttpClient,
-    siteUrl: &str,
-    sitemapIndex: Option<&str>,
+    args: &WebmastersSitemapsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SitemapsListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = webmasters_sitemaps_list_builder(client, siteUrl, sitemapIndex)?;
+    let builder =
+        webmasters_sitemaps_list_builder(client, &args.siteUrl, args.sitemapIndex.as_deref())?;
     webmasters_sitemaps_list_execute(builder)
 }
 
@@ -578,6 +613,15 @@ pub fn webmasters_sitemaps_submit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webmasters_sitemaps_submit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebmastersSitemapsSubmitArgs {
+    /// Path parameter: siteUrl
+    pub siteUrl: String,
+    /// Path parameter: feedpath
+    pub feedpath: String,
+}
+
 /// GET webmasters/v3/sites/{siteUrl}/sitemaps/{feedpath}
 /// Submits a sitemap for a site.
 ///
@@ -590,13 +634,12 @@ pub fn webmasters_sitemaps_submit_execute(
 
 pub fn webmasters_sitemaps_submit(
     client: &SimpleHttpClient,
-    siteUrl: &str,
-    feedpath: &str,
+    args: &WebmastersSitemapsSubmitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = webmasters_sitemaps_submit_builder(client, siteUrl, feedpath)?;
+    let builder = webmasters_sitemaps_submit_builder(client, &args.siteUrl, &args.feedpath)?;
     webmasters_sitemaps_submit_execute(builder)
 }
 
@@ -687,6 +730,13 @@ pub fn webmasters_sites_add_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webmasters_sites_add`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebmastersSitesAddArgs {
+    /// Path parameter: siteUrl
+    pub siteUrl: String,
+}
+
 /// GET webmasters/v3/sites/{siteUrl}
 /// Adds a site to the set of the user's sites in Search Console.
 ///
@@ -699,12 +749,12 @@ pub fn webmasters_sites_add_execute(
 
 pub fn webmasters_sites_add(
     client: &SimpleHttpClient,
-    siteUrl: &str,
+    args: &WebmastersSitesAddArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = webmasters_sites_add_builder(client, siteUrl)?;
+    let builder = webmasters_sites_add_builder(client, &args.siteUrl)?;
     webmasters_sites_add_execute(builder)
 }
 
@@ -795,6 +845,13 @@ pub fn webmasters_sites_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webmasters_sites_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebmastersSitesDeleteArgs {
+    /// Path parameter: siteUrl
+    pub siteUrl: String,
+}
+
 /// GET webmasters/v3/sites/{siteUrl}
 /// Removes a site from the set of the user's Search Console sites.
 ///
@@ -807,12 +864,12 @@ pub fn webmasters_sites_delete_execute(
 
 pub fn webmasters_sites_delete(
     client: &SimpleHttpClient,
-    siteUrl: &str,
+    args: &WebmastersSitesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = webmasters_sites_delete_builder(client, siteUrl)?;
+    let builder = webmasters_sites_delete_builder(client, &args.siteUrl)?;
     webmasters_sites_delete_execute(builder)
 }
 
@@ -906,6 +963,13 @@ pub fn webmasters_sites_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webmasters_sites_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebmastersSitesGetArgs {
+    /// Path parameter: siteUrl
+    pub siteUrl: String,
+}
+
 /// GET webmasters/v3/sites/{siteUrl}
 /// Retrieves information about specific site.
 ///
@@ -918,12 +982,12 @@ pub fn webmasters_sites_get_execute(
 
 pub fn webmasters_sites_get(
     client: &SimpleHttpClient,
-    siteUrl: &str,
+    args: &WebmastersSitesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WmxSite>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = webmasters_sites_get_builder(client, siteUrl)?;
+    let builder = webmasters_sites_get_builder(client, &args.siteUrl)?;
     webmasters_sites_get_execute(builder)
 }
 
@@ -1128,6 +1192,13 @@ pub fn searchconsole_url_inspection_index_inspect_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`searchconsole_url_inspection_index_inspect`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SearchconsoleUrlInspectionIndexInspectArgs {
+    /// Request body.
+    pub body: InspectUrlIndexRequest,
+}
+
 /// GET v1/urlInspection/index:inspect
 /// Index inspection.
 ///
@@ -1140,14 +1211,14 @@ pub fn searchconsole_url_inspection_index_inspect_execute(
 
 pub fn searchconsole_url_inspection_index_inspect(
     client: &SimpleHttpClient,
-    body: &InspectUrlIndexRequest,
+    args: &SearchconsoleUrlInspectionIndexInspectArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InspectUrlIndexResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = searchconsole_url_inspection_index_inspect_builder(client, body)?;
+    let builder = searchconsole_url_inspection_index_inspect_builder(client, &args.body)?;
     searchconsole_url_inspection_index_inspect_execute(builder)
 }
 
@@ -1245,6 +1316,13 @@ pub fn searchconsole_url_testing_tools_mobile_friendly_test_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`searchconsole_url_testing_tools_mobile_friendly_test_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SearchconsoleUrlTestingToolsMobileFriendlyTestRunArgs {
+    /// Request body.
+    pub body: RunMobileFriendlyTestRequest,
+}
+
 /// GET v1/urlTestingTools/mobileFriendlyTest:run
 /// Runs Mobile-Friendly Test for a given URL.
 ///
@@ -1257,7 +1335,7 @@ pub fn searchconsole_url_testing_tools_mobile_friendly_test_run_execute(
 
 pub fn searchconsole_url_testing_tools_mobile_friendly_test_run(
     client: &SimpleHttpClient,
-    body: &RunMobileFriendlyTestRequest,
+    args: &SearchconsoleUrlTestingToolsMobileFriendlyTestRunArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RunMobileFriendlyTestResponse>, ApiError>,
@@ -1266,6 +1344,7 @@ pub fn searchconsole_url_testing_tools_mobile_friendly_test_run(
         + 'static,
     ApiError,
 > {
-    let builder = searchconsole_url_testing_tools_mobile_friendly_test_run_builder(client, body)?;
+    let builder =
+        searchconsole_url_testing_tools_mobile_friendly_test_run_builder(client, &args.body)?;
     searchconsole_url_testing_tools_mobile_friendly_test_run_execute(builder)
 }

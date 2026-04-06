@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn blockchainnodeengine_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blockchainnodeengine_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BlockchainnodeengineProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn blockchainnodeengine_projects_locations_get_execute(
 
 pub fn blockchainnodeengine_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BlockchainnodeengineProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blockchainnodeengine_projects_locations_get_builder(client, name)?;
+    let builder = blockchainnodeengine_projects_locations_get_builder(client, &args.name)?;
     blockchainnodeengine_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn blockchainnodeengine_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blockchainnodeengine_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BlockchainnodeengineProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service.
 ///
@@ -255,11 +279,7 @@ pub fn blockchainnodeengine_projects_locations_list_execute(
 
 pub fn blockchainnodeengine_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BlockchainnodeengineProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn blockchainnodeengine_projects_locations_list(
 > {
     let builder = blockchainnodeengine_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     blockchainnodeengine_projects_locations_list_execute(builder)
 }
@@ -386,6 +406,19 @@ pub fn blockchainnodeengine_projects_locations_blockchain_nodes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blockchainnodeengine_projects_locations_blockchain_nodes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BlockchainnodeengineProjectsLocationsBlockchainNodesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: blockchainNodeId
+    pub blockchainNodeId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: BlockchainNode,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/blockchainNodes
 /// Creates a new blockchain node in a given project and location.
 ///
@@ -398,20 +431,17 @@ pub fn blockchainnodeengine_projects_locations_blockchain_nodes_create_execute(
 
 pub fn blockchainnodeengine_projects_locations_blockchain_nodes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    blockchainNodeId: Option<&str>,
-    requestId: Option<&str>,
-    body: &BlockchainNode,
+    args: &BlockchainnodeengineProjectsLocationsBlockchainNodesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = blockchainnodeengine_projects_locations_blockchain_nodes_create_builder(
         client,
-        parent,
-        blockchainNodeId,
-        requestId,
-        body,
+        &args.parent,
+        args.blockchainNodeId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     blockchainnodeengine_projects_locations_blockchain_nodes_create_execute(builder)
 }
@@ -518,6 +548,15 @@ pub fn blockchainnodeengine_projects_locations_blockchain_nodes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blockchainnodeengine_projects_locations_blockchain_nodes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BlockchainnodeengineProjectsLocationsBlockchainNodesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/blockchainNodes/{blockchainNodesId}
 /// Deletes a single blockchain node.
 ///
@@ -530,14 +569,15 @@ pub fn blockchainnodeengine_projects_locations_blockchain_nodes_delete_execute(
 
 pub fn blockchainnodeengine_projects_locations_blockchain_nodes_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &BlockchainnodeengineProjectsLocationsBlockchainNodesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = blockchainnodeengine_projects_locations_blockchain_nodes_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     blockchainnodeengine_projects_locations_blockchain_nodes_delete_execute(builder)
 }
@@ -634,6 +674,13 @@ pub fn blockchainnodeengine_projects_locations_blockchain_nodes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blockchainnodeengine_projects_locations_blockchain_nodes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BlockchainnodeengineProjectsLocationsBlockchainNodesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/blockchainNodes/{blockchainNodesId}
 /// Gets details of a single blockchain node.
 ///
@@ -646,7 +693,7 @@ pub fn blockchainnodeengine_projects_locations_blockchain_nodes_get_execute(
 
 pub fn blockchainnodeengine_projects_locations_blockchain_nodes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BlockchainnodeengineProjectsLocationsBlockchainNodesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BlockchainNode>, ApiError>, P = ApiPending>
         + Send
@@ -654,7 +701,7 @@ pub fn blockchainnodeengine_projects_locations_blockchain_nodes_get(
     ApiError,
 > {
     let builder =
-        blockchainnodeengine_projects_locations_blockchain_nodes_get_builder(client, name)?;
+        blockchainnodeengine_projects_locations_blockchain_nodes_get_builder(client, &args.name)?;
     blockchainnodeengine_projects_locations_blockchain_nodes_get_execute(builder)
 }
 
@@ -776,6 +823,21 @@ pub fn blockchainnodeengine_projects_locations_blockchain_nodes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blockchainnodeengine_projects_locations_blockchain_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BlockchainnodeengineProjectsLocationsBlockchainNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/blockchainNodes
 /// Lists blockchain nodes in a given project and location.
 ///
@@ -788,11 +850,7 @@ pub fn blockchainnodeengine_projects_locations_blockchain_nodes_list_execute(
 
 pub fn blockchainnodeengine_projects_locations_blockchain_nodes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BlockchainnodeengineProjectsLocationsBlockchainNodesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBlockchainNodesResponse>, ApiError>,
@@ -802,7 +860,12 @@ pub fn blockchainnodeengine_projects_locations_blockchain_nodes_list(
     ApiError,
 > {
     let builder = blockchainnodeengine_projects_locations_blockchain_nodes_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     blockchainnodeengine_projects_locations_blockchain_nodes_list_execute(builder)
 }
@@ -916,6 +979,19 @@ pub fn blockchainnodeengine_projects_locations_blockchain_nodes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blockchainnodeengine_projects_locations_blockchain_nodes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BlockchainnodeengineProjectsLocationsBlockchainNodesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: BlockchainNode,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/blockchainNodes/{blockchainNodesId}
 /// Updates the parameters of a single blockchain node.
 ///
@@ -928,16 +1004,17 @@ pub fn blockchainnodeengine_projects_locations_blockchain_nodes_patch_execute(
 
 pub fn blockchainnodeengine_projects_locations_blockchain_nodes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &BlockchainNode,
+    args: &BlockchainnodeengineProjectsLocationsBlockchainNodesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = blockchainnodeengine_projects_locations_blockchain_nodes_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     blockchainnodeengine_projects_locations_blockchain_nodes_patch_execute(builder)
 }
@@ -1037,6 +1114,15 @@ pub fn blockchainnodeengine_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blockchainnodeengine_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BlockchainnodeengineProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1049,16 +1135,16 @@ pub fn blockchainnodeengine_projects_locations_operations_cancel_execute(
 
 pub fn blockchainnodeengine_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &BlockchainnodeengineProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        blockchainnodeengine_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = blockchainnodeengine_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     blockchainnodeengine_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1154,6 +1240,13 @@ pub fn blockchainnodeengine_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blockchainnodeengine_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BlockchainnodeengineProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1166,14 +1259,15 @@ pub fn blockchainnodeengine_projects_locations_operations_delete_execute(
 
 pub fn blockchainnodeengine_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BlockchainnodeengineProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = blockchainnodeengine_projects_locations_operations_delete_builder(client, name)?;
+    let builder =
+        blockchainnodeengine_projects_locations_operations_delete_builder(client, &args.name)?;
     blockchainnodeengine_projects_locations_operations_delete_execute(builder)
 }
 
@@ -1267,6 +1361,13 @@ pub fn blockchainnodeengine_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blockchainnodeengine_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BlockchainnodeengineProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1279,12 +1380,13 @@ pub fn blockchainnodeengine_projects_locations_operations_get_execute(
 
 pub fn blockchainnodeengine_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BlockchainnodeengineProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blockchainnodeengine_projects_locations_operations_get_builder(client, name)?;
+    let builder =
+        blockchainnodeengine_projects_locations_operations_get_builder(client, &args.name)?;
     blockchainnodeengine_projects_locations_operations_get_execute(builder)
 }
 
@@ -1400,6 +1502,19 @@ pub fn blockchainnodeengine_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`blockchainnodeengine_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BlockchainnodeengineProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1412,10 +1527,7 @@ pub fn blockchainnodeengine_projects_locations_operations_list_execute(
 
 pub fn blockchainnodeengine_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BlockchainnodeengineProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1423,7 +1535,11 @@ pub fn blockchainnodeengine_projects_locations_operations_list(
     ApiError,
 > {
     let builder = blockchainnodeengine_projects_locations_operations_list_builder(
-        client, name, filter, pageSize, pageToken,
+        client,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     blockchainnodeengine_projects_locations_operations_list_execute(builder)
 }

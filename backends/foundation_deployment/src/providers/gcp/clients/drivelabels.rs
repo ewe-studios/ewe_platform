@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/labels
 /// Creates a label. For more information, see [Create and publish a label](<https://developers.google.`com/workspace/drive/labels/guides/create-label`>).
@@ -125,6 +127,17 @@ pub fn drivelabels_labels_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsCreateArgs {
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: useAdminAccess
+    pub useAdminAccess: Option<bool>,
+    /// Request body.
+    pub body: GoogleAppsDriveLabelsV2Label,
+}
+
 /// GET v2/labels
 /// Creates a label. For more information, see [Create and publish a label](<https://developers.google.`com/workspace/drive/labels/guides/create-label`>).
 ///
@@ -137,9 +150,7 @@ pub fn drivelabels_labels_create_execute(
 
 pub fn drivelabels_labels_create(
     client: &SimpleHttpClient,
-    languageCode: Option<&str>,
-    useAdminAccess: Option<bool>,
-    body: &GoogleAppsDriveLabelsV2Label,
+    args: &DrivelabelsLabelsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
@@ -148,7 +159,12 @@ pub fn drivelabels_labels_create(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_create_builder(client, languageCode, useAdminAccess, body)?;
+    let builder = drivelabels_labels_create_builder(
+        client,
+        args.languageCode.as_deref(),
+        args.useAdminAccess,
+        &args.body,
+    )?;
     drivelabels_labels_create_execute(builder)
 }
 
@@ -257,6 +273,17 @@ pub fn drivelabels_labels_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: useAdminAccess
+    pub useAdminAccess: Option<bool>,
+    /// Query parameter: writeControl_requiredRevisionId
+    pub writeControl_requiredRevisionId: Option<String>,
+}
+
 /// GET v2/labels/{labelsId}
 /// Permanently deletes a label and related metadata on Drive items. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). Once deleted, the label and related Drive item metadata will be deleted. Only draft labels and disabled labels may be deleted.
 ///
@@ -269,9 +296,7 @@ pub fn drivelabels_labels_delete_execute(
 
 pub fn drivelabels_labels_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    useAdminAccess: Option<bool>,
-    writeControl_requiredRevisionId: Option<&str>,
+    args: &DrivelabelsLabelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -280,9 +305,9 @@ pub fn drivelabels_labels_delete(
 > {
     let builder = drivelabels_labels_delete_builder(
         client,
-        name,
-        useAdminAccess,
-        writeControl_requiredRevisionId,
+        &args.name,
+        args.useAdminAccess,
+        args.writeControl_requiredRevisionId.as_deref(),
     )?;
     drivelabels_labels_delete_execute(builder)
 }
@@ -385,6 +410,15 @@ pub fn drivelabels_labels_delta_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_delta`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsDeltaArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleAppsDriveLabelsV2DeltaUpdateLabelRequest,
+}
+
 /// GET v2/labels/{labelsId}:delta
 /// Updates a single label by applying a set of update requests resulting in a new draft revision. For more information, see [Update a label](<https://developers.google.`com/workspace/drive/labels/guides/update-label`>). The batch update is all-or-nothing: If any of the update requests are invalid, no changes are applied. The resulting draft revision must be published before the changes may be used with Drive items.
 ///
@@ -397,8 +431,7 @@ pub fn drivelabels_labels_delta_execute(
 
 pub fn drivelabels_labels_delta(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleAppsDriveLabelsV2DeltaUpdateLabelRequest,
+    args: &DrivelabelsLabelsDeltaArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse>, ApiError>,
@@ -407,7 +440,7 @@ pub fn drivelabels_labels_delta(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_delta_builder(client, name, body)?;
+    let builder = drivelabels_labels_delta_builder(client, &args.name, &args.body)?;
     drivelabels_labels_delta_execute(builder)
 }
 
@@ -508,6 +541,15 @@ pub fn drivelabels_labels_disable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsDisableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleAppsDriveLabelsV2DisableLabelRequest,
+}
+
 /// GET v2/labels/{labelsId}:disable
 /// Disable a published label. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). Disabling a label will result in a new disabled published revision based on the current published revision. If there's a draft revision, a new disabled draft revision will be created based on the latest draft revision. Older draft revisions will be deleted. Once disabled, a label may be deleted with DeleteLabel.
 ///
@@ -520,8 +562,7 @@ pub fn drivelabels_labels_disable_execute(
 
 pub fn drivelabels_labels_disable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleAppsDriveLabelsV2DisableLabelRequest,
+    args: &DrivelabelsLabelsDisableArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
@@ -530,7 +571,7 @@ pub fn drivelabels_labels_disable(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_disable_builder(client, name, body)?;
+    let builder = drivelabels_labels_disable_builder(client, &args.name, &args.body)?;
     drivelabels_labels_disable_execute(builder)
 }
 
@@ -631,6 +672,15 @@ pub fn drivelabels_labels_enable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsEnableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleAppsDriveLabelsV2EnableLabelRequest,
+}
+
 /// GET v2/labels/{labelsId}:enable
 /// Enable a disabled label and restore it to its published state. For more information, see [Disable, enable, and delete a label](<https://developers.google.`com/workspace/drive/labels/guides/disable-delete-label`>). This will result in a new published revision based on the current disabled published revision. If there's an existing disabled draft revision, a new revision will be created based on that draft and will be enabled.
 ///
@@ -643,8 +693,7 @@ pub fn drivelabels_labels_enable_execute(
 
 pub fn drivelabels_labels_enable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleAppsDriveLabelsV2EnableLabelRequest,
+    args: &DrivelabelsLabelsEnableArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
@@ -653,7 +702,7 @@ pub fn drivelabels_labels_enable(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_enable_builder(client, name, body)?;
+    let builder = drivelabels_labels_enable_builder(client, &args.name, &args.body)?;
     drivelabels_labels_enable_execute(builder)
 }
 
@@ -768,6 +817,19 @@ pub fn drivelabels_labels_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: useAdminAccess
+    pub useAdminAccess: Option<bool>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v2/labels/{labelsId}
 /// Get a label by its resource name. For more information, see [Search for labels](<https://developers.google.`com/workspace/drive/labels/guides/search-label`>). Resource name may be any of: * `labels/{id}` - See `labels/{id}`@latest * `labels/{id}`@latest - Gets the latest revision of the label. * `labels/{id}`@published - Gets the current published revision of the label. * `labels/{id}`@{revision_id} - Gets the label at the specified revision ID.
 ///
@@ -780,10 +842,7 @@ pub fn drivelabels_labels_get_execute(
 
 pub fn drivelabels_labels_get(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
-    useAdminAccess: Option<bool>,
-    view: Option<&str>,
+    args: &DrivelabelsLabelsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
@@ -792,7 +851,13 @@ pub fn drivelabels_labels_get(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_get_builder(client, name, languageCode, useAdminAccess, view)?;
+    let builder = drivelabels_labels_get_builder(
+        client,
+        &args.name,
+        args.languageCode.as_deref(),
+        args.useAdminAccess,
+        args.view.as_deref(),
+    )?;
     drivelabels_labels_get_execute(builder)
 }
 
@@ -926,6 +991,27 @@ pub fn drivelabels_labels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsListArgs {
+    /// Query parameter: customer
+    pub customer: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: minimumRole
+    pub minimumRole: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: publishedOnly
+    pub publishedOnly: Option<bool>,
+    /// Query parameter: useAdminAccess
+    pub useAdminAccess: Option<bool>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v2/labels
 /// List labels. For more information, see [Search for labels](<https://developers.google.`com/workspace/drive/labels/guides/search-label`>).
 ///
@@ -938,14 +1024,7 @@ pub fn drivelabels_labels_list_execute(
 
 pub fn drivelabels_labels_list(
     client: &SimpleHttpClient,
-    customer: Option<&str>,
-    languageCode: Option<&str>,
-    minimumRole: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    publishedOnly: Option<bool>,
-    useAdminAccess: Option<bool>,
-    view: Option<&str>,
+    args: &DrivelabelsLabelsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelsResponse>, ApiError>,
@@ -956,14 +1035,14 @@ pub fn drivelabels_labels_list(
 > {
     let builder = drivelabels_labels_list_builder(
         client,
-        customer,
-        languageCode,
-        minimumRole,
-        pageSize,
-        pageToken,
-        publishedOnly,
-        useAdminAccess,
-        view,
+        args.customer.as_deref(),
+        args.languageCode.as_deref(),
+        args.minimumRole.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.publishedOnly,
+        args.useAdminAccess,
+        args.view.as_deref(),
     )?;
     drivelabels_labels_list_execute(builder)
 }
@@ -1065,6 +1144,15 @@ pub fn drivelabels_labels_publish_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_publish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsPublishArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleAppsDriveLabelsV2PublishLabelRequest,
+}
+
 /// GET v2/labels/{labelsId}:publish
 /// Publish all draft changes to the label. Once published, the label may not return to its draft state. For more information, see [Create and publish a label](<https://developers.google.`com/workspace/drive/labels/guides/create-label`>). Publishing a label will result in a new published revision. All previous draft revisions will be deleted. Previous published revisions will be kept but are subject to automated deletion as needed. For more information, see [Label lifecycle](<https://developers.google.`com/workspace/drive/labels/guides/label-lifecycle`>). Once published, some changes are no longer permitted. Generally, any change that would invalidate or cause new restrictions on existing metadata related to the label will be rejected. For example, the following changes to a label will be rejected after the label is published: * The label cannot be directly deleted. It must be disabled first, then deleted. * Field.FieldType cannot be changed. * Changes to field validation options cannot reject something that was previously accepted. * Reducing the maximum entries.
 ///
@@ -1077,8 +1165,7 @@ pub fn drivelabels_labels_publish_execute(
 
 pub fn drivelabels_labels_publish(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleAppsDriveLabelsV2PublishLabelRequest,
+    args: &DrivelabelsLabelsPublishArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
@@ -1087,7 +1174,7 @@ pub fn drivelabels_labels_publish(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_publish_builder(client, name, body)?;
+    let builder = drivelabels_labels_publish_builder(client, &args.name, &args.body)?;
     drivelabels_labels_publish_execute(builder)
 }
 
@@ -1188,6 +1275,15 @@ pub fn drivelabels_labels_update_label_copy_mode_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_update_label_copy_mode`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsUpdateLabelCopyModeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleAppsDriveLabelsV2UpdateLabelCopyModeRequest,
+}
+
 /// GET v2/labels/{labelsId}:updateLabelCopyMode
 /// Updates a label's CopyMode. Changes to this policy aren't revisioned, don't require publishing, and take effect immediately.
 ///
@@ -1200,8 +1296,7 @@ pub fn drivelabels_labels_update_label_copy_mode_execute(
 
 pub fn drivelabels_labels_update_label_copy_mode(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleAppsDriveLabelsV2UpdateLabelCopyModeRequest,
+    args: &DrivelabelsLabelsUpdateLabelCopyModeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
@@ -1210,7 +1305,8 @@ pub fn drivelabels_labels_update_label_copy_mode(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_update_label_copy_mode_builder(client, name, body)?;
+    let builder =
+        drivelabels_labels_update_label_copy_mode_builder(client, &args.name, &args.body)?;
     drivelabels_labels_update_label_copy_mode_execute(builder)
 }
 
@@ -1311,6 +1407,15 @@ pub fn drivelabels_labels_update_label_enabled_app_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_update_label_enabled_app_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsUpdateLabelEnabledAppSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleAppsDriveLabelsV2UpdateLabelEnabledAppSettingsRequest,
+}
+
 /// GET v2/labels/{labelsId}:updateLabelEnabledAppSettings
 /// Updates a label's EnabledAppSettings. Enabling a label in a Google Workspace app allows it to be used in that app. This change isn't revisioned, doesn't require publishing, and takes effect immediately.
 ///
@@ -1323,8 +1428,7 @@ pub fn drivelabels_labels_update_label_enabled_app_settings_execute(
 
 pub fn drivelabels_labels_update_label_enabled_app_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleAppsDriveLabelsV2UpdateLabelEnabledAppSettingsRequest,
+    args: &DrivelabelsLabelsUpdateLabelEnabledAppSettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
@@ -1333,7 +1437,9 @@ pub fn drivelabels_labels_update_label_enabled_app_settings(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_update_label_enabled_app_settings_builder(client, name, body)?;
+    let builder = drivelabels_labels_update_label_enabled_app_settings_builder(
+        client, &args.name, &args.body,
+    )?;
     drivelabels_labels_update_label_enabled_app_settings_execute(builder)
 }
 
@@ -1446,6 +1552,17 @@ pub fn drivelabels_labels_update_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_update_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsUpdatePermissionsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: useAdminAccess
+    pub useAdminAccess: Option<bool>,
+    /// Request body.
+    pub body: GoogleAppsDriveLabelsV2LabelPermission,
+}
+
 /// GET v2/labels/{labelsId}/permissions
 /// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
 ///
@@ -1458,9 +1575,7 @@ pub fn drivelabels_labels_update_permissions_execute(
 
 pub fn drivelabels_labels_update_permissions(
     client: &SimpleHttpClient,
-    parent: &str,
-    useAdminAccess: Option<bool>,
-    body: &GoogleAppsDriveLabelsV2LabelPermission,
+    args: &DrivelabelsLabelsUpdatePermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelPermission>, ApiError>,
@@ -1469,8 +1584,12 @@ pub fn drivelabels_labels_update_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        drivelabels_labels_update_permissions_builder(client, parent, useAdminAccess, body)?;
+    let builder = drivelabels_labels_update_permissions_builder(
+        client,
+        &args.parent,
+        args.useAdminAccess,
+        &args.body,
+    )?;
     drivelabels_labels_update_permissions_execute(builder)
 }
 
@@ -1585,6 +1704,17 @@ pub fn drivelabels_labels_locks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_locks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsLocksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/labels/{labelsId}/locks
 /// Lists the label locks on a label.
 ///
@@ -1597,9 +1727,7 @@ pub fn drivelabels_labels_locks_list_execute(
 
 pub fn drivelabels_labels_locks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DrivelabelsLabelsLocksListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelLocksResponse>, ApiError>,
@@ -1608,7 +1736,12 @@ pub fn drivelabels_labels_locks_list(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_locks_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = drivelabels_labels_locks_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     drivelabels_labels_locks_list_execute(builder)
 }
 
@@ -1707,6 +1840,15 @@ pub fn drivelabels_labels_permissions_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_permissions_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsPermissionsBatchDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleAppsDriveLabelsV2BatchDeleteLabelPermissionsRequest,
+}
+
 /// GET v2/labels/{labelsId}/permissions:batchDelete
 /// Deletes label permissions. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
 ///
@@ -1719,15 +1861,15 @@ pub fn drivelabels_labels_permissions_batch_delete_execute(
 
 pub fn drivelabels_labels_permissions_batch_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleAppsDriveLabelsV2BatchDeleteLabelPermissionsRequest,
+    args: &DrivelabelsLabelsPermissionsBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_permissions_batch_delete_builder(client, parent, body)?;
+    let builder =
+        drivelabels_labels_permissions_batch_delete_builder(client, &args.parent, &args.body)?;
     drivelabels_labels_permissions_batch_delete_execute(builder)
 }
 
@@ -1832,6 +1974,15 @@ pub fn drivelabels_labels_permissions_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_permissions_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsPermissionsBatchUpdateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsRequest,
+}
+
 /// GET v2/labels/{labelsId}/permissions:batchUpdate
 /// Updates label permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
 ///
@@ -1844,8 +1995,7 @@ pub fn drivelabels_labels_permissions_batch_update_execute(
 
 pub fn drivelabels_labels_permissions_batch_update(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsRequest,
+    args: &DrivelabelsLabelsPermissionsBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1857,7 +2007,8 @@ pub fn drivelabels_labels_permissions_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_permissions_batch_update_builder(client, parent, body)?;
+    let builder =
+        drivelabels_labels_permissions_batch_update_builder(client, &args.parent, &args.body)?;
     drivelabels_labels_permissions_batch_update_execute(builder)
 }
 
@@ -1970,6 +2121,17 @@ pub fn drivelabels_labels_permissions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_permissions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsPermissionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: useAdminAccess
+    pub useAdminAccess: Option<bool>,
+    /// Request body.
+    pub body: GoogleAppsDriveLabelsV2LabelPermission,
+}
+
 /// GET v2/labels/{labelsId}/permissions
 /// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
 ///
@@ -1982,9 +2144,7 @@ pub fn drivelabels_labels_permissions_create_execute(
 
 pub fn drivelabels_labels_permissions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    useAdminAccess: Option<bool>,
-    body: &GoogleAppsDriveLabelsV2LabelPermission,
+    args: &DrivelabelsLabelsPermissionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelPermission>, ApiError>,
@@ -1993,8 +2153,12 @@ pub fn drivelabels_labels_permissions_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        drivelabels_labels_permissions_create_builder(client, parent, useAdminAccess, body)?;
+    let builder = drivelabels_labels_permissions_create_builder(
+        client,
+        &args.parent,
+        args.useAdminAccess,
+        &args.body,
+    )?;
     drivelabels_labels_permissions_create_execute(builder)
 }
 
@@ -2102,6 +2266,15 @@ pub fn drivelabels_labels_permissions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_permissions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsPermissionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: useAdminAccess
+    pub useAdminAccess: Option<bool>,
+}
+
 /// GET v2/labels/{labelsId}/permissions/{permissionsId}
 /// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
 ///
@@ -2114,15 +2287,15 @@ pub fn drivelabels_labels_permissions_delete_execute(
 
 pub fn drivelabels_labels_permissions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    useAdminAccess: Option<bool>,
+    args: &DrivelabelsLabelsPermissionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_permissions_delete_builder(client, name, useAdminAccess)?;
+    let builder =
+        drivelabels_labels_permissions_delete_builder(client, &args.name, args.useAdminAccess)?;
     drivelabels_labels_permissions_delete_execute(builder)
 }
 
@@ -2241,6 +2414,19 @@ pub fn drivelabels_labels_permissions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_permissions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsPermissionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: useAdminAccess
+    pub useAdminAccess: Option<bool>,
+}
+
 /// GET v2/labels/{labelsId}/permissions
 /// Lists a label's permissions.
 ///
@@ -2253,10 +2439,7 @@ pub fn drivelabels_labels_permissions_list_execute(
 
 pub fn drivelabels_labels_permissions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    useAdminAccess: Option<bool>,
+    args: &DrivelabelsLabelsPermissionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelPermissionsResponse>, ApiError>,
@@ -2267,10 +2450,10 @@ pub fn drivelabels_labels_permissions_list(
 > {
     let builder = drivelabels_labels_permissions_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        useAdminAccess,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.useAdminAccess,
     )?;
     drivelabels_labels_permissions_list_execute(builder)
 }
@@ -2384,6 +2567,17 @@ pub fn drivelabels_labels_revisions_update_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_revisions_update_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsRevisionsUpdatePermissionsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: useAdminAccess
+    pub useAdminAccess: Option<bool>,
+    /// Request body.
+    pub body: GoogleAppsDriveLabelsV2LabelPermission,
+}
+
 /// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
 /// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
 ///
@@ -2396,9 +2590,7 @@ pub fn drivelabels_labels_revisions_update_permissions_execute(
 
 pub fn drivelabels_labels_revisions_update_permissions(
     client: &SimpleHttpClient,
-    parent: &str,
-    useAdminAccess: Option<bool>,
-    body: &GoogleAppsDriveLabelsV2LabelPermission,
+    args: &DrivelabelsLabelsRevisionsUpdatePermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelPermission>, ApiError>,
@@ -2409,9 +2601,9 @@ pub fn drivelabels_labels_revisions_update_permissions(
 > {
     let builder = drivelabels_labels_revisions_update_permissions_builder(
         client,
-        parent,
-        useAdminAccess,
-        body,
+        &args.parent,
+        args.useAdminAccess,
+        &args.body,
     )?;
     drivelabels_labels_revisions_update_permissions_execute(builder)
 }
@@ -2527,6 +2719,17 @@ pub fn drivelabels_labels_revisions_locks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_revisions_locks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsRevisionsLocksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/labels/{labelsId}/revisions/{revisionsId}/locks
 /// Lists the label locks on a label.
 ///
@@ -2539,9 +2742,7 @@ pub fn drivelabels_labels_revisions_locks_list_execute(
 
 pub fn drivelabels_labels_revisions_locks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DrivelabelsLabelsRevisionsLocksListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelLocksResponse>, ApiError>,
@@ -2550,8 +2751,12 @@ pub fn drivelabels_labels_revisions_locks_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        drivelabels_labels_revisions_locks_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = drivelabels_labels_revisions_locks_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     drivelabels_labels_revisions_locks_list_execute(builder)
 }
 
@@ -2650,6 +2855,15 @@ pub fn drivelabels_labels_revisions_permissions_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_revisions_permissions_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsRevisionsPermissionsBatchDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleAppsDriveLabelsV2BatchDeleteLabelPermissionsRequest,
+}
+
 /// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchDelete
 /// Deletes label permissions. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
 ///
@@ -2662,16 +2876,18 @@ pub fn drivelabels_labels_revisions_permissions_batch_delete_execute(
 
 pub fn drivelabels_labels_revisions_permissions_batch_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleAppsDriveLabelsV2BatchDeleteLabelPermissionsRequest,
+    args: &DrivelabelsLabelsRevisionsPermissionsBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        drivelabels_labels_revisions_permissions_batch_delete_builder(client, parent, body)?;
+    let builder = drivelabels_labels_revisions_permissions_batch_delete_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     drivelabels_labels_revisions_permissions_batch_delete_execute(builder)
 }
 
@@ -2776,6 +2992,15 @@ pub fn drivelabels_labels_revisions_permissions_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_revisions_permissions_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsRevisionsPermissionsBatchUpdateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsRequest,
+}
+
 /// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchUpdate
 /// Updates label permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
 ///
@@ -2788,8 +3013,7 @@ pub fn drivelabels_labels_revisions_permissions_batch_update_execute(
 
 pub fn drivelabels_labels_revisions_permissions_batch_update(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsRequest,
+    args: &DrivelabelsLabelsRevisionsPermissionsBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2801,8 +3025,11 @@ pub fn drivelabels_labels_revisions_permissions_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        drivelabels_labels_revisions_permissions_batch_update_builder(client, parent, body)?;
+    let builder = drivelabels_labels_revisions_permissions_batch_update_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     drivelabels_labels_revisions_permissions_batch_update_execute(builder)
 }
 
@@ -2915,6 +3142,17 @@ pub fn drivelabels_labels_revisions_permissions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_revisions_permissions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsRevisionsPermissionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: useAdminAccess
+    pub useAdminAccess: Option<bool>,
+    /// Request body.
+    pub body: GoogleAppsDriveLabelsV2LabelPermission,
+}
+
 /// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
 /// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
 ///
@@ -2927,9 +3165,7 @@ pub fn drivelabels_labels_revisions_permissions_create_execute(
 
 pub fn drivelabels_labels_revisions_permissions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    useAdminAccess: Option<bool>,
-    body: &GoogleAppsDriveLabelsV2LabelPermission,
+    args: &DrivelabelsLabelsRevisionsPermissionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelPermission>, ApiError>,
@@ -2940,9 +3176,9 @@ pub fn drivelabels_labels_revisions_permissions_create(
 > {
     let builder = drivelabels_labels_revisions_permissions_create_builder(
         client,
-        parent,
-        useAdminAccess,
-        body,
+        &args.parent,
+        args.useAdminAccess,
+        &args.body,
     )?;
     drivelabels_labels_revisions_permissions_create_execute(builder)
 }
@@ -3051,6 +3287,15 @@ pub fn drivelabels_labels_revisions_permissions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_revisions_permissions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsRevisionsPermissionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: useAdminAccess
+    pub useAdminAccess: Option<bool>,
+}
+
 /// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions/{permissionsId}
 /// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
 ///
@@ -3063,16 +3308,18 @@ pub fn drivelabels_labels_revisions_permissions_delete_execute(
 
 pub fn drivelabels_labels_revisions_permissions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    useAdminAccess: Option<bool>,
+    args: &DrivelabelsLabelsRevisionsPermissionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        drivelabels_labels_revisions_permissions_delete_builder(client, name, useAdminAccess)?;
+    let builder = drivelabels_labels_revisions_permissions_delete_builder(
+        client,
+        &args.name,
+        args.useAdminAccess,
+    )?;
     drivelabels_labels_revisions_permissions_delete_execute(builder)
 }
 
@@ -3191,6 +3438,19 @@ pub fn drivelabels_labels_revisions_permissions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_labels_revisions_permissions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLabelsRevisionsPermissionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: useAdminAccess
+    pub useAdminAccess: Option<bool>,
+}
+
 /// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
 /// Lists a label's permissions.
 ///
@@ -3203,10 +3463,7 @@ pub fn drivelabels_labels_revisions_permissions_list_execute(
 
 pub fn drivelabels_labels_revisions_permissions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    useAdminAccess: Option<bool>,
+    args: &DrivelabelsLabelsRevisionsPermissionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelPermissionsResponse>, ApiError>,
@@ -3217,10 +3474,10 @@ pub fn drivelabels_labels_revisions_permissions_list(
 > {
     let builder = drivelabels_labels_revisions_permissions_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        useAdminAccess,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.useAdminAccess,
     )?;
     drivelabels_labels_revisions_permissions_list_execute(builder)
 }
@@ -3327,6 +3584,13 @@ pub fn drivelabels_limits_get_label_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_limits_get_label`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsLimitsGetLabelArgs {
+    /// Query parameter: name
+    pub name: Option<String>,
+}
+
 /// GET v2/limits/label
 /// Get the constraints on the structure of a label; such as, the maximum number of fields allowed and maximum length of the label title.
 ///
@@ -3339,7 +3603,7 @@ pub fn drivelabels_limits_get_label_execute(
 
 pub fn drivelabels_limits_get_label(
     client: &SimpleHttpClient,
-    name: Option<&str>,
+    args: &DrivelabelsLimitsGetLabelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelLimits>, ApiError>,
@@ -3348,7 +3612,7 @@ pub fn drivelabels_limits_get_label(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_limits_get_label_builder(client, name)?;
+    let builder = drivelabels_limits_get_label_builder(client, args.name.as_deref())?;
     drivelabels_limits_get_label_execute(builder)
 }
 
@@ -3459,6 +3723,15 @@ pub fn drivelabels_users_get_capabilities_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drivelabels_users_get_capabilities`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivelabelsUsersGetCapabilitiesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: customer
+    pub customer: Option<String>,
+}
+
 /// GET v2/users/{usersId}/capabilities
 /// Gets the user capabilities.
 ///
@@ -3471,8 +3744,7 @@ pub fn drivelabels_users_get_capabilities_execute(
 
 pub fn drivelabels_users_get_capabilities(
     client: &SimpleHttpClient,
-    name: &str,
-    customer: Option<&str>,
+    args: &DrivelabelsUsersGetCapabilitiesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleAppsDriveLabelsV2UserCapabilities>, ApiError>,
@@ -3481,6 +3753,7 @@ pub fn drivelabels_users_get_capabilities(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_users_get_capabilities_builder(client, name, customer)?;
+    let builder =
+        drivelabels_users_get_capabilities_builder(client, &args.name, args.customer.as_deref())?;
     drivelabels_users_get_capabilities_execute(builder)
 }

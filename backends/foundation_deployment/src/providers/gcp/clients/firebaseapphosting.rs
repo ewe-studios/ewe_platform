@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn firebaseapphosting_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn firebaseapphosting_projects_locations_get_execute(
 
 pub fn firebaseapphosting_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseapphostingProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaseapphosting_projects_locations_get_builder(client, name)?;
+    let builder = firebaseapphosting_projects_locations_get_builder(client, &args.name)?;
     firebaseapphosting_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn firebaseapphosting_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn firebaseapphosting_projects_locations_list_execute(
 
 pub fn firebaseapphosting_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirebaseapphostingProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn firebaseapphosting_projects_locations_list(
 > {
     let builder = firebaseapphosting_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     firebaseapphosting_projects_locations_list_execute(builder)
 }
@@ -390,6 +410,21 @@ pub fn firebaseapphosting_projects_locations_backends_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backendId
+    pub backendId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Backend,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends
 /// Creates a new backend in a given project and location.
 ///
@@ -402,22 +437,18 @@ pub fn firebaseapphosting_projects_locations_backends_create_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backendId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Backend,
+    args: &FirebaseapphostingProjectsLocationsBackendsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebaseapphosting_projects_locations_backends_create_builder(
         client,
-        parent,
-        backendId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.backendId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     firebaseapphosting_projects_locations_backends_create_execute(builder)
 }
@@ -536,6 +567,21 @@ pub fn firebaseapphosting_projects_locations_backends_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}
 /// Deletes a single backend.
 ///
@@ -548,22 +594,18 @@ pub fn firebaseapphosting_projects_locations_backends_delete_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    force: Option<bool>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &FirebaseapphostingProjectsLocationsBackendsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebaseapphosting_projects_locations_backends_delete_builder(
         client,
-        name,
-        etag,
-        force,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.force,
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     firebaseapphosting_projects_locations_backends_delete_execute(builder)
 }
@@ -658,6 +700,13 @@ pub fn firebaseapphosting_projects_locations_backends_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}
 /// Gets information about a backend.
 ///
@@ -670,12 +719,12 @@ pub fn firebaseapphosting_projects_locations_backends_get_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseapphostingProjectsLocationsBackendsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backend>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaseapphosting_projects_locations_backends_get_builder(client, name)?;
+    let builder = firebaseapphosting_projects_locations_backends_get_builder(client, &args.name)?;
     firebaseapphosting_projects_locations_backends_get_execute(builder)
 }
 
@@ -799,6 +848,23 @@ pub fn firebaseapphosting_projects_locations_backends_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends
 /// Lists backends in a given project and location.
 ///
@@ -811,12 +877,7 @@ pub fn firebaseapphosting_projects_locations_backends_list_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &FirebaseapphostingProjectsLocationsBackendsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackendsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -825,12 +886,12 @@ pub fn firebaseapphosting_projects_locations_backends_list(
 > {
     let builder = firebaseapphosting_projects_locations_backends_list_builder(
         client,
-        parent,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     firebaseapphosting_projects_locations_backends_list_execute(builder)
 }
@@ -952,6 +1013,23 @@ pub fn firebaseapphosting_projects_locations_backends_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Backend,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}
 /// Updates the information for a single backend.
 ///
@@ -964,24 +1042,19 @@ pub fn firebaseapphosting_projects_locations_backends_patch_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Backend,
+    args: &FirebaseapphostingProjectsLocationsBackendsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebaseapphosting_projects_locations_backends_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     firebaseapphosting_projects_locations_backends_patch_execute(builder)
 }
@@ -1099,6 +1172,21 @@ pub fn firebaseapphosting_projects_locations_backends_builds_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_builds_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsBuildsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: buildId
+    pub buildId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Build,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}/builds
 /// Creates a new build for a backend.
 ///
@@ -1111,22 +1199,18 @@ pub fn firebaseapphosting_projects_locations_backends_builds_create_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_builds_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    buildId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Build,
+    args: &FirebaseapphostingProjectsLocationsBackendsBuildsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebaseapphosting_projects_locations_backends_builds_create_builder(
         client,
-        parent,
-        buildId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.buildId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     firebaseapphosting_projects_locations_backends_builds_create_execute(builder)
 }
@@ -1241,6 +1325,19 @@ pub fn firebaseapphosting_projects_locations_backends_builds_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_builds_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsBuildsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}/builds/{buildsId}
 /// Deletes a single build.
 ///
@@ -1253,20 +1350,17 @@ pub fn firebaseapphosting_projects_locations_backends_builds_delete_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_builds_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &FirebaseapphostingProjectsLocationsBackendsBuildsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebaseapphosting_projects_locations_backends_builds_delete_builder(
         client,
-        name,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     firebaseapphosting_projects_locations_backends_builds_delete_execute(builder)
 }
@@ -1361,6 +1455,13 @@ pub fn firebaseapphosting_projects_locations_backends_builds_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_builds_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsBuildsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}/builds/{buildsId}
 /// Gets information about a build.
 ///
@@ -1373,12 +1474,13 @@ pub fn firebaseapphosting_projects_locations_backends_builds_get_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_builds_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseapphostingProjectsLocationsBackendsBuildsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Build>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaseapphosting_projects_locations_backends_builds_get_builder(client, name)?;
+    let builder =
+        firebaseapphosting_projects_locations_backends_builds_get_builder(client, &args.name)?;
     firebaseapphosting_projects_locations_backends_builds_get_execute(builder)
 }
 
@@ -1502,6 +1604,23 @@ pub fn firebaseapphosting_projects_locations_backends_builds_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_builds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsBuildsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}/builds
 /// Lists builds in a given project, location, and backend.
 ///
@@ -1514,12 +1633,7 @@ pub fn firebaseapphosting_projects_locations_backends_builds_list_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_builds_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &FirebaseapphostingProjectsLocationsBackendsBuildsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBuildsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1528,12 +1642,12 @@ pub fn firebaseapphosting_projects_locations_backends_builds_list(
 > {
     let builder = firebaseapphosting_projects_locations_backends_builds_list_builder(
         client,
-        parent,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     firebaseapphosting_projects_locations_backends_builds_list_execute(builder)
 }
@@ -1651,6 +1765,21 @@ pub fn firebaseapphosting_projects_locations_backends_domains_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_domains_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsDomainsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: domainId
+    pub domainId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Domain,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}/domains
 /// Links a new domain to a backend.
 ///
@@ -1663,22 +1792,18 @@ pub fn firebaseapphosting_projects_locations_backends_domains_create_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_domains_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    domainId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Domain,
+    args: &FirebaseapphostingProjectsLocationsBackendsDomainsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebaseapphosting_projects_locations_backends_domains_create_builder(
         client,
-        parent,
-        domainId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.domainId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     firebaseapphosting_projects_locations_backends_domains_create_execute(builder)
 }
@@ -1793,6 +1918,19 @@ pub fn firebaseapphosting_projects_locations_backends_domains_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_domains_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsDomainsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}/domains/{domainsId}
 /// Deletes a single domain.
 ///
@@ -1805,20 +1943,17 @@ pub fn firebaseapphosting_projects_locations_backends_domains_delete_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_domains_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &FirebaseapphostingProjectsLocationsBackendsDomainsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebaseapphosting_projects_locations_backends_domains_delete_builder(
         client,
-        name,
-        etag,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     firebaseapphosting_projects_locations_backends_domains_delete_execute(builder)
 }
@@ -1913,6 +2048,13 @@ pub fn firebaseapphosting_projects_locations_backends_domains_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_domains_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsDomainsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}/domains/{domainsId}
 /// Gets information about a domain.
 ///
@@ -1925,12 +2067,13 @@ pub fn firebaseapphosting_projects_locations_backends_domains_get_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_domains_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseapphostingProjectsLocationsBackendsDomainsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Domain>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaseapphosting_projects_locations_backends_domains_get_builder(client, name)?;
+    let builder =
+        firebaseapphosting_projects_locations_backends_domains_get_builder(client, &args.name)?;
     firebaseapphosting_projects_locations_backends_domains_get_execute(builder)
 }
 
@@ -2054,6 +2197,23 @@ pub fn firebaseapphosting_projects_locations_backends_domains_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_domains_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsDomainsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}/domains
 /// Lists domains of a backend.
 ///
@@ -2066,12 +2226,7 @@ pub fn firebaseapphosting_projects_locations_backends_domains_list_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_domains_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &FirebaseapphostingProjectsLocationsBackendsDomainsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDomainsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2080,12 +2235,12 @@ pub fn firebaseapphosting_projects_locations_backends_domains_list(
 > {
     let builder = firebaseapphosting_projects_locations_backends_domains_list_builder(
         client,
-        parent,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     firebaseapphosting_projects_locations_backends_domains_list_execute(builder)
 }
@@ -2207,6 +2362,23 @@ pub fn firebaseapphosting_projects_locations_backends_domains_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_domains_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsDomainsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Domain,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}/domains/{domainsId}
 /// Updates the information for a single domain.
 ///
@@ -2219,24 +2391,19 @@ pub fn firebaseapphosting_projects_locations_backends_domains_patch_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_domains_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Domain,
+    args: &FirebaseapphostingProjectsLocationsBackendsDomainsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebaseapphosting_projects_locations_backends_domains_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     firebaseapphosting_projects_locations_backends_domains_patch_execute(builder)
 }
@@ -2354,6 +2521,21 @@ pub fn firebaseapphosting_projects_locations_backends_rollouts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_rollouts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsRolloutsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: rolloutId
+    pub rolloutId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Rollout,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}/rollouts
 /// Creates a new rollout for a backend.
 ///
@@ -2366,22 +2548,18 @@ pub fn firebaseapphosting_projects_locations_backends_rollouts_create_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_rollouts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    rolloutId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Rollout,
+    args: &FirebaseapphostingProjectsLocationsBackendsRolloutsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebaseapphosting_projects_locations_backends_rollouts_create_builder(
         client,
-        parent,
-        requestId,
-        rolloutId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.rolloutId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     firebaseapphosting_projects_locations_backends_rollouts_create_execute(builder)
 }
@@ -2476,6 +2654,13 @@ pub fn firebaseapphosting_projects_locations_backends_rollouts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_rollouts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsRolloutsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}/rollouts/{rolloutsId}
 /// Gets information about a rollout.
 ///
@@ -2488,13 +2673,13 @@ pub fn firebaseapphosting_projects_locations_backends_rollouts_get_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_rollouts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseapphostingProjectsLocationsBackendsRolloutsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Rollout>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        firebaseapphosting_projects_locations_backends_rollouts_get_builder(client, name)?;
+        firebaseapphosting_projects_locations_backends_rollouts_get_builder(client, &args.name)?;
     firebaseapphosting_projects_locations_backends_rollouts_get_execute(builder)
 }
 
@@ -2618,6 +2803,23 @@ pub fn firebaseapphosting_projects_locations_backends_rollouts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_rollouts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsRolloutsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}/rollouts
 /// Lists rollouts for a backend.
 ///
@@ -2630,12 +2832,7 @@ pub fn firebaseapphosting_projects_locations_backends_rollouts_list_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_rollouts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &FirebaseapphostingProjectsLocationsBackendsRolloutsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRolloutsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2644,12 +2841,12 @@ pub fn firebaseapphosting_projects_locations_backends_rollouts_list(
 > {
     let builder = firebaseapphosting_projects_locations_backends_rollouts_list_builder(
         client,
-        parent,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     firebaseapphosting_projects_locations_backends_rollouts_list_execute(builder)
 }
@@ -2744,6 +2941,13 @@ pub fn firebaseapphosting_projects_locations_backends_traffic_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_traffic_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsTrafficGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}/traffic
 /// Gets information about a backend's traffic.
 ///
@@ -2756,12 +2960,13 @@ pub fn firebaseapphosting_projects_locations_backends_traffic_get_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_traffic_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseapphostingProjectsLocationsBackendsTrafficGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Traffic>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaseapphosting_projects_locations_backends_traffic_get_builder(client, name)?;
+    let builder =
+        firebaseapphosting_projects_locations_backends_traffic_get_builder(client, &args.name)?;
     firebaseapphosting_projects_locations_backends_traffic_get_execute(builder)
 }
 
@@ -2878,6 +3083,21 @@ pub fn firebaseapphosting_projects_locations_backends_traffic_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_backends_traffic_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsBackendsTrafficPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Traffic,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/backends/{backendsId}/traffic
 /// Updates a backend's traffic.
 ///
@@ -2890,22 +3110,18 @@ pub fn firebaseapphosting_projects_locations_backends_traffic_patch_execute(
 
 pub fn firebaseapphosting_projects_locations_backends_traffic_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Traffic,
+    args: &FirebaseapphostingProjectsLocationsBackendsTrafficPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = firebaseapphosting_projects_locations_backends_traffic_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     firebaseapphosting_projects_locations_backends_traffic_patch_execute(builder)
 }
@@ -3003,6 +3219,15 @@ pub fn firebaseapphosting_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -3015,14 +3240,14 @@ pub fn firebaseapphosting_projects_locations_operations_cancel_execute(
 
 pub fn firebaseapphosting_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &FirebaseapphostingProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        firebaseapphosting_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = firebaseapphosting_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     firebaseapphosting_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -3116,6 +3341,13 @@ pub fn firebaseapphosting_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -3128,12 +3360,13 @@ pub fn firebaseapphosting_projects_locations_operations_delete_execute(
 
 pub fn firebaseapphosting_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseapphostingProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaseapphosting_projects_locations_operations_delete_builder(client, name)?;
+    let builder =
+        firebaseapphosting_projects_locations_operations_delete_builder(client, &args.name)?;
     firebaseapphosting_projects_locations_operations_delete_execute(builder)
 }
 
@@ -3227,6 +3460,13 @@ pub fn firebaseapphosting_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3239,12 +3479,12 @@ pub fn firebaseapphosting_projects_locations_operations_get_execute(
 
 pub fn firebaseapphosting_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaseapphostingProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaseapphosting_projects_locations_operations_get_builder(client, name)?;
+    let builder = firebaseapphosting_projects_locations_operations_get_builder(client, &args.name)?;
     firebaseapphosting_projects_locations_operations_get_execute(builder)
 }
 
@@ -3364,6 +3604,21 @@ pub fn firebaseapphosting_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaseapphosting_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaseapphostingProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -3376,11 +3631,7 @@ pub fn firebaseapphosting_projects_locations_operations_list_execute(
 
 pub fn firebaseapphosting_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &FirebaseapphostingProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3389,11 +3640,11 @@ pub fn firebaseapphosting_projects_locations_operations_list(
 > {
     let builder = firebaseapphosting_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     firebaseapphosting_projects_locations_operations_list_execute(builder)
 }

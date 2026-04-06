@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/publications/{publicationsId}/readers/{readersId}
 /// Removes a publication reader, effectively severing the association with a Google user. If force is set to `true`, any entitlements for this reader will also be deleted. (Otherwise, the request will only work if the reader has no entitlements.) - If the reader does not exist, return NOT_FOUND. - Return FAILED_PRECONDITION if the force field is `false` (or unset) and entitlements are present.
@@ -120,6 +122,15 @@ pub fn readerrevenuesubscriptionlinking_publications_readers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`readerrevenuesubscriptionlinking_publications_readers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ReaderrevenuesubscriptionlinkingPublicationsReadersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/publications/{publicationsId}/readers/{readersId}
 /// Removes a publication reader, effectively severing the association with a Google user. If force is set to `true`, any entitlements for this reader will also be deleted. (Otherwise, the request will only work if the reader has no entitlements.) - If the reader does not exist, return NOT_FOUND. - Return FAILED_PRECONDITION if the force field is `false` (or unset) and entitlements are present.
 ///
@@ -132,16 +143,16 @@ pub fn readerrevenuesubscriptionlinking_publications_readers_delete_execute(
 
 pub fn readerrevenuesubscriptionlinking_publications_readers_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ReaderrevenuesubscriptionlinkingPublicationsReadersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeleteReaderResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        readerrevenuesubscriptionlinking_publications_readers_delete_builder(client, name, force)?;
+    let builder = readerrevenuesubscriptionlinking_publications_readers_delete_builder(
+        client, &args.name, args.force,
+    )?;
     readerrevenuesubscriptionlinking_publications_readers_delete_execute(builder)
 }
 
@@ -235,6 +246,13 @@ pub fn readerrevenuesubscriptionlinking_publications_readers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`readerrevenuesubscriptionlinking_publications_readers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ReaderrevenuesubscriptionlinkingPublicationsReadersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/publications/{publicationsId}/readers/{readersId}
 /// Gets a reader of a publication. Returns NOT_FOUND if the reader does not exist.
 ///
@@ -247,12 +265,13 @@ pub fn readerrevenuesubscriptionlinking_publications_readers_get_execute(
 
 pub fn readerrevenuesubscriptionlinking_publications_readers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ReaderrevenuesubscriptionlinkingPublicationsReadersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Reader>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = readerrevenuesubscriptionlinking_publications_readers_get_builder(client, name)?;
+    let builder =
+        readerrevenuesubscriptionlinking_publications_readers_get_builder(client, &args.name)?;
     readerrevenuesubscriptionlinking_publications_readers_get_execute(builder)
 }
 
@@ -348,6 +367,13 @@ pub fn readerrevenuesubscriptionlinking_publications_readers_get_entitlements_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`readerrevenuesubscriptionlinking_publications_readers_get_entitlements`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ReaderrevenuesubscriptionlinkingPublicationsReadersGetEntitlementsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/publications/{publicationsId}/readers/{readersId}/entitlements
 /// Gets the reader entitlements for a publication reader. - Returns PERMISSION_DENIED if the caller does not have access. - Returns NOT_FOUND if the reader does not exist.
 ///
@@ -360,7 +386,7 @@ pub fn readerrevenuesubscriptionlinking_publications_readers_get_entitlements_ex
 
 pub fn readerrevenuesubscriptionlinking_publications_readers_get_entitlements(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ReaderrevenuesubscriptionlinkingPublicationsReadersGetEntitlementsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReaderEntitlements>, ApiError>, P = ApiPending>
         + Send
@@ -368,7 +394,7 @@ pub fn readerrevenuesubscriptionlinking_publications_readers_get_entitlements(
     ApiError,
 > {
     let builder = readerrevenuesubscriptionlinking_publications_readers_get_entitlements_builder(
-        client, name,
+        client, &args.name,
     )?;
     readerrevenuesubscriptionlinking_publications_readers_get_entitlements_execute(builder)
 }
@@ -480,6 +506,17 @@ pub fn readerrevenuesubscriptionlinking_publications_readers_update_entitlements
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`readerrevenuesubscriptionlinking_publications_readers_update_entitlements`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ReaderrevenuesubscriptionlinkingPublicationsReadersUpdateEntitlementsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ReaderEntitlements,
+}
+
 /// GET v1/publications/{publicationsId}/readers/{readersId}/entitlements
 /// Updates the reader entitlements for a publication reader. The entire reader entitlements will be overwritten by the new reader entitlements in the payload, like a PUT. - Returns PERMISSION_DENIED if the caller does not have access. - Returns NOT_FOUND if the reader does not exist.
 ///
@@ -492,9 +529,7 @@ pub fn readerrevenuesubscriptionlinking_publications_readers_update_entitlements
 
 pub fn readerrevenuesubscriptionlinking_publications_readers_update_entitlements(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ReaderEntitlements,
+    args: &ReaderrevenuesubscriptionlinkingPublicationsReadersUpdateEntitlementsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReaderEntitlements>, ApiError>, P = ApiPending>
         + Send
@@ -503,7 +538,10 @@ pub fn readerrevenuesubscriptionlinking_publications_readers_update_entitlements
 > {
     let builder =
         readerrevenuesubscriptionlinking_publications_readers_update_entitlements_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     readerrevenuesubscriptionlinking_publications_readers_update_entitlements_execute(builder)
 }

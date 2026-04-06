@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1alpha1/apps/{appsId}/tokens/{tokensId}:verify
 /// Verify an API token by asserting the app and persona it belongs to. The verification is a protection against client-side attacks and will fail if the contents of the token don't match the provided values. A token must be verified before it can be used to manipulate user tags.
@@ -112,6 +114,17 @@ pub fn playgrouping_apps_tokens_verify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playgrouping_apps_tokens_verify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaygroupingAppsTokensVerifyArgs {
+    /// Path parameter: appPackage
+    pub appPackage: String,
+    /// Path parameter: token
+    pub token: String,
+    /// Request body.
+    pub body: VerifyTokenRequest,
+}
+
 /// GET v1alpha1/apps/{appsId}/tokens/{tokensId}:verify
 /// Verify an API token by asserting the app and persona it belongs to. The verification is a protection against client-side attacks and will fail if the contents of the token don't match the provided values. A token must be verified before it can be used to manipulate user tags.
 ///
@@ -124,16 +137,15 @@ pub fn playgrouping_apps_tokens_verify_execute(
 
 pub fn playgrouping_apps_tokens_verify(
     client: &SimpleHttpClient,
-    appPackage: &str,
-    token: &str,
-    body: &VerifyTokenRequest,
+    args: &PlaygroupingAppsTokensVerifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VerifyTokenResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = playgrouping_apps_tokens_verify_builder(client, appPackage, token, body)?;
+    let builder =
+        playgrouping_apps_tokens_verify_builder(client, &args.appPackage, &args.token, &args.body)?;
     playgrouping_apps_tokens_verify_execute(builder)
 }
 
@@ -235,6 +247,17 @@ pub fn playgrouping_apps_tokens_tags_create_or_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playgrouping_apps_tokens_tags_create_or_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlaygroupingAppsTokensTagsCreateOrUpdateArgs {
+    /// Path parameter: appPackage
+    pub appPackage: String,
+    /// Path parameter: token
+    pub token: String,
+    /// Request body.
+    pub body: CreateOrUpdateTagsRequest,
+}
+
 /// GET v1alpha1/apps/{appsId}/tokens/{tokensId}/tags:createOrUpdate
 /// Create or update tags for the user and app that are represented by the given token.
 ///
@@ -247,9 +270,7 @@ pub fn playgrouping_apps_tokens_tags_create_or_update_execute(
 
 pub fn playgrouping_apps_tokens_tags_create_or_update(
     client: &SimpleHttpClient,
-    appPackage: &str,
-    token: &str,
-    body: &CreateOrUpdateTagsRequest,
+    args: &PlaygroupingAppsTokensTagsCreateOrUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CreateOrUpdateTagsResponse>, ApiError>,
@@ -258,7 +279,11 @@ pub fn playgrouping_apps_tokens_tags_create_or_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playgrouping_apps_tokens_tags_create_or_update_builder(client, appPackage, token, body)?;
+    let builder = playgrouping_apps_tokens_tags_create_or_update_builder(
+        client,
+        &args.appPackage,
+        &args.token,
+        &args.body,
+    )?;
     playgrouping_apps_tokens_tags_create_or_update_execute(builder)
 }

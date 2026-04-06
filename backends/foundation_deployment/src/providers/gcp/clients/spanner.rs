@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/instanceConfigOperations
 /// Lists the user-managed instance configuration long-running operations in the given project. An instance configuration operation has a name of the form `projects//`instanceConfigs`//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations. Operations returned are ordered by operation.metadata.value.start_time in descending order starting from the most recently started operation.
@@ -130,6 +132,19 @@ pub fn spanner_projects_instance_config_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instance_config_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigOperationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/instanceConfigOperations
 /// Lists the user-managed instance configuration long-running operations in the given project. An instance configuration operation has a name of the form `projects//`instanceConfigs`//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations. Operations returned are ordered by operation.metadata.value.start_time in descending order starting from the most recently started operation.
 ///
@@ -142,10 +157,7 @@ pub fn spanner_projects_instance_config_operations_list_execute(
 
 pub fn spanner_projects_instance_config_operations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SpannerProjectsInstanceConfigOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInstanceConfigOperationsResponse>, ApiError>,
@@ -155,7 +167,11 @@ pub fn spanner_projects_instance_config_operations_list(
     ApiError,
 > {
     let builder = spanner_projects_instance_config_operations_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     spanner_projects_instance_config_operations_list_execute(builder)
 }
@@ -253,6 +269,15 @@ pub fn spanner_projects_instance_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instance_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateInstanceConfigRequest,
+}
+
 /// GET v1/projects/{projectsId}/instanceConfigs
 /// Creates an instance configuration and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance configuration. The instance configuration name is assigned by the caller. If the named instance configuration already exists, CreateInstanceConfig returns ALREADY_EXISTS. Immediately after the request returns: * The instance configuration is readable via the API, with all requested attributes. The instance configuration's reconciling field is set to `true`. Its state is CREATING. While the operation is pending: * Cancelling the operation renders the instance configuration immediately unreadable via the API. * Except for deleting the creating resource, all other attempts to modify the instance configuration are rejected. Upon completion of the returned operation: * Instances can be created using the instance configuration. * The instance configuration's reconciling field becomes `false`. Its state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance configuration. The metadata field type is CreateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.create permission on the resource parent.
 ///
@@ -265,13 +290,13 @@ pub fn spanner_projects_instance_configs_create_execute(
 
 pub fn spanner_projects_instance_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateInstanceConfigRequest,
+    args: &SpannerProjectsInstanceConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instance_configs_create_builder(client, parent, body)?;
+    let builder =
+        spanner_projects_instance_configs_create_builder(client, &args.parent, &args.body)?;
     spanner_projects_instance_configs_create_execute(builder)
 }
 
@@ -381,6 +406,17 @@ pub fn spanner_projects_instance_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instance_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
 /// Deletes the instance configuration. Deletion is only allowed when no instances are using the configuration. If any instances are using the configuration, returns FAILED_PRECONDITION. Only user-managed configurations can be deleted. Authorization requires spanner.`instanceConfigs`.delete permission on the resource name.
 ///
@@ -393,15 +429,17 @@ pub fn spanner_projects_instance_configs_delete_execute(
 
 pub fn spanner_projects_instance_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &SpannerProjectsInstanceConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instance_configs_delete_builder(client, name, etag, validateOnly)?;
+    let builder = spanner_projects_instance_configs_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.validateOnly,
+    )?;
     spanner_projects_instance_configs_delete_execute(builder)
 }
 
@@ -497,6 +535,13 @@ pub fn spanner_projects_instance_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instance_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
 /// Gets information about a particular instance configuration.
 ///
@@ -509,14 +554,14 @@ pub fn spanner_projects_instance_configs_get_execute(
 
 pub fn spanner_projects_instance_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstanceConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InstanceConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instance_configs_get_builder(client, name)?;
+    let builder = spanner_projects_instance_configs_get_builder(client, &args.name)?;
     spanner_projects_instance_configs_get_execute(builder)
 }
 
@@ -630,6 +675,17 @@ pub fn spanner_projects_instance_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instance_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/instanceConfigs
 /// Lists the supported instance configurations for a given project. Returns both Google-managed configurations and user-managed configurations.
 ///
@@ -642,9 +698,7 @@ pub fn spanner_projects_instance_configs_list_execute(
 
 pub fn spanner_projects_instance_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SpannerProjectsInstanceConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInstanceConfigsResponse>, ApiError>,
@@ -653,8 +707,12 @@ pub fn spanner_projects_instance_configs_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instance_configs_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = spanner_projects_instance_configs_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     spanner_projects_instance_configs_list_execute(builder)
 }
 
@@ -751,6 +809,15 @@ pub fn spanner_projects_instance_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instance_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpdateInstanceConfigRequest,
+}
+
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}
 /// Updates an instance configuration. The returned long-running operation can be used to track the progress of updating the instance. If the named instance configuration does not exist, returns NOT_FOUND. Only user-managed configurations can be updated. Immediately after the request returns: * The instance configuration's reconciling field is set to `true`. While the operation is pending: * Cancelling the operation sets its metadata's cancel_time. The operation is guaranteed to succeed at undoing all changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance configuration are rejected. * Reading the instance configuration via the API continues to give the pre-request values. Upon completion of the returned operation: * Creating instances using the instance configuration uses the new values. * The new values of the instance configuration are readable via the API. * The instance configuration's reconciling field becomes `false`. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance configuration modification. The metadata field type is UpdateInstanceConfigMetadata. The response field type is InstanceConfig, if successful. Authorization requires spanner.`instanceConfigs`.update permission on the resource name.
 ///
@@ -763,13 +830,12 @@ pub fn spanner_projects_instance_configs_patch_execute(
 
 pub fn spanner_projects_instance_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateInstanceConfigRequest,
+    args: &SpannerProjectsInstanceConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instance_configs_patch_builder(client, name, body)?;
+    let builder = spanner_projects_instance_configs_patch_builder(client, &args.name, &args.body)?;
     spanner_projects_instance_configs_patch_execute(builder)
 }
 
@@ -863,6 +929,13 @@ pub fn spanner_projects_instance_configs_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instance_configs_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -875,12 +948,12 @@ pub fn spanner_projects_instance_configs_operations_cancel_execute(
 
 pub fn spanner_projects_instance_configs_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstanceConfigsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instance_configs_operations_cancel_builder(client, name)?;
+    let builder = spanner_projects_instance_configs_operations_cancel_builder(client, &args.name)?;
     spanner_projects_instance_configs_operations_cancel_execute(builder)
 }
 
@@ -974,6 +1047,13 @@ pub fn spanner_projects_instance_configs_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instance_configs_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -986,12 +1066,12 @@ pub fn spanner_projects_instance_configs_operations_delete_execute(
 
 pub fn spanner_projects_instance_configs_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstanceConfigsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instance_configs_operations_delete_builder(client, name)?;
+    let builder = spanner_projects_instance_configs_operations_delete_builder(client, &args.name)?;
     spanner_projects_instance_configs_operations_delete_execute(builder)
 }
 
@@ -1085,6 +1165,13 @@ pub fn spanner_projects_instance_configs_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instance_configs_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1097,12 +1184,12 @@ pub fn spanner_projects_instance_configs_operations_get_execute(
 
 pub fn spanner_projects_instance_configs_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstanceConfigsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instance_configs_operations_get_builder(client, name)?;
+    let builder = spanner_projects_instance_configs_operations_get_builder(client, &args.name)?;
     spanner_projects_instance_configs_operations_get_execute(builder)
 }
 
@@ -1222,6 +1309,21 @@ pub fn spanner_projects_instance_configs_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instance_configs_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1234,11 +1336,7 @@ pub fn spanner_projects_instance_configs_operations_list_execute(
 
 pub fn spanner_projects_instance_configs_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &SpannerProjectsInstanceConfigsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1247,11 +1345,11 @@ pub fn spanner_projects_instance_configs_operations_list(
 > {
     let builder = spanner_projects_instance_configs_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     spanner_projects_instance_configs_operations_list_execute(builder)
 }
@@ -1346,6 +1444,13 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instance_configs_ssd_caches_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsSsdCachesOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1358,13 +1463,13 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_cancel_execute(
 
 pub fn spanner_projects_instance_configs_ssd_caches_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstanceConfigsSsdCachesOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        spanner_projects_instance_configs_ssd_caches_operations_cancel_builder(client, name)?;
+        spanner_projects_instance_configs_ssd_caches_operations_cancel_builder(client, &args.name)?;
     spanner_projects_instance_configs_ssd_caches_operations_cancel_execute(builder)
 }
 
@@ -1458,6 +1563,13 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instance_configs_ssd_caches_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsSsdCachesOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1470,13 +1582,13 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_delete_execute(
 
 pub fn spanner_projects_instance_configs_ssd_caches_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstanceConfigsSsdCachesOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        spanner_projects_instance_configs_ssd_caches_operations_delete_builder(client, name)?;
+        spanner_projects_instance_configs_ssd_caches_operations_delete_builder(client, &args.name)?;
     spanner_projects_instance_configs_ssd_caches_operations_delete_execute(builder)
 }
 
@@ -1570,6 +1682,13 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instance_configs_ssd_caches_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsSsdCachesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1582,13 +1701,13 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_get_execute(
 
 pub fn spanner_projects_instance_configs_ssd_caches_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstanceConfigsSsdCachesOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        spanner_projects_instance_configs_ssd_caches_operations_get_builder(client, name)?;
+        spanner_projects_instance_configs_ssd_caches_operations_get_builder(client, &args.name)?;
     spanner_projects_instance_configs_ssd_caches_operations_get_execute(builder)
 }
 
@@ -1708,6 +1827,21 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instance_configs_ssd_caches_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstanceConfigsSsdCachesOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/instanceConfigs/{instanceConfigsId}/ssdCaches/{ssdCachesId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1720,11 +1854,7 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_list_execute(
 
 pub fn spanner_projects_instance_configs_ssd_caches_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &SpannerProjectsInstanceConfigsSsdCachesOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1733,11 +1863,11 @@ pub fn spanner_projects_instance_configs_ssd_caches_operations_list(
 > {
     let builder = spanner_projects_instance_configs_ssd_caches_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     spanner_projects_instance_configs_ssd_caches_operations_list_execute(builder)
 }
@@ -1835,6 +1965,15 @@ pub fn spanner_projects_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances
 /// Creates an instance and begins preparing it to begin serving. The returned long-running operation can be used to track the progress of preparing the new instance. The instance name is assigned by the caller. If the named instance already exists, CreateInstance returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance immediately unreadable via the API. * The instance can be deleted. * All other attempts to modify the instance are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can be created in the instance. * The instance's allocated resource levels are readable via the API. * The instance's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance. The metadata field type is CreateInstanceMetadata. The response field type is Instance, if successful.
 ///
@@ -1847,13 +1986,12 @@ pub fn spanner_projects_instances_create_execute(
 
 pub fn spanner_projects_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateInstanceRequest,
+    args: &SpannerProjectsInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_create_builder(client, parent, body)?;
+    let builder = spanner_projects_instances_create_builder(client, &args.parent, &args.body)?;
     spanner_projects_instances_create_execute(builder)
 }
 
@@ -1947,6 +2085,13 @@ pub fn spanner_projects_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}
 /// Deletes an instance. Immediately upon completion of the request: * Billing ceases for all of the instance's reserved resources. Soon afterward: * The instance and *all of its databases* immediately and irrevocably disappear from the API. All data in the databases is permanently deleted.
 ///
@@ -1959,12 +2104,12 @@ pub fn spanner_projects_instances_delete_execute(
 
 pub fn spanner_projects_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_delete_builder(client, name)?;
+    let builder = spanner_projects_instances_delete_builder(client, &args.name)?;
     spanner_projects_instances_delete_execute(builder)
 }
 
@@ -2070,6 +2215,15 @@ pub fn spanner_projects_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: fieldMask
+    pub fieldMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}
 /// Gets information about a particular instance.
 ///
@@ -2082,13 +2236,13 @@ pub fn spanner_projects_instances_get_execute(
 
 pub fn spanner_projects_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
-    fieldMask: Option<&str>,
+    args: &SpannerProjectsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_get_builder(client, name, fieldMask)?;
+    let builder =
+        spanner_projects_instances_get_builder(client, &args.name, args.fieldMask.as_deref())?;
     spanner_projects_instances_get_execute(builder)
 }
 
@@ -2185,6 +2339,15 @@ pub fn spanner_projects_instances_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}:getIamPolicy
 /// Gets the access control policy for an instance resource. Returns an empty policy if an instance exists but does not have a policy set. Authorization requires spanner.instances.`getIamPolicy` on resource.
 ///
@@ -2197,13 +2360,13 @@ pub fn spanner_projects_instances_get_iam_policy_execute(
 
 pub fn spanner_projects_instances_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &SpannerProjectsInstancesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_get_iam_policy_builder(client, resource, body)?;
+    let builder =
+        spanner_projects_instances_get_iam_policy_builder(client, &args.resource, &args.body)?;
     spanner_projects_instances_get_iam_policy_execute(builder)
 }
 
@@ -2323,6 +2486,21 @@ pub fn spanner_projects_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: instanceDeadline
+    pub instanceDeadline: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/instances
 /// Lists all instances in the given project.
 ///
@@ -2335,11 +2513,7 @@ pub fn spanner_projects_instances_list_execute(
 
 pub fn spanner_projects_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    instanceDeadline: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SpannerProjectsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2348,11 +2522,11 @@ pub fn spanner_projects_instances_list(
 > {
     let builder = spanner_projects_instances_list_builder(
         client,
-        parent,
-        filter,
-        instanceDeadline,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.filter.as_deref(),
+        args.instanceDeadline.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     spanner_projects_instances_list_execute(builder)
 }
@@ -2450,6 +2624,15 @@ pub fn spanner_projects_instances_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MoveInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}:move
 /// Moves an instance to the target instance configuration. You can use the returned long-running operation to track the progress of moving the instance. MoveInstance returns FAILED_PRECONDITION if the instance meets any of the following criteria: * Is undergoing a move to a different instance configuration * Has backups * Has an ongoing update * Contains any CMEK-enabled databases * Is a free trial instance While the operation is pending: * All other attempts to modify the instance, including changes to its compute capacity, are rejected. * The following database and backup admin operations are rejected: * DatabaseAdmin.CreateDatabase * DatabaseAdmin.UpdateDatabaseDdl (disabled if default_leader is specified in the request.) * DatabaseAdmin.RestoreDatabase * DatabaseAdmin.CreateBackup * DatabaseAdmin.CopyBackup * Both the source and target instance configurations are subject to hourly compute and storage charges. * The instance might experience higher read-write latencies and a higher transaction abort rate. However, moving an instance doesn't cause any downtime. The returned long-running operation has a name of the format /operations/ and can be used to track the move instance operation. The metadata field type is MoveInstanceMetadata. The response field type is Instance, if successful. Cancelling the operation sets its metadata's cancel_time. Cancellation is not immediate because it involves moving any data previously moved to the target instance configuration back to the original instance configuration. You can use this operation to track the progress of the cancellation. Upon successful completion of the cancellation, the operation terminates with CANCELLED status. If not cancelled, upon completion of the returned operation: * The instance successfully moves to the target instance configuration. * You are billed for compute and storage in target instance configuration. Authorization requires the spanner.instances.update permission on the resource instance. For more details, see [Move an instance](<https://cloud.google.`com/spanner/docs/move-instance`>).
 ///
@@ -2462,13 +2645,12 @@ pub fn spanner_projects_instances_move_execute(
 
 pub fn spanner_projects_instances_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MoveInstanceRequest,
+    args: &SpannerProjectsInstancesMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_move_builder(client, name, body)?;
+    let builder = spanner_projects_instances_move_builder(client, &args.name, &args.body)?;
     spanner_projects_instances_move_execute(builder)
 }
 
@@ -2565,6 +2747,15 @@ pub fn spanner_projects_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpdateInstanceRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}
 /// Updates an instance, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance. If the named instance does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance are rejected. * Reading the instance via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance's tables. * The instance's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance modification. The metadata field type is UpdateInstanceMetadata. The response field type is Instance, if successful. Authorization requires spanner.instances.update permission on the resource name.
 ///
@@ -2577,13 +2768,12 @@ pub fn spanner_projects_instances_patch_execute(
 
 pub fn spanner_projects_instances_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateInstanceRequest,
+    args: &SpannerProjectsInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_patch_builder(client, name, body)?;
+    let builder = spanner_projects_instances_patch_builder(client, &args.name, &args.body)?;
     spanner_projects_instances_patch_execute(builder)
 }
 
@@ -2680,6 +2870,15 @@ pub fn spanner_projects_instances_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}:setIamPolicy
 /// Sets the access control policy on an instance resource. Replaces any existing policy. Authorization requires spanner.instances.`setIamPolicy` on resource.
 ///
@@ -2692,13 +2891,13 @@ pub fn spanner_projects_instances_set_iam_policy_execute(
 
 pub fn spanner_projects_instances_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &SpannerProjectsInstancesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        spanner_projects_instances_set_iam_policy_builder(client, &args.resource, &args.body)?;
     spanner_projects_instances_set_iam_policy_execute(builder)
 }
 
@@ -2799,6 +2998,15 @@ pub fn spanner_projects_instances_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}:testIamPermissions
 /// Returns permissions that the caller has on the specified instance resource. Attempting this RPC on a non-existent Cloud Spanner instance resource will result in a NOT_FOUND error if the user has spanner.instances.list permission on the containing Google Cloud Project. Otherwise returns an empty set of permissions.
 ///
@@ -2811,8 +3019,7 @@ pub fn spanner_projects_instances_test_iam_permissions_execute(
 
 pub fn spanner_projects_instances_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &SpannerProjectsInstancesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2821,7 +3028,11 @@ pub fn spanner_projects_instances_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_test_iam_permissions_builder(client, resource, body)?;
+    let builder = spanner_projects_instances_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     spanner_projects_instances_test_iam_permissions_execute(builder)
 }
 
@@ -2939,6 +3150,19 @@ pub fn spanner_projects_instances_backup_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_backup_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupOperationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backupOperations
 /// Lists the backup long-running operations in the given instance. A backup operation has a name of the form `projects//instances//backups//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations. Operations returned are ordered by operation.metadata.value.progress.start_time in descending order starting from the most recently started operation.
 ///
@@ -2951,10 +3175,7 @@ pub fn spanner_projects_instances_backup_operations_list_execute(
 
 pub fn spanner_projects_instances_backup_operations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SpannerProjectsInstancesBackupOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBackupOperationsResponse>, ApiError>,
@@ -2964,7 +3185,11 @@ pub fn spanner_projects_instances_backup_operations_list(
     ApiError,
 > {
     let builder = spanner_projects_instances_backup_operations_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     spanner_projects_instances_backup_operations_list_execute(builder)
 }
@@ -3062,6 +3287,15 @@ pub fn spanner_projects_instances_backups_copy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_backups_copy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsCopyArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CopyBackupRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups:copy
 /// Starts copying a Cloud Spanner Backup. The returned backup long-running operation will have a name of the format `projects//instances//backups//operations/` and can be used to track copying of the backup. The operation is associated with the destination backup. The metadata field type is CopyBackupMetadata. The response field type is Backup, if successful. Cancelling the returned operation will stop the copying and delete the destination backup. Concurrent CopyBackup requests can run on the same source backup.
 ///
@@ -3074,13 +3308,13 @@ pub fn spanner_projects_instances_backups_copy_execute(
 
 pub fn spanner_projects_instances_backups_copy(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CopyBackupRequest,
+    args: &SpannerProjectsInstancesBackupsCopyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_backups_copy_builder(client, parent, body)?;
+    let builder =
+        spanner_projects_instances_backups_copy_builder(client, &args.parent, &args.body)?;
     spanner_projects_instances_backups_copy_execute(builder)
 }
 
@@ -3201,6 +3435,23 @@ pub fn spanner_projects_instances_backups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_backups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupId
+    pub backupId: Option<String>,
+    /// Query parameter: encryptionConfig_encryptionType
+    pub encryptionConfig_encryptionType: Option<String>,
+    /// Query parameter: encryptionConfig_kmsKeyName
+    pub encryptionConfig_kmsKeyName: Option<String>,
+    /// Query parameter: encryptionConfig_kmsKeyNames
+    pub encryptionConfig_kmsKeyNames: Option<String>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups
 /// Starts creating a new Cloud Spanner Backup. The returned backup long-running operation will have a name of the format `projects//instances//backups//operations/` and can be used to track creation of the backup. The metadata field type is CreateBackupMetadata. The response field type is Backup, if successful. Cancelling the returned operation will stop the creation and delete the backup. There can be only one pending backup creation per database. Backup creation of different databases can run concurrently.
 ///
@@ -3213,24 +3464,19 @@ pub fn spanner_projects_instances_backups_create_execute(
 
 pub fn spanner_projects_instances_backups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupId: Option<&str>,
-    encryptionConfig_encryptionType: Option<&str>,
-    encryptionConfig_kmsKeyName: Option<&str>,
-    encryptionConfig_kmsKeyNames: Option<&str>,
-    body: &Backup,
+    args: &SpannerProjectsInstancesBackupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = spanner_projects_instances_backups_create_builder(
         client,
-        parent,
-        backupId,
-        encryptionConfig_encryptionType,
-        encryptionConfig_kmsKeyName,
-        encryptionConfig_kmsKeyNames,
-        body,
+        &args.parent,
+        args.backupId.as_deref(),
+        args.encryptionConfig_encryptionType.as_deref(),
+        args.encryptionConfig_kmsKeyName.as_deref(),
+        args.encryptionConfig_kmsKeyNames.as_deref(),
+        &args.body,
     )?;
     spanner_projects_instances_backups_create_execute(builder)
 }
@@ -3325,6 +3571,13 @@ pub fn spanner_projects_instances_backups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
 /// Deletes a pending or completed Backup.
 ///
@@ -3337,12 +3590,12 @@ pub fn spanner_projects_instances_backups_delete_execute(
 
 pub fn spanner_projects_instances_backups_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesBackupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_backups_delete_builder(client, name)?;
+    let builder = spanner_projects_instances_backups_delete_builder(client, &args.name)?;
     spanner_projects_instances_backups_delete_execute(builder)
 }
 
@@ -3436,6 +3689,13 @@ pub fn spanner_projects_instances_backups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
 /// Gets metadata on a pending or completed Backup.
 ///
@@ -3448,12 +3708,12 @@ pub fn spanner_projects_instances_backups_get_execute(
 
 pub fn spanner_projects_instances_backups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesBackupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_backups_get_builder(client, name)?;
+    let builder = spanner_projects_instances_backups_get_builder(client, &args.name)?;
     spanner_projects_instances_backups_get_execute(builder)
 }
 
@@ -3550,6 +3810,15 @@ pub fn spanner_projects_instances_backups_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_backups_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}:getIamPolicy
 /// Gets the access control policy for a database or backup resource. Returns an empty policy if a database or backup exists but does not have a policy set. Authorization requires spanner.databases.`getIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`getIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`getIamPolicy` permission on resource.
 ///
@@ -3562,14 +3831,16 @@ pub fn spanner_projects_instances_backups_get_iam_policy_execute(
 
 pub fn spanner_projects_instances_backups_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &SpannerProjectsInstancesBackupsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_backups_get_iam_policy_builder(client, resource, body)?;
+    let builder = spanner_projects_instances_backups_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     spanner_projects_instances_backups_get_iam_policy_execute(builder)
 }
 
@@ -3685,6 +3956,19 @@ pub fn spanner_projects_instances_backups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups
 /// Lists completed and pending backups. Backups returned are ordered by create_time in descending order, starting from the most recent create_time.
 ///
@@ -3697,10 +3981,7 @@ pub fn spanner_projects_instances_backups_list_execute(
 
 pub fn spanner_projects_instances_backups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SpannerProjectsInstancesBackupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3708,7 +3989,11 @@ pub fn spanner_projects_instances_backups_list(
     ApiError,
 > {
     let builder = spanner_projects_instances_backups_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     spanner_projects_instances_backups_list_execute(builder)
 }
@@ -3818,6 +4103,17 @@ pub fn spanner_projects_instances_backups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_backups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}
 /// Updates a pending or completed Backup.
 ///
@@ -3830,14 +4126,17 @@ pub fn spanner_projects_instances_backups_patch_execute(
 
 pub fn spanner_projects_instances_backups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Backup,
+    args: &SpannerProjectsInstancesBackupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_backups_patch_builder(client, name, updateMask, body)?;
+    let builder = spanner_projects_instances_backups_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     spanner_projects_instances_backups_patch_execute(builder)
 }
 
@@ -3934,6 +4233,15 @@ pub fn spanner_projects_instances_backups_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_backups_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}:setIamPolicy
 /// Sets the access control policy on a database or backup resource. Replaces any existing policy. Authorization requires spanner.databases.`setIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`setIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`setIamPolicy` permission on resource.
 ///
@@ -3946,14 +4254,16 @@ pub fn spanner_projects_instances_backups_set_iam_policy_execute(
 
 pub fn spanner_projects_instances_backups_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &SpannerProjectsInstancesBackupsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_backups_set_iam_policy_builder(client, resource, body)?;
+    let builder = spanner_projects_instances_backups_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     spanner_projects_instances_backups_set_iam_policy_execute(builder)
 }
 
@@ -4054,6 +4364,15 @@ pub fn spanner_projects_instances_backups_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_backups_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}:testIamPermissions
 /// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
 ///
@@ -4066,8 +4385,7 @@ pub fn spanner_projects_instances_backups_test_iam_permissions_execute(
 
 pub fn spanner_projects_instances_backups_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &SpannerProjectsInstancesBackupsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -4076,8 +4394,11 @@ pub fn spanner_projects_instances_backups_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_backups_test_iam_permissions_builder(client, resource, body)?;
+    let builder = spanner_projects_instances_backups_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     spanner_projects_instances_backups_test_iam_permissions_execute(builder)
 }
 
@@ -4171,6 +4492,13 @@ pub fn spanner_projects_instances_backups_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_backups_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -4183,12 +4511,12 @@ pub fn spanner_projects_instances_backups_operations_cancel_execute(
 
 pub fn spanner_projects_instances_backups_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesBackupsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_backups_operations_cancel_builder(client, name)?;
+    let builder = spanner_projects_instances_backups_operations_cancel_builder(client, &args.name)?;
     spanner_projects_instances_backups_operations_cancel_execute(builder)
 }
 
@@ -4282,6 +4610,13 @@ pub fn spanner_projects_instances_backups_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_backups_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -4294,12 +4629,12 @@ pub fn spanner_projects_instances_backups_operations_delete_execute(
 
 pub fn spanner_projects_instances_backups_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesBackupsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_backups_operations_delete_builder(client, name)?;
+    let builder = spanner_projects_instances_backups_operations_delete_builder(client, &args.name)?;
     spanner_projects_instances_backups_operations_delete_execute(builder)
 }
 
@@ -4393,6 +4728,13 @@ pub fn spanner_projects_instances_backups_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_backups_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -4405,12 +4747,12 @@ pub fn spanner_projects_instances_backups_operations_get_execute(
 
 pub fn spanner_projects_instances_backups_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesBackupsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_backups_operations_get_builder(client, name)?;
+    let builder = spanner_projects_instances_backups_operations_get_builder(client, &args.name)?;
     spanner_projects_instances_backups_operations_get_execute(builder)
 }
 
@@ -4530,6 +4872,21 @@ pub fn spanner_projects_instances_backups_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_backups_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesBackupsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/backups/{backupsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -4542,11 +4899,7 @@ pub fn spanner_projects_instances_backups_operations_list_execute(
 
 pub fn spanner_projects_instances_backups_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &SpannerProjectsInstancesBackupsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4555,11 +4908,11 @@ pub fn spanner_projects_instances_backups_operations_list(
 > {
     let builder = spanner_projects_instances_backups_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     spanner_projects_instances_backups_operations_list_execute(builder)
 }
@@ -4678,6 +5031,19 @@ pub fn spanner_projects_instances_database_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_database_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabaseOperationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databaseOperations
 /// Lists database longrunning-operations. A database operation has a name of the form `projects//instances//databases//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations.
 ///
@@ -4690,10 +5056,7 @@ pub fn spanner_projects_instances_database_operations_list_execute(
 
 pub fn spanner_projects_instances_database_operations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SpannerProjectsInstancesDatabaseOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDatabaseOperationsResponse>, ApiError>,
@@ -4703,7 +5066,11 @@ pub fn spanner_projects_instances_database_operations_list(
     ApiError,
 > {
     let builder = spanner_projects_instances_database_operations_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     spanner_projects_instances_database_operations_list_execute(builder)
 }
@@ -4803,6 +5170,15 @@ pub fn spanner_projects_instances_databases_add_split_points_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_add_split_points`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesAddSplitPointsArgs {
+    /// Path parameter: database
+    pub database: String,
+    /// Request body.
+    pub body: AddSplitPointsRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:addSplitPoints
 /// Adds split points to specified tables and indexes of a database.
 ///
@@ -4815,16 +5191,18 @@ pub fn spanner_projects_instances_databases_add_split_points_execute(
 
 pub fn spanner_projects_instances_databases_add_split_points(
     client: &SimpleHttpClient,
-    database: &str,
-    body: &AddSplitPointsRequest,
+    args: &SpannerProjectsInstancesDatabasesAddSplitPointsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AddSplitPointsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_databases_add_split_points_builder(client, database, body)?;
+    let builder = spanner_projects_instances_databases_add_split_points_builder(
+        client,
+        &args.database,
+        &args.body,
+    )?;
     spanner_projects_instances_databases_add_split_points_execute(builder)
 }
 
@@ -4921,6 +5299,15 @@ pub fn spanner_projects_instances_databases_changequorum_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_changequorum`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesChangequorumArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ChangeQuorumRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:changequorum
 /// ChangeQuorum is strictly restricted to databases that use dual-region instance configurations. Initiates a background operation to change the quorum of a database from dual-region mode to single-region mode or vice versa. The returned long-running operation has a name of the format `projects//instances//databases//operations/` and can be used to track execution of the ChangeQuorum. The metadata field type is ChangeQuorumMetadata. Authorization requires spanner.databases.changequorum permission on the resource database.
 ///
@@ -4933,13 +5320,13 @@ pub fn spanner_projects_instances_databases_changequorum_execute(
 
 pub fn spanner_projects_instances_databases_changequorum(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ChangeQuorumRequest,
+    args: &SpannerProjectsInstancesDatabasesChangequorumArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_databases_changequorum_builder(client, name, body)?;
+    let builder =
+        spanner_projects_instances_databases_changequorum_builder(client, &args.name, &args.body)?;
     spanner_projects_instances_databases_changequorum_execute(builder)
 }
 
@@ -5036,6 +5423,15 @@ pub fn spanner_projects_instances_databases_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateDatabaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases
 /// Creates a new Spanner database and starts to prepare it for serving. The returned long-running operation will have a name of the format /operations/ and can be used to track preparation of the database. The metadata field type is CreateDatabaseMetadata. The response field type is Database, if successful.
 ///
@@ -5048,13 +5444,13 @@ pub fn spanner_projects_instances_databases_create_execute(
 
 pub fn spanner_projects_instances_databases_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateDatabaseRequest,
+    args: &SpannerProjectsInstancesDatabasesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_databases_create_builder(client, parent, body)?;
+    let builder =
+        spanner_projects_instances_databases_create_builder(client, &args.parent, &args.body)?;
     spanner_projects_instances_databases_create_execute(builder)
 }
 
@@ -5148,6 +5544,13 @@ pub fn spanner_projects_instances_databases_drop_database_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_drop_database`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesDropDatabaseArgs {
+    /// Path parameter: database
+    pub database: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
 /// Drops (aka deletes) a Cloud Spanner database. Completed backups for the database will be retained according to their expire_time. Note: Cloud Spanner might continue to accept requests for a few seconds after the database has been deleted.
 ///
@@ -5160,12 +5563,13 @@ pub fn spanner_projects_instances_databases_drop_database_execute(
 
 pub fn spanner_projects_instances_databases_drop_database(
     client: &SimpleHttpClient,
-    database: &str,
+    args: &SpannerProjectsInstancesDatabasesDropDatabaseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_databases_drop_database_builder(client, database)?;
+    let builder =
+        spanner_projects_instances_databases_drop_database_builder(client, &args.database)?;
     spanner_projects_instances_databases_drop_database_execute(builder)
 }
 
@@ -5259,6 +5663,13 @@ pub fn spanner_projects_instances_databases_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
 /// Gets the state of a Cloud Spanner database.
 ///
@@ -5271,12 +5682,12 @@ pub fn spanner_projects_instances_databases_get_execute(
 
 pub fn spanner_projects_instances_databases_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesDatabasesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Database>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_databases_get_builder(client, name)?;
+    let builder = spanner_projects_instances_databases_get_builder(client, &args.name)?;
     spanner_projects_instances_databases_get_execute(builder)
 }
 
@@ -5372,6 +5783,13 @@ pub fn spanner_projects_instances_databases_get_ddl_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_get_ddl`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesGetDdlArgs {
+    /// Path parameter: database
+    pub database: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/ddl
 /// Returns the schema of a Cloud Spanner database as a list of formatted DDL statements. This method does not show pending schema updates, those may be queried using the Operations API.
 ///
@@ -5384,14 +5802,14 @@ pub fn spanner_projects_instances_databases_get_ddl_execute(
 
 pub fn spanner_projects_instances_databases_get_ddl(
     client: &SimpleHttpClient,
-    database: &str,
+    args: &SpannerProjectsInstancesDatabasesGetDdlArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetDatabaseDdlResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_databases_get_ddl_builder(client, database)?;
+    let builder = spanner_projects_instances_databases_get_ddl_builder(client, &args.database)?;
     spanner_projects_instances_databases_get_ddl_execute(builder)
 }
 
@@ -5488,6 +5906,15 @@ pub fn spanner_projects_instances_databases_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:getIamPolicy
 /// Gets the access control policy for a database or backup resource. Returns an empty policy if a database or backup exists but does not have a policy set. Authorization requires spanner.databases.`getIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`getIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`getIamPolicy` permission on resource.
 ///
@@ -5500,14 +5927,16 @@ pub fn spanner_projects_instances_databases_get_iam_policy_execute(
 
 pub fn spanner_projects_instances_databases_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &SpannerProjectsInstancesDatabasesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_databases_get_iam_policy_builder(client, resource, body)?;
+    let builder = spanner_projects_instances_databases_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     spanner_projects_instances_databases_get_iam_policy_execute(builder)
 }
 
@@ -5621,6 +6050,19 @@ pub fn spanner_projects_instances_databases_get_scans_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_get_scans`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesGetScansArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: endTime
+    pub endTime: Option<String>,
+    /// Query parameter: startTime
+    pub startTime: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/scans
 /// Request a specific scan with Database-specific data for Cloud Key Visualizer.
 ///
@@ -5633,16 +6075,17 @@ pub fn spanner_projects_instances_databases_get_scans_execute(
 
 pub fn spanner_projects_instances_databases_get_scans(
     client: &SimpleHttpClient,
-    name: &str,
-    endTime: Option<&str>,
-    startTime: Option<&str>,
-    view: Option<&str>,
+    args: &SpannerProjectsInstancesDatabasesGetScansArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Scan>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = spanner_projects_instances_databases_get_scans_builder(
-        client, name, endTime, startTime, view,
+        client,
+        &args.name,
+        args.endTime.as_deref(),
+        args.startTime.as_deref(),
+        args.view.as_deref(),
     )?;
     spanner_projects_instances_databases_get_scans_execute(builder)
 }
@@ -5755,6 +6198,17 @@ pub fn spanner_projects_instances_databases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases
 /// Lists Cloud Spanner databases.
 ///
@@ -5767,17 +6221,19 @@ pub fn spanner_projects_instances_databases_list_execute(
 
 pub fn spanner_projects_instances_databases_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SpannerProjectsInstancesDatabasesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDatabasesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_databases_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = spanner_projects_instances_databases_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     spanner_projects_instances_databases_list_execute(builder)
 }
 
@@ -5886,6 +6342,17 @@ pub fn spanner_projects_instances_databases_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Database,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}
 /// Updates a Cloud Spanner database. The returned long-running operation can be used to track the progress of updating the database. If the named database does not exist, returns NOT_FOUND. While the operation is pending: * The database's reconciling field is set to `true`. * Cancelling the operation is best-effort. If the cancellation succeeds, the operation metadata's cancel_time is set, the updates are reverted, and the operation terminates with a CANCELLED status. * New UpdateDatabase requests will return a FAILED_PRECONDITION error until the pending operation is done (returns successfully or with error). * Reading the database via the API continues to give the pre-request values. Upon completion of the returned operation: * The new values are in effect and readable via the API. * The database's reconciling field becomes `false`. The returned long-running operation will have a name of the format `projects//instances//databases//operations/` and can be used to track the database modification. The metadata field type is UpdateDatabaseMetadata. The response field type is Database, if successful.
 ///
@@ -5898,15 +6365,17 @@ pub fn spanner_projects_instances_databases_patch_execute(
 
 pub fn spanner_projects_instances_databases_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Database,
+    args: &SpannerProjectsInstancesDatabasesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_databases_patch_builder(client, name, updateMask, body)?;
+    let builder = spanner_projects_instances_databases_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     spanner_projects_instances_databases_patch_execute(builder)
 }
 
@@ -6003,6 +6472,15 @@ pub fn spanner_projects_instances_databases_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesRestoreArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: RestoreDatabaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases:restore
 /// Create a new database by restoring from a completed backup. The new database must be in the same project and in an instance with the same instance configuration as the instance containing the backup. The returned database long-running operation has a name of the format `projects//instances//databases//operations/`, and can be used to track the progress of the operation, and to cancel it. The metadata field type is RestoreDatabaseMetadata. The response type is Database, if successful. Cancelling the returned operation will stop the restore and delete the database. There can be only one database being restored into an instance at a time. Once the restore operation completes, a new restore operation can be initiated, without waiting for the optimize operation associated with the first restore to complete.
 ///
@@ -6015,13 +6493,13 @@ pub fn spanner_projects_instances_databases_restore_execute(
 
 pub fn spanner_projects_instances_databases_restore(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &RestoreDatabaseRequest,
+    args: &SpannerProjectsInstancesDatabasesRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_databases_restore_builder(client, parent, body)?;
+    let builder =
+        spanner_projects_instances_databases_restore_builder(client, &args.parent, &args.body)?;
     spanner_projects_instances_databases_restore_execute(builder)
 }
 
@@ -6118,6 +6596,15 @@ pub fn spanner_projects_instances_databases_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:setIamPolicy
 /// Sets the access control policy on a database or backup resource. Replaces any existing policy. Authorization requires spanner.databases.`setIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`setIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`setIamPolicy` permission on resource.
 ///
@@ -6130,14 +6617,16 @@ pub fn spanner_projects_instances_databases_set_iam_policy_execute(
 
 pub fn spanner_projects_instances_databases_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &SpannerProjectsInstancesDatabasesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_databases_set_iam_policy_builder(client, resource, body)?;
+    let builder = spanner_projects_instances_databases_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     spanner_projects_instances_databases_set_iam_policy_execute(builder)
 }
 
@@ -6238,6 +6727,15 @@ pub fn spanner_projects_instances_databases_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}:testIamPermissions
 /// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
 ///
@@ -6250,8 +6748,7 @@ pub fn spanner_projects_instances_databases_test_iam_permissions_execute(
 
 pub fn spanner_projects_instances_databases_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &SpannerProjectsInstancesDatabasesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -6260,8 +6757,11 @@ pub fn spanner_projects_instances_databases_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_databases_test_iam_permissions_builder(client, resource, body)?;
+    let builder = spanner_projects_instances_databases_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     spanner_projects_instances_databases_test_iam_permissions_execute(builder)
 }
 
@@ -6358,6 +6858,15 @@ pub fn spanner_projects_instances_databases_update_ddl_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_update_ddl`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesUpdateDdlArgs {
+    /// Path parameter: database
+    pub database: String,
+    /// Request body.
+    pub body: UpdateDatabaseDdlRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/ddl
 /// Updates the schema of a Cloud Spanner database by `creating/altering/dropping` tables, columns, indexes, etc. The returned long-running operation will have a name of the format /operations/ and can be used to track execution of the schema changes. The metadata field type is UpdateDatabaseDdlMetadata. The operation has no response.
 ///
@@ -6370,13 +6879,16 @@ pub fn spanner_projects_instances_databases_update_ddl_execute(
 
 pub fn spanner_projects_instances_databases_update_ddl(
     client: &SimpleHttpClient,
-    database: &str,
-    body: &UpdateDatabaseDdlRequest,
+    args: &SpannerProjectsInstancesDatabasesUpdateDdlArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_databases_update_ddl_builder(client, database, body)?;
+    let builder = spanner_projects_instances_databases_update_ddl_builder(
+        client,
+        &args.database,
+        &args.body,
+    )?;
     spanner_projects_instances_databases_update_ddl_execute(builder)
 }
 
@@ -6487,6 +6999,17 @@ pub fn spanner_projects_instances_databases_backup_schedules_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupScheduleId
+    pub backupScheduleId: Option<String>,
+    /// Request body.
+    pub body: BackupSchedule,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules
 /// Creates a new backup schedule.
 ///
@@ -6499,9 +7022,7 @@ pub fn spanner_projects_instances_databases_backup_schedules_create_execute(
 
 pub fn spanner_projects_instances_databases_backup_schedules_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupScheduleId: Option<&str>,
-    body: &BackupSchedule,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BackupSchedule>, ApiError>, P = ApiPending>
         + Send
@@ -6510,9 +7031,9 @@ pub fn spanner_projects_instances_databases_backup_schedules_create(
 > {
     let builder = spanner_projects_instances_databases_backup_schedules_create_builder(
         client,
-        parent,
-        backupScheduleId,
-        body,
+        &args.parent,
+        args.backupScheduleId.as_deref(),
+        &args.body,
     )?;
     spanner_projects_instances_databases_backup_schedules_create_execute(builder)
 }
@@ -6607,6 +7128,13 @@ pub fn spanner_projects_instances_databases_backup_schedules_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
 /// Deletes a backup schedule.
 ///
@@ -6619,13 +7147,13 @@ pub fn spanner_projects_instances_databases_backup_schedules_delete_execute(
 
 pub fn spanner_projects_instances_databases_backup_schedules_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        spanner_projects_instances_databases_backup_schedules_delete_builder(client, name)?;
+        spanner_projects_instances_databases_backup_schedules_delete_builder(client, &args.name)?;
     spanner_projects_instances_databases_backup_schedules_delete_execute(builder)
 }
 
@@ -6721,6 +7249,13 @@ pub fn spanner_projects_instances_databases_backup_schedules_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
 /// Gets backup schedule for the input schedule name.
 ///
@@ -6733,14 +7268,15 @@ pub fn spanner_projects_instances_databases_backup_schedules_get_execute(
 
 pub fn spanner_projects_instances_databases_backup_schedules_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BackupSchedule>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_databases_backup_schedules_get_builder(client, name)?;
+    let builder =
+        spanner_projects_instances_databases_backup_schedules_get_builder(client, &args.name)?;
     spanner_projects_instances_databases_backup_schedules_get_execute(builder)
 }
 
@@ -6837,6 +7373,15 @@ pub fn spanner_projects_instances_databases_backup_schedules_get_iam_policy_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:getIamPolicy
 /// Gets the access control policy for a database or backup resource. Returns an empty policy if a database or backup exists but does not have a policy set. Authorization requires spanner.databases.`getIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`getIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`getIamPolicy` permission on resource.
 ///
@@ -6849,14 +7394,15 @@ pub fn spanner_projects_instances_databases_backup_schedules_get_iam_policy_exec
 
 pub fn spanner_projects_instances_databases_backup_schedules_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = spanner_projects_instances_databases_backup_schedules_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     spanner_projects_instances_databases_backup_schedules_get_iam_policy_execute(builder)
 }
@@ -6971,6 +7517,17 @@ pub fn spanner_projects_instances_databases_backup_schedules_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules
 /// Lists all the backup schedules for the database.
 ///
@@ -6983,9 +7540,7 @@ pub fn spanner_projects_instances_databases_backup_schedules_list_execute(
 
 pub fn spanner_projects_instances_databases_backup_schedules_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListBackupSchedulesResponse>, ApiError>,
@@ -6995,7 +7550,10 @@ pub fn spanner_projects_instances_databases_backup_schedules_list(
     ApiError,
 > {
     let builder = spanner_projects_instances_databases_backup_schedules_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     spanner_projects_instances_databases_backup_schedules_list_execute(builder)
 }
@@ -7107,6 +7665,17 @@ pub fn spanner_projects_instances_databases_backup_schedules_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: BackupSchedule,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}
 /// Updates a backup schedule.
 ///
@@ -7119,9 +7688,7 @@ pub fn spanner_projects_instances_databases_backup_schedules_patch_execute(
 
 pub fn spanner_projects_instances_databases_backup_schedules_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &BackupSchedule,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BackupSchedule>, ApiError>, P = ApiPending>
         + Send
@@ -7129,7 +7696,10 @@ pub fn spanner_projects_instances_databases_backup_schedules_patch(
     ApiError,
 > {
     let builder = spanner_projects_instances_databases_backup_schedules_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     spanner_projects_instances_databases_backup_schedules_patch_execute(builder)
 }
@@ -7227,6 +7797,15 @@ pub fn spanner_projects_instances_databases_backup_schedules_set_iam_policy_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:setIamPolicy
 /// Sets the access control policy on a database or backup resource. Replaces any existing policy. Authorization requires spanner.databases.`setIamPolicy` permission on resource. For backups, authorization requires spanner.backups.`setIamPolicy` permission on resource. For backup schedules, authorization requires spanner.`backupSchedules`.`setIamPolicy` permission on resource.
 ///
@@ -7239,14 +7818,15 @@ pub fn spanner_projects_instances_databases_backup_schedules_set_iam_policy_exec
 
 pub fn spanner_projects_instances_databases_backup_schedules_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = spanner_projects_instances_databases_backup_schedules_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     spanner_projects_instances_databases_backup_schedules_set_iam_policy_execute(builder)
 }
@@ -7348,6 +7928,15 @@ pub fn spanner_projects_instances_databases_backup_schedules_test_iam_permission
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_backup_schedules_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesBackupSchedulesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/backupSchedules/{backupSchedulesId}:testIamPermissions
 /// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
 ///
@@ -7360,8 +7949,7 @@ pub fn spanner_projects_instances_databases_backup_schedules_test_iam_permission
 
 pub fn spanner_projects_instances_databases_backup_schedules_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &SpannerProjectsInstancesDatabasesBackupSchedulesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -7372,7 +7960,9 @@ pub fn spanner_projects_instances_databases_backup_schedules_test_iam_permission
 > {
     let builder =
         spanner_projects_instances_databases_backup_schedules_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     spanner_projects_instances_databases_backup_schedules_test_iam_permissions_execute(builder)
 }
@@ -7485,6 +8075,17 @@ pub fn spanner_projects_instances_databases_database_roles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_database_roles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesDatabaseRolesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/databaseRoles
 /// Lists Cloud Spanner database roles.
 ///
@@ -7497,9 +8098,7 @@ pub fn spanner_projects_instances_databases_database_roles_list_execute(
 
 pub fn spanner_projects_instances_databases_database_roles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SpannerProjectsInstancesDatabasesDatabaseRolesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDatabaseRolesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7507,7 +8106,10 @@ pub fn spanner_projects_instances_databases_database_roles_list(
     ApiError,
 > {
     let builder = spanner_projects_instances_databases_database_roles_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     spanner_projects_instances_databases_database_roles_list_execute(builder)
 }
@@ -7609,6 +8211,15 @@ pub fn spanner_projects_instances_databases_database_roles_test_iam_permissions_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_database_roles_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesDatabaseRolesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/databaseRoles/{databaseRolesId}:testIamPermissions
 /// Returns permissions that the caller has on the specified database or backup resource. Attempting this RPC on a non-existent Cloud Spanner database will result in a NOT_FOUND error if the user has spanner.databases.list permission on the containing Cloud Spanner instance. Otherwise returns an empty set of permissions. Calling this method on a backup that does not exist will result in a NOT_FOUND error if the user has spanner.backups.list permission on the containing instance. Calling this method on a backup schedule that does not exist will result in a NOT_FOUND error if the user has spanner.`backupSchedules`.list permission on the containing database.
 ///
@@ -7621,8 +8232,7 @@ pub fn spanner_projects_instances_databases_database_roles_test_iam_permissions_
 
 pub fn spanner_projects_instances_databases_database_roles_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &SpannerProjectsInstancesDatabasesDatabaseRolesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -7632,7 +8242,9 @@ pub fn spanner_projects_instances_databases_database_roles_test_iam_permissions(
     ApiError,
 > {
     let builder = spanner_projects_instances_databases_database_roles_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     spanner_projects_instances_databases_database_roles_test_iam_permissions_execute(builder)
 }
@@ -7727,6 +8339,13 @@ pub fn spanner_projects_instances_databases_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -7739,12 +8358,13 @@ pub fn spanner_projects_instances_databases_operations_cancel_execute(
 
 pub fn spanner_projects_instances_databases_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesDatabasesOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_databases_operations_cancel_builder(client, name)?;
+    let builder =
+        spanner_projects_instances_databases_operations_cancel_builder(client, &args.name)?;
     spanner_projects_instances_databases_operations_cancel_execute(builder)
 }
 
@@ -7838,6 +8458,13 @@ pub fn spanner_projects_instances_databases_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -7850,12 +8477,13 @@ pub fn spanner_projects_instances_databases_operations_delete_execute(
 
 pub fn spanner_projects_instances_databases_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesDatabasesOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_databases_operations_delete_builder(client, name)?;
+    let builder =
+        spanner_projects_instances_databases_operations_delete_builder(client, &args.name)?;
     spanner_projects_instances_databases_operations_delete_execute(builder)
 }
 
@@ -7949,6 +8577,13 @@ pub fn spanner_projects_instances_databases_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -7961,12 +8596,12 @@ pub fn spanner_projects_instances_databases_operations_get_execute(
 
 pub fn spanner_projects_instances_databases_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesDatabasesOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_databases_operations_get_builder(client, name)?;
+    let builder = spanner_projects_instances_databases_operations_get_builder(client, &args.name)?;
     spanner_projects_instances_databases_operations_get_execute(builder)
 }
 
@@ -8086,6 +8721,21 @@ pub fn spanner_projects_instances_databases_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -8098,11 +8748,7 @@ pub fn spanner_projects_instances_databases_operations_list_execute(
 
 pub fn spanner_projects_instances_databases_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &SpannerProjectsInstancesDatabasesOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8111,11 +8757,11 @@ pub fn spanner_projects_instances_databases_operations_list(
 > {
     let builder = spanner_projects_instances_databases_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     spanner_projects_instances_databases_operations_list_execute(builder)
 }
@@ -8215,6 +8861,15 @@ pub fn spanner_projects_instances_databases_sessions_adapt_message_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_adapt_message`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsAdaptMessageArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AdaptMessageRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:adaptMessage
 /// Handles a single message from the client and returns the result as a stream. The server will interpret the message frame and respond with message frames to the client.
 ///
@@ -8227,16 +8882,16 @@ pub fn spanner_projects_instances_databases_sessions_adapt_message_execute(
 
 pub fn spanner_projects_instances_databases_sessions_adapt_message(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AdaptMessageRequest,
+    args: &SpannerProjectsInstancesDatabasesSessionsAdaptMessageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdaptMessageResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_databases_sessions_adapt_message_builder(client, name, body)?;
+    let builder = spanner_projects_instances_databases_sessions_adapt_message_builder(
+        client, &args.name, &args.body,
+    )?;
     spanner_projects_instances_databases_sessions_adapt_message_execute(builder)
 }
 
@@ -8335,6 +8990,15 @@ pub fn spanner_projects_instances_databases_sessions_adapter_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_adapter`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsAdapterArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AdapterSession,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions:adapter
 /// Creates a new session to be used for requests made by the adapter. A session identifies a specific incarnation of a database resource and is meant to be reused across many AdaptMessage calls.
 ///
@@ -8347,16 +9011,18 @@ pub fn spanner_projects_instances_databases_sessions_adapter_execute(
 
 pub fn spanner_projects_instances_databases_sessions_adapter(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AdapterSession,
+    args: &SpannerProjectsInstancesDatabasesSessionsAdapterArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AdapterSession>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_databases_sessions_adapter_builder(client, parent, body)?;
+    let builder = spanner_projects_instances_databases_sessions_adapter_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     spanner_projects_instances_databases_sessions_adapter_execute(builder)
 }
 
@@ -8457,6 +9123,15 @@ pub fn spanner_projects_instances_databases_sessions_batch_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsBatchCreateArgs {
+    /// Path parameter: database
+    pub database: String,
+    /// Request body.
+    pub body: BatchCreateSessionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions:batchCreate
 /// Creates multiple new sessions. This API can be used to initialize a session cache on the clients. See <https://goo.`gl/TgSFN2`> for best practices on session cache management.
 ///
@@ -8469,8 +9144,7 @@ pub fn spanner_projects_instances_databases_sessions_batch_create_execute(
 
 pub fn spanner_projects_instances_databases_sessions_batch_create(
     client: &SimpleHttpClient,
-    database: &str,
-    body: &BatchCreateSessionsRequest,
+    args: &SpannerProjectsInstancesDatabasesSessionsBatchCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchCreateSessionsResponse>, ApiError>,
@@ -8479,8 +9153,11 @@ pub fn spanner_projects_instances_databases_sessions_batch_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_databases_sessions_batch_create_builder(client, database, body)?;
+    let builder = spanner_projects_instances_databases_sessions_batch_create_builder(
+        client,
+        &args.database,
+        &args.body,
+    )?;
     spanner_projects_instances_databases_sessions_batch_create_execute(builder)
 }
 
@@ -8579,6 +9256,15 @@ pub fn spanner_projects_instances_databases_sessions_batch_write_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_batch_write`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsBatchWriteArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: BatchWriteRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:batchWrite
 /// Batches the supplied mutation groups in a collection of efficient transactions. All mutations in a group are committed atomically. However, mutations across groups can be committed non-atomically in an unspecified order and thus, they must be independent of each other. Partial failure is possible, that is, some groups might have been committed successfully, while some might have failed. The results of individual batches are streamed into the response as the batches are applied. BatchWrite requests are not replay protected, meaning that each mutation group can be applied more than once. Replays of non-idempotent mutations can have undesirable effects. For example, replays of an insert mutation can produce an already exists error or if you use generated or commit timestamp-based keys, it can result in additional rows being added to the mutation's table. We recommend structuring your mutation groups to be idempotent to avoid this issue.
 ///
@@ -8591,16 +9277,18 @@ pub fn spanner_projects_instances_databases_sessions_batch_write_execute(
 
 pub fn spanner_projects_instances_databases_sessions_batch_write(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &BatchWriteRequest,
+    args: &SpannerProjectsInstancesDatabasesSessionsBatchWriteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchWriteResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_databases_sessions_batch_write_builder(client, session, body)?;
+    let builder = spanner_projects_instances_databases_sessions_batch_write_builder(
+        client,
+        &args.session,
+        &args.body,
+    )?;
     spanner_projects_instances_databases_sessions_batch_write_execute(builder)
 }
 
@@ -8697,6 +9385,15 @@ pub fn spanner_projects_instances_databases_sessions_begin_transaction_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_begin_transaction`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsBeginTransactionArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: BeginTransactionRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:beginTransaction
 /// Begins a new transaction. This step can often be skipped: Read, ExecuteSql and Commit can begin a new transaction as a side-effect.
 ///
@@ -8709,14 +9406,15 @@ pub fn spanner_projects_instances_databases_sessions_begin_transaction_execute(
 
 pub fn spanner_projects_instances_databases_sessions_begin_transaction(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &BeginTransactionRequest,
+    args: &SpannerProjectsInstancesDatabasesSessionsBeginTransactionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Transaction>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = spanner_projects_instances_databases_sessions_begin_transaction_builder(
-        client, session, body,
+        client,
+        &args.session,
+        &args.body,
     )?;
     spanner_projects_instances_databases_sessions_begin_transaction_execute(builder)
 }
@@ -8816,6 +9514,15 @@ pub fn spanner_projects_instances_databases_sessions_commit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_commit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsCommitArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: CommitRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:commit
 /// Commits a transaction. The request includes the mutations to be applied to rows in the database. Commit might return an ABORTED error. This can occur at any time; commonly, the cause is conflicts with concurrent transactions. However, it can also happen for a variety of other reasons. If Commit returns ABORTED, the caller should retry the transaction from the beginning, reusing the same session. On very rare occasions, Commit might return UNKNOWN. This can happen, for example, if the client job experiences a 1+ hour networking failure. At that point, Cloud Spanner has lost track of the transaction outcome and we recommend that you perform another read from the database to see the state of things as they are now.
 ///
@@ -8828,16 +9535,18 @@ pub fn spanner_projects_instances_databases_sessions_commit_execute(
 
 pub fn spanner_projects_instances_databases_sessions_commit(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &CommitRequest,
+    args: &SpannerProjectsInstancesDatabasesSessionsCommitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CommitResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_databases_sessions_commit_builder(client, session, body)?;
+    let builder = spanner_projects_instances_databases_sessions_commit_builder(
+        client,
+        &args.session,
+        &args.body,
+    )?;
     spanner_projects_instances_databases_sessions_commit_execute(builder)
 }
 
@@ -8934,6 +9643,15 @@ pub fn spanner_projects_instances_databases_sessions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsCreateArgs {
+    /// Path parameter: database
+    pub database: String,
+    /// Request body.
+    pub body: CreateSessionRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions
 /// Creates a new session. A session can be used to perform transactions that read `and/or` modify data in a Cloud Spanner database. Sessions are meant to be reused for many consecutive transactions. Sessions can only execute one transaction at a time. To execute multiple concurrent read-`write/write-only` transactions, create multiple sessions. Note that standalone reads and queries use a transaction internally, and count toward the one transaction limit. Active sessions use additional server resources, so it's a good idea to delete idle and unneeded sessions. Aside from explicit deletes, Cloud Spanner can delete sessions when no operations are sent for more than an hour. If a session is deleted, requests to it return NOT_FOUND. Idle sessions can be kept alive by sending a trivial SQL query periodically, for example, "SELECT 1".
 ///
@@ -8946,14 +9664,16 @@ pub fn spanner_projects_instances_databases_sessions_create_execute(
 
 pub fn spanner_projects_instances_databases_sessions_create(
     client: &SimpleHttpClient,
-    database: &str,
-    body: &CreateSessionRequest,
+    args: &SpannerProjectsInstancesDatabasesSessionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Session>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_databases_sessions_create_builder(client, database, body)?;
+    let builder = spanner_projects_instances_databases_sessions_create_builder(
+        client,
+        &args.database,
+        &args.body,
+    )?;
     spanner_projects_instances_databases_sessions_create_execute(builder)
 }
 
@@ -9047,6 +9767,13 @@ pub fn spanner_projects_instances_databases_sessions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}
 /// Ends a session, releasing server resources associated with it. This asynchronously triggers the cancellation of any operations that are running with this session.
 ///
@@ -9059,12 +9786,12 @@ pub fn spanner_projects_instances_databases_sessions_delete_execute(
 
 pub fn spanner_projects_instances_databases_sessions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesDatabasesSessionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_databases_sessions_delete_builder(client, name)?;
+    let builder = spanner_projects_instances_databases_sessions_delete_builder(client, &args.name)?;
     spanner_projects_instances_databases_sessions_delete_execute(builder)
 }
 
@@ -9163,6 +9890,15 @@ pub fn spanner_projects_instances_databases_sessions_execute_batch_dml_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_execute_batch_dml`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsExecuteBatchDmlArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: ExecuteBatchDmlRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeBatchDml
 /// Executes a batch of SQL DML statements. This method allows many statements to be run with lower latency than submitting them sequentially with ExecuteSql. Statements are executed in sequential order. A request can succeed even if a statement fails. The ExecuteBatchDmlResponse.status field in the response provides information about the statement that failed. Clients must inspect this field to determine whether an error occurred. Execution stops after the first failed statement; the remaining statements are not executed.
 ///
@@ -9175,8 +9911,7 @@ pub fn spanner_projects_instances_databases_sessions_execute_batch_dml_execute(
 
 pub fn spanner_projects_instances_databases_sessions_execute_batch_dml(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &ExecuteBatchDmlRequest,
+    args: &SpannerProjectsInstancesDatabasesSessionsExecuteBatchDmlArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExecuteBatchDmlResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9184,7 +9919,9 @@ pub fn spanner_projects_instances_databases_sessions_execute_batch_dml(
     ApiError,
 > {
     let builder = spanner_projects_instances_databases_sessions_execute_batch_dml_builder(
-        client, session, body,
+        client,
+        &args.session,
+        &args.body,
     )?;
     spanner_projects_instances_databases_sessions_execute_batch_dml_execute(builder)
 }
@@ -9282,6 +10019,15 @@ pub fn spanner_projects_instances_databases_sessions_execute_sql_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_execute_sql`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsExecuteSqlArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: ExecuteSqlRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeSql
 /// Executes an SQL statement, returning all results in a single reply. This method can't be used to return a result set larger than 10 MiB; if the query yields more data than that, the query fails with a FAILED_PRECONDITION error. Operations inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be fetched in streaming fashion by calling ExecuteStreamingSql instead. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
 ///
@@ -9294,14 +10040,16 @@ pub fn spanner_projects_instances_databases_sessions_execute_sql_execute(
 
 pub fn spanner_projects_instances_databases_sessions_execute_sql(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &ExecuteSqlRequest,
+    args: &SpannerProjectsInstancesDatabasesSessionsExecuteSqlArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResultSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_databases_sessions_execute_sql_builder(client, session, body)?;
+    let builder = spanner_projects_instances_databases_sessions_execute_sql_builder(
+        client,
+        &args.session,
+        &args.body,
+    )?;
     spanner_projects_instances_databases_sessions_execute_sql_execute(builder)
 }
 
@@ -9400,6 +10148,15 @@ pub fn spanner_projects_instances_databases_sessions_execute_streaming_sql_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_execute_streaming_sql`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsExecuteStreamingSqlArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: ExecuteSqlRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:executeStreamingSql
 /// Like ExecuteSql, except returns the result set as a stream. Unlike ExecuteSql, there is no limit on the size of the returned result set. However, no individual row in the result set can exceed 100 MiB, and no column value can exceed 10 MiB. The query string can be SQL or [Graph Query Language (GQL)](<https://cloud.google.`com/spanner/docs/reference/standard-sql/graph-intro`>).
 ///
@@ -9412,8 +10169,7 @@ pub fn spanner_projects_instances_databases_sessions_execute_streaming_sql_execu
 
 pub fn spanner_projects_instances_databases_sessions_execute_streaming_sql(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &ExecuteSqlRequest,
+    args: &SpannerProjectsInstancesDatabasesSessionsExecuteStreamingSqlArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PartialResultSet>, ApiError>, P = ApiPending>
         + Send
@@ -9421,7 +10177,9 @@ pub fn spanner_projects_instances_databases_sessions_execute_streaming_sql(
     ApiError,
 > {
     let builder = spanner_projects_instances_databases_sessions_execute_streaming_sql_builder(
-        client, session, body,
+        client,
+        &args.session,
+        &args.body,
     )?;
     spanner_projects_instances_databases_sessions_execute_streaming_sql_execute(builder)
 }
@@ -9516,6 +10274,13 @@ pub fn spanner_projects_instances_databases_sessions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}
 /// Gets a session. Returns NOT_FOUND if the session doesn't exist. This is mainly useful for determining whether a session is still alive.
 ///
@@ -9528,12 +10293,12 @@ pub fn spanner_projects_instances_databases_sessions_get_execute(
 
 pub fn spanner_projects_instances_databases_sessions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesDatabasesSessionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Session>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_databases_sessions_get_builder(client, name)?;
+    let builder = spanner_projects_instances_databases_sessions_get_builder(client, &args.name)?;
     spanner_projects_instances_databases_sessions_get_execute(builder)
 }
 
@@ -9649,6 +10414,19 @@ pub fn spanner_projects_instances_databases_sessions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsListArgs {
+    /// Path parameter: database
+    pub database: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions
 /// Lists all sessions in a given database.
 ///
@@ -9661,10 +10439,7 @@ pub fn spanner_projects_instances_databases_sessions_list_execute(
 
 pub fn spanner_projects_instances_databases_sessions_list(
     client: &SimpleHttpClient,
-    database: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SpannerProjectsInstancesDatabasesSessionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSessionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9672,7 +10447,11 @@ pub fn spanner_projects_instances_databases_sessions_list(
     ApiError,
 > {
     let builder = spanner_projects_instances_databases_sessions_list_builder(
-        client, database, filter, pageSize, pageToken,
+        client,
+        &args.database,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     spanner_projects_instances_databases_sessions_list_execute(builder)
 }
@@ -9772,6 +10551,15 @@ pub fn spanner_projects_instances_databases_sessions_partition_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_partition_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsPartitionQueryArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: PartitionQueryRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionQuery
 /// Creates a set of partition tokens that can be used to execute a query operation in parallel. Each of the returned partition tokens can be used by ExecuteStreamingSql to specify a subset of the query result to read. The same session and read-only transaction must be used by the PartitionQueryRequest used to create the partition tokens and the ExecuteSqlRequests that use the partition tokens. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the query, and the whole operation must be restarted from the beginning.
 ///
@@ -9784,8 +10572,7 @@ pub fn spanner_projects_instances_databases_sessions_partition_query_execute(
 
 pub fn spanner_projects_instances_databases_sessions_partition_query(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &PartitionQueryRequest,
+    args: &SpannerProjectsInstancesDatabasesSessionsPartitionQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PartitionResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9793,7 +10580,9 @@ pub fn spanner_projects_instances_databases_sessions_partition_query(
     ApiError,
 > {
     let builder = spanner_projects_instances_databases_sessions_partition_query_builder(
-        client, session, body,
+        client,
+        &args.session,
+        &args.body,
     )?;
     spanner_projects_instances_databases_sessions_partition_query_execute(builder)
 }
@@ -9893,6 +10682,15 @@ pub fn spanner_projects_instances_databases_sessions_partition_read_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_partition_read`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsPartitionReadArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: PartitionReadRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:partitionRead
 /// Creates a set of partition tokens that can be used to execute a read operation in parallel. Each of the returned partition tokens can be used by StreamingRead to specify a subset of the read result to read. The same session and read-only transaction must be used by the PartitionReadRequest used to create the partition tokens and the ReadRequests that use the partition tokens. There are no ordering guarantees on rows returned among the returned partition tokens, or even within each individual StreamingRead call issued with a partition_token. Partition tokens become invalid when the session used to create them is deleted, is idle for too long, begins a new transaction, or becomes too old. When any of these happen, it isn't possible to resume the read, and the whole operation must be restarted from the beginning.
 ///
@@ -9905,8 +10703,7 @@ pub fn spanner_projects_instances_databases_sessions_partition_read_execute(
 
 pub fn spanner_projects_instances_databases_sessions_partition_read(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &PartitionReadRequest,
+    args: &SpannerProjectsInstancesDatabasesSessionsPartitionReadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PartitionResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9914,7 +10711,9 @@ pub fn spanner_projects_instances_databases_sessions_partition_read(
     ApiError,
 > {
     let builder = spanner_projects_instances_databases_sessions_partition_read_builder(
-        client, session, body,
+        client,
+        &args.session,
+        &args.body,
     )?;
     spanner_projects_instances_databases_sessions_partition_read_execute(builder)
 }
@@ -10012,6 +10811,15 @@ pub fn spanner_projects_instances_databases_sessions_read_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_read`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsReadArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: ReadRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:read
 /// Reads rows from the database using key lookups and scans, as a simple `key/value` style alternative to ExecuteSql. This method can't be used to return a result set larger than 10 MiB; if the read matches more data than that, the read fails with a FAILED_PRECONDITION error. Reads inside read-write transactions might return ABORTED. If this occurs, the application should restart the transaction from the beginning. See Transaction for more details. Larger result sets can be yielded in streaming fashion by calling StreamingRead instead.
 ///
@@ -10024,14 +10832,16 @@ pub fn spanner_projects_instances_databases_sessions_read_execute(
 
 pub fn spanner_projects_instances_databases_sessions_read(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &ReadRequest,
+    args: &SpannerProjectsInstancesDatabasesSessionsReadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResultSet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_databases_sessions_read_builder(client, session, body)?;
+    let builder = spanner_projects_instances_databases_sessions_read_builder(
+        client,
+        &args.session,
+        &args.body,
+    )?;
     spanner_projects_instances_databases_sessions_read_execute(builder)
 }
 
@@ -10128,6 +10938,15 @@ pub fn spanner_projects_instances_databases_sessions_rollback_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_rollback`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsRollbackArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: RollbackRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:rollback
 /// Rolls back a transaction, releasing any locks it holds. It's a good idea to call this for any transaction that includes one or more Read or ExecuteSql requests and ultimately decides not to commit. Rollback returns `OK` if it successfully aborts the transaction, the transaction was already aborted, or the transaction isn't found. Rollback never returns ABORTED.
 ///
@@ -10140,14 +10959,16 @@ pub fn spanner_projects_instances_databases_sessions_rollback_execute(
 
 pub fn spanner_projects_instances_databases_sessions_rollback(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &RollbackRequest,
+    args: &SpannerProjectsInstancesDatabasesSessionsRollbackArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_databases_sessions_rollback_builder(client, session, body)?;
+    let builder = spanner_projects_instances_databases_sessions_rollback_builder(
+        client,
+        &args.session,
+        &args.body,
+    )?;
     spanner_projects_instances_databases_sessions_rollback_execute(builder)
 }
 
@@ -10246,6 +11067,15 @@ pub fn spanner_projects_instances_databases_sessions_streaming_read_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_databases_sessions_streaming_read`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesDatabasesSessionsStreamingReadArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: ReadRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/databases/{databasesId}/sessions/{sessionsId}:streamingRead
 /// Like Read, except returns the result set as a stream. Unlike Read, there is no limit on the size of the returned result set. However, no individual row in the result set can exceed 100 MiB, and no column value can exceed 10 MiB.
 ///
@@ -10258,8 +11088,7 @@ pub fn spanner_projects_instances_databases_sessions_streaming_read_execute(
 
 pub fn spanner_projects_instances_databases_sessions_streaming_read(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &ReadRequest,
+    args: &SpannerProjectsInstancesDatabasesSessionsStreamingReadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PartialResultSet>, ApiError>, P = ApiPending>
         + Send
@@ -10267,7 +11096,9 @@ pub fn spanner_projects_instances_databases_sessions_streaming_read(
     ApiError,
 > {
     let builder = spanner_projects_instances_databases_sessions_streaming_read_builder(
-        client, session, body,
+        client,
+        &args.session,
+        &args.body,
     )?;
     spanner_projects_instances_databases_sessions_streaming_read_execute(builder)
 }
@@ -10391,6 +11222,21 @@ pub fn spanner_projects_instances_instance_partition_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_instance_partition_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionOperationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: instancePartitionDeadline
+    pub instancePartitionDeadline: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitionOperations
 /// Lists instance partition long-running operations in the given instance. An instance partition operation has a name of the form `projects//instances//`instancePartitions`//operations/`. The long-running operation metadata field type metadata.type_url describes the type of the metadata. Operations returned include those that have `completed/failed/canceled` within the last 7 days, and pending operations. Operations returned are ordered by operation.metadata.value.start_time in descending order starting from the most recently started operation. Authorization requires spanner.`instancePartitionOperations`.list permission on the resource parent.
 ///
@@ -10403,11 +11249,7 @@ pub fn spanner_projects_instances_instance_partition_operations_list_execute(
 
 pub fn spanner_projects_instances_instance_partition_operations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    instancePartitionDeadline: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SpannerProjectsInstancesInstancePartitionOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInstancePartitionOperationsResponse>, ApiError>,
@@ -10418,11 +11260,11 @@ pub fn spanner_projects_instances_instance_partition_operations_list(
 > {
     let builder = spanner_projects_instances_instance_partition_operations_list_builder(
         client,
-        parent,
-        filter,
-        instancePartitionDeadline,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.filter.as_deref(),
+        args.instancePartitionDeadline.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     spanner_projects_instances_instance_partition_operations_list_execute(builder)
 }
@@ -10520,6 +11362,15 @@ pub fn spanner_projects_instances_instance_partitions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_instance_partitions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateInstancePartitionRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions
 /// Creates an instance partition and begins preparing it to be used. The returned long-running operation can be used to track the progress of preparing the new instance partition. The instance partition name is assigned by the caller. If the named instance partition already exists, CreateInstancePartition returns ALREADY_EXISTS. Immediately upon completion of this request: * The instance partition is readable via the API, with all requested attributes but no allocated resources. Its state is CREATING. Until completion of the returned operation: * Cancelling the operation renders the instance partition immediately unreadable via the API. * The instance partition can be deleted. * All other attempts to modify the instance partition are rejected. Upon completion of the returned operation: * Billing for all successfully-allocated resources begins (some types may have lower than the requested levels). * Databases can start using this instance partition. * The instance partition's allocated resource levels are readable via the API. * The instance partition's state becomes READY. The returned long-running operation will have a name of the format /operations/ and can be used to track creation of the instance partition. The metadata field type is CreateInstancePartitionMetadata. The response field type is InstancePartition, if successful.
 ///
@@ -10532,14 +11383,16 @@ pub fn spanner_projects_instances_instance_partitions_create_execute(
 
 pub fn spanner_projects_instances_instance_partitions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateInstancePartitionRequest,
+    args: &SpannerProjectsInstancesInstancePartitionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_instance_partitions_create_builder(client, parent, body)?;
+    let builder = spanner_projects_instances_instance_partitions_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     spanner_projects_instances_instance_partitions_create_execute(builder)
 }
 
@@ -10645,6 +11498,15 @@ pub fn spanner_projects_instances_instance_partitions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_instance_partitions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
 /// Deletes an existing instance partition. Requires that the instance partition is not used by any database or backup and is not the default instance partition of an instance. Authorization requires spanner.`instancePartitions`.delete permission on the resource name.
 ///
@@ -10657,14 +11519,16 @@ pub fn spanner_projects_instances_instance_partitions_delete_execute(
 
 pub fn spanner_projects_instances_instance_partitions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &SpannerProjectsInstancesInstancePartitionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_instance_partitions_delete_builder(client, name, etag)?;
+    let builder = spanner_projects_instances_instance_partitions_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     spanner_projects_instances_instance_partitions_delete_execute(builder)
 }
 
@@ -10760,6 +11624,13 @@ pub fn spanner_projects_instances_instance_partitions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_instance_partitions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
 /// Gets information about a particular instance partition.
 ///
@@ -10772,14 +11643,14 @@ pub fn spanner_projects_instances_instance_partitions_get_execute(
 
 pub fn spanner_projects_instances_instance_partitions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesInstancePartitionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InstancePartition>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_instance_partitions_get_builder(client, name)?;
+    let builder = spanner_projects_instances_instance_partitions_get_builder(client, &args.name)?;
     spanner_projects_instances_instance_partitions_get_execute(builder)
 }
 
@@ -10897,6 +11768,19 @@ pub fn spanner_projects_instances_instance_partitions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_instance_partitions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: instancePartitionDeadline
+    pub instancePartitionDeadline: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions
 /// Lists all instance partitions for the given instance.
 ///
@@ -10909,10 +11793,7 @@ pub fn spanner_projects_instances_instance_partitions_list_execute(
 
 pub fn spanner_projects_instances_instance_partitions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    instancePartitionDeadline: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SpannerProjectsInstancesInstancePartitionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInstancePartitionsResponse>, ApiError>,
@@ -10923,10 +11804,10 @@ pub fn spanner_projects_instances_instance_partitions_list(
 > {
     let builder = spanner_projects_instances_instance_partitions_list_builder(
         client,
-        parent,
-        instancePartitionDeadline,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.instancePartitionDeadline.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     spanner_projects_instances_instance_partitions_list_execute(builder)
 }
@@ -11024,6 +11905,15 @@ pub fn spanner_projects_instances_instance_partitions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_instance_partitions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpdateInstancePartitionRequest,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}
 /// Updates an instance partition, and begins allocating or releasing resources as requested. The returned long-running operation can be used to track the progress of updating the instance partition. If the named instance partition does not exist, returns NOT_FOUND. Immediately upon completion of this request: * For resource types for which a decrease in the instance partition's allocation has been requested, billing is based on the newly-requested level. Until completion of the returned operation: * Cancelling the operation sets its metadata's cancel_time, and begins restoring resources to their pre-request values. The operation is guaranteed to succeed at undoing all resource changes, after which point it terminates with a CANCELLED status. * All other attempts to modify the instance partition are rejected. * Reading the instance partition via the API continues to give the pre-request resource levels. Upon completion of the returned operation: * Billing begins for all successfully-allocated resources (some types may have lower than the requested levels). * All newly-reserved resources are available for serving the instance partition's tables. * The instance partition's new resource levels are readable via the API. The returned long-running operation will have a name of the format /operations/ and can be used to track the instance partition modification. The metadata field type is UpdateInstancePartitionMetadata. The response field type is InstancePartition, if successful. Authorization requires spanner.`instancePartitions`.update permission on the resource name.
 ///
@@ -11036,13 +11926,14 @@ pub fn spanner_projects_instances_instance_partitions_patch_execute(
 
 pub fn spanner_projects_instances_instance_partitions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateInstancePartitionRequest,
+    args: &SpannerProjectsInstancesInstancePartitionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_instance_partitions_patch_builder(client, name, body)?;
+    let builder = spanner_projects_instances_instance_partitions_patch_builder(
+        client, &args.name, &args.body,
+    )?;
     spanner_projects_instances_instance_partitions_patch_execute(builder)
 }
 
@@ -11136,6 +12027,13 @@ pub fn spanner_projects_instances_instance_partitions_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_instance_partitions_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -11148,13 +12046,14 @@ pub fn spanner_projects_instances_instance_partitions_operations_cancel_execute(
 
 pub fn spanner_projects_instances_instance_partitions_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesInstancePartitionsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_instance_partitions_operations_cancel_builder(client, name)?;
+    let builder = spanner_projects_instances_instance_partitions_operations_cancel_builder(
+        client, &args.name,
+    )?;
     spanner_projects_instances_instance_partitions_operations_cancel_execute(builder)
 }
 
@@ -11248,6 +12147,13 @@ pub fn spanner_projects_instances_instance_partitions_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_instance_partitions_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -11260,13 +12166,14 @@ pub fn spanner_projects_instances_instance_partitions_operations_delete_execute(
 
 pub fn spanner_projects_instances_instance_partitions_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesInstancePartitionsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        spanner_projects_instances_instance_partitions_operations_delete_builder(client, name)?;
+    let builder = spanner_projects_instances_instance_partitions_operations_delete_builder(
+        client, &args.name,
+    )?;
     spanner_projects_instances_instance_partitions_operations_delete_execute(builder)
 }
 
@@ -11360,6 +12267,13 @@ pub fn spanner_projects_instances_instance_partitions_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_instance_partitions_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -11372,13 +12286,13 @@ pub fn spanner_projects_instances_instance_partitions_operations_get_execute(
 
 pub fn spanner_projects_instances_instance_partitions_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesInstancePartitionsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        spanner_projects_instances_instance_partitions_operations_get_builder(client, name)?;
+        spanner_projects_instances_instance_partitions_operations_get_builder(client, &args.name)?;
     spanner_projects_instances_instance_partitions_operations_get_execute(builder)
 }
 
@@ -11498,6 +12412,21 @@ pub fn spanner_projects_instances_instance_partitions_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_instance_partitions_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesInstancePartitionsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/instancePartitions/{instancePartitionsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -11510,11 +12439,7 @@ pub fn spanner_projects_instances_instance_partitions_operations_list_execute(
 
 pub fn spanner_projects_instances_instance_partitions_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &SpannerProjectsInstancesInstancePartitionsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -11523,11 +12448,11 @@ pub fn spanner_projects_instances_instance_partitions_operations_list(
 > {
     let builder = spanner_projects_instances_instance_partitions_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     spanner_projects_instances_instance_partitions_operations_list_execute(builder)
 }
@@ -11622,6 +12547,13 @@ pub fn spanner_projects_instances_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -11634,12 +12566,12 @@ pub fn spanner_projects_instances_operations_cancel_execute(
 
 pub fn spanner_projects_instances_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_operations_cancel_builder(client, name)?;
+    let builder = spanner_projects_instances_operations_cancel_builder(client, &args.name)?;
     spanner_projects_instances_operations_cancel_execute(builder)
 }
 
@@ -11733,6 +12665,13 @@ pub fn spanner_projects_instances_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -11745,12 +12684,12 @@ pub fn spanner_projects_instances_operations_delete_execute(
 
 pub fn spanner_projects_instances_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_operations_delete_builder(client, name)?;
+    let builder = spanner_projects_instances_operations_delete_builder(client, &args.name)?;
     spanner_projects_instances_operations_delete_execute(builder)
 }
 
@@ -11844,6 +12783,13 @@ pub fn spanner_projects_instances_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -11856,12 +12802,12 @@ pub fn spanner_projects_instances_operations_get_execute(
 
 pub fn spanner_projects_instances_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SpannerProjectsInstancesOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = spanner_projects_instances_operations_get_builder(client, name)?;
+    let builder = spanner_projects_instances_operations_get_builder(client, &args.name)?;
     spanner_projects_instances_operations_get_execute(builder)
 }
 
@@ -11981,6 +12927,21 @@ pub fn spanner_projects_instances_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_projects_instances_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerProjectsInstancesOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/instances/{instancesId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -11993,11 +12954,7 @@ pub fn spanner_projects_instances_operations_list_execute(
 
 pub fn spanner_projects_instances_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &SpannerProjectsInstancesOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -12006,11 +12963,11 @@ pub fn spanner_projects_instances_operations_list(
 > {
     let builder = spanner_projects_instances_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     spanner_projects_instances_operations_list_execute(builder)
 }
@@ -12128,6 +13085,21 @@ pub fn spanner_scans_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`spanner_scans_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SpannerScansListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/scans
 /// Return available scans given a Database-specific resource name.
 ///
@@ -12140,17 +13112,20 @@ pub fn spanner_scans_list_execute(
 
 pub fn spanner_scans_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &SpannerScansListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListScansResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = spanner_scans_list_builder(client, parent, filter, pageSize, pageToken, view)?;
+    let builder = spanner_scans_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
+    )?;
     spanner_scans_list_execute(builder)
 }

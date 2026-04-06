@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/bidders/{biddersId}/auctionPackages
 /// List the auction packages. Buyers can use the URL path "/v1/`buyers/{`accountId`}/`auctionPackages``" to list auction packages for the current buyer and its clients. Bidders can use the URL path "/v1/`bidders/{`accountId`}/`auctionPackages``" to list auction packages for the bidder, its media planners, its buyers, and all their clients.
@@ -134,6 +136,21 @@ pub fn authorizedbuyersmarketplace_bidders_auction_packages_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_bidders_auction_packages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBiddersAuctionPackagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/bidders/{biddersId}/auctionPackages
 /// List the auction packages. Buyers can use the URL path "/v1/`buyers/{`accountId`}/`auctionPackages``" to list auction packages for the current buyer and its clients. Bidders can use the URL path "/v1/`bidders/{`accountId`}/`auctionPackages``" to list auction packages for the bidder, its media planners, its buyers, and all their clients.
 ///
@@ -146,11 +163,7 @@ pub fn authorizedbuyersmarketplace_bidders_auction_packages_list_execute(
 
 pub fn authorizedbuyersmarketplace_bidders_auction_packages_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AuthorizedbuyersmarketplaceBiddersAuctionPackagesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAuctionPackagesResponse>, ApiError>,
@@ -160,7 +173,12 @@ pub fn authorizedbuyersmarketplace_bidders_auction_packages_list(
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_bidders_auction_packages_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     authorizedbuyersmarketplace_bidders_auction_packages_list_execute(builder)
 }
@@ -283,6 +301,21 @@ pub fn authorizedbuyersmarketplace_bidders_finalized_deals_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_bidders_finalized_deals_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBiddersFinalizedDealsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/bidders/{biddersId}/finalizedDeals
 /// Lists finalized deals. Use the URL path "/v1/`buyers/{`accountId`}/`finalizedDeals``" to list finalized deals for the current buyer and its clients. Bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals``" to list finalized deals for the bidder, its buyers and all their clients.
 ///
@@ -295,11 +328,7 @@ pub fn authorizedbuyersmarketplace_bidders_finalized_deals_list_execute(
 
 pub fn authorizedbuyersmarketplace_bidders_finalized_deals_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AuthorizedbuyersmarketplaceBiddersFinalizedDealsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListFinalizedDealsResponse>, ApiError>,
@@ -309,7 +338,12 @@ pub fn authorizedbuyersmarketplace_bidders_finalized_deals_list(
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_bidders_finalized_deals_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     authorizedbuyersmarketplace_bidders_finalized_deals_list_execute(builder)
 }
@@ -409,6 +443,15 @@ pub fn authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBiddersFinalizedDealsSetReadyToServeArgs {
+    /// Path parameter: deal
+    pub deal: String,
+    /// Request body.
+    pub body: SetReadyToServeRequest,
+}
+
 /// GET v1/bidders/{biddersId}/finalizedDeals/{finalizedDealsId}:setReadyToServe
 /// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they're finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don't start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
 ///
@@ -421,8 +464,7 @@ pub fn authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve_ex
 
 pub fn authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve(
     client: &SimpleHttpClient,
-    deal: &str,
-    body: &SetReadyToServeRequest,
+    args: &AuthorizedbuyersmarketplaceBiddersFinalizedDealsSetReadyToServeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FinalizedDeal>, ApiError>, P = ApiPending>
         + Send
@@ -430,7 +472,7 @@ pub fn authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve(
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve_builder(
-        client, deal, body,
+        client, &args.deal, &args.body,
     )?;
     authorizedbuyersmarketplace_bidders_finalized_deals_set_ready_to_serve_execute(builder)
 }
@@ -527,6 +569,13 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_auction_packages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersAuctionPackagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/buyers/{buyersId}/auctionPackages/{auctionPackagesId}
 /// Gets an auction package given its name.
 ///
@@ -539,14 +588,15 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_get_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_auction_packages_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AuthorizedbuyersmarketplaceBuyersAuctionPackagesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuctionPackage>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = authorizedbuyersmarketplace_buyers_auction_packages_get_builder(client, name)?;
+    let builder =
+        authorizedbuyersmarketplace_buyers_auction_packages_get_builder(client, &args.name)?;
     authorizedbuyersmarketplace_buyers_auction_packages_get_execute(builder)
 }
 
@@ -668,6 +718,21 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_auction_packages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersAuctionPackagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/buyers/{buyersId}/auctionPackages
 /// List the auction packages. Buyers can use the URL path "/v1/`buyers/{`accountId`}/`auctionPackages``" to list auction packages for the current buyer and its clients. Bidders can use the URL path "/v1/`bidders/{`accountId`}/`auctionPackages``" to list auction packages for the bidder, its media planners, its buyers, and all their clients.
 ///
@@ -680,11 +745,7 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_list_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_auction_packages_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AuthorizedbuyersmarketplaceBuyersAuctionPackagesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAuctionPackagesResponse>, ApiError>,
@@ -694,7 +755,12 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_list(
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_buyers_auction_packages_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     authorizedbuyersmarketplace_buyers_auction_packages_list_execute(builder)
 }
@@ -794,6 +860,15 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_subscribe_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_auction_packages_subscribe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersAuctionPackagesSubscribeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SubscribeAuctionPackageRequest,
+}
+
 /// GET v1/buyers/{buyersId}/auctionPackages/{auctionPackagesId}:subscribe
 /// Subscribe to the auction package for the specified buyer. Once subscribed, the bidder will receive a call out for inventory matching the auction package targeting criteria with the auction package deal ID and the specified buyer.
 ///
@@ -806,16 +881,16 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_subscribe_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_auction_packages_subscribe(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SubscribeAuctionPackageRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersAuctionPackagesSubscribeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuctionPackage>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        authorizedbuyersmarketplace_buyers_auction_packages_subscribe_builder(client, name, body)?;
+    let builder = authorizedbuyersmarketplace_buyers_auction_packages_subscribe_builder(
+        client, &args.name, &args.body,
+    )?;
     authorizedbuyersmarketplace_buyers_auction_packages_subscribe_execute(builder)
 }
 
@@ -914,6 +989,15 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_subscribe_clients_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_auction_packages_subscribe_clients`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersAuctionPackagesSubscribeClientsArgs {
+    /// Path parameter: auctionPackage
+    pub auctionPackage: String,
+    /// Request body.
+    pub body: SubscribeClientsRequest,
+}
+
 /// GET v1/buyers/{buyersId}/auctionPackages/{auctionPackagesId}:subscribeClients
 /// Subscribe the specified clients of the buyer to the auction package. If a client in the list does not belong to the buyer, an error response will be returned, and all of the following clients in the list will not be subscribed. Subscribing an already subscribed client will have no effect.
 ///
@@ -926,8 +1010,7 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_subscribe_clients_exe
 
 pub fn authorizedbuyersmarketplace_buyers_auction_packages_subscribe_clients(
     client: &SimpleHttpClient,
-    auctionPackage: &str,
-    body: &SubscribeClientsRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersAuctionPackagesSubscribeClientsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuctionPackage>, ApiError>, P = ApiPending>
         + Send
@@ -936,8 +1019,8 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_subscribe_clients(
 > {
     let builder = authorizedbuyersmarketplace_buyers_auction_packages_subscribe_clients_builder(
         client,
-        auctionPackage,
-        body,
+        &args.auctionPackage,
+        &args.body,
     )?;
     authorizedbuyersmarketplace_buyers_auction_packages_subscribe_clients_execute(builder)
 }
@@ -1037,6 +1120,15 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersAuctionPackagesUnsubscribeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UnsubscribeAuctionPackageRequest,
+}
+
 /// GET v1/buyers/{buyersId}/auctionPackages/{auctionPackagesId}:unsubscribe
 /// Unsubscribe from the auction package for the specified buyer. Once unsubscribed, the bidder will no longer receive a call out for the auction package deal ID and the specified buyer.
 ///
@@ -1049,8 +1141,7 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UnsubscribeAuctionPackageRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersAuctionPackagesUnsubscribeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuctionPackage>, ApiError>, P = ApiPending>
         + Send
@@ -1058,7 +1149,7 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe(
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_execute(builder)
 }
@@ -1158,6 +1249,15 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_clients_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_clients`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersAuctionPackagesUnsubscribeClientsArgs {
+    /// Path parameter: auctionPackage
+    pub auctionPackage: String,
+    /// Request body.
+    pub body: UnsubscribeClientsRequest,
+}
+
 /// GET v1/buyers/{buyersId}/auctionPackages/{auctionPackagesId}:unsubscribeClients
 /// Unsubscribe from the auction package for the specified clients of the buyer. Unsubscribing a client that is not subscribed will have no effect.
 ///
@@ -1170,8 +1270,7 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_clients_e
 
 pub fn authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_clients(
     client: &SimpleHttpClient,
-    auctionPackage: &str,
-    body: &UnsubscribeClientsRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersAuctionPackagesUnsubscribeClientsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuctionPackage>, ApiError>, P = ApiPending>
         + Send
@@ -1180,8 +1279,8 @@ pub fn authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_clients(
 > {
     let builder = authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_clients_builder(
         client,
-        auctionPackage,
-        body,
+        &args.auctionPackage,
+        &args.body,
     )?;
     authorizedbuyersmarketplace_buyers_auction_packages_unsubscribe_clients_execute(builder)
 }
@@ -1279,6 +1378,15 @@ pub fn authorizedbuyersmarketplace_buyers_clients_activate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_clients_activate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersClientsActivateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ActivateClientRequest,
+}
+
 /// GET v1/buyers/{buyersId}/clients/{clientsId}:activate
 /// Activates an existing client. The state of the client will be updated to "`ACTIVE`". This method has no effect if the client is already in "`ACTIVE`" state.
 ///
@@ -1291,13 +1399,14 @@ pub fn authorizedbuyersmarketplace_buyers_clients_activate_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_clients_activate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ActivateClientRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersClientsActivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = authorizedbuyersmarketplace_buyers_clients_activate_builder(client, name, body)?;
+    let builder = authorizedbuyersmarketplace_buyers_clients_activate_builder(
+        client, &args.name, &args.body,
+    )?;
     authorizedbuyersmarketplace_buyers_clients_activate_execute(builder)
 }
 
@@ -1394,6 +1503,15 @@ pub fn authorizedbuyersmarketplace_buyers_clients_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_clients_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersClientsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Client,
+}
+
 /// GET v1/buyers/{buyersId}/clients
 /// Creates a new client.
 ///
@@ -1406,13 +1524,16 @@ pub fn authorizedbuyersmarketplace_buyers_clients_create_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_clients_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Client,
+    args: &AuthorizedbuyersmarketplaceBuyersClientsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = authorizedbuyersmarketplace_buyers_clients_create_builder(client, parent, body)?;
+    let builder = authorizedbuyersmarketplace_buyers_clients_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     authorizedbuyersmarketplace_buyers_clients_create_execute(builder)
 }
 
@@ -1509,6 +1630,15 @@ pub fn authorizedbuyersmarketplace_buyers_clients_deactivate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_clients_deactivate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersClientsDeactivateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DeactivateClientRequest,
+}
+
 /// GET v1/buyers/{buyersId}/clients/{clientsId}:deactivate
 /// Deactivates an existing client. The state of the client will be updated to "`INACTIVE`". This method has no effect if the client is already in "`INACTIVE`" state.
 ///
@@ -1521,14 +1651,14 @@ pub fn authorizedbuyersmarketplace_buyers_clients_deactivate_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_clients_deactivate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DeactivateClientRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersClientsDeactivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        authorizedbuyersmarketplace_buyers_clients_deactivate_builder(client, name, body)?;
+    let builder = authorizedbuyersmarketplace_buyers_clients_deactivate_builder(
+        client, &args.name, &args.body,
+    )?;
     authorizedbuyersmarketplace_buyers_clients_deactivate_execute(builder)
 }
 
@@ -1622,6 +1752,13 @@ pub fn authorizedbuyersmarketplace_buyers_clients_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_clients_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersClientsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/buyers/{buyersId}/clients/{clientsId}
 /// Gets a client with a given resource name.
 ///
@@ -1634,12 +1771,12 @@ pub fn authorizedbuyersmarketplace_buyers_clients_get_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_clients_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AuthorizedbuyersmarketplaceBuyersClientsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = authorizedbuyersmarketplace_buyers_clients_get_builder(client, name)?;
+    let builder = authorizedbuyersmarketplace_buyers_clients_get_builder(client, &args.name)?;
     authorizedbuyersmarketplace_buyers_clients_get_execute(builder)
 }
 
@@ -1755,6 +1892,19 @@ pub fn authorizedbuyersmarketplace_buyers_clients_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_clients_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersClientsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/buyers/{buyersId}/clients
 /// Lists all the clients for the current buyer.
 ///
@@ -1767,10 +1917,7 @@ pub fn authorizedbuyersmarketplace_buyers_clients_list_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_clients_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AuthorizedbuyersmarketplaceBuyersClientsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListClientsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1778,7 +1925,11 @@ pub fn authorizedbuyersmarketplace_buyers_clients_list(
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_buyers_clients_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     authorizedbuyersmarketplace_buyers_clients_list_execute(builder)
 }
@@ -1888,6 +2039,17 @@ pub fn authorizedbuyersmarketplace_buyers_clients_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_clients_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersClientsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Client,
+}
+
 /// GET v1/buyers/{buyersId}/clients/{clientsId}
 /// Updates an existing client.
 ///
@@ -1900,15 +2062,17 @@ pub fn authorizedbuyersmarketplace_buyers_clients_patch_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_clients_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Client,
+    args: &AuthorizedbuyersmarketplaceBuyersClientsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        authorizedbuyersmarketplace_buyers_clients_patch_builder(client, name, updateMask, body)?;
+    let builder = authorizedbuyersmarketplace_buyers_clients_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     authorizedbuyersmarketplace_buyers_clients_patch_execute(builder)
 }
 
@@ -2005,6 +2169,15 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_activate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_clients_users_activate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersClientsUsersActivateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ActivateClientUserRequest,
+}
+
 /// GET v1/buyers/{buyersId}/clients/{clientsId}/users/{usersId}:activate
 /// Activates an existing client user. The state of the client user will be updated from "`INACTIVE`" to "`ACTIVE`". This method has no effect if the client user is already in "`ACTIVE`" state. An error will be returned if the client user to activate is still in "INVITED" state.
 ///
@@ -2017,14 +2190,14 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_activate_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_clients_users_activate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ActivateClientUserRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersClientsUsersActivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClientUser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        authorizedbuyersmarketplace_buyers_clients_users_activate_builder(client, name, body)?;
+    let builder = authorizedbuyersmarketplace_buyers_clients_users_activate_builder(
+        client, &args.name, &args.body,
+    )?;
     authorizedbuyersmarketplace_buyers_clients_users_activate_execute(builder)
 }
 
@@ -2121,6 +2294,15 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_clients_users_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersClientsUsersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ClientUser,
+}
+
 /// GET v1/buyers/{buyersId}/clients/{clientsId}/users
 /// Creates a new client user in "INVITED" state. An email invitation will be sent to the new user, once accepted the user will become active.
 ///
@@ -2133,14 +2315,16 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_create_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_clients_users_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ClientUser,
+    args: &AuthorizedbuyersmarketplaceBuyersClientsUsersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClientUser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        authorizedbuyersmarketplace_buyers_clients_users_create_builder(client, parent, body)?;
+    let builder = authorizedbuyersmarketplace_buyers_clients_users_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     authorizedbuyersmarketplace_buyers_clients_users_create_execute(builder)
 }
 
@@ -2237,6 +2421,15 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_deactivate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_clients_users_deactivate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersClientsUsersDeactivateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DeactivateClientUserRequest,
+}
+
 /// GET v1/buyers/{buyersId}/clients/{clientsId}/users/{usersId}:deactivate
 /// Deactivates an existing client user. The state of the client user will be updated from "`ACTIVE`" to "`INACTIVE`". This method has no effect if the client user is already in "`INACTIVE`" state. An error will be returned if the client user to deactivate is still in "INVITED" state.
 ///
@@ -2249,14 +2442,14 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_deactivate_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_clients_users_deactivate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DeactivateClientUserRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersClientsUsersDeactivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClientUser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        authorizedbuyersmarketplace_buyers_clients_users_deactivate_builder(client, name, body)?;
+    let builder = authorizedbuyersmarketplace_buyers_clients_users_deactivate_builder(
+        client, &args.name, &args.body,
+    )?;
     authorizedbuyersmarketplace_buyers_clients_users_deactivate_execute(builder)
 }
 
@@ -2350,6 +2543,13 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_clients_users_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersClientsUsersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/buyers/{buyersId}/clients/{clientsId}/users/{usersId}
 /// Deletes an existing client user. The client user will lose access to the Authorized Buyers UI. Note that if a client user is deleted, the user's access to the UI can't be restored unless a new client user is created and activated.
 ///
@@ -2362,12 +2562,13 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_delete_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_clients_users_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AuthorizedbuyersmarketplaceBuyersClientsUsersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = authorizedbuyersmarketplace_buyers_clients_users_delete_builder(client, name)?;
+    let builder =
+        authorizedbuyersmarketplace_buyers_clients_users_delete_builder(client, &args.name)?;
     authorizedbuyersmarketplace_buyers_clients_users_delete_execute(builder)
 }
 
@@ -2461,6 +2662,13 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_clients_users_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersClientsUsersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/buyers/{buyersId}/clients/{clientsId}/users/{usersId}
 /// Retrieves an existing client user.
 ///
@@ -2473,12 +2681,12 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_get_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_clients_users_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AuthorizedbuyersmarketplaceBuyersClientsUsersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClientUser>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = authorizedbuyersmarketplace_buyers_clients_users_get_builder(client, name)?;
+    let builder = authorizedbuyersmarketplace_buyers_clients_users_get_builder(client, &args.name)?;
     authorizedbuyersmarketplace_buyers_clients_users_get_execute(builder)
 }
 
@@ -2590,6 +2798,17 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_clients_users_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersClientsUsersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/buyers/{buyersId}/clients/{clientsId}/users
 /// Lists all client users for a specified client.
 ///
@@ -2602,9 +2821,7 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_list_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_clients_users_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AuthorizedbuyersmarketplaceBuyersClientsUsersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListClientUsersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2612,7 +2829,10 @@ pub fn authorizedbuyersmarketplace_buyers_clients_users_list(
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_buyers_clients_users_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     authorizedbuyersmarketplace_buyers_clients_users_list_execute(builder)
 }
@@ -2712,6 +2932,15 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_add_creative_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_finalized_deals_add_creative`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersFinalizedDealsAddCreativeArgs {
+    /// Path parameter: deal
+    pub deal: String,
+    /// Request body.
+    pub body: AddCreativeRequest,
+}
+
 /// GET v1/buyers/{buyersId}/finalizedDeals/{finalizedDealsId}:addCreative
 /// Add creative to be used in the bidding process for a finalized deal. For programmatic guaranteed deals, it's recommended that you associate at least one approved creative with the deal before calling SetReadyToServe, to help reduce the number of bid responses filtered because they don't contain approved creatives. Creatives successfully added to a deal can be found in the Realtime-bidding Creatives API creative.deal_ids. This method only applies to programmatic guaranteed deals. Maximum number of 1000 creatives can be added to a finalized deal.
 ///
@@ -2724,8 +2953,7 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_add_creative_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_finalized_deals_add_creative(
     client: &SimpleHttpClient,
-    deal: &str,
-    body: &AddCreativeRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersFinalizedDealsAddCreativeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FinalizedDeal>, ApiError>, P = ApiPending>
         + Send
@@ -2733,7 +2961,7 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_add_creative(
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_buyers_finalized_deals_add_creative_builder(
-        client, deal, body,
+        client, &args.deal, &args.body,
     )?;
     authorizedbuyersmarketplace_buyers_finalized_deals_add_creative_execute(builder)
 }
@@ -2830,6 +3058,13 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_finalized_deals_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersFinalizedDealsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/buyers/{buyersId}/finalizedDeals/{finalizedDealsId}
 /// Gets a finalized deal given its name.
 ///
@@ -2842,14 +3077,15 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_get_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_finalized_deals_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AuthorizedbuyersmarketplaceBuyersFinalizedDealsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FinalizedDeal>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = authorizedbuyersmarketplace_buyers_finalized_deals_get_builder(client, name)?;
+    let builder =
+        authorizedbuyersmarketplace_buyers_finalized_deals_get_builder(client, &args.name)?;
     authorizedbuyersmarketplace_buyers_finalized_deals_get_execute(builder)
 }
 
@@ -2971,6 +3207,21 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_finalized_deals_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersFinalizedDealsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/buyers/{buyersId}/finalizedDeals
 /// Lists finalized deals. Use the URL path "/v1/`buyers/{`accountId`}/`finalizedDeals``" to list finalized deals for the current buyer and its clients. Bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals``" to list finalized deals for the bidder, its buyers and all their clients.
 ///
@@ -2983,11 +3234,7 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_list_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_finalized_deals_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AuthorizedbuyersmarketplaceBuyersFinalizedDealsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListFinalizedDealsResponse>, ApiError>,
@@ -2997,7 +3244,12 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_list(
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_buyers_finalized_deals_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     authorizedbuyersmarketplace_buyers_finalized_deals_list_execute(builder)
 }
@@ -3097,6 +3349,15 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_pause_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_finalized_deals_pause`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersFinalizedDealsPauseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: PauseFinalizedDealRequest,
+}
+
 /// GET v1/buyers/{buyersId}/finalizedDeals/{finalizedDealsId}:pause
 /// Pauses serving of the given finalized deal. This call only pauses the serving status, and does not affect other fields of the finalized deal. Calling this method for an already paused deal has no effect. This method only applies to programmatic guaranteed deals and preferred deals.
 ///
@@ -3109,16 +3370,16 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_pause_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_finalized_deals_pause(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &PauseFinalizedDealRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersFinalizedDealsPauseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FinalizedDeal>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        authorizedbuyersmarketplace_buyers_finalized_deals_pause_builder(client, name, body)?;
+    let builder = authorizedbuyersmarketplace_buyers_finalized_deals_pause_builder(
+        client, &args.name, &args.body,
+    )?;
     authorizedbuyersmarketplace_buyers_finalized_deals_pause_execute(builder)
 }
 
@@ -3217,6 +3478,15 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_resume_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_finalized_deals_resume`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersFinalizedDealsResumeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResumeFinalizedDealRequest,
+}
+
 /// GET v1/buyers/{buyersId}/finalizedDeals/{finalizedDealsId}:resume
 /// Resumes serving of the given finalized deal. Calling this method for an running deal has no effect. If a deal is initially paused by the seller, calling this method will not resume serving of the deal until the seller also resumes the deal. This method only applies to programmatic guaranteed deals and preferred deals.
 ///
@@ -3229,16 +3499,16 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_resume_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_finalized_deals_resume(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResumeFinalizedDealRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersFinalizedDealsResumeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FinalizedDeal>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        authorizedbuyersmarketplace_buyers_finalized_deals_resume_builder(client, name, body)?;
+    let builder = authorizedbuyersmarketplace_buyers_finalized_deals_resume_builder(
+        client, &args.name, &args.body,
+    )?;
     authorizedbuyersmarketplace_buyers_finalized_deals_resume_execute(builder)
 }
 
@@ -3337,6 +3607,15 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersFinalizedDealsSetReadyToServeArgs {
+    /// Path parameter: deal
+    pub deal: String,
+    /// Request body.
+    pub body: SetReadyToServeRequest,
+}
+
 /// GET v1/buyers/{buyersId}/finalizedDeals/{finalizedDealsId}:setReadyToServe
 /// Sets the given finalized deal as ready to serve. By default, deals are set as ready to serve as soon as they're finalized. If you want to opt out of the default behavior, and manually indicate that deals are ready to serve, ask your Technical Account Manager to add you to the allowlist. If you choose to use this method, finalized deals belonging to the bidder and its child seats don't start serving until after you call `setReadyToServe`, and after the deals become active. For example, you can use this method to delay receiving bid requests until your creative is ready. In addition, bidders can use the URL path "/v1/`bidders/{`accountId`}/`finalizedDeals`/{`dealId`}`" to set ready to serve for the finalized deals belong to itself, its child seats and all their clients. This method only applies to programmatic guaranteed deals.
 ///
@@ -3349,8 +3628,7 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve_exe
 
 pub fn authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve(
     client: &SimpleHttpClient,
-    deal: &str,
-    body: &SetReadyToServeRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersFinalizedDealsSetReadyToServeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FinalizedDeal>, ApiError>, P = ApiPending>
         + Send
@@ -3358,7 +3636,7 @@ pub fn authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve(
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve_builder(
-        client, deal, body,
+        client, &args.deal, &args.body,
     )?;
     authorizedbuyersmarketplace_buyers_finalized_deals_set_ready_to_serve_execute(builder)
 }
@@ -3456,6 +3734,15 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_accept_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_proposals_accept`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersProposalsAcceptArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AcceptProposalRequest,
+}
+
 /// GET v1/buyers/{buyersId}/proposals/{proposalsId}:accept
 /// Accepts the proposal at the given revision number. If the revision number in the request is behind the latest from the server, an error message will be returned. This call updates the Proposal.state from BUYER_ACCEPTANCE_REQUESTED to FINALIZED; it has no side effect if the Proposal.state is already FINALIZED and throws exception if the Proposal.state is not either BUYER_ACCEPTANCE_REQUESTED or FINALIZED. Accepting a proposal means the buyer understands and accepts the Proposal.terms_and_conditions proposed by the seller.
 ///
@@ -3468,13 +3755,14 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_accept_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_proposals_accept(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AcceptProposalRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersProposalsAcceptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = authorizedbuyersmarketplace_buyers_proposals_accept_builder(client, name, body)?;
+    let builder = authorizedbuyersmarketplace_buyers_proposals_accept_builder(
+        client, &args.name, &args.body,
+    )?;
     authorizedbuyersmarketplace_buyers_proposals_accept_execute(builder)
 }
 
@@ -3571,6 +3859,15 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_add_note_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_proposals_add_note`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersProposalsAddNoteArgs {
+    /// Path parameter: proposal
+    pub proposal: String,
+    /// Request body.
+    pub body: AddNoteRequest,
+}
+
 /// GET v1/buyers/{buyersId}/proposals/{proposalsId}:addNote
 /// Creates a note for this proposal and sends to the seller. This method is not supported for proposals with DealType set to 'PRIVATE_AUCTION'.
 ///
@@ -3583,14 +3880,16 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_add_note_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_proposals_add_note(
     client: &SimpleHttpClient,
-    proposal: &str,
-    body: &AddNoteRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersProposalsAddNoteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        authorizedbuyersmarketplace_buyers_proposals_add_note_builder(client, proposal, body)?;
+    let builder = authorizedbuyersmarketplace_buyers_proposals_add_note_builder(
+        client,
+        &args.proposal,
+        &args.body,
+    )?;
     authorizedbuyersmarketplace_buyers_proposals_add_note_execute(builder)
 }
 
@@ -3687,6 +3986,15 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersProposalsCancelNegotiationArgs {
+    /// Path parameter: proposal
+    pub proposal: String,
+    /// Request body.
+    pub body: CancelNegotiationRequest,
+}
+
 /// GET v1/buyers/{buyersId}/proposals/{proposalsId}:cancelNegotiation
 /// Cancels an ongoing negotiation on a proposal. This does not cancel or end serving for the deals if the proposal has been finalized. If the proposal has not been finalized before, calling this method will set the Proposal.state to TERMINATED and increment the Proposal.proposal_revision. If the proposal has been finalized before and is under renegotiation now, calling this method will reset the Proposal.state to FINALIZED and increment the Proposal.proposal_revision. This method does not support private auction proposals whose Proposal.deal_type is 'PRIVATE_AUCTION'.
 ///
@@ -3699,14 +4007,15 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation(
     client: &SimpleHttpClient,
-    proposal: &str,
-    body: &CancelNegotiationRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersProposalsCancelNegotiationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation_builder(
-        client, proposal, body,
+        client,
+        &args.proposal,
+        &args.body,
     )?;
     authorizedbuyersmarketplace_buyers_proposals_cancel_negotiation_execute(builder)
 }
@@ -3801,6 +4110,13 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_proposals_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersProposalsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/buyers/{buyersId}/proposals/{proposalsId}
 /// Gets a proposal using its resource name. The proposal is returned at the latest revision.
 ///
@@ -3813,12 +4129,12 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_get_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_proposals_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AuthorizedbuyersmarketplaceBuyersProposalsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = authorizedbuyersmarketplace_buyers_proposals_get_builder(client, name)?;
+    let builder = authorizedbuyersmarketplace_buyers_proposals_get_builder(client, &args.name)?;
     authorizedbuyersmarketplace_buyers_proposals_get_execute(builder)
 }
 
@@ -3934,6 +4250,19 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_proposals_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersProposalsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/buyers/{buyersId}/proposals
 /// Lists proposals. A filter expression using [Cloud API list filtering syntax](<https://developers.google.`com/authorized-buyers/apis/guides/list-filters`>) may be specified to filter the results.
 ///
@@ -3946,10 +4275,7 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_list_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_proposals_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AuthorizedbuyersmarketplaceBuyersProposalsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListProposalsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3957,7 +4283,11 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_list(
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_buyers_proposals_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     authorizedbuyersmarketplace_buyers_proposals_list_execute(builder)
 }
@@ -4067,6 +4397,17 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_proposals_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersProposalsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Proposal,
+}
+
 /// GET v1/buyers/{buyersId}/proposals/{proposalsId}
 /// Updates the proposal at the given revision number. If the revision number in the request is behind the latest one kept in the server, an error message will be returned. See FieldMask for how to use FieldMask. Only fields specified in the UpdateProposalRequest.update_mask will be updated; Fields noted as 'Immutable' or 'Output only' yet specified in the UpdateProposalRequest.update_mask will be ignored and left unchanged. Updating a private auction proposal is only allowed for buyer private data, all other fields are immutable.
 ///
@@ -4079,15 +4420,17 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_patch_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_proposals_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Proposal,
+    args: &AuthorizedbuyersmarketplaceBuyersProposalsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        authorizedbuyersmarketplace_buyers_proposals_patch_builder(client, name, updateMask, body)?;
+    let builder = authorizedbuyersmarketplace_buyers_proposals_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     authorizedbuyersmarketplace_buyers_proposals_patch_execute(builder)
 }
 
@@ -4184,6 +4527,15 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_send_rfp_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_proposals_send_rfp`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersProposalsSendRfpArgs {
+    /// Path parameter: buyer
+    pub buyer: String,
+    /// Request body.
+    pub body: SendRfpRequest,
+}
+
 /// GET v1/buyers/{buyersId}/proposals:sendRfp
 /// Sends a request for proposal (RFP) to a publisher to initiate the negotiation regarding certain inventory. In the RFP, buyers can specify the deal type, deal terms, start and end dates, targeting, and a message to the publisher. Once the RFP is sent, a proposal in SELLER_REVIEW_REQUESTED state will be created and returned in the response. The publisher may review your request and respond with detailed deals in the proposal.
 ///
@@ -4196,14 +4548,16 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_send_rfp_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_proposals_send_rfp(
     client: &SimpleHttpClient,
-    buyer: &str,
-    body: &SendRfpRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersProposalsSendRfpArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        authorizedbuyersmarketplace_buyers_proposals_send_rfp_builder(client, buyer, body)?;
+    let builder = authorizedbuyersmarketplace_buyers_proposals_send_rfp_builder(
+        client,
+        &args.buyer,
+        &args.body,
+    )?;
     authorizedbuyersmarketplace_buyers_proposals_send_rfp_execute(builder)
 }
 
@@ -4302,6 +4656,15 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_proposals_deals_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersProposalsDealsBatchUpdateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchUpdateDealsRequest,
+}
+
 /// GET v1/buyers/{buyersId}/proposals/{proposalsId}/deals:batchUpdate
 /// Batch updates multiple deals in the same proposal.
 ///
@@ -4314,8 +4677,7 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_batch_update_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_proposals_deals_batch_update(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchUpdateDealsRequest,
+    args: &AuthorizedbuyersmarketplaceBuyersProposalsDealsBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchUpdateDealsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4323,7 +4685,9 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_batch_update(
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_buyers_proposals_deals_batch_update_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     authorizedbuyersmarketplace_buyers_proposals_deals_batch_update_execute(builder)
 }
@@ -4418,6 +4782,13 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_proposals_deals_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersProposalsDealsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/buyers/{buyersId}/proposals/{proposalsId}/deals/{dealsId}
 /// Gets a deal given its name. The deal is returned at its head revision.
 ///
@@ -4430,12 +4801,13 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_get_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_proposals_deals_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AuthorizedbuyersmarketplaceBuyersProposalsDealsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Deal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = authorizedbuyersmarketplace_buyers_proposals_deals_get_builder(client, name)?;
+    let builder =
+        authorizedbuyersmarketplace_buyers_proposals_deals_get_builder(client, &args.name)?;
     authorizedbuyersmarketplace_buyers_proposals_deals_get_execute(builder)
 }
 
@@ -4547,6 +4919,17 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_proposals_deals_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersProposalsDealsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/buyers/{buyersId}/proposals/{proposalsId}/deals
 /// Lists all deals in a proposal. To retrieve only the finalized revision deals regardless if a deal is being renegotiated, see the FinalizedDeals resource.
 ///
@@ -4559,9 +4942,7 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_list_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_proposals_deals_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AuthorizedbuyersmarketplaceBuyersProposalsDealsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDealsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4569,7 +4950,10 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_list(
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_buyers_proposals_deals_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     authorizedbuyersmarketplace_buyers_proposals_deals_list_execute(builder)
 }
@@ -4679,6 +5063,17 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_proposals_deals_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersProposalsDealsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Deal,
+}
+
 /// GET v1/buyers/{buyersId}/proposals/{proposalsId}/deals/{dealsId}
 /// Updates the given deal at the buyer known revision number. If the server revision has advanced since the passed-in proposal.proposal_revision an ABORTED error message will be returned. The revision number is incremented by the server whenever the proposal or its constituent deals are updated. Note: The revision number is kept at a proposal level. The buyer of the API is expected to keep track of the revision number after the last update operation and send it in as part of the next update request. This way, if there are further changes on the server (for example, seller making new updates), then the server can detect conflicts and reject the proposed changes.
 ///
@@ -4691,15 +5086,16 @@ pub fn authorizedbuyersmarketplace_buyers_proposals_deals_patch_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_proposals_deals_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Deal,
+    args: &AuthorizedbuyersmarketplaceBuyersProposalsDealsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Deal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_buyers_proposals_deals_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     authorizedbuyersmarketplace_buyers_proposals_deals_patch_execute(builder)
 }
@@ -4796,6 +5192,13 @@ pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_publisher_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersPublisherProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/buyers/{buyersId}/publisherProfiles/{publisherProfilesId}
 /// Gets the requested publisher profile by name.
 ///
@@ -4808,14 +5211,15 @@ pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_get_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AuthorizedbuyersmarketplaceBuyersPublisherProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PublisherProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = authorizedbuyersmarketplace_buyers_publisher_profiles_get_builder(client, name)?;
+    let builder =
+        authorizedbuyersmarketplace_buyers_publisher_profiles_get_builder(client, &args.name)?;
     authorizedbuyersmarketplace_buyers_publisher_profiles_get_execute(builder)
 }
 
@@ -4933,6 +5337,19 @@ pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`authorizedbuyersmarketplace_buyers_publisher_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AuthorizedbuyersmarketplaceBuyersPublisherProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/buyers/{buyersId}/publisherProfiles
 /// Lists publisher profiles. The returned publisher profiles aren't in any defined order. The order of the results might change. A new publisher profile can appear in any place in the list of returned results.
 ///
@@ -4945,10 +5362,7 @@ pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_list_execute(
 
 pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AuthorizedbuyersmarketplaceBuyersPublisherProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPublisherProfilesResponse>, ApiError>,
@@ -4958,7 +5372,11 @@ pub fn authorizedbuyersmarketplace_buyers_publisher_profiles_list(
     ApiError,
 > {
     let builder = authorizedbuyersmarketplace_buyers_publisher_profiles_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     authorizedbuyersmarketplace_buyers_publisher_profiles_list_execute(builder)
 }

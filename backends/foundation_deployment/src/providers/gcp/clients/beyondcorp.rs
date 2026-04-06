@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
@@ -109,6 +111,15 @@ pub fn beyondcorp_organizations_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_organizations_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpOrganizationsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -121,13 +132,14 @@ pub fn beyondcorp_organizations_locations_operations_cancel_execute(
 
 pub fn beyondcorp_organizations_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &BeyondcorpOrganizationsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = beyondcorp_organizations_locations_operations_cancel_builder(client, name, body)?;
+    let builder = beyondcorp_organizations_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     beyondcorp_organizations_locations_operations_cancel_execute(builder)
 }
 
@@ -221,6 +233,13 @@ pub fn beyondcorp_organizations_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_organizations_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpOrganizationsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -233,12 +252,12 @@ pub fn beyondcorp_organizations_locations_operations_delete_execute(
 
 pub fn beyondcorp_organizations_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BeyondcorpOrganizationsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = beyondcorp_organizations_locations_operations_delete_builder(client, name)?;
+    let builder = beyondcorp_organizations_locations_operations_delete_builder(client, &args.name)?;
     beyondcorp_organizations_locations_operations_delete_execute(builder)
 }
 
@@ -336,6 +355,13 @@ pub fn beyondcorp_organizations_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_organizations_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpOrganizationsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -348,7 +374,7 @@ pub fn beyondcorp_organizations_locations_operations_get_execute(
 
 pub fn beyondcorp_organizations_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BeyondcorpOrganizationsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -357,7 +383,7 @@ pub fn beyondcorp_organizations_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = beyondcorp_organizations_locations_operations_get_builder(client, name)?;
+    let builder = beyondcorp_organizations_locations_operations_get_builder(client, &args.name)?;
     beyondcorp_organizations_locations_operations_get_execute(builder)
 }
 
@@ -480,6 +506,21 @@ pub fn beyondcorp_organizations_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_organizations_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpOrganizationsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -492,11 +533,7 @@ pub fn beyondcorp_organizations_locations_operations_list_execute(
 
 pub fn beyondcorp_organizations_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &BeyondcorpOrganizationsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -507,11 +544,11 @@ pub fn beyondcorp_organizations_locations_operations_list(
 > {
     let builder = beyondcorp_organizations_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     beyondcorp_organizations_locations_operations_list_execute(builder)
 }
@@ -610,6 +647,13 @@ pub fn beyondcorp_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -622,7 +666,7 @@ pub fn beyondcorp_projects_locations_get_execute(
 
 pub fn beyondcorp_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BeyondcorpProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
@@ -631,7 +675,7 @@ pub fn beyondcorp_projects_locations_get(
         + 'static,
     ApiError,
 > {
-    let builder = beyondcorp_projects_locations_get_builder(client, name)?;
+    let builder = beyondcorp_projects_locations_get_builder(client, &args.name)?;
     beyondcorp_projects_locations_get_execute(builder)
 }
 
@@ -753,6 +797,21 @@ pub fn beyondcorp_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -765,11 +824,7 @@ pub fn beyondcorp_projects_locations_list_execute(
 
 pub fn beyondcorp_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BeyondcorpProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudLocationListLocationsResponse>, ApiError>,
@@ -780,11 +835,11 @@ pub fn beyondcorp_projects_locations_list(
 > {
     let builder = beyondcorp_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     beyondcorp_projects_locations_list_execute(builder)
 }
@@ -906,6 +961,21 @@ pub fn beyondcorp_projects_locations_app_connections_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connections_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: appConnectionId
+    pub appConnectionId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudBeyondcorpAppconnectionsV1AppConnection,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections
 /// Creates a new AppConnection in a given project and location.
 ///
@@ -918,11 +988,7 @@ pub fn beyondcorp_projects_locations_app_connections_create_execute(
 
 pub fn beyondcorp_projects_locations_app_connections_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    appConnectionId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudBeyondcorpAppconnectionsV1AppConnection,
+    args: &BeyondcorpProjectsLocationsAppConnectionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -933,11 +999,11 @@ pub fn beyondcorp_projects_locations_app_connections_create(
 > {
     let builder = beyondcorp_projects_locations_app_connections_create_builder(
         client,
-        parent,
-        appConnectionId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.appConnectionId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     beyondcorp_projects_locations_app_connections_create_execute(builder)
 }
@@ -1052,6 +1118,17 @@ pub fn beyondcorp_projects_locations_app_connections_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
 /// Deletes a single AppConnection.
 ///
@@ -1064,9 +1141,7 @@ pub fn beyondcorp_projects_locations_app_connections_delete_execute(
 
 pub fn beyondcorp_projects_locations_app_connections_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &BeyondcorpProjectsLocationsAppConnectionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1077,9 +1152,9 @@ pub fn beyondcorp_projects_locations_app_connections_delete(
 > {
     let builder = beyondcorp_projects_locations_app_connections_delete_builder(
         client,
-        name,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     beyondcorp_projects_locations_app_connections_delete_execute(builder)
 }
@@ -1179,6 +1254,13 @@ pub fn beyondcorp_projects_locations_app_connections_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
 /// Gets details of a single AppConnection.
 ///
@@ -1191,7 +1273,7 @@ pub fn beyondcorp_projects_locations_app_connections_get_execute(
 
 pub fn beyondcorp_projects_locations_app_connections_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BeyondcorpProjectsLocationsAppConnectionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudBeyondcorpAppconnectionsV1AppConnection>, ApiError>,
@@ -1200,7 +1282,7 @@ pub fn beyondcorp_projects_locations_app_connections_get(
         + 'static,
     ApiError,
 > {
-    let builder = beyondcorp_projects_locations_app_connections_get_builder(client, name)?;
+    let builder = beyondcorp_projects_locations_app_connections_get_builder(client, &args.name)?;
     beyondcorp_projects_locations_app_connections_get_execute(builder)
 }
 
@@ -1308,6 +1390,15 @@ pub fn beyondcorp_projects_locations_app_connections_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connections_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1320,8 +1411,7 @@ pub fn beyondcorp_projects_locations_app_connections_get_iam_policy_execute(
 
 pub fn beyondcorp_projects_locations_app_connections_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &BeyondcorpProjectsLocationsAppConnectionsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -1330,8 +1420,8 @@ pub fn beyondcorp_projects_locations_app_connections_get_iam_policy(
 > {
     let builder = beyondcorp_projects_locations_app_connections_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     beyondcorp_projects_locations_app_connections_get_iam_policy_execute(builder)
 }
@@ -1458,6 +1548,21 @@ pub fn beyondcorp_projects_locations_app_connections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections
 /// Lists AppConnections in a given project and location.
 ///
@@ -1470,11 +1575,7 @@ pub fn beyondcorp_projects_locations_app_connections_list_execute(
 
 pub fn beyondcorp_projects_locations_app_connections_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BeyondcorpProjectsLocationsAppConnectionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1487,7 +1588,12 @@ pub fn beyondcorp_projects_locations_app_connections_list(
     ApiError,
 > {
     let builder = beyondcorp_projects_locations_app_connections_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     beyondcorp_projects_locations_app_connections_list_execute(builder)
 }
@@ -1613,6 +1719,23 @@ pub fn beyondcorp_projects_locations_app_connections_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connections_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudBeyondcorpAppconnectionsV1AppConnection,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}
 /// Updates the parameters of a single AppConnection.
 ///
@@ -1625,12 +1748,7 @@ pub fn beyondcorp_projects_locations_app_connections_patch_execute(
 
 pub fn beyondcorp_projects_locations_app_connections_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudBeyondcorpAppconnectionsV1AppConnection,
+    args: &BeyondcorpProjectsLocationsAppConnectionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1641,12 +1759,12 @@ pub fn beyondcorp_projects_locations_app_connections_patch(
 > {
     let builder = beyondcorp_projects_locations_app_connections_patch_builder(
         client,
-        name,
-        allowMissing,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     beyondcorp_projects_locations_app_connections_patch_execute(builder)
 }
@@ -1769,6 +1887,19 @@ pub fn beyondcorp_projects_locations_app_connections_resolve_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connections_resolve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsResolveArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: appConnectorId
+    pub appConnectorId: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections:resolve
 /// Resolves AppConnections details for a given AppConnector. An internal method called by a connector to find AppConnections to connect to.
 ///
@@ -1781,10 +1912,7 @@ pub fn beyondcorp_projects_locations_app_connections_resolve_execute(
 
 pub fn beyondcorp_projects_locations_app_connections_resolve(
     client: &SimpleHttpClient,
-    parent: &str,
-    appConnectorId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BeyondcorpProjectsLocationsAppConnectionsResolveArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1798,10 +1926,10 @@ pub fn beyondcorp_projects_locations_app_connections_resolve(
 > {
     let builder = beyondcorp_projects_locations_app_connections_resolve_builder(
         client,
-        parent,
-        appConnectorId,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.appConnectorId.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     beyondcorp_projects_locations_app_connections_resolve_execute(builder)
 }
@@ -1901,6 +2029,15 @@ pub fn beyondcorp_projects_locations_app_connections_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connections_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1913,8 +2050,7 @@ pub fn beyondcorp_projects_locations_app_connections_set_iam_policy_execute(
 
 pub fn beyondcorp_projects_locations_app_connections_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &BeyondcorpProjectsLocationsAppConnectionsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -1922,7 +2058,9 @@ pub fn beyondcorp_projects_locations_app_connections_set_iam_policy(
     ApiError,
 > {
     let builder = beyondcorp_projects_locations_app_connections_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     beyondcorp_projects_locations_app_connections_set_iam_policy_execute(builder)
 }
@@ -2024,6 +2162,15 @@ pub fn beyondcorp_projects_locations_app_connections_test_iam_permissions_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connections_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectionsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnections/{appConnectionsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2036,8 +2183,7 @@ pub fn beyondcorp_projects_locations_app_connections_test_iam_permissions_execut
 
 pub fn beyondcorp_projects_locations_app_connections_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &BeyondcorpProjectsLocationsAppConnectionsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -2047,7 +2193,9 @@ pub fn beyondcorp_projects_locations_app_connections_test_iam_permissions(
     ApiError,
 > {
     let builder = beyondcorp_projects_locations_app_connections_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     beyondcorp_projects_locations_app_connections_test_iam_permissions_execute(builder)
 }
@@ -2169,6 +2317,21 @@ pub fn beyondcorp_projects_locations_app_connectors_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: appConnectorId
+    pub appConnectorId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudBeyondcorpAppconnectorsV1AppConnector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors
 /// Creates a new AppConnector in a given project and location.
 ///
@@ -2181,11 +2344,7 @@ pub fn beyondcorp_projects_locations_app_connectors_create_execute(
 
 pub fn beyondcorp_projects_locations_app_connectors_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    appConnectorId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudBeyondcorpAppconnectorsV1AppConnector,
+    args: &BeyondcorpProjectsLocationsAppConnectorsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2196,11 +2355,11 @@ pub fn beyondcorp_projects_locations_app_connectors_create(
 > {
     let builder = beyondcorp_projects_locations_app_connectors_create_builder(
         client,
-        parent,
-        appConnectorId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.appConnectorId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     beyondcorp_projects_locations_app_connectors_create_execute(builder)
 }
@@ -2315,6 +2474,17 @@ pub fn beyondcorp_projects_locations_app_connectors_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
 /// Deletes a single AppConnector.
 ///
@@ -2327,9 +2497,7 @@ pub fn beyondcorp_projects_locations_app_connectors_delete_execute(
 
 pub fn beyondcorp_projects_locations_app_connectors_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &BeyondcorpProjectsLocationsAppConnectorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2340,9 +2508,9 @@ pub fn beyondcorp_projects_locations_app_connectors_delete(
 > {
     let builder = beyondcorp_projects_locations_app_connectors_delete_builder(
         client,
-        name,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     beyondcorp_projects_locations_app_connectors_delete_execute(builder)
 }
@@ -2442,6 +2610,13 @@ pub fn beyondcorp_projects_locations_app_connectors_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
 /// Gets details of a single AppConnector.
 ///
@@ -2454,7 +2629,7 @@ pub fn beyondcorp_projects_locations_app_connectors_get_execute(
 
 pub fn beyondcorp_projects_locations_app_connectors_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BeyondcorpProjectsLocationsAppConnectorsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudBeyondcorpAppconnectorsV1AppConnector>, ApiError>,
@@ -2463,7 +2638,7 @@ pub fn beyondcorp_projects_locations_app_connectors_get(
         + 'static,
     ApiError,
 > {
-    let builder = beyondcorp_projects_locations_app_connectors_get_builder(client, name)?;
+    let builder = beyondcorp_projects_locations_app_connectors_get_builder(client, &args.name)?;
     beyondcorp_projects_locations_app_connectors_get_execute(builder)
 }
 
@@ -2571,6 +2746,15 @@ pub fn beyondcorp_projects_locations_app_connectors_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2583,8 +2767,7 @@ pub fn beyondcorp_projects_locations_app_connectors_get_iam_policy_execute(
 
 pub fn beyondcorp_projects_locations_app_connectors_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &BeyondcorpProjectsLocationsAppConnectorsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -2593,8 +2776,8 @@ pub fn beyondcorp_projects_locations_app_connectors_get_iam_policy(
 > {
     let builder = beyondcorp_projects_locations_app_connectors_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     beyondcorp_projects_locations_app_connectors_get_iam_policy_execute(builder)
 }
@@ -2721,6 +2904,21 @@ pub fn beyondcorp_projects_locations_app_connectors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors
 /// Lists AppConnectors in a given project and location.
 ///
@@ -2733,11 +2931,7 @@ pub fn beyondcorp_projects_locations_app_connectors_list_execute(
 
 pub fn beyondcorp_projects_locations_app_connectors_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BeyondcorpProjectsLocationsAppConnectorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2750,7 +2944,12 @@ pub fn beyondcorp_projects_locations_app_connectors_list(
     ApiError,
 > {
     let builder = beyondcorp_projects_locations_app_connectors_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     beyondcorp_projects_locations_app_connectors_list_execute(builder)
 }
@@ -2872,6 +3071,21 @@ pub fn beyondcorp_projects_locations_app_connectors_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudBeyondcorpAppconnectorsV1AppConnector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}
 /// Updates the parameters of a single AppConnector.
 ///
@@ -2884,11 +3098,7 @@ pub fn beyondcorp_projects_locations_app_connectors_patch_execute(
 
 pub fn beyondcorp_projects_locations_app_connectors_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudBeyondcorpAppconnectorsV1AppConnector,
+    args: &BeyondcorpProjectsLocationsAppConnectorsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2899,11 +3109,11 @@ pub fn beyondcorp_projects_locations_app_connectors_patch(
 > {
     let builder = beyondcorp_projects_locations_app_connectors_patch_builder(
         client,
-        name,
-        requestId,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     beyondcorp_projects_locations_app_connectors_patch_execute(builder)
 }
@@ -3005,6 +3215,15 @@ pub fn beyondcorp_projects_locations_app_connectors_report_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_report_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsReportStatusArgs {
+    /// Path parameter: appConnector
+    pub appConnector: String,
+    /// Request body.
+    pub body: GoogleCloudBeyondcorpAppconnectorsV1ReportStatusRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:reportStatus
 /// Report status for a given connector.
 ///
@@ -3017,8 +3236,7 @@ pub fn beyondcorp_projects_locations_app_connectors_report_status_execute(
 
 pub fn beyondcorp_projects_locations_app_connectors_report_status(
     client: &SimpleHttpClient,
-    appConnector: &str,
-    body: &GoogleCloudBeyondcorpAppconnectorsV1ReportStatusRequest,
+    args: &BeyondcorpProjectsLocationsAppConnectorsReportStatusArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3029,8 +3247,8 @@ pub fn beyondcorp_projects_locations_app_connectors_report_status(
 > {
     let builder = beyondcorp_projects_locations_app_connectors_report_status_builder(
         client,
-        appConnector,
-        body,
+        &args.appConnector,
+        &args.body,
     )?;
     beyondcorp_projects_locations_app_connectors_report_status_execute(builder)
 }
@@ -3133,6 +3351,13 @@ pub fn beyondcorp_projects_locations_app_connectors_resolve_instance_config_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_resolve_instance_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsResolveInstanceConfigArgs {
+    /// Path parameter: appConnector
+    pub appConnector: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:resolveInstanceConfig
 /// Gets instance configuration for a given AppConnector. An internal method called by a AppConnector to get its container config.
 ///
@@ -3145,7 +3370,7 @@ pub fn beyondcorp_projects_locations_app_connectors_resolve_instance_config_exec
 
 pub fn beyondcorp_projects_locations_app_connectors_resolve_instance_config(
     client: &SimpleHttpClient,
-    appConnector: &str,
+    args: &BeyondcorpProjectsLocationsAppConnectorsResolveInstanceConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3159,7 +3384,7 @@ pub fn beyondcorp_projects_locations_app_connectors_resolve_instance_config(
 > {
     let builder = beyondcorp_projects_locations_app_connectors_resolve_instance_config_builder(
         client,
-        appConnector,
+        &args.appConnector,
     )?;
     beyondcorp_projects_locations_app_connectors_resolve_instance_config_execute(builder)
 }
@@ -3259,6 +3484,15 @@ pub fn beyondcorp_projects_locations_app_connectors_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3271,8 +3505,7 @@ pub fn beyondcorp_projects_locations_app_connectors_set_iam_policy_execute(
 
 pub fn beyondcorp_projects_locations_app_connectors_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &BeyondcorpProjectsLocationsAppConnectorsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -3280,7 +3513,9 @@ pub fn beyondcorp_projects_locations_app_connectors_set_iam_policy(
     ApiError,
 > {
     let builder = beyondcorp_projects_locations_app_connectors_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     beyondcorp_projects_locations_app_connectors_set_iam_policy_execute(builder)
 }
@@ -3382,6 +3617,15 @@ pub fn beyondcorp_projects_locations_app_connectors_test_iam_permissions_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_connectors_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppConnectorsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appConnectors/{appConnectorsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3394,8 +3638,7 @@ pub fn beyondcorp_projects_locations_app_connectors_test_iam_permissions_execute
 
 pub fn beyondcorp_projects_locations_app_connectors_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &BeyondcorpProjectsLocationsAppConnectorsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -3405,7 +3648,9 @@ pub fn beyondcorp_projects_locations_app_connectors_test_iam_permissions(
     ApiError,
 > {
     let builder = beyondcorp_projects_locations_app_connectors_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     beyondcorp_projects_locations_app_connectors_test_iam_permissions_execute(builder)
 }
@@ -3527,6 +3772,21 @@ pub fn beyondcorp_projects_locations_app_gateways_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_gateways_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppGatewaysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: appGatewayId
+    pub appGatewayId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: AppGateway,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways
 /// Creates a new AppGateway in a given project and location.
 ///
@@ -3539,11 +3799,7 @@ pub fn beyondcorp_projects_locations_app_gateways_create_execute(
 
 pub fn beyondcorp_projects_locations_app_gateways_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    appGatewayId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &AppGateway,
+    args: &BeyondcorpProjectsLocationsAppGatewaysCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3554,11 +3810,11 @@ pub fn beyondcorp_projects_locations_app_gateways_create(
 > {
     let builder = beyondcorp_projects_locations_app_gateways_create_builder(
         client,
-        parent,
-        appGatewayId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.appGatewayId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     beyondcorp_projects_locations_app_gateways_create_execute(builder)
 }
@@ -3673,6 +3929,17 @@ pub fn beyondcorp_projects_locations_app_gateways_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_gateways_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppGatewaysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}
 /// Deletes a single AppGateway.
 ///
@@ -3685,9 +3952,7 @@ pub fn beyondcorp_projects_locations_app_gateways_delete_execute(
 
 pub fn beyondcorp_projects_locations_app_gateways_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &BeyondcorpProjectsLocationsAppGatewaysDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3698,9 +3963,9 @@ pub fn beyondcorp_projects_locations_app_gateways_delete(
 > {
     let builder = beyondcorp_projects_locations_app_gateways_delete_builder(
         client,
-        name,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     beyondcorp_projects_locations_app_gateways_delete_execute(builder)
 }
@@ -3795,6 +4060,13 @@ pub fn beyondcorp_projects_locations_app_gateways_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_gateways_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppGatewaysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}
 /// Gets details of a single AppGateway.
 ///
@@ -3807,12 +4079,12 @@ pub fn beyondcorp_projects_locations_app_gateways_get_execute(
 
 pub fn beyondcorp_projects_locations_app_gateways_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BeyondcorpProjectsLocationsAppGatewaysGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppGateway>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = beyondcorp_projects_locations_app_gateways_get_builder(client, name)?;
+    let builder = beyondcorp_projects_locations_app_gateways_get_builder(client, &args.name)?;
     beyondcorp_projects_locations_app_gateways_get_execute(builder)
 }
 
@@ -3920,6 +4192,15 @@ pub fn beyondcorp_projects_locations_app_gateways_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_gateways_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppGatewaysGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -3932,8 +4213,7 @@ pub fn beyondcorp_projects_locations_app_gateways_get_iam_policy_execute(
 
 pub fn beyondcorp_projects_locations_app_gateways_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &BeyondcorpProjectsLocationsAppGatewaysGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -3942,8 +4222,8 @@ pub fn beyondcorp_projects_locations_app_gateways_get_iam_policy(
 > {
     let builder = beyondcorp_projects_locations_app_gateways_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     beyondcorp_projects_locations_app_gateways_get_iam_policy_execute(builder)
 }
@@ -4064,6 +4344,21 @@ pub fn beyondcorp_projects_locations_app_gateways_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_gateways_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppGatewaysListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways
 /// Lists AppGateways in a given project and location.
 ///
@@ -4076,11 +4371,7 @@ pub fn beyondcorp_projects_locations_app_gateways_list_execute(
 
 pub fn beyondcorp_projects_locations_app_gateways_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BeyondcorpProjectsLocationsAppGatewaysListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAppGatewaysResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4088,7 +4379,12 @@ pub fn beyondcorp_projects_locations_app_gateways_list(
     ApiError,
 > {
     let builder = beyondcorp_projects_locations_app_gateways_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     beyondcorp_projects_locations_app_gateways_list_execute(builder)
 }
@@ -4188,6 +4484,15 @@ pub fn beyondcorp_projects_locations_app_gateways_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_gateways_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppGatewaysSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -4200,16 +4505,18 @@ pub fn beyondcorp_projects_locations_app_gateways_set_iam_policy_execute(
 
 pub fn beyondcorp_projects_locations_app_gateways_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &BeyondcorpProjectsLocationsAppGatewaysSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        beyondcorp_projects_locations_app_gateways_set_iam_policy_builder(client, resource, body)?;
+    let builder = beyondcorp_projects_locations_app_gateways_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     beyondcorp_projects_locations_app_gateways_set_iam_policy_execute(builder)
 }
 
@@ -4310,6 +4617,15 @@ pub fn beyondcorp_projects_locations_app_gateways_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_app_gateways_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsAppGatewaysTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/appGateways/{appGatewaysId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -4322,8 +4638,7 @@ pub fn beyondcorp_projects_locations_app_gateways_test_iam_permissions_execute(
 
 pub fn beyondcorp_projects_locations_app_gateways_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &BeyondcorpProjectsLocationsAppGatewaysTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -4333,7 +4648,9 @@ pub fn beyondcorp_projects_locations_app_gateways_test_iam_permissions(
     ApiError,
 > {
     let builder = beyondcorp_projects_locations_app_gateways_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     beyondcorp_projects_locations_app_gateways_test_iam_permissions_execute(builder)
 }
@@ -4431,6 +4748,15 @@ pub fn beyondcorp_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -4443,13 +4769,13 @@ pub fn beyondcorp_projects_locations_operations_cancel_execute(
 
 pub fn beyondcorp_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &BeyondcorpProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = beyondcorp_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        beyondcorp_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     beyondcorp_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -4543,6 +4869,13 @@ pub fn beyondcorp_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -4555,12 +4888,12 @@ pub fn beyondcorp_projects_locations_operations_delete_execute(
 
 pub fn beyondcorp_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BeyondcorpProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = beyondcorp_projects_locations_operations_delete_builder(client, name)?;
+    let builder = beyondcorp_projects_locations_operations_delete_builder(client, &args.name)?;
     beyondcorp_projects_locations_operations_delete_execute(builder)
 }
 
@@ -4658,6 +4991,13 @@ pub fn beyondcorp_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -4670,7 +5010,7 @@ pub fn beyondcorp_projects_locations_operations_get_execute(
 
 pub fn beyondcorp_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BeyondcorpProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4679,7 +5019,7 @@ pub fn beyondcorp_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = beyondcorp_projects_locations_operations_get_builder(client, name)?;
+    let builder = beyondcorp_projects_locations_operations_get_builder(client, &args.name)?;
     beyondcorp_projects_locations_operations_get_execute(builder)
 }
 
@@ -4802,6 +5142,21 @@ pub fn beyondcorp_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -4814,11 +5169,7 @@ pub fn beyondcorp_projects_locations_operations_list_execute(
 
 pub fn beyondcorp_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &BeyondcorpProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -4829,11 +5180,11 @@ pub fn beyondcorp_projects_locations_operations_list(
 > {
     let builder = beyondcorp_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     beyondcorp_projects_locations_operations_list_execute(builder)
 }
@@ -4951,6 +5302,19 @@ pub fn beyondcorp_projects_locations_security_gateways_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: securityGatewayId
+    pub securityGatewayId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways
 /// Creates a new Security Gateway in a given project and location.
 ///
@@ -4963,10 +5327,7 @@ pub fn beyondcorp_projects_locations_security_gateways_create_execute(
 
 pub fn beyondcorp_projects_locations_security_gateways_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    securityGatewayId: Option<&str>,
-    body: &GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4977,10 +5338,10 @@ pub fn beyondcorp_projects_locations_security_gateways_create(
 > {
     let builder = beyondcorp_projects_locations_security_gateways_create_builder(
         client,
-        parent,
-        requestId,
-        securityGatewayId,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.securityGatewayId.as_deref(),
+        &args.body,
     )?;
     beyondcorp_projects_locations_security_gateways_create_execute(builder)
 }
@@ -5095,6 +5456,17 @@ pub fn beyondcorp_projects_locations_security_gateways_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
 /// Deletes a single SecurityGateway.
 ///
@@ -5107,9 +5479,7 @@ pub fn beyondcorp_projects_locations_security_gateways_delete_execute(
 
 pub fn beyondcorp_projects_locations_security_gateways_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5120,9 +5490,9 @@ pub fn beyondcorp_projects_locations_security_gateways_delete(
 > {
     let builder = beyondcorp_projects_locations_security_gateways_delete_builder(
         client,
-        name,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     beyondcorp_projects_locations_security_gateways_delete_execute(builder)
 }
@@ -5225,6 +5595,13 @@ pub fn beyondcorp_projects_locations_security_gateways_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
 /// Gets details of a single SecurityGateway.
 ///
@@ -5237,7 +5614,7 @@ pub fn beyondcorp_projects_locations_security_gateways_get_execute(
 
 pub fn beyondcorp_projects_locations_security_gateways_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5249,7 +5626,7 @@ pub fn beyondcorp_projects_locations_security_gateways_get(
         + 'static,
     ApiError,
 > {
-    let builder = beyondcorp_projects_locations_security_gateways_get_builder(client, name)?;
+    let builder = beyondcorp_projects_locations_security_gateways_get_builder(client, &args.name)?;
     beyondcorp_projects_locations_security_gateways_get_execute(builder)
 }
 
@@ -5357,6 +5734,15 @@ pub fn beyondcorp_projects_locations_security_gateways_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -5369,8 +5755,7 @@ pub fn beyondcorp_projects_locations_security_gateways_get_iam_policy_execute(
 
 pub fn beyondcorp_projects_locations_security_gateways_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -5379,8 +5764,8 @@ pub fn beyondcorp_projects_locations_security_gateways_get_iam_policy(
 > {
     let builder = beyondcorp_projects_locations_security_gateways_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     beyondcorp_projects_locations_security_gateways_get_iam_policy_execute(builder)
 }
@@ -5507,6 +5892,21 @@ pub fn beyondcorp_projects_locations_security_gateways_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways
 /// Lists SecurityGateways in a given project and location.
 ///
@@ -5519,11 +5919,7 @@ pub fn beyondcorp_projects_locations_security_gateways_list_execute(
 
 pub fn beyondcorp_projects_locations_security_gateways_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5536,7 +5932,12 @@ pub fn beyondcorp_projects_locations_security_gateways_list(
     ApiError,
 > {
     let builder = beyondcorp_projects_locations_security_gateways_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     beyondcorp_projects_locations_security_gateways_list_execute(builder)
 }
@@ -5654,6 +6055,19 @@ pub fn beyondcorp_projects_locations_security_gateways_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}
 /// Updates the parameters of a single SecurityGateway.
 ///
@@ -5666,10 +6080,7 @@ pub fn beyondcorp_projects_locations_security_gateways_patch_execute(
 
 pub fn beyondcorp_projects_locations_security_gateways_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5679,7 +6090,11 @@ pub fn beyondcorp_projects_locations_security_gateways_patch(
     ApiError,
 > {
     let builder = beyondcorp_projects_locations_security_gateways_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     beyondcorp_projects_locations_security_gateways_patch_execute(builder)
 }
@@ -5779,6 +6194,15 @@ pub fn beyondcorp_projects_locations_security_gateways_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -5791,8 +6215,7 @@ pub fn beyondcorp_projects_locations_security_gateways_set_iam_policy_execute(
 
 pub fn beyondcorp_projects_locations_security_gateways_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -5800,7 +6223,9 @@ pub fn beyondcorp_projects_locations_security_gateways_set_iam_policy(
     ApiError,
 > {
     let builder = beyondcorp_projects_locations_security_gateways_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     beyondcorp_projects_locations_security_gateways_set_iam_policy_execute(builder)
 }
@@ -5902,6 +6327,15 @@ pub fn beyondcorp_projects_locations_security_gateways_test_iam_permissions_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -5914,8 +6348,7 @@ pub fn beyondcorp_projects_locations_security_gateways_test_iam_permissions_exec
 
 pub fn beyondcorp_projects_locations_security_gateways_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -5925,7 +6358,9 @@ pub fn beyondcorp_projects_locations_security_gateways_test_iam_permissions(
     ApiError,
 > {
     let builder = beyondcorp_projects_locations_security_gateways_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     beyondcorp_projects_locations_security_gateways_test_iam_permissions_execute(builder)
 }
@@ -6043,6 +6478,19 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: applicationId
+    pub applicationId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudBeyondcorpSecuritygatewaysV1Application,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications
 /// Creates a new Application in a given project and location.
 ///
@@ -6055,10 +6503,7 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_create_execu
 
 pub fn beyondcorp_projects_locations_security_gateways_applications_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    applicationId: Option<&str>,
-    requestId: Option<&str>,
-    body: &GoogleCloudBeyondcorpSecuritygatewaysV1Application,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6069,10 +6514,10 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_create(
 > {
     let builder = beyondcorp_projects_locations_security_gateways_applications_create_builder(
         client,
-        parent,
-        applicationId,
-        requestId,
-        body,
+        &args.parent,
+        args.applicationId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     beyondcorp_projects_locations_security_gateways_applications_create_execute(builder)
 }
@@ -6187,6 +6632,17 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
 /// Deletes a single application.
 ///
@@ -6199,9 +6655,7 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_delete_execu
 
 pub fn beyondcorp_projects_locations_security_gateways_applications_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6212,9 +6666,9 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_delete(
 > {
     let builder = beyondcorp_projects_locations_security_gateways_applications_delete_builder(
         client,
-        name,
-        requestId,
-        validateOnly,
+        &args.name,
+        args.requestId.as_deref(),
+        args.validateOnly,
     )?;
     beyondcorp_projects_locations_security_gateways_applications_delete_execute(builder)
 }
@@ -6314,6 +6768,13 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
 /// Gets details of a single Application.
 ///
@@ -6326,7 +6787,7 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_get_execute(
 
 pub fn beyondcorp_projects_locations_security_gateways_applications_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudBeyondcorpSecuritygatewaysV1Application>, ApiError>,
@@ -6335,8 +6796,9 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        beyondcorp_projects_locations_security_gateways_applications_get_builder(client, name)?;
+    let builder = beyondcorp_projects_locations_security_gateways_applications_get_builder(
+        client, &args.name,
+    )?;
     beyondcorp_projects_locations_security_gateways_applications_get_execute(builder)
 }
 
@@ -6444,6 +6906,15 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_get_iam_poli
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -6456,8 +6927,7 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_get_iam_poli
 
 pub fn beyondcorp_projects_locations_security_gateways_applications_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -6467,8 +6937,8 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_get_iam_poli
     let builder =
         beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_builder(
             client,
-            resource,
-            options_requestedPolicyVersion,
+            &args.resource,
+            args.options_requestedPolicyVersion,
         )?;
     beyondcorp_projects_locations_security_gateways_applications_get_iam_policy_execute(builder)
 }
@@ -6595,6 +7065,21 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications
 /// Lists Applications in a given project and location.
 ///
@@ -6607,11 +7092,7 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_list_execute
 
 pub fn beyondcorp_projects_locations_security_gateways_applications_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -6624,7 +7105,12 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_list(
     ApiError,
 > {
     let builder = beyondcorp_projects_locations_security_gateways_applications_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     beyondcorp_projects_locations_security_gateways_applications_list_execute(builder)
 }
@@ -6742,6 +7228,19 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_patch_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudBeyondcorpSecuritygatewaysV1Application,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}
 /// Updates the parameters of a single Application.
 ///
@@ -6754,10 +7253,7 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_patch_execut
 
 pub fn beyondcorp_projects_locations_security_gateways_applications_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudBeyondcorpSecuritygatewaysV1Application,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6767,7 +7263,11 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_patch(
     ApiError,
 > {
     let builder = beyondcorp_projects_locations_security_gateways_applications_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     beyondcorp_projects_locations_security_gateways_applications_patch_execute(builder)
 }
@@ -6867,6 +7367,15 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_set_iam_poli
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -6879,8 +7388,7 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_set_iam_poli
 
 pub fn beyondcorp_projects_locations_security_gateways_applications_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -6889,7 +7397,9 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_set_iam_poli
 > {
     let builder =
         beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     beyondcorp_projects_locations_security_gateways_applications_set_iam_policy_execute(builder)
 }
@@ -6991,6 +7501,15 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_test_iam_per
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BeyondcorpProjectsLocationsSecurityGatewaysApplicationsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/securityGateways/{securityGatewaysId}/applications/{applicationsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -7003,8 +7522,7 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_test_iam_per
 
 pub fn beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -7015,7 +7533,9 @@ pub fn beyondcorp_projects_locations_security_gateways_applications_test_iam_per
 > {
     let builder =
         beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     beyondcorp_projects_locations_security_gateways_applications_test_iam_permissions_execute(
         builder,

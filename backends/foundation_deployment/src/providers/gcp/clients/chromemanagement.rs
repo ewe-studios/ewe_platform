@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/customers/{customersId}/apps:countChromeAppRequests
 /// Generate summary of app installation requests.
@@ -138,6 +140,21 @@ pub fn chromemanagement_customers_apps_count_chrome_app_requests_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_apps_count_chrome_app_requests`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersAppsCountChromeAppRequestsArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: orgUnitId
+    pub orgUnitId: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/apps:countChromeAppRequests
 /// Generate summary of app installation requests.
 ///
@@ -150,11 +167,7 @@ pub fn chromemanagement_customers_apps_count_chrome_app_requests_execute(
 
 pub fn chromemanagement_customers_apps_count_chrome_app_requests(
     client: &SimpleHttpClient,
-    customer: &str,
-    orderBy: Option<&str>,
-    orgUnitId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ChromemanagementCustomersAppsCountChromeAppRequestsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -167,7 +180,12 @@ pub fn chromemanagement_customers_apps_count_chrome_app_requests(
     ApiError,
 > {
     let builder = chromemanagement_customers_apps_count_chrome_app_requests_builder(
-        client, customer, orderBy, orgUnitId, pageSize, pageToken,
+        client,
+        &args.customer,
+        args.orderBy.as_deref(),
+        args.orgUnitId.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     chromemanagement_customers_apps_count_chrome_app_requests_execute(builder)
 }
@@ -294,6 +312,21 @@ pub fn chromemanagement_customers_apps_fetch_devices_requesting_extension_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_apps_fetch_devices_requesting_extension`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersAppsFetchDevicesRequestingExtensionArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: extensionId
+    pub extensionId: Option<String>,
+    /// Query parameter: orgUnitId
+    pub orgUnitId: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/apps:fetchDevicesRequestingExtension
 /// Get a list of devices that have requested to install an extension.
 ///
@@ -306,11 +339,7 @@ pub fn chromemanagement_customers_apps_fetch_devices_requesting_extension_execut
 
 pub fn chromemanagement_customers_apps_fetch_devices_requesting_extension(
     client: &SimpleHttpClient,
-    customer: &str,
-    extensionId: Option<&str>,
-    orgUnitId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ChromemanagementCustomersAppsFetchDevicesRequestingExtensionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -324,11 +353,11 @@ pub fn chromemanagement_customers_apps_fetch_devices_requesting_extension(
 > {
     let builder = chromemanagement_customers_apps_fetch_devices_requesting_extension_builder(
         client,
-        customer,
-        extensionId,
-        orgUnitId,
-        pageSize,
-        pageToken,
+        &args.customer,
+        args.extensionId.as_deref(),
+        args.orgUnitId.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     chromemanagement_customers_apps_fetch_devices_requesting_extension_execute(builder)
 }
@@ -455,6 +484,21 @@ pub fn chromemanagement_customers_apps_fetch_users_requesting_extension_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_apps_fetch_users_requesting_extension`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersAppsFetchUsersRequestingExtensionArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: extensionId
+    pub extensionId: Option<String>,
+    /// Query parameter: orgUnitId
+    pub orgUnitId: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/apps:fetchUsersRequestingExtension
 /// Get a list of users that have requested to install an extension.
 ///
@@ -467,11 +511,7 @@ pub fn chromemanagement_customers_apps_fetch_users_requesting_extension_execute(
 
 pub fn chromemanagement_customers_apps_fetch_users_requesting_extension(
     client: &SimpleHttpClient,
-    customer: &str,
-    extensionId: Option<&str>,
-    orgUnitId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ChromemanagementCustomersAppsFetchUsersRequestingExtensionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -485,11 +525,11 @@ pub fn chromemanagement_customers_apps_fetch_users_requesting_extension(
 > {
     let builder = chromemanagement_customers_apps_fetch_users_requesting_extension_builder(
         client,
-        customer,
-        extensionId,
-        orgUnitId,
-        pageSize,
-        pageToken,
+        &args.customer,
+        args.extensionId.as_deref(),
+        args.orgUnitId.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     chromemanagement_customers_apps_fetch_users_requesting_extension_execute(builder)
 }
@@ -588,6 +628,13 @@ pub fn chromemanagement_customers_apps_android_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_apps_android_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersAppsAndroidGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/customers/{customersId}/apps/android/{androidId}
 /// Get a specific app for a customer by its resource name.
 ///
@@ -600,7 +647,7 @@ pub fn chromemanagement_customers_apps_android_get_execute(
 
 pub fn chromemanagement_customers_apps_android_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChromemanagementCustomersAppsAndroidGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementV1AppDetails>, ApiError>,
@@ -609,7 +656,7 @@ pub fn chromemanagement_customers_apps_android_get(
         + 'static,
     ApiError,
 > {
-    let builder = chromemanagement_customers_apps_android_get_builder(client, name)?;
+    let builder = chromemanagement_customers_apps_android_get_builder(client, &args.name)?;
     chromemanagement_customers_apps_android_get_execute(builder)
 }
 
@@ -707,6 +754,13 @@ pub fn chromemanagement_customers_apps_chrome_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_apps_chrome_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersAppsChromeGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/customers/{customersId}/apps/chrome/{chromeId}
 /// Get a specific app for a customer by its resource name.
 ///
@@ -719,7 +773,7 @@ pub fn chromemanagement_customers_apps_chrome_get_execute(
 
 pub fn chromemanagement_customers_apps_chrome_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChromemanagementCustomersAppsChromeGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementV1AppDetails>, ApiError>,
@@ -728,7 +782,7 @@ pub fn chromemanagement_customers_apps_chrome_get(
         + 'static,
     ApiError,
 > {
-    let builder = chromemanagement_customers_apps_chrome_get_builder(client, name)?;
+    let builder = chromemanagement_customers_apps_chrome_get_builder(client, &args.name)?;
     chromemanagement_customers_apps_chrome_get_execute(builder)
 }
 
@@ -826,6 +880,13 @@ pub fn chromemanagement_customers_apps_web_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_apps_web_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersAppsWebGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/customers/{customersId}/apps/web/{webId}
 /// Get a specific app for a customer by its resource name.
 ///
@@ -838,7 +899,7 @@ pub fn chromemanagement_customers_apps_web_get_execute(
 
 pub fn chromemanagement_customers_apps_web_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChromemanagementCustomersAppsWebGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementV1AppDetails>, ApiError>,
@@ -847,7 +908,7 @@ pub fn chromemanagement_customers_apps_web_get(
         + 'static,
     ApiError,
 > {
-    let builder = chromemanagement_customers_apps_web_get_builder(client, name)?;
+    let builder = chromemanagement_customers_apps_web_get_builder(client, &args.name)?;
     chromemanagement_customers_apps_web_get_execute(builder)
 }
 
@@ -948,6 +1009,15 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_claim_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_certificate_provisioning_processes_claim`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersCertificateProvisioningProcessesClaimArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessRequest,
+}
+
 /// GET v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:claim
 /// Claims a certificate provisioning process. For each certificate provisioning process, this operation can succeed only for one caller_instance_id.
 ///
@@ -960,8 +1030,7 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_claim_execu
 
 pub fn chromemanagement_customers_certificate_provisioning_processes_claim(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleChromeManagementVersionsV1ClaimCertificateProvisioningProcessRequest,
+    args: &ChromemanagementCustomersCertificateProvisioningProcessesClaimArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -976,7 +1045,7 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_claim(
     ApiError,
 > {
     let builder = chromemanagement_customers_certificate_provisioning_processes_claim_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     chromemanagement_customers_certificate_provisioning_processes_claim_execute(builder)
 }
@@ -1079,6 +1148,13 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_certificate_provisioning_processes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersCertificateProvisioningProcessesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}
 /// Retrieves a certificate provisioning process.
 ///
@@ -1091,7 +1167,7 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_get_execute
 
 pub fn chromemanagement_customers_certificate_provisioning_processes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChromemanagementCustomersCertificateProvisioningProcessesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1103,8 +1179,9 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        chromemanagement_customers_certificate_provisioning_processes_get_builder(client, name)?;
+    let builder = chromemanagement_customers_certificate_provisioning_processes_get_builder(
+        client, &args.name,
+    )?;
     chromemanagement_customers_certificate_provisioning_processes_get_execute(builder)
 }
 
@@ -1206,6 +1283,15 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_set_failure
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_certificate_provisioning_processes_set_failure`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersCertificateProvisioningProcessesSetFailureArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleChromeManagementVersionsV1SetFailureRequest,
+}
+
 /// GET v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:setFailure
 /// Marks a certificate provisioning process as failed.
 ///
@@ -1218,8 +1304,7 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_set_failure
 
 pub fn chromemanagement_customers_certificate_provisioning_processes_set_failure(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleChromeManagementVersionsV1SetFailureRequest,
+    args: &ChromemanagementCustomersCertificateProvisioningProcessesSetFailureArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementVersionsV1SetFailureResponse>, ApiError>,
@@ -1230,7 +1315,7 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_set_failure
 > {
     let builder =
         chromemanagement_customers_certificate_provisioning_processes_set_failure_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     chromemanagement_customers_certificate_provisioning_processes_set_failure_execute(builder)
 }
@@ -1332,6 +1417,15 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_sign_data_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_certificate_provisioning_processes_sign_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersCertificateProvisioningProcessesSignDataArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleChromeManagementVersionsV1SignDataRequest,
+}
+
 /// GET v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:signData
 /// Requests the client that initiated a certificate provisioning process to sign data. This should only be called after ClaimCertificateProvisioningProcess has been successfully executed.
 ///
@@ -1344,8 +1438,7 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_sign_data_e
 
 pub fn chromemanagement_customers_certificate_provisioning_processes_sign_data(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleChromeManagementVersionsV1SignDataRequest,
+    args: &ChromemanagementCustomersCertificateProvisioningProcessesSignDataArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1355,7 +1448,7 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_sign_data(
     ApiError,
 > {
     let builder = chromemanagement_customers_certificate_provisioning_processes_sign_data_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     chromemanagement_customers_certificate_provisioning_processes_sign_data_execute(builder)
 }
@@ -1461,6 +1554,15 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_upload_cert
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_certificate_provisioning_processes_upload_certificate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersCertificateProvisioningProcessesUploadCertificateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleChromeManagementVersionsV1UploadCertificateRequest,
+}
+
 /// GET v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}:uploadCertificate
 /// Uploads a successfully issued certificate for a certificate provisioning process.
 ///
@@ -1473,8 +1575,7 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_upload_cert
 
 pub fn chromemanagement_customers_certificate_provisioning_processes_upload_certificate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleChromeManagementVersionsV1UploadCertificateRequest,
+    args: &ChromemanagementCustomersCertificateProvisioningProcessesUploadCertificateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1488,7 +1589,7 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_upload_cert
 > {
     let builder =
         chromemanagement_customers_certificate_provisioning_processes_upload_certificate_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     chromemanagement_customers_certificate_provisioning_processes_upload_certificate_execute(
         builder,
@@ -1589,6 +1690,13 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_operations_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_certificate_provisioning_processes_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersCertificateProvisioningProcessesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/customers/{customersId}/certificateProvisioningProcesses/{certificateProvisioningProcessesId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1601,7 +1709,7 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_operations_
 
 pub fn chromemanagement_customers_certificate_provisioning_processes_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChromemanagementCustomersCertificateProvisioningProcessesOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1612,7 +1720,7 @@ pub fn chromemanagement_customers_certificate_provisioning_processes_operations_
 > {
     let builder =
         chromemanagement_customers_certificate_provisioning_processes_operations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     chromemanagement_customers_certificate_provisioning_processes_operations_get_execute(builder)
 }
@@ -1709,6 +1817,13 @@ pub fn chromemanagement_customers_profiles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_profiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersProfilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/customers/{customersId}/profiles/{profilesId}
 /// Deletes the data collected from a Chrome browser profile.
 ///
@@ -1721,14 +1836,14 @@ pub fn chromemanagement_customers_profiles_delete_execute(
 
 pub fn chromemanagement_customers_profiles_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChromemanagementCustomersProfilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = chromemanagement_customers_profiles_delete_builder(client, name)?;
+    let builder = chromemanagement_customers_profiles_delete_builder(client, &args.name)?;
     chromemanagement_customers_profiles_delete_execute(builder)
 }
 
@@ -1827,6 +1942,13 @@ pub fn chromemanagement_customers_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/customers/{customersId}/profiles/{profilesId}
 /// Gets a Chrome browser profile with customer ID and profile permanent ID.
 ///
@@ -1839,7 +1961,7 @@ pub fn chromemanagement_customers_profiles_get_execute(
 
 pub fn chromemanagement_customers_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChromemanagementCustomersProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementVersionsV1ChromeBrowserProfile>, ApiError>,
@@ -1848,7 +1970,7 @@ pub fn chromemanagement_customers_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder = chromemanagement_customers_profiles_get_builder(client, name)?;
+    let builder = chromemanagement_customers_profiles_get_builder(client, &args.name)?;
     chromemanagement_customers_profiles_get_execute(builder)
 }
 
@@ -1974,6 +2096,21 @@ pub fn chromemanagement_customers_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/profiles
 /// Lists Chrome browser profiles of a customer based on the given search and sorting criteria.
 ///
@@ -1986,11 +2123,7 @@ pub fn chromemanagement_customers_profiles_list_execute(
 
 pub fn chromemanagement_customers_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ChromemanagementCustomersProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2003,7 +2136,12 @@ pub fn chromemanagement_customers_profiles_list(
     ApiError,
 > {
     let builder = chromemanagement_customers_profiles_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     chromemanagement_customers_profiles_list_execute(builder)
 }
@@ -2109,6 +2247,15 @@ pub fn chromemanagement_customers_profiles_commands_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_profiles_commands_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersProfilesCommandsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand,
+}
+
 /// GET v1/customers/{customersId}/profiles/{profilesId}/commands
 /// Creates a Chrome browser profile remote command.
 ///
@@ -2121,8 +2268,7 @@ pub fn chromemanagement_customers_profiles_commands_create_execute(
 
 pub fn chromemanagement_customers_profiles_commands_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleChromeManagementVersionsV1ChromeBrowserProfileCommand,
+    args: &ChromemanagementCustomersProfilesCommandsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2134,8 +2280,11 @@ pub fn chromemanagement_customers_profiles_commands_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        chromemanagement_customers_profiles_commands_create_builder(client, parent, body)?;
+    let builder = chromemanagement_customers_profiles_commands_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     chromemanagement_customers_profiles_commands_create_execute(builder)
 }
 
@@ -2237,6 +2386,13 @@ pub fn chromemanagement_customers_profiles_commands_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_profiles_commands_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersProfilesCommandsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/customers/{customersId}/profiles/{profilesId}/commands/{commandsId}
 /// Gets a Chrome browser profile remote command.
 ///
@@ -2249,7 +2405,7 @@ pub fn chromemanagement_customers_profiles_commands_get_execute(
 
 pub fn chromemanagement_customers_profiles_commands_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChromemanagementCustomersProfilesCommandsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2261,7 +2417,7 @@ pub fn chromemanagement_customers_profiles_commands_get(
         + 'static,
     ApiError,
 > {
-    let builder = chromemanagement_customers_profiles_commands_get_builder(client, name)?;
+    let builder = chromemanagement_customers_profiles_commands_get_builder(client, &args.name)?;
     chromemanagement_customers_profiles_commands_get_execute(builder)
 }
 
@@ -2375,6 +2531,17 @@ pub fn chromemanagement_customers_profiles_commands_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_profiles_commands_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersProfilesCommandsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/profiles/{profilesId}/commands
 /// Lists remote commands of a Chrome browser profile.
 ///
@@ -2387,9 +2554,7 @@ pub fn chromemanagement_customers_profiles_commands_list_execute(
 
 pub fn chromemanagement_customers_profiles_commands_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ChromemanagementCustomersProfilesCommandsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2404,7 +2569,10 @@ pub fn chromemanagement_customers_profiles_commands_list(
     ApiError,
 > {
     let builder = chromemanagement_customers_profiles_commands_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     chromemanagement_customers_profiles_commands_list_execute(builder)
 }
@@ -2524,6 +2692,19 @@ pub fn chromemanagement_customers_reports_count_active_devices_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_reports_count_active_devices`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersReportsCountActiveDevicesArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: date_day
+    pub date_day: Option<i32>,
+    /// Query parameter: date_month
+    pub date_month: Option<i32>,
+    /// Query parameter: date_year
+    pub date_year: Option<i32>,
+}
+
 /// GET v1/customers/{customersId}/reports:countActiveDevices
 /// Get a count of active devices per set time frames.
 ///
@@ -2536,10 +2717,7 @@ pub fn chromemanagement_customers_reports_count_active_devices_execute(
 
 pub fn chromemanagement_customers_reports_count_active_devices(
     client: &SimpleHttpClient,
-    customer: &str,
-    date_day: Option<i32>,
-    date_month: Option<i32>,
-    date_year: Option<i32>,
+    args: &ChromemanagementCustomersReportsCountActiveDevicesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementV1CountActiveDevicesResponse>, ApiError>,
@@ -2549,7 +2727,11 @@ pub fn chromemanagement_customers_reports_count_active_devices(
     ApiError,
 > {
     let builder = chromemanagement_customers_reports_count_active_devices_builder(
-        client, customer, date_day, date_month, date_year,
+        client,
+        &args.customer,
+        args.date_day,
+        args.date_month,
+        args.date_year,
     )?;
     chromemanagement_customers_reports_count_active_devices_execute(builder)
 }
@@ -2664,6 +2846,15 @@ pub fn chromemanagement_customers_reports_count_chrome_browsers_needing_attentio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_reports_count_chrome_browsers_needing_attention`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersReportsCountChromeBrowsersNeedingAttentionArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: orgUnitId
+    pub orgUnitId: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/reports:countChromeBrowsersNeedingAttention
 /// Count of Chrome Browsers that have been recently enrolled, have new policy to be synced, or have no recent activity.
 ///
@@ -2676,8 +2867,7 @@ pub fn chromemanagement_customers_reports_count_chrome_browsers_needing_attentio
 
 pub fn chromemanagement_customers_reports_count_chrome_browsers_needing_attention(
     client: &SimpleHttpClient,
-    customer: &str,
-    orgUnitId: Option<&str>,
+    args: &ChromemanagementCustomersReportsCountChromeBrowsersNeedingAttentionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2691,7 +2881,9 @@ pub fn chromemanagement_customers_reports_count_chrome_browsers_needing_attentio
 > {
     let builder =
         chromemanagement_customers_reports_count_chrome_browsers_needing_attention_builder(
-            client, customer, orgUnitId,
+            client,
+            &args.customer,
+            args.orgUnitId.as_deref(),
         )?;
     chromemanagement_customers_reports_count_chrome_browsers_needing_attention_execute(builder)
 }
@@ -2814,6 +3006,19 @@ pub fn chromemanagement_customers_reports_count_chrome_crash_events_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_reports_count_chrome_crash_events`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersReportsCountChromeCrashEventsArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: orgUnitId
+    pub orgUnitId: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/reports:countChromeCrashEvents
 /// Get a count of Chrome crash events.
 ///
@@ -2826,10 +3031,7 @@ pub fn chromemanagement_customers_reports_count_chrome_crash_events_execute(
 
 pub fn chromemanagement_customers_reports_count_chrome_crash_events(
     client: &SimpleHttpClient,
-    customer: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    orgUnitId: Option<&str>,
+    args: &ChromemanagementCustomersReportsCountChromeCrashEventsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2842,7 +3044,11 @@ pub fn chromemanagement_customers_reports_count_chrome_crash_events(
     ApiError,
 > {
     let builder = chromemanagement_customers_reports_count_chrome_crash_events_builder(
-        client, customer, filter, orderBy, orgUnitId,
+        client,
+        &args.customer,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.orgUnitId.as_deref(),
     )?;
     chromemanagement_customers_reports_count_chrome_crash_events_execute(builder)
 }
@@ -2961,6 +3167,19 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_reaching_auto_exp
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_reports_count_chrome_devices_reaching_auto_expiration_date`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersReportsCountChromeDevicesReachingAutoExpirationDateArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: maxAueDate
+    pub maxAueDate: Option<String>,
+    /// Query parameter: minAueDate
+    pub minAueDate: Option<String>,
+    /// Query parameter: orgUnitId
+    pub orgUnitId: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/reports:countChromeDevicesReachingAutoExpirationDate
 /// Generate report of the number of devices expiring in each month of the selected time frame. Devices are grouped by auto update expiration date and model. Further information can be found [here](<https://support.google.`com/chrome/a/answer/10564947`>).
 ///
@@ -2973,10 +3192,7 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_reaching_auto_exp
 
 pub fn chromemanagement_customers_reports_count_chrome_devices_reaching_auto_expiration_date(
     client: &SimpleHttpClient,
-    customer: &str,
-    maxAueDate: Option<&str>,
-    minAueDate: Option<&str>,
-    orgUnitId: Option<&str>,
+    args: &ChromemanagementCustomersReportsCountChromeDevicesReachingAutoExpirationDateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2990,7 +3206,7 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_reaching_auto_exp
         + 'static,
     ApiError,
 > {
-    let builder = chromemanagement_customers_reports_count_chrome_devices_reaching_auto_expiration_date_builder(client, customer, maxAueDate, minAueDate, orgUnitId)?;
+    let builder = chromemanagement_customers_reports_count_chrome_devices_reaching_auto_expiration_date_builder(client, &args.customer, args.maxAueDate.as_deref(), args.minAueDate.as_deref(), args.orgUnitId.as_deref())?;
     chromemanagement_customers_reports_count_chrome_devices_reaching_auto_expiration_date_execute(
         builder,
     )
@@ -3110,6 +3326,17 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_that_need_attenti
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_reports_count_chrome_devices_that_need_attention`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersReportsCountChromeDevicesThatNeedAttentionArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: orgUnitId
+    pub orgUnitId: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/reports:countChromeDevicesThatNeedAttention
 /// Counts of ChromeOS devices that have not synced policies or have lacked user activity in the past 28 days, are out of date, or are not complaint. Further information can be found here <https://support.google.`com/chrome/a/answer/10564947`>
 ///
@@ -3122,9 +3349,7 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_that_need_attenti
 
 pub fn chromemanagement_customers_reports_count_chrome_devices_that_need_attention(
     client: &SimpleHttpClient,
-    customer: &str,
-    orgUnitId: Option<&str>,
-    readMask: Option<&str>,
+    args: &ChromemanagementCustomersReportsCountChromeDevicesThatNeedAttentionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3138,7 +3363,10 @@ pub fn chromemanagement_customers_reports_count_chrome_devices_that_need_attenti
 > {
     let builder =
         chromemanagement_customers_reports_count_chrome_devices_that_need_attention_builder(
-            client, customer, orgUnitId, readMask,
+            client,
+            &args.customer,
+            args.orgUnitId.as_deref(),
+            args.readMask.as_deref(),
         )?;
     chromemanagement_customers_reports_count_chrome_devices_that_need_attention_execute(builder)
 }
@@ -3257,6 +3485,17 @@ pub fn chromemanagement_customers_reports_count_chrome_hardware_fleet_devices_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_reports_count_chrome_hardware_fleet_devices`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersReportsCountChromeHardwareFleetDevicesArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: orgUnitId
+    pub orgUnitId: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/reports:countChromeHardwareFleetDevices
 /// Counts of devices with a specific hardware specification from the requested hardware type (for example model name, processor type). Further information can be found here <https://support.google.`com/chrome/a/answer/10564947`>
 ///
@@ -3269,9 +3508,7 @@ pub fn chromemanagement_customers_reports_count_chrome_hardware_fleet_devices_ex
 
 pub fn chromemanagement_customers_reports_count_chrome_hardware_fleet_devices(
     client: &SimpleHttpClient,
-    customer: &str,
-    orgUnitId: Option<&str>,
-    readMask: Option<&str>,
+    args: &ChromemanagementCustomersReportsCountChromeHardwareFleetDevicesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3284,7 +3521,10 @@ pub fn chromemanagement_customers_reports_count_chrome_hardware_fleet_devices(
     ApiError,
 > {
     let builder = chromemanagement_customers_reports_count_chrome_hardware_fleet_devices_builder(
-        client, customer, orgUnitId, readMask,
+        client,
+        &args.customer,
+        args.orgUnitId.as_deref(),
+        args.readMask.as_deref(),
     )?;
     chromemanagement_customers_reports_count_chrome_hardware_fleet_devices_execute(builder)
 }
@@ -3408,6 +3648,21 @@ pub fn chromemanagement_customers_reports_count_chrome_versions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_reports_count_chrome_versions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersReportsCountChromeVersionsArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orgUnitId
+    pub orgUnitId: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/reports:countChromeVersions
 /// Generate report of installed Chrome versions.
 ///
@@ -3420,11 +3675,7 @@ pub fn chromemanagement_customers_reports_count_chrome_versions_execute(
 
 pub fn chromemanagement_customers_reports_count_chrome_versions(
     client: &SimpleHttpClient,
-    customer: &str,
-    filter: Option<&str>,
-    orgUnitId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ChromemanagementCustomersReportsCountChromeVersionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementV1CountChromeVersionsResponse>, ApiError>,
@@ -3434,7 +3685,12 @@ pub fn chromemanagement_customers_reports_count_chrome_versions(
     ApiError,
 > {
     let builder = chromemanagement_customers_reports_count_chrome_versions_builder(
-        client, customer, filter, orgUnitId, pageSize, pageToken,
+        client,
+        &args.customer,
+        args.filter.as_deref(),
+        args.orgUnitId.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     chromemanagement_customers_reports_count_chrome_versions_execute(builder)
 }
@@ -3557,6 +3813,19 @@ pub fn chromemanagement_customers_reports_count_devices_per_boot_type_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_reports_count_devices_per_boot_type`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersReportsCountDevicesPerBootTypeArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: date_day
+    pub date_day: Option<i32>,
+    /// Query parameter: date_month
+    pub date_month: Option<i32>,
+    /// Query parameter: date_year
+    pub date_year: Option<i32>,
+}
+
 /// GET v1/customers/{customersId}/reports:countDevicesPerBootType
 /// Get a count of devices per boot type.
 ///
@@ -3569,10 +3838,7 @@ pub fn chromemanagement_customers_reports_count_devices_per_boot_type_execute(
 
 pub fn chromemanagement_customers_reports_count_devices_per_boot_type(
     client: &SimpleHttpClient,
-    customer: &str,
-    date_day: Option<i32>,
-    date_month: Option<i32>,
-    date_year: Option<i32>,
+    args: &ChromemanagementCustomersReportsCountDevicesPerBootTypeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3585,7 +3851,11 @@ pub fn chromemanagement_customers_reports_count_devices_per_boot_type(
     ApiError,
 > {
     let builder = chromemanagement_customers_reports_count_devices_per_boot_type_builder(
-        client, customer, date_day, date_month, date_year,
+        client,
+        &args.customer,
+        args.date_day,
+        args.date_month,
+        args.date_year,
     )?;
     chromemanagement_customers_reports_count_devices_per_boot_type_execute(builder)
 }
@@ -3708,6 +3978,19 @@ pub fn chromemanagement_customers_reports_count_devices_per_release_channel_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_reports_count_devices_per_release_channel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersReportsCountDevicesPerReleaseChannelArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: date_day
+    pub date_day: Option<i32>,
+    /// Query parameter: date_month
+    pub date_month: Option<i32>,
+    /// Query parameter: date_year
+    pub date_year: Option<i32>,
+}
+
 /// GET v1/customers/{customersId}/reports:countDevicesPerReleaseChannel
 /// Get a count of devices per channel.
 ///
@@ -3720,10 +4003,7 @@ pub fn chromemanagement_customers_reports_count_devices_per_release_channel_exec
 
 pub fn chromemanagement_customers_reports_count_devices_per_release_channel(
     client: &SimpleHttpClient,
-    customer: &str,
-    date_day: Option<i32>,
-    date_month: Option<i32>,
-    date_year: Option<i32>,
+    args: &ChromemanagementCustomersReportsCountDevicesPerReleaseChannelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3736,7 +4016,11 @@ pub fn chromemanagement_customers_reports_count_devices_per_release_channel(
     ApiError,
 > {
     let builder = chromemanagement_customers_reports_count_devices_per_release_channel_builder(
-        client, customer, date_day, date_month, date_year,
+        client,
+        &args.customer,
+        args.date_day,
+        args.date_month,
+        args.date_year,
     )?;
     chromemanagement_customers_reports_count_devices_per_release_channel_execute(builder)
 }
@@ -3864,6 +4148,23 @@ pub fn chromemanagement_customers_reports_count_installed_apps_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_reports_count_installed_apps`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersReportsCountInstalledAppsArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: orgUnitId
+    pub orgUnitId: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/reports:countInstalledApps
 /// Generate report of app installations.
 ///
@@ -3876,12 +4177,7 @@ pub fn chromemanagement_customers_reports_count_installed_apps_execute(
 
 pub fn chromemanagement_customers_reports_count_installed_apps(
     client: &SimpleHttpClient,
-    customer: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    orgUnitId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ChromemanagementCustomersReportsCountInstalledAppsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementV1CountInstalledAppsResponse>, ApiError>,
@@ -3891,7 +4187,13 @@ pub fn chromemanagement_customers_reports_count_installed_apps(
     ApiError,
 > {
     let builder = chromemanagement_customers_reports_count_installed_apps_builder(
-        client, customer, filter, orderBy, orgUnitId, pageSize, pageToken,
+        client,
+        &args.customer,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.orgUnitId.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     chromemanagement_customers_reports_count_installed_apps_execute(builder)
 }
@@ -4022,6 +4324,23 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_printer_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_reports_count_print_jobs_by_printer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersReportsCountPrintJobsByPrinterArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: printerOrgUnitId
+    pub printerOrgUnitId: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/reports:countPrintJobsByPrinter
 /// Get a summary of printing done by each printer.
 ///
@@ -4034,12 +4353,7 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_printer_execute(
 
 pub fn chromemanagement_customers_reports_count_print_jobs_by_printer(
     client: &SimpleHttpClient,
-    customer: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    printerOrgUnitId: Option<&str>,
+    args: &ChromemanagementCustomersReportsCountPrintJobsByPrinterArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4053,12 +4367,12 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_printer(
 > {
     let builder = chromemanagement_customers_reports_count_print_jobs_by_printer_builder(
         client,
-        customer,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        printerOrgUnitId,
+        &args.customer,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.printerOrgUnitId.as_deref(),
     )?;
     chromemanagement_customers_reports_count_print_jobs_by_printer_execute(builder)
 }
@@ -4186,6 +4500,23 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_user_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_reports_count_print_jobs_by_user`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersReportsCountPrintJobsByUserArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: printerOrgUnitId
+    pub printerOrgUnitId: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/reports:countPrintJobsByUser
 /// Get a summary of printing done by each user.
 ///
@@ -4198,12 +4529,7 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_user_execute(
 
 pub fn chromemanagement_customers_reports_count_print_jobs_by_user(
     client: &SimpleHttpClient,
-    customer: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    printerOrgUnitId: Option<&str>,
+    args: &ChromemanagementCustomersReportsCountPrintJobsByUserArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementV1CountPrintJobsByUserResponse>, ApiError>,
@@ -4214,12 +4540,12 @@ pub fn chromemanagement_customers_reports_count_print_jobs_by_user(
 > {
     let builder = chromemanagement_customers_reports_count_print_jobs_by_user_builder(
         client,
-        customer,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        printerOrgUnitId,
+        &args.customer,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.printerOrgUnitId.as_deref(),
     )?;
     chromemanagement_customers_reports_count_print_jobs_by_user_execute(builder)
 }
@@ -4347,6 +4673,23 @@ pub fn chromemanagement_customers_reports_enumerate_print_jobs_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_reports_enumerate_print_jobs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersReportsEnumeratePrintJobsArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: printerOrgUnitId
+    pub printerOrgUnitId: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/reports:enumeratePrintJobs
 /// Get a list of print jobs.
 ///
@@ -4359,12 +4702,7 @@ pub fn chromemanagement_customers_reports_enumerate_print_jobs_execute(
 
 pub fn chromemanagement_customers_reports_enumerate_print_jobs(
     client: &SimpleHttpClient,
-    customer: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    printerOrgUnitId: Option<&str>,
+    args: &ChromemanagementCustomersReportsEnumeratePrintJobsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementV1EnumeratePrintJobsResponse>, ApiError>,
@@ -4375,12 +4713,12 @@ pub fn chromemanagement_customers_reports_enumerate_print_jobs(
 > {
     let builder = chromemanagement_customers_reports_enumerate_print_jobs_builder(
         client,
-        customer,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        printerOrgUnitId,
+        &args.customer,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.printerOrgUnitId.as_deref(),
     )?;
     chromemanagement_customers_reports_enumerate_print_jobs_execute(builder)
 }
@@ -4519,6 +4857,27 @@ pub fn chromemanagement_customers_reports_find_installed_app_devices_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_reports_find_installed_app_devices`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersReportsFindInstalledAppDevicesArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: appId
+    pub appId: Option<String>,
+    /// Query parameter: appType
+    pub appType: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: orgUnitId
+    pub orgUnitId: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/reports:findInstalledAppDevices
 /// Generate report of managed Chrome browser devices that have a specified app installed.
 ///
@@ -4531,14 +4890,7 @@ pub fn chromemanagement_customers_reports_find_installed_app_devices_execute(
 
 pub fn chromemanagement_customers_reports_find_installed_app_devices(
     client: &SimpleHttpClient,
-    customer: &str,
-    appId: Option<&str>,
-    appType: Option<&str>,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    orgUnitId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ChromemanagementCustomersReportsFindInstalledAppDevicesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4551,7 +4903,15 @@ pub fn chromemanagement_customers_reports_find_installed_app_devices(
     ApiError,
 > {
     let builder = chromemanagement_customers_reports_find_installed_app_devices_builder(
-        client, customer, appId, appType, filter, orderBy, orgUnitId, pageSize, pageToken,
+        client,
+        &args.customer,
+        args.appId.as_deref(),
+        args.appType.as_deref(),
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.orgUnitId.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     chromemanagement_customers_reports_find_installed_app_devices_execute(builder)
 }
@@ -4663,6 +5023,15 @@ pub fn chromemanagement_customers_telemetry_devices_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_telemetry_devices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersTelemetryDevicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/telemetry/devices/{devicesId}
 /// Get telemetry device.
 ///
@@ -4675,8 +5044,7 @@ pub fn chromemanagement_customers_telemetry_devices_get_execute(
 
 pub fn chromemanagement_customers_telemetry_devices_get(
     client: &SimpleHttpClient,
-    name: &str,
-    readMask: Option<&str>,
+    args: &ChromemanagementCustomersTelemetryDevicesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementV1TelemetryDevice>, ApiError>,
@@ -4685,7 +5053,11 @@ pub fn chromemanagement_customers_telemetry_devices_get(
         + 'static,
     ApiError,
 > {
-    let builder = chromemanagement_customers_telemetry_devices_get_builder(client, name, readMask)?;
+    let builder = chromemanagement_customers_telemetry_devices_get_builder(
+        client,
+        &args.name,
+        args.readMask.as_deref(),
+    )?;
     chromemanagement_customers_telemetry_devices_get_execute(builder)
 }
 
@@ -4808,6 +5180,21 @@ pub fn chromemanagement_customers_telemetry_devices_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_telemetry_devices_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersTelemetryDevicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/telemetry/devices
 /// List all telemetry devices.
 ///
@@ -4820,11 +5207,7 @@ pub fn chromemanagement_customers_telemetry_devices_list_execute(
 
 pub fn chromemanagement_customers_telemetry_devices_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &ChromemanagementCustomersTelemetryDevicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementV1ListTelemetryDevicesResponse>, ApiError>,
@@ -4834,7 +5217,12 @@ pub fn chromemanagement_customers_telemetry_devices_list(
     ApiError,
 > {
     let builder = chromemanagement_customers_telemetry_devices_list_builder(
-        client, parent, filter, pageSize, pageToken, readMask,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     chromemanagement_customers_telemetry_devices_list_execute(builder)
 }
@@ -4958,6 +5346,21 @@ pub fn chromemanagement_customers_telemetry_events_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_telemetry_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersTelemetryEventsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/telemetry/events
 /// List telemetry events.
 ///
@@ -4970,11 +5373,7 @@ pub fn chromemanagement_customers_telemetry_events_list_execute(
 
 pub fn chromemanagement_customers_telemetry_events_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &ChromemanagementCustomersTelemetryEventsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementV1ListTelemetryEventsResponse>, ApiError>,
@@ -4984,7 +5383,12 @@ pub fn chromemanagement_customers_telemetry_events_list(
     ApiError,
 > {
     let builder = chromemanagement_customers_telemetry_events_list_builder(
-        client, parent, filter, pageSize, pageToken, readMask,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     chromemanagement_customers_telemetry_events_list_execute(builder)
 }
@@ -5087,6 +5491,15 @@ pub fn chromemanagement_customers_telemetry_notification_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_telemetry_notification_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersTelemetryNotificationConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleChromeManagementV1TelemetryNotificationConfig,
+}
+
 /// GET v1/customers/{customersId}/telemetry/notificationConfigs
 /// Create a telemetry notification config.
 ///
@@ -5099,8 +5512,7 @@ pub fn chromemanagement_customers_telemetry_notification_configs_create_execute(
 
 pub fn chromemanagement_customers_telemetry_notification_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleChromeManagementV1TelemetryNotificationConfig,
+    args: &ChromemanagementCustomersTelemetryNotificationConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementV1TelemetryNotificationConfig>, ApiError>,
@@ -5110,7 +5522,9 @@ pub fn chromemanagement_customers_telemetry_notification_configs_create(
     ApiError,
 > {
     let builder = chromemanagement_customers_telemetry_notification_configs_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     chromemanagement_customers_telemetry_notification_configs_create_execute(builder)
 }
@@ -5207,6 +5621,13 @@ pub fn chromemanagement_customers_telemetry_notification_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_telemetry_notification_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersTelemetryNotificationConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/customers/{customersId}/telemetry/notificationConfigs/{notificationConfigsId}
 /// Delete a telemetry notification config.
 ///
@@ -5219,15 +5640,16 @@ pub fn chromemanagement_customers_telemetry_notification_configs_delete_execute(
 
 pub fn chromemanagement_customers_telemetry_notification_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChromemanagementCustomersTelemetryNotificationConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        chromemanagement_customers_telemetry_notification_configs_delete_builder(client, name)?;
+    let builder = chromemanagement_customers_telemetry_notification_configs_delete_builder(
+        client, &args.name,
+    )?;
     chromemanagement_customers_telemetry_notification_configs_delete_execute(builder)
 }
 
@@ -5345,6 +5767,17 @@ pub fn chromemanagement_customers_telemetry_notification_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_telemetry_notification_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersTelemetryNotificationConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/telemetry/notificationConfigs
 /// List all telemetry notification configs.
 ///
@@ -5357,9 +5790,7 @@ pub fn chromemanagement_customers_telemetry_notification_configs_list_execute(
 
 pub fn chromemanagement_customers_telemetry_notification_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ChromemanagementCustomersTelemetryNotificationConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5372,7 +5803,10 @@ pub fn chromemanagement_customers_telemetry_notification_configs_list(
     ApiError,
 > {
     let builder = chromemanagement_customers_telemetry_notification_configs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     chromemanagement_customers_telemetry_notification_configs_list_execute(builder)
 }
@@ -5483,6 +5917,15 @@ pub fn chromemanagement_customers_telemetry_users_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_telemetry_users_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersTelemetryUsersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/telemetry/users/{usersId}
 /// Get telemetry user.
 ///
@@ -5495,8 +5938,7 @@ pub fn chromemanagement_customers_telemetry_users_get_execute(
 
 pub fn chromemanagement_customers_telemetry_users_get(
     client: &SimpleHttpClient,
-    name: &str,
-    readMask: Option<&str>,
+    args: &ChromemanagementCustomersTelemetryUsersGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementV1TelemetryUser>, ApiError>,
@@ -5505,7 +5947,11 @@ pub fn chromemanagement_customers_telemetry_users_get(
         + 'static,
     ApiError,
 > {
-    let builder = chromemanagement_customers_telemetry_users_get_builder(client, name, readMask)?;
+    let builder = chromemanagement_customers_telemetry_users_get_builder(
+        client,
+        &args.name,
+        args.readMask.as_deref(),
+    )?;
     chromemanagement_customers_telemetry_users_get_execute(builder)
 }
 
@@ -5628,6 +6074,21 @@ pub fn chromemanagement_customers_telemetry_users_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_telemetry_users_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersTelemetryUsersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/customers/{customersId}/telemetry/users
 /// List all telemetry users.
 ///
@@ -5640,11 +6101,7 @@ pub fn chromemanagement_customers_telemetry_users_list_execute(
 
 pub fn chromemanagement_customers_telemetry_users_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
+    args: &ChromemanagementCustomersTelemetryUsersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleChromeManagementV1ListTelemetryUsersResponse>, ApiError>,
@@ -5654,7 +6111,12 @@ pub fn chromemanagement_customers_telemetry_users_list(
     ApiError,
 > {
     let builder = chromemanagement_customers_telemetry_users_list_builder(
-        client, parent, filter, pageSize, pageToken, readMask,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readMask.as_deref(),
     )?;
     chromemanagement_customers_telemetry_users_list_execute(builder)
 }
@@ -5760,6 +6222,15 @@ pub fn chromemanagement_customers_third_party_profile_users_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_customers_third_party_profile_users_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementCustomersThirdPartyProfileUsersMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserRequest,
+}
+
 /// GET v1/customers/{customersId}/thirdPartyProfileUsers/{thirdPartyProfileUsersId}:move
 /// Moves a third party chrome profile user to a destination OU. All profiles associated to that user will be moved to the destination OU.
 ///
@@ -5772,8 +6243,7 @@ pub fn chromemanagement_customers_third_party_profile_users_move_execute(
 
 pub fn chromemanagement_customers_third_party_profile_users_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleChromeManagementVersionsV1MoveThirdPartyProfileUserRequest,
+    args: &ChromemanagementCustomersThirdPartyProfileUsersMoveArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -5785,8 +6255,9 @@ pub fn chromemanagement_customers_third_party_profile_users_move(
         + 'static,
     ApiError,
 > {
-    let builder =
-        chromemanagement_customers_third_party_profile_users_move_builder(client, name, body)?;
+    let builder = chromemanagement_customers_third_party_profile_users_move_builder(
+        client, &args.name, &args.body,
+    )?;
     chromemanagement_customers_third_party_profile_users_move_execute(builder)
 }
 
@@ -5885,6 +6356,15 @@ pub fn chromemanagement_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -5897,15 +6377,14 @@ pub fn chromemanagement_operations_cancel_execute(
 
 pub fn chromemanagement_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &ChromemanagementOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = chromemanagement_operations_cancel_builder(client, name, body)?;
+    let builder = chromemanagement_operations_cancel_builder(client, &args.name, &args.body)?;
     chromemanagement_operations_cancel_execute(builder)
 }
 
@@ -6001,6 +6480,13 @@ pub fn chromemanagement_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -6013,14 +6499,14 @@ pub fn chromemanagement_operations_delete_execute(
 
 pub fn chromemanagement_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChromemanagementOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = chromemanagement_operations_delete_builder(client, name)?;
+    let builder = chromemanagement_operations_delete_builder(client, &args.name)?;
     chromemanagement_operations_delete_execute(builder)
 }
 
@@ -6143,6 +6629,21 @@ pub fn chromemanagement_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromemanagement_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromemanagementOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -6155,11 +6656,7 @@ pub fn chromemanagement_operations_list_execute(
 
 pub fn chromemanagement_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ChromemanagementOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -6170,11 +6667,11 @@ pub fn chromemanagement_operations_list(
 > {
     let builder = chromemanagement_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     chromemanagement_operations_list_execute(builder)
 }

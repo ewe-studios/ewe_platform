@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn vmmigration_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn vmmigration_projects_locations_get_execute(
 
 pub fn vmmigration_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmmigrationProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vmmigration_projects_locations_get_builder(client, name)?;
+    let builder = vmmigration_projects_locations_get_builder(client, &args.name)?;
     vmmigration_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn vmmigration_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn vmmigration_projects_locations_list_execute(
 
 pub fn vmmigration_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmmigrationProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn vmmigration_projects_locations_list(
 > {
     let builder = vmmigration_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmmigration_projects_locations_list_execute(builder)
 }
@@ -370,6 +390,15 @@ pub fn vmmigration_projects_locations_groups_add_group_migration_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_groups_add_group_migration`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsGroupsAddGroupMigrationArgs {
+    /// Path parameter: group
+    pub group: String,
+    /// Request body.
+    pub body: AddGroupMigrationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}:addGroupMigration
 /// Adds a MigratingVm to a Group.
 ///
@@ -382,14 +411,16 @@ pub fn vmmigration_projects_locations_groups_add_group_migration_execute(
 
 pub fn vmmigration_projects_locations_groups_add_group_migration(
     client: &SimpleHttpClient,
-    group: &str,
-    body: &AddGroupMigrationRequest,
+    args: &VmmigrationProjectsLocationsGroupsAddGroupMigrationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vmmigration_projects_locations_groups_add_group_migration_builder(client, group, body)?;
+    let builder = vmmigration_projects_locations_groups_add_group_migration_builder(
+        client,
+        &args.group,
+        &args.body,
+    )?;
     vmmigration_projects_locations_groups_add_group_migration_execute(builder)
 }
 
@@ -502,6 +533,19 @@ pub fn vmmigration_projects_locations_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: groupId
+    pub groupId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Group,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groups
 /// Creates a new Group in a given project and location.
 ///
@@ -514,16 +558,17 @@ pub fn vmmigration_projects_locations_groups_create_execute(
 
 pub fn vmmigration_projects_locations_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    groupId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Group,
+    args: &VmmigrationProjectsLocationsGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_groups_create_builder(
-        client, parent, groupId, requestId, body,
+        client,
+        &args.parent,
+        args.groupId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     vmmigration_projects_locations_groups_create_execute(builder)
 }
@@ -630,6 +675,15 @@ pub fn vmmigration_projects_locations_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
 /// Deletes a single Group.
 ///
@@ -642,13 +696,16 @@ pub fn vmmigration_projects_locations_groups_delete_execute(
 
 pub fn vmmigration_projects_locations_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &VmmigrationProjectsLocationsGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vmmigration_projects_locations_groups_delete_builder(client, name, requestId)?;
+    let builder = vmmigration_projects_locations_groups_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     vmmigration_projects_locations_groups_delete_execute(builder)
 }
 
@@ -742,6 +799,13 @@ pub fn vmmigration_projects_locations_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
 /// Gets details of a single Group.
 ///
@@ -754,12 +818,12 @@ pub fn vmmigration_projects_locations_groups_get_execute(
 
 pub fn vmmigration_projects_locations_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmmigrationProjectsLocationsGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vmmigration_projects_locations_groups_get_builder(client, name)?;
+    let builder = vmmigration_projects_locations_groups_get_builder(client, &args.name)?;
     vmmigration_projects_locations_groups_get_execute(builder)
 }
 
@@ -879,6 +943,21 @@ pub fn vmmigration_projects_locations_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groups
 /// Lists Groups in a given project and location.
 ///
@@ -891,11 +970,7 @@ pub fn vmmigration_projects_locations_groups_list_execute(
 
 pub fn vmmigration_projects_locations_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmmigrationProjectsLocationsGroupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGroupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -903,7 +978,12 @@ pub fn vmmigration_projects_locations_groups_list(
     ApiError,
 > {
     let builder = vmmigration_projects_locations_groups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmmigration_projects_locations_groups_list_execute(builder)
 }
@@ -1017,6 +1097,19 @@ pub fn vmmigration_projects_locations_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Group,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}
 /// Updates the parameters of a single Group.
 ///
@@ -1029,16 +1122,17 @@ pub fn vmmigration_projects_locations_groups_patch_execute(
 
 pub fn vmmigration_projects_locations_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Group,
+    args: &VmmigrationProjectsLocationsGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_groups_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     vmmigration_projects_locations_groups_patch_execute(builder)
 }
@@ -1136,6 +1230,15 @@ pub fn vmmigration_projects_locations_groups_remove_group_migration_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_groups_remove_group_migration`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsGroupsRemoveGroupMigrationArgs {
+    /// Path parameter: group
+    pub group: String,
+    /// Request body.
+    pub body: RemoveGroupMigrationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/groups/{groupsId}:removeGroupMigration
 /// Removes a MigratingVm from a Group.
 ///
@@ -1148,14 +1251,16 @@ pub fn vmmigration_projects_locations_groups_remove_group_migration_execute(
 
 pub fn vmmigration_projects_locations_groups_remove_group_migration(
     client: &SimpleHttpClient,
-    group: &str,
-    body: &RemoveGroupMigrationRequest,
+    args: &VmmigrationProjectsLocationsGroupsRemoveGroupMigrationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vmmigration_projects_locations_groups_remove_group_migration_builder(client, group, body)?;
+    let builder = vmmigration_projects_locations_groups_remove_group_migration_builder(
+        client,
+        &args.group,
+        &args.body,
+    )?;
     vmmigration_projects_locations_groups_remove_group_migration_execute(builder)
 }
 
@@ -1268,6 +1373,19 @@ pub fn vmmigration_projects_locations_image_imports_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_image_imports_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsImageImportsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: imageImportId
+    pub imageImportId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: ImageImport,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/imageImports
 /// Creates a new ImageImport in a given project.
 ///
@@ -1280,20 +1398,17 @@ pub fn vmmigration_projects_locations_image_imports_create_execute(
 
 pub fn vmmigration_projects_locations_image_imports_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    imageImportId: Option<&str>,
-    requestId: Option<&str>,
-    body: &ImageImport,
+    args: &VmmigrationProjectsLocationsImageImportsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_image_imports_create_builder(
         client,
-        parent,
-        imageImportId,
-        requestId,
-        body,
+        &args.parent,
+        args.imageImportId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     vmmigration_projects_locations_image_imports_create_execute(builder)
 }
@@ -1400,6 +1515,15 @@ pub fn vmmigration_projects_locations_image_imports_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_image_imports_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsImageImportsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/imageImports/{imageImportsId}
 /// Deletes a single ImageImport.
 ///
@@ -1412,14 +1536,16 @@ pub fn vmmigration_projects_locations_image_imports_delete_execute(
 
 pub fn vmmigration_projects_locations_image_imports_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &VmmigrationProjectsLocationsImageImportsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vmmigration_projects_locations_image_imports_delete_builder(client, name, requestId)?;
+    let builder = vmmigration_projects_locations_image_imports_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     vmmigration_projects_locations_image_imports_delete_execute(builder)
 }
 
@@ -1513,6 +1639,13 @@ pub fn vmmigration_projects_locations_image_imports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_image_imports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsImageImportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/imageImports/{imageImportsId}
 /// Gets details of a single ImageImport.
 ///
@@ -1525,12 +1658,12 @@ pub fn vmmigration_projects_locations_image_imports_get_execute(
 
 pub fn vmmigration_projects_locations_image_imports_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmmigrationProjectsLocationsImageImportsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ImageImport>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vmmigration_projects_locations_image_imports_get_builder(client, name)?;
+    let builder = vmmigration_projects_locations_image_imports_get_builder(client, &args.name)?;
     vmmigration_projects_locations_image_imports_get_execute(builder)
 }
 
@@ -1650,6 +1783,21 @@ pub fn vmmigration_projects_locations_image_imports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_image_imports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsImageImportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/imageImports
 /// Lists ImageImports in a given project.
 ///
@@ -1662,11 +1810,7 @@ pub fn vmmigration_projects_locations_image_imports_list_execute(
 
 pub fn vmmigration_projects_locations_image_imports_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmmigrationProjectsLocationsImageImportsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListImageImportsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1674,7 +1818,12 @@ pub fn vmmigration_projects_locations_image_imports_list(
     ApiError,
 > {
     let builder = vmmigration_projects_locations_image_imports_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmmigration_projects_locations_image_imports_list_execute(builder)
 }
@@ -1772,6 +1921,15 @@ pub fn vmmigration_projects_locations_image_imports_image_import_jobs_cancel_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_image_imports_image_import_jobs_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsImageImportsImageImportJobsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelImageImportJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/imageImports/{imageImportsId}/imageImportJobs/{imageImportJobsId}:cancel
 /// Initiates the cancellation of a running ImageImportJob.
 ///
@@ -1784,14 +1942,13 @@ pub fn vmmigration_projects_locations_image_imports_image_import_jobs_cancel_exe
 
 pub fn vmmigration_projects_locations_image_imports_image_import_jobs_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelImageImportJobRequest,
+    args: &VmmigrationProjectsLocationsImageImportsImageImportJobsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_image_imports_image_import_jobs_cancel_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     vmmigration_projects_locations_image_imports_image_import_jobs_cancel_execute(builder)
 }
@@ -1888,6 +2045,13 @@ pub fn vmmigration_projects_locations_image_imports_image_import_jobs_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_image_imports_image_import_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsImageImportsImageImportJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/imageImports/{imageImportsId}/imageImportJobs/{imageImportJobsId}
 /// Gets details of a single ImageImportJob.
 ///
@@ -1900,15 +2064,16 @@ pub fn vmmigration_projects_locations_image_imports_image_import_jobs_get_execut
 
 pub fn vmmigration_projects_locations_image_imports_image_import_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmmigrationProjectsLocationsImageImportsImageImportJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ImageImportJob>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        vmmigration_projects_locations_image_imports_image_import_jobs_get_builder(client, name)?;
+    let builder = vmmigration_projects_locations_image_imports_image_import_jobs_get_builder(
+        client, &args.name,
+    )?;
     vmmigration_projects_locations_image_imports_image_import_jobs_get_execute(builder)
 }
 
@@ -2030,6 +2195,21 @@ pub fn vmmigration_projects_locations_image_imports_image_import_jobs_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_image_imports_image_import_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsImageImportsImageImportJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/imageImports/{imageImportsId}/imageImportJobs
 /// Lists ImageImportJobs in a given project.
 ///
@@ -2042,11 +2222,7 @@ pub fn vmmigration_projects_locations_image_imports_image_import_jobs_list_execu
 
 pub fn vmmigration_projects_locations_image_imports_image_import_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmmigrationProjectsLocationsImageImportsImageImportJobsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListImageImportJobsResponse>, ApiError>,
@@ -2056,7 +2232,12 @@ pub fn vmmigration_projects_locations_image_imports_image_import_jobs_list(
     ApiError,
 > {
     let builder = vmmigration_projects_locations_image_imports_image_import_jobs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmmigration_projects_locations_image_imports_image_import_jobs_list_execute(builder)
 }
@@ -2154,6 +2335,15 @@ pub fn vmmigration_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -2166,13 +2356,13 @@ pub fn vmmigration_projects_locations_operations_cancel_execute(
 
 pub fn vmmigration_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &VmmigrationProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vmmigration_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        vmmigration_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     vmmigration_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -2266,6 +2456,13 @@ pub fn vmmigration_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -2278,12 +2475,12 @@ pub fn vmmigration_projects_locations_operations_delete_execute(
 
 pub fn vmmigration_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmmigrationProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vmmigration_projects_locations_operations_delete_builder(client, name)?;
+    let builder = vmmigration_projects_locations_operations_delete_builder(client, &args.name)?;
     vmmigration_projects_locations_operations_delete_execute(builder)
 }
 
@@ -2377,6 +2574,13 @@ pub fn vmmigration_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2389,12 +2593,12 @@ pub fn vmmigration_projects_locations_operations_get_execute(
 
 pub fn vmmigration_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmmigrationProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vmmigration_projects_locations_operations_get_builder(client, name)?;
+    let builder = vmmigration_projects_locations_operations_get_builder(client, &args.name)?;
     vmmigration_projects_locations_operations_get_execute(builder)
 }
 
@@ -2514,6 +2718,21 @@ pub fn vmmigration_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -2526,11 +2745,7 @@ pub fn vmmigration_projects_locations_operations_list_execute(
 
 pub fn vmmigration_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &VmmigrationProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2539,11 +2754,11 @@ pub fn vmmigration_projects_locations_operations_list(
 > {
     let builder = vmmigration_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     vmmigration_projects_locations_operations_list_execute(builder)
 }
@@ -2657,6 +2872,19 @@ pub fn vmmigration_projects_locations_sources_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: sourceId
+    pub sourceId: Option<String>,
+    /// Request body.
+    pub body: Source,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources
 /// Creates a new Source in a given project and location.
 ///
@@ -2669,16 +2897,17 @@ pub fn vmmigration_projects_locations_sources_create_execute(
 
 pub fn vmmigration_projects_locations_sources_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    sourceId: Option<&str>,
-    body: &Source,
+    args: &VmmigrationProjectsLocationsSourcesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_create_builder(
-        client, parent, requestId, sourceId, body,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.sourceId.as_deref(),
+        &args.body,
     )?;
     vmmigration_projects_locations_sources_create_execute(builder)
 }
@@ -2785,6 +3014,15 @@ pub fn vmmigration_projects_locations_sources_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}
 /// Deletes a single Source.
 ///
@@ -2797,13 +3035,16 @@ pub fn vmmigration_projects_locations_sources_delete_execute(
 
 pub fn vmmigration_projects_locations_sources_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &VmmigrationProjectsLocationsSourcesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vmmigration_projects_locations_sources_delete_builder(client, name, requestId)?;
+    let builder = vmmigration_projects_locations_sources_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     vmmigration_projects_locations_sources_delete_execute(builder)
 }
 
@@ -2919,6 +3160,19 @@ pub fn vmmigration_projects_locations_sources_fetch_inventory_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_fetch_inventory`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesFetchInventoryArgs {
+    /// Path parameter: source
+    pub source: String,
+    /// Query parameter: forceRefresh
+    pub forceRefresh: Option<bool>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}:fetchInventory
 /// List remote source's inventory of VMs. The remote source is the onprem vCenter (remote in the sense it's not in Compute Engine). The inventory describes the list of existing VMs in that source. Note that this operation lists the VMs on the remote source, as opposed to listing the MigratingVms resources in the vmmigration service.
 ///
@@ -2931,10 +3185,7 @@ pub fn vmmigration_projects_locations_sources_fetch_inventory_execute(
 
 pub fn vmmigration_projects_locations_sources_fetch_inventory(
     client: &SimpleHttpClient,
-    source: &str,
-    forceRefresh: Option<bool>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmmigrationProjectsLocationsSourcesFetchInventoryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FetchInventoryResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2943,10 +3194,10 @@ pub fn vmmigration_projects_locations_sources_fetch_inventory(
 > {
     let builder = vmmigration_projects_locations_sources_fetch_inventory_builder(
         client,
-        source,
-        forceRefresh,
-        pageSize,
-        pageToken,
+        &args.source,
+        args.forceRefresh,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmmigration_projects_locations_sources_fetch_inventory_execute(builder)
 }
@@ -3069,6 +3320,21 @@ pub fn vmmigration_projects_locations_sources_fetch_storage_inventory_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_fetch_storage_inventory`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesFetchStorageInventoryArgs {
+    /// Path parameter: source
+    pub source: String,
+    /// Query parameter: forceRefresh
+    pub forceRefresh: Option<bool>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}:fetchStorageInventory
 /// List remote source's inventory of storage resources. The remote source is another cloud vendor (e.g. AWS, Azure). The inventory describes the list of existing storage resources in that source. Note that this operation lists the resources on the remote source, as opposed to listing the MigratingVms resources in the vmmigration service.
 ///
@@ -3081,11 +3347,7 @@ pub fn vmmigration_projects_locations_sources_fetch_storage_inventory_execute(
 
 pub fn vmmigration_projects_locations_sources_fetch_storage_inventory(
     client: &SimpleHttpClient,
-    source: &str,
-    forceRefresh: Option<bool>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    type_rs: Option<&str>,
+    args: &VmmigrationProjectsLocationsSourcesFetchStorageInventoryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchStorageInventoryResponse>, ApiError>,
@@ -3096,11 +3358,11 @@ pub fn vmmigration_projects_locations_sources_fetch_storage_inventory(
 > {
     let builder = vmmigration_projects_locations_sources_fetch_storage_inventory_builder(
         client,
-        source,
-        forceRefresh,
-        pageSize,
-        pageToken,
-        type_rs,
+        &args.source,
+        args.forceRefresh,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.type_rs.as_deref(),
     )?;
     vmmigration_projects_locations_sources_fetch_storage_inventory_execute(builder)
 }
@@ -3195,6 +3457,13 @@ pub fn vmmigration_projects_locations_sources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}
 /// Gets details of a single Source.
 ///
@@ -3207,12 +3476,12 @@ pub fn vmmigration_projects_locations_sources_get_execute(
 
 pub fn vmmigration_projects_locations_sources_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmmigrationProjectsLocationsSourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Source>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = vmmigration_projects_locations_sources_get_builder(client, name)?;
+    let builder = vmmigration_projects_locations_sources_get_builder(client, &args.name)?;
     vmmigration_projects_locations_sources_get_execute(builder)
 }
 
@@ -3332,6 +3601,21 @@ pub fn vmmigration_projects_locations_sources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources
 /// Lists Sources in a given project and location.
 ///
@@ -3344,11 +3628,7 @@ pub fn vmmigration_projects_locations_sources_list_execute(
 
 pub fn vmmigration_projects_locations_sources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmmigrationProjectsLocationsSourcesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSourcesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3356,7 +3636,12 @@ pub fn vmmigration_projects_locations_sources_list(
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmmigration_projects_locations_sources_list_execute(builder)
 }
@@ -3470,6 +3755,19 @@ pub fn vmmigration_projects_locations_sources_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Source,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}
 /// Updates the parameters of a single Source.
 ///
@@ -3482,16 +3780,17 @@ pub fn vmmigration_projects_locations_sources_patch_execute(
 
 pub fn vmmigration_projects_locations_sources_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Source,
+    args: &VmmigrationProjectsLocationsSourcesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     vmmigration_projects_locations_sources_patch_execute(builder)
 }
@@ -3605,6 +3904,19 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_datacenter_connectors_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesDatacenterConnectorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: datacenterConnectorId
+    pub datacenterConnectorId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: DatacenterConnector,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/datacenterConnectors
 /// Creates a new DatacenterConnector in a given Source.
 ///
@@ -3617,20 +3929,17 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_create_execu
 
 pub fn vmmigration_projects_locations_sources_datacenter_connectors_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    datacenterConnectorId: Option<&str>,
-    requestId: Option<&str>,
-    body: &DatacenterConnector,
+    args: &VmmigrationProjectsLocationsSourcesDatacenterConnectorsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_datacenter_connectors_create_builder(
         client,
-        parent,
-        datacenterConnectorId,
-        requestId,
-        body,
+        &args.parent,
+        args.datacenterConnectorId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     vmmigration_projects_locations_sources_datacenter_connectors_create_execute(builder)
 }
@@ -3737,6 +4046,15 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_datacenter_connectors_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesDatacenterConnectorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/datacenterConnectors/{datacenterConnectorsId}
 /// Deletes a single DatacenterConnector.
 ///
@@ -3749,14 +4067,15 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_delete_execu
 
 pub fn vmmigration_projects_locations_sources_datacenter_connectors_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &VmmigrationProjectsLocationsSourcesDatacenterConnectorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_datacenter_connectors_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     vmmigration_projects_locations_sources_datacenter_connectors_delete_execute(builder)
 }
@@ -3853,6 +4172,13 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_datacenter_connectors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesDatacenterConnectorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/datacenterConnectors/{datacenterConnectorsId}
 /// Gets details of a single DatacenterConnector.
 ///
@@ -3865,15 +4191,16 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_get_execute(
 
 pub fn vmmigration_projects_locations_sources_datacenter_connectors_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmmigrationProjectsLocationsSourcesDatacenterConnectorsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DatacenterConnector>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        vmmigration_projects_locations_sources_datacenter_connectors_get_builder(client, name)?;
+    let builder = vmmigration_projects_locations_sources_datacenter_connectors_get_builder(
+        client, &args.name,
+    )?;
     vmmigration_projects_locations_sources_datacenter_connectors_get_execute(builder)
 }
 
@@ -3995,6 +4322,21 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_datacenter_connectors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesDatacenterConnectorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/datacenterConnectors
 /// Lists DatacenterConnectors in a given Source.
 ///
@@ -4007,11 +4349,7 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_list_execute
 
 pub fn vmmigration_projects_locations_sources_datacenter_connectors_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmmigrationProjectsLocationsSourcesDatacenterConnectorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDatacenterConnectorsResponse>, ApiError>,
@@ -4021,7 +4359,12 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_list(
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_datacenter_connectors_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmmigration_projects_locations_sources_datacenter_connectors_list_execute(builder)
 }
@@ -4119,6 +4462,15 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_upgrade_appl
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_datacenter_connectors_upgrade_appliance`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesDatacenterConnectorsUpgradeApplianceArgs {
+    /// Path parameter: datacenterConnector
+    pub datacenterConnector: String,
+    /// Request body.
+    pub body: UpgradeApplianceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/datacenterConnectors/{datacenterConnectorsId}:upgradeAppliance
 /// Upgrades the appliance relate to this DatacenterConnector to the in-place updateable version.
 ///
@@ -4131,8 +4483,7 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_upgrade_appl
 
 pub fn vmmigration_projects_locations_sources_datacenter_connectors_upgrade_appliance(
     client: &SimpleHttpClient,
-    datacenterConnector: &str,
-    body: &UpgradeApplianceRequest,
+    args: &VmmigrationProjectsLocationsSourcesDatacenterConnectorsUpgradeApplianceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -4140,8 +4491,8 @@ pub fn vmmigration_projects_locations_sources_datacenter_connectors_upgrade_appl
     let builder =
         vmmigration_projects_locations_sources_datacenter_connectors_upgrade_appliance_builder(
             client,
-            datacenterConnector,
-            body,
+            &args.datacenterConnector,
+            &args.body,
         )?;
     vmmigration_projects_locations_sources_datacenter_connectors_upgrade_appliance_execute(builder)
 }
@@ -4239,6 +4590,15 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_cancel_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_disk_migration_jobs_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesDiskMigrationJobsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelDiskMigrationJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/diskMigrationJobs/{diskMigrationJobsId}:cancel
 /// Cancels the disk migration job.
 ///
@@ -4251,14 +4611,13 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_cancel_execute
 
 pub fn vmmigration_projects_locations_sources_disk_migration_jobs_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelDiskMigrationJobRequest,
+    args: &VmmigrationProjectsLocationsSourcesDiskMigrationJobsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_disk_migration_jobs_cancel_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     vmmigration_projects_locations_sources_disk_migration_jobs_cancel_execute(builder)
 }
@@ -4372,6 +4731,19 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_disk_migration_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesDiskMigrationJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: diskMigrationJobId
+    pub diskMigrationJobId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: DiskMigrationJob,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/diskMigrationJobs
 /// Creates a new disk migration job in a given Source.
 ///
@@ -4384,20 +4756,17 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_create_execute
 
 pub fn vmmigration_projects_locations_sources_disk_migration_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    diskMigrationJobId: Option<&str>,
-    requestId: Option<&str>,
-    body: &DiskMigrationJob,
+    args: &VmmigrationProjectsLocationsSourcesDiskMigrationJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_disk_migration_jobs_create_builder(
         client,
-        parent,
-        diskMigrationJobId,
-        requestId,
-        body,
+        &args.parent,
+        args.diskMigrationJobId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     vmmigration_projects_locations_sources_disk_migration_jobs_create_execute(builder)
 }
@@ -4492,6 +4861,13 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_disk_migration_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesDiskMigrationJobsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/diskMigrationJobs/{diskMigrationJobsId}
 /// Deletes a single DiskMigrationJob.
 ///
@@ -4504,13 +4880,14 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_delete_execute
 
 pub fn vmmigration_projects_locations_sources_disk_migration_jobs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmmigrationProjectsLocationsSourcesDiskMigrationJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vmmigration_projects_locations_sources_disk_migration_jobs_delete_builder(client, name)?;
+    let builder = vmmigration_projects_locations_sources_disk_migration_jobs_delete_builder(
+        client, &args.name,
+    )?;
     vmmigration_projects_locations_sources_disk_migration_jobs_delete_execute(builder)
 }
 
@@ -4606,6 +4983,13 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_disk_migration_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesDiskMigrationJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/diskMigrationJobs/{diskMigrationJobsId}
 /// Gets details of a single DiskMigrationJob.
 ///
@@ -4618,7 +5002,7 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_get_execute(
 
 pub fn vmmigration_projects_locations_sources_disk_migration_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmmigrationProjectsLocationsSourcesDiskMigrationJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DiskMigrationJob>, ApiError>, P = ApiPending>
         + Send
@@ -4626,7 +5010,7 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_get(
     ApiError,
 > {
     let builder =
-        vmmigration_projects_locations_sources_disk_migration_jobs_get_builder(client, name)?;
+        vmmigration_projects_locations_sources_disk_migration_jobs_get_builder(client, &args.name)?;
     vmmigration_projects_locations_sources_disk_migration_jobs_get_execute(builder)
 }
 
@@ -4748,6 +5132,21 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_disk_migration_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesDiskMigrationJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/diskMigrationJobs
 /// Lists DiskMigrationJobs in a given Source.
 ///
@@ -4760,11 +5159,7 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_list_execute(
 
 pub fn vmmigration_projects_locations_sources_disk_migration_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmmigrationProjectsLocationsSourcesDiskMigrationJobsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDiskMigrationJobsResponse>, ApiError>,
@@ -4774,7 +5169,12 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_list(
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_disk_migration_jobs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmmigration_projects_locations_sources_disk_migration_jobs_list_execute(builder)
 }
@@ -4888,6 +5288,19 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_disk_migration_jobs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesDiskMigrationJobsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: DiskMigrationJob,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/diskMigrationJobs/{diskMigrationJobsId}
 /// Updates the parameters of a single DiskMigrationJob.
 ///
@@ -4900,16 +5313,17 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_patch_execute(
 
 pub fn vmmigration_projects_locations_sources_disk_migration_jobs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &DiskMigrationJob,
+    args: &VmmigrationProjectsLocationsSourcesDiskMigrationJobsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_disk_migration_jobs_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     vmmigration_projects_locations_sources_disk_migration_jobs_patch_execute(builder)
 }
@@ -5007,6 +5421,15 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_disk_migration_jobs_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesDiskMigrationJobsRunArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RunDiskMigrationJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/diskMigrationJobs/{diskMigrationJobsId}:run
 /// Runs the disk migration job.
 ///
@@ -5019,14 +5442,14 @@ pub fn vmmigration_projects_locations_sources_disk_migration_jobs_run_execute(
 
 pub fn vmmigration_projects_locations_sources_disk_migration_jobs_run(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RunDiskMigrationJobRequest,
+    args: &VmmigrationProjectsLocationsSourcesDiskMigrationJobsRunArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vmmigration_projects_locations_sources_disk_migration_jobs_run_builder(client, name, body)?;
+    let builder = vmmigration_projects_locations_sources_disk_migration_jobs_run_builder(
+        client, &args.name, &args.body,
+    )?;
     vmmigration_projects_locations_sources_disk_migration_jobs_run_execute(builder)
 }
 
@@ -5139,6 +5562,19 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: migratingVmId
+    pub migratingVmId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: MigratingVm,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms
 /// Creates a new MigratingVm in a given Source.
 ///
@@ -5151,20 +5587,17 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_create_execute(
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    migratingVmId: Option<&str>,
-    requestId: Option<&str>,
-    body: &MigratingVm,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_migrating_vms_create_builder(
         client,
-        parent,
-        migratingVmId,
-        requestId,
-        body,
+        &args.parent,
+        args.migratingVmId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     vmmigration_projects_locations_sources_migrating_vms_create_execute(builder)
 }
@@ -5259,6 +5692,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}
 /// Deletes a single MigratingVm.
 ///
@@ -5271,13 +5711,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_delete_execute(
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        vmmigration_projects_locations_sources_migrating_vms_delete_builder(client, name)?;
+        vmmigration_projects_locations_sources_migrating_vms_delete_builder(client, &args.name)?;
     vmmigration_projects_locations_sources_migrating_vms_delete_execute(builder)
 }
 
@@ -5374,6 +5814,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_extend_migration_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_extend_migration`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsExtendMigrationArgs {
+    /// Path parameter: migratingVm
+    pub migratingVm: String,
+    /// Request body.
+    pub body: ExtendMigrationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}:extendMigration
 /// Extend the migrating VM time to live.
 ///
@@ -5386,16 +5835,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_extend_migration_exe
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_extend_migration(
     client: &SimpleHttpClient,
-    migratingVm: &str,
-    body: &ExtendMigrationRequest,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsExtendMigrationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_migrating_vms_extend_migration_builder(
         client,
-        migratingVm,
-        body,
+        &args.migratingVm,
+        &args.body,
     )?;
     vmmigration_projects_locations_sources_migrating_vms_extend_migration_execute(builder)
 }
@@ -5493,6 +5941,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_finalize_migration_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_finalize_migration`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsFinalizeMigrationArgs {
+    /// Path parameter: migratingVm
+    pub migratingVm: String,
+    /// Request body.
+    pub body: FinalizeMigrationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}:finalizeMigration
 /// Marks a migration as completed, deleting migration resources that are no longer being used. Only applicable after cutover is done.
 ///
@@ -5505,16 +5962,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_finalize_migration_e
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_finalize_migration(
     client: &SimpleHttpClient,
-    migratingVm: &str,
-    body: &FinalizeMigrationRequest,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsFinalizeMigrationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_migrating_vms_finalize_migration_builder(
         client,
-        migratingVm,
-        body,
+        &args.migratingVm,
+        &args.body,
     )?;
     vmmigration_projects_locations_sources_migrating_vms_finalize_migration_execute(builder)
 }
@@ -5621,6 +6077,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}
 /// Gets details of a single MigratingVm.
 ///
@@ -5633,14 +6098,16 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_get_execute(
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MigratingVm>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vmmigration_projects_locations_sources_migrating_vms_get_builder(client, name, view)?;
+    let builder = vmmigration_projects_locations_sources_migrating_vms_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     vmmigration_projects_locations_sources_migrating_vms_get_execute(builder)
 }
 
@@ -5764,6 +6231,23 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms
 /// Lists MigratingVms in a given Source.
 ///
@@ -5776,12 +6260,7 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_list_execute(
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListMigratingVmsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5789,7 +6268,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_list(
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_migrating_vms_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     vmmigration_projects_locations_sources_migrating_vms_list_execute(builder)
 }
@@ -5903,6 +6388,19 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: MigratingVm,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}
 /// Updates the parameters of a single MigratingVm.
 ///
@@ -5915,16 +6413,17 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_patch_execute(
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &MigratingVm,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_migrating_vms_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     vmmigration_projects_locations_sources_migrating_vms_patch_execute(builder)
 }
@@ -6022,6 +6521,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_pause_migration_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_pause_migration`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsPauseMigrationArgs {
+    /// Path parameter: migratingVm
+    pub migratingVm: String,
+    /// Request body.
+    pub body: PauseMigrationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}:pauseMigration
 /// Pauses a migration for a VM. If cycle tasks are running they will be cancelled, preserving source task data. Further replication cycles will not be triggered while the VM is paused.
 ///
@@ -6034,16 +6542,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_pause_migration_exec
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_pause_migration(
     client: &SimpleHttpClient,
-    migratingVm: &str,
-    body: &PauseMigrationRequest,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsPauseMigrationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_migrating_vms_pause_migration_builder(
         client,
-        migratingVm,
-        body,
+        &args.migratingVm,
+        &args.body,
     )?;
     vmmigration_projects_locations_sources_migrating_vms_pause_migration_execute(builder)
 }
@@ -6141,6 +6648,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_resume_migration_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_resume_migration`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsResumeMigrationArgs {
+    /// Path parameter: migratingVm
+    pub migratingVm: String,
+    /// Request body.
+    pub body: ResumeMigrationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}:resumeMigration
 /// Resumes a migration for a VM. When called on a paused migration, will start the process of uploading data and creating snapshots; when called on a completed cut-over migration, will update the migration to active state and start the process of uploading data and creating snapshots.
 ///
@@ -6153,16 +6669,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_resume_migration_exe
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_resume_migration(
     client: &SimpleHttpClient,
-    migratingVm: &str,
-    body: &ResumeMigrationRequest,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsResumeMigrationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_migrating_vms_resume_migration_builder(
         client,
-        migratingVm,
-        body,
+        &args.migratingVm,
+        &args.body,
     )?;
     vmmigration_projects_locations_sources_migrating_vms_resume_migration_execute(builder)
 }
@@ -6260,6 +6775,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_start_migration_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_start_migration`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsStartMigrationArgs {
+    /// Path parameter: migratingVm
+    pub migratingVm: String,
+    /// Request body.
+    pub body: StartMigrationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}:startMigration
 /// Starts migration for a VM. Starts the process of uploading data and creating snapshots, in replication cycles scheduled by the policy.
 ///
@@ -6272,16 +6796,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_start_migration_exec
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_start_migration(
     client: &SimpleHttpClient,
-    migratingVm: &str,
-    body: &StartMigrationRequest,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsStartMigrationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_migrating_vms_start_migration_builder(
         client,
-        migratingVm,
-        body,
+        &args.migratingVm,
+        &args.body,
     )?;
     vmmigration_projects_locations_sources_migrating_vms_start_migration_execute(builder)
 }
@@ -6379,6 +6902,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_cancel_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_clone_jobs_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsCloneJobsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelCloneJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cloneJobs/{cloneJobsId}:cancel
 /// Initiates the cancellation of a running clone job.
 ///
@@ -6391,14 +6923,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_cancel_ex
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelCloneJobRequest,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsCloneJobsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_migrating_vms_clone_jobs_cancel_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     vmmigration_projects_locations_sources_migrating_vms_clone_jobs_cancel_execute(builder)
 }
@@ -6512,6 +7043,19 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_create_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_clone_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsCloneJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: cloneJobId
+    pub cloneJobId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: CloneJob,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cloneJobs
 /// Initiates a Clone of a specific migrating VM.
 ///
@@ -6524,16 +7068,17 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_create_ex
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    cloneJobId: Option<&str>,
-    requestId: Option<&str>,
-    body: &CloneJob,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsCloneJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_migrating_vms_clone_jobs_create_builder(
-        client, parent, cloneJobId, requestId, body,
+        client,
+        &args.parent,
+        args.cloneJobId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     vmmigration_projects_locations_sources_migrating_vms_clone_jobs_create_execute(builder)
 }
@@ -6628,6 +7173,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_get_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_clone_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsCloneJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cloneJobs/{cloneJobsId}
 /// Gets details of a single CloneJob.
 ///
@@ -6640,13 +7192,14 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_get_execu
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsCloneJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CloneJob>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vmmigration_projects_locations_sources_migrating_vms_clone_jobs_get_builder(client, name)?;
+    let builder = vmmigration_projects_locations_sources_migrating_vms_clone_jobs_get_builder(
+        client, &args.name,
+    )?;
     vmmigration_projects_locations_sources_migrating_vms_clone_jobs_get_execute(builder)
 }
 
@@ -6766,6 +7319,21 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_clone_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsCloneJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cloneJobs
 /// Lists the CloneJobs of a migrating VM. Only 25 most recent CloneJobs are listed.
 ///
@@ -6778,11 +7346,7 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_list_exec
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsCloneJobsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCloneJobsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6790,7 +7354,12 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_clone_jobs_list(
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_migrating_vms_clone_jobs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmmigration_projects_locations_sources_migrating_vms_clone_jobs_list_execute(builder)
 }
@@ -6888,6 +7457,15 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_cancel_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsCutoverJobsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelCutoverJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cutoverJobs/{cutoverJobsId}:cancel
 /// Initiates the cancellation of a running cutover job.
 ///
@@ -6900,14 +7478,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_cancel_
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelCutoverJobRequest,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsCutoverJobsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_cancel_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_cancel_execute(builder)
 }
@@ -7021,6 +7598,19 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_create_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsCutoverJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: cutoverJobId
+    pub cutoverJobId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: CutoverJob,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cutoverJobs
 /// Initiates a Cutover of a specific migrating VM. The returned LRO is completed when the cutover job resource is created and the job is initiated.
 ///
@@ -7033,20 +7623,17 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_create_
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    cutoverJobId: Option<&str>,
-    requestId: Option<&str>,
-    body: &CutoverJob,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsCutoverJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_create_builder(
         client,
-        parent,
-        cutoverJobId,
-        requestId,
-        body,
+        &args.parent,
+        args.cutoverJobId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_create_execute(builder)
 }
@@ -7141,6 +7728,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsCutoverJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cutoverJobs/{cutoverJobsId}
 /// Gets details of a single CutoverJob.
 ///
@@ -7153,13 +7747,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_get_exe
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsCutoverJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CutoverJob>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_get_execute(builder)
 }
@@ -7280,6 +7874,21 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsCutoverJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/cutoverJobs
 /// Lists the CutoverJobs of a migrating VM. Only 25 most recent CutoverJobs are listed.
 ///
@@ -7292,11 +7901,7 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_list_ex
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsCutoverJobsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCutoverJobsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7304,7 +7909,12 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_list(
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmmigration_projects_locations_sources_migrating_vms_cutover_jobs_list_execute(builder)
 }
@@ -7401,6 +8011,13 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_replication_cycles_g
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_replication_cycles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsReplicationCyclesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/replicationCycles/{replicationCyclesId}
 /// Gets details of a single ReplicationCycle.
 ///
@@ -7413,7 +8030,7 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_replication_cycles_g
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_replication_cycles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsReplicationCyclesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReplicationCycle>, ApiError>, P = ApiPending>
         + Send
@@ -7422,7 +8039,7 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_replication_cycles_g
 > {
     let builder =
         vmmigration_projects_locations_sources_migrating_vms_replication_cycles_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     vmmigration_projects_locations_sources_migrating_vms_replication_cycles_get_execute(builder)
 }
@@ -7545,6 +8162,21 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_replication_cycles_l
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_migrating_vms_replication_cycles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesMigratingVmsReplicationCyclesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/migratingVms/{migratingVmsId}/replicationCycles
 /// Lists ReplicationCycles in a given MigratingVM.
 ///
@@ -7557,11 +8189,7 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_replication_cycles_l
 
 pub fn vmmigration_projects_locations_sources_migrating_vms_replication_cycles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmmigrationProjectsLocationsSourcesMigratingVmsReplicationCyclesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListReplicationCyclesResponse>, ApiError>,
@@ -7572,7 +8200,12 @@ pub fn vmmigration_projects_locations_sources_migrating_vms_replication_cycles_l
 > {
     let builder =
         vmmigration_projects_locations_sources_migrating_vms_replication_cycles_list_builder(
-            client, parent, filter, orderBy, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     vmmigration_projects_locations_sources_migrating_vms_replication_cycles_list_execute(builder)
 }
@@ -7686,6 +8319,19 @@ pub fn vmmigration_projects_locations_sources_utilization_reports_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_utilization_reports_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesUtilizationReportsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: utilizationReportId
+    pub utilizationReportId: Option<String>,
+    /// Request body.
+    pub body: UtilizationReport,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/utilizationReports
 /// Creates a new UtilizationReport.
 ///
@@ -7698,20 +8344,17 @@ pub fn vmmigration_projects_locations_sources_utilization_reports_create_execute
 
 pub fn vmmigration_projects_locations_sources_utilization_reports_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    utilizationReportId: Option<&str>,
-    body: &UtilizationReport,
+    args: &VmmigrationProjectsLocationsSourcesUtilizationReportsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_utilization_reports_create_builder(
         client,
-        parent,
-        requestId,
-        utilizationReportId,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.utilizationReportId.as_deref(),
+        &args.body,
     )?;
     vmmigration_projects_locations_sources_utilization_reports_create_execute(builder)
 }
@@ -7818,6 +8461,15 @@ pub fn vmmigration_projects_locations_sources_utilization_reports_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_utilization_reports_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesUtilizationReportsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/utilizationReports/{utilizationReportsId}
 /// Deletes a single Utilization Report.
 ///
@@ -7830,14 +8482,15 @@ pub fn vmmigration_projects_locations_sources_utilization_reports_delete_execute
 
 pub fn vmmigration_projects_locations_sources_utilization_reports_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &VmmigrationProjectsLocationsSourcesUtilizationReportsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_utilization_reports_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     vmmigration_projects_locations_sources_utilization_reports_delete_execute(builder)
 }
@@ -7946,6 +8599,15 @@ pub fn vmmigration_projects_locations_sources_utilization_reports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_utilization_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesUtilizationReportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/utilizationReports/{utilizationReportsId}
 /// Gets a single Utilization Report.
 ///
@@ -7958,16 +8620,18 @@ pub fn vmmigration_projects_locations_sources_utilization_reports_get_execute(
 
 pub fn vmmigration_projects_locations_sources_utilization_reports_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &VmmigrationProjectsLocationsSourcesUtilizationReportsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UtilizationReport>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        vmmigration_projects_locations_sources_utilization_reports_get_builder(client, name, view)?;
+    let builder = vmmigration_projects_locations_sources_utilization_reports_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     vmmigration_projects_locations_sources_utilization_reports_get_execute(builder)
 }
 
@@ -8093,6 +8757,23 @@ pub fn vmmigration_projects_locations_sources_utilization_reports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_sources_utilization_reports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsSourcesUtilizationReportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sources/{sourcesId}/utilizationReports
 /// Lists Utilization Reports of the given Source.
 ///
@@ -8105,12 +8786,7 @@ pub fn vmmigration_projects_locations_sources_utilization_reports_list_execute(
 
 pub fn vmmigration_projects_locations_sources_utilization_reports_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &VmmigrationProjectsLocationsSourcesUtilizationReportsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListUtilizationReportsResponse>, ApiError>,
@@ -8120,7 +8796,13 @@ pub fn vmmigration_projects_locations_sources_utilization_reports_list(
     ApiError,
 > {
     let builder = vmmigration_projects_locations_sources_utilization_reports_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     vmmigration_projects_locations_sources_utilization_reports_list_execute(builder)
 }
@@ -8234,6 +8916,19 @@ pub fn vmmigration_projects_locations_target_projects_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_target_projects_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsTargetProjectsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: targetProjectId
+    pub targetProjectId: Option<String>,
+    /// Request body.
+    pub body: TargetProject,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/targetProjects
 /// Creates a new TargetProject in a given project. NOTE: TargetProject is a global resource; hence the only supported value for location is global.
 ///
@@ -8246,20 +8941,17 @@ pub fn vmmigration_projects_locations_target_projects_create_execute(
 
 pub fn vmmigration_projects_locations_target_projects_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    targetProjectId: Option<&str>,
-    body: &TargetProject,
+    args: &VmmigrationProjectsLocationsTargetProjectsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_target_projects_create_builder(
         client,
-        parent,
-        requestId,
-        targetProjectId,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.targetProjectId.as_deref(),
+        &args.body,
     )?;
     vmmigration_projects_locations_target_projects_create_execute(builder)
 }
@@ -8366,6 +9058,15 @@ pub fn vmmigration_projects_locations_target_projects_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_target_projects_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsTargetProjectsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/targetProjects/{targetProjectsId}
 /// Deletes a single TargetProject. NOTE: TargetProject is a global resource; hence the only supported value for location is global.
 ///
@@ -8378,14 +9079,16 @@ pub fn vmmigration_projects_locations_target_projects_delete_execute(
 
 pub fn vmmigration_projects_locations_target_projects_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &VmmigrationProjectsLocationsTargetProjectsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        vmmigration_projects_locations_target_projects_delete_builder(client, name, requestId)?;
+    let builder = vmmigration_projects_locations_target_projects_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     vmmigration_projects_locations_target_projects_delete_execute(builder)
 }
 
@@ -8481,6 +9184,13 @@ pub fn vmmigration_projects_locations_target_projects_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_target_projects_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsTargetProjectsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/targetProjects/{targetProjectsId}
 /// Gets details of a single TargetProject. NOTE: TargetProject is a global resource; hence the only supported value for location is global.
 ///
@@ -8493,14 +9203,14 @@ pub fn vmmigration_projects_locations_target_projects_get_execute(
 
 pub fn vmmigration_projects_locations_target_projects_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VmmigrationProjectsLocationsTargetProjectsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TargetProject>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = vmmigration_projects_locations_target_projects_get_builder(client, name)?;
+    let builder = vmmigration_projects_locations_target_projects_get_builder(client, &args.name)?;
     vmmigration_projects_locations_target_projects_get_execute(builder)
 }
 
@@ -8622,6 +9332,21 @@ pub fn vmmigration_projects_locations_target_projects_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_target_projects_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsTargetProjectsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/targetProjects
 /// Lists TargetProjects in a given project. NOTE: TargetProject is a global resource; hence the only supported value for location is global.
 ///
@@ -8634,11 +9359,7 @@ pub fn vmmigration_projects_locations_target_projects_list_execute(
 
 pub fn vmmigration_projects_locations_target_projects_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &VmmigrationProjectsLocationsTargetProjectsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTargetProjectsResponse>, ApiError>,
@@ -8648,7 +9369,12 @@ pub fn vmmigration_projects_locations_target_projects_list(
     ApiError,
 > {
     let builder = vmmigration_projects_locations_target_projects_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     vmmigration_projects_locations_target_projects_list_execute(builder)
 }
@@ -8762,6 +9488,19 @@ pub fn vmmigration_projects_locations_target_projects_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`vmmigration_projects_locations_target_projects_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VmmigrationProjectsLocationsTargetProjectsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: TargetProject,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/targetProjects/{targetProjectsId}
 /// Updates the parameters of a single TargetProject. NOTE: TargetProject is a global resource; hence the only supported value for location is global.
 ///
@@ -8774,16 +9513,17 @@ pub fn vmmigration_projects_locations_target_projects_patch_execute(
 
 pub fn vmmigration_projects_locations_target_projects_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &TargetProject,
+    args: &VmmigrationProjectsLocationsTargetProjectsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = vmmigration_projects_locations_target_projects_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     vmmigration_projects_locations_target_projects_patch_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/buildingInsights:findClosest
 /// Locates the building whose centroid is closest to a query point. Returns an error with code NOT_FOUND if there are no buildings within approximately 50m of the query point.
@@ -132,6 +134,21 @@ pub fn solar_building_insights_find_closest_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`solar_building_insights_find_closest`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SolarBuildingInsightsFindClosestArgs {
+    /// Query parameter: exactQualityRequired
+    pub exactQualityRequired: Option<bool>,
+    /// Query parameter: experiments
+    pub experiments: Option<String>,
+    /// Query parameter: location_latitude
+    pub location_latitude: Option<f64>,
+    /// Query parameter: location_longitude
+    pub location_longitude: Option<f64>,
+    /// Query parameter: requiredQuality
+    pub requiredQuality: Option<String>,
+}
+
 /// GET v1/buildingInsights:findClosest
 /// Locates the building whose centroid is closest to a query point. Returns an error with code NOT_FOUND if there are no buildings within approximately 50m of the query point.
 ///
@@ -144,11 +161,7 @@ pub fn solar_building_insights_find_closest_execute(
 
 pub fn solar_building_insights_find_closest(
     client: &SimpleHttpClient,
-    exactQualityRequired: Option<bool>,
-    experiments: Option<&str>,
-    location_latitude: Option<f64>,
-    location_longitude: Option<f64>,
-    requiredQuality: Option<&str>,
+    args: &SolarBuildingInsightsFindClosestArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BuildingInsights>, ApiError>, P = ApiPending>
         + Send
@@ -157,11 +170,11 @@ pub fn solar_building_insights_find_closest(
 > {
     let builder = solar_building_insights_find_closest_builder(
         client,
-        exactQualityRequired,
-        experiments,
-        location_latitude,
-        location_longitude,
-        requiredQuality,
+        args.exactQualityRequired,
+        args.experiments.as_deref(),
+        args.location_latitude,
+        args.location_longitude,
+        args.requiredQuality.as_deref(),
     )?;
     solar_building_insights_find_closest_execute(builder)
 }
@@ -292,6 +305,27 @@ pub fn solar_data_layers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`solar_data_layers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SolarDataLayersGetArgs {
+    /// Query parameter: exactQualityRequired
+    pub exactQualityRequired: Option<bool>,
+    /// Query parameter: experiments
+    pub experiments: Option<String>,
+    /// Query parameter: location_latitude
+    pub location_latitude: Option<f64>,
+    /// Query parameter: location_longitude
+    pub location_longitude: Option<f64>,
+    /// Query parameter: pixelSizeMeters
+    pub pixelSizeMeters: Option<f32>,
+    /// Query parameter: radiusMeters
+    pub radiusMeters: Option<f32>,
+    /// Query parameter: requiredQuality
+    pub requiredQuality: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/dataLayers:get
 /// Gets solar information for a region surrounding a location. Returns an error with code NOT_FOUND if the location is outside the coverage area.
 ///
@@ -304,28 +338,21 @@ pub fn solar_data_layers_get_execute(
 
 pub fn solar_data_layers_get(
     client: &SimpleHttpClient,
-    exactQualityRequired: Option<bool>,
-    experiments: Option<&str>,
-    location_latitude: Option<f64>,
-    location_longitude: Option<f64>,
-    pixelSizeMeters: Option<f32>,
-    radiusMeters: Option<f32>,
-    requiredQuality: Option<&str>,
-    view: Option<&str>,
+    args: &SolarDataLayersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DataLayers>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = solar_data_layers_get_builder(
         client,
-        exactQualityRequired,
-        experiments,
-        location_latitude,
-        location_longitude,
-        pixelSizeMeters,
-        radiusMeters,
-        requiredQuality,
-        view,
+        args.exactQualityRequired,
+        args.experiments.as_deref(),
+        args.location_latitude,
+        args.location_longitude,
+        args.pixelSizeMeters,
+        args.radiusMeters,
+        args.requiredQuality.as_deref(),
+        args.view.as_deref(),
     )?;
     solar_data_layers_get_execute(builder)
 }
@@ -428,6 +455,13 @@ pub fn solar_geo_tiff_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`solar_geo_tiff_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SolarGeoTiffGetArgs {
+    /// Query parameter: id
+    pub id: Option<String>,
+}
+
 /// GET v1/geoTiff:get
 /// Returns an image by its ID.
 ///
@@ -440,11 +474,11 @@ pub fn solar_geo_tiff_get_execute(
 
 pub fn solar_geo_tiff_get(
     client: &SimpleHttpClient,
-    id: Option<&str>,
+    args: &SolarGeoTiffGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = solar_geo_tiff_get_builder(client, id)?;
+    let builder = solar_geo_tiff_get_builder(client, args.id.as_deref())?;
     solar_geo_tiff_get_execute(builder)
 }

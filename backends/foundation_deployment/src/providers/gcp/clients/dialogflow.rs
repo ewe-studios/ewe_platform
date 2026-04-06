@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v3/projects/{projectsId}/locations/{locationsId}
 ///
@@ -110,6 +112,13 @@ pub fn dialogflow_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}
 ///
 ///
@@ -122,7 +131,7 @@ pub fn dialogflow_projects_locations_get_execute(
 
 pub fn dialogflow_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
@@ -131,7 +140,7 @@ pub fn dialogflow_projects_locations_get(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_get_builder(client, name)?;
+    let builder = dialogflow_projects_locations_get_builder(client, &args.name)?;
     dialogflow_projects_locations_get_execute(builder)
 }
 
@@ -253,6 +262,21 @@ pub fn dialogflow_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations
 ///
 ///
@@ -265,11 +289,7 @@ pub fn dialogflow_projects_locations_list_execute(
 
 pub fn dialogflow_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudLocationListLocationsResponse>, ApiError>,
@@ -280,11 +300,11 @@ pub fn dialogflow_projects_locations_list(
 > {
     let builder = dialogflow_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_list_execute(builder)
 }
@@ -386,6 +406,15 @@ pub fn dialogflow_projects_locations_agents_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Agent,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents
 ///
 ///
@@ -398,8 +427,7 @@ pub fn dialogflow_projects_locations_agents_create_execute(
 
 pub fn dialogflow_projects_locations_agents_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3Agent,
+    args: &DialogflowProjectsLocationsAgentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Agent>, ApiError>,
@@ -408,7 +436,8 @@ pub fn dialogflow_projects_locations_agents_create(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_create_builder(client, parent, body)?;
+    let builder =
+        dialogflow_projects_locations_agents_create_builder(client, &args.parent, &args.body)?;
     dialogflow_projects_locations_agents_create_execute(builder)
 }
 
@@ -504,6 +533,13 @@ pub fn dialogflow_projects_locations_agents_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}
 ///
 ///
@@ -516,14 +552,14 @@ pub fn dialogflow_projects_locations_agents_delete_execute(
 
 pub fn dialogflow_projects_locations_agents_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_delete_builder(client, name)?;
+    let builder = dialogflow_projects_locations_agents_delete_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_delete_execute(builder)
 }
 
@@ -624,6 +660,15 @@ pub fn dialogflow_projects_locations_agents_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsExportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3ExportAgentRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}:export
 ///
 ///
@@ -636,8 +681,7 @@ pub fn dialogflow_projects_locations_agents_export_execute(
 
 pub fn dialogflow_projects_locations_agents_export(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDialogflowCxV3ExportAgentRequest,
+    args: &DialogflowProjectsLocationsAgentsExportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -646,7 +690,8 @@ pub fn dialogflow_projects_locations_agents_export(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_export_builder(client, name, body)?;
+    let builder =
+        dialogflow_projects_locations_agents_export_builder(client, &args.name, &args.body)?;
     dialogflow_projects_locations_agents_export_execute(builder)
 }
 
@@ -744,6 +789,13 @@ pub fn dialogflow_projects_locations_agents_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}
 ///
 ///
@@ -756,7 +808,7 @@ pub fn dialogflow_projects_locations_agents_get_execute(
 
 pub fn dialogflow_projects_locations_agents_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Agent>, ApiError>,
@@ -765,7 +817,7 @@ pub fn dialogflow_projects_locations_agents_get(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_get_builder(client, name)?;
+    let builder = dialogflow_projects_locations_agents_get_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_get_execute(builder)
 }
 
@@ -876,6 +928,15 @@ pub fn dialogflow_projects_locations_agents_get_generative_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_get_generative_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsGetGenerativeSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/generativeSettings
 ///
 ///
@@ -888,8 +949,7 @@ pub fn dialogflow_projects_locations_agents_get_generative_settings_execute(
 
 pub fn dialogflow_projects_locations_agents_get_generative_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsGetGenerativeSettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3GenerativeSettings>, ApiError>,
@@ -900,8 +960,8 @@ pub fn dialogflow_projects_locations_agents_get_generative_settings(
 > {
     let builder = dialogflow_projects_locations_agents_get_generative_settings_builder(
         client,
-        name,
-        languageCode,
+        &args.name,
+        args.languageCode.as_deref(),
     )?;
     dialogflow_projects_locations_agents_get_generative_settings_execute(builder)
 }
@@ -1013,6 +1073,15 @@ pub fn dialogflow_projects_locations_agents_get_validation_result_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_get_validation_result`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsGetValidationResultArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/validationResult
 ///
 ///
@@ -1025,8 +1094,7 @@ pub fn dialogflow_projects_locations_agents_get_validation_result_execute(
 
 pub fn dialogflow_projects_locations_agents_get_validation_result(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsGetValidationResultArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3AgentValidationResult>, ApiError>,
@@ -1037,8 +1105,8 @@ pub fn dialogflow_projects_locations_agents_get_validation_result(
 > {
     let builder = dialogflow_projects_locations_agents_get_validation_result_builder(
         client,
-        name,
-        languageCode,
+        &args.name,
+        args.languageCode.as_deref(),
     )?;
     dialogflow_projects_locations_agents_get_validation_result_execute(builder)
 }
@@ -1154,6 +1222,17 @@ pub fn dialogflow_projects_locations_agents_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents
 ///
 ///
@@ -1166,9 +1245,7 @@ pub fn dialogflow_projects_locations_agents_list_execute(
 
 pub fn dialogflow_projects_locations_agents_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListAgentsResponse>, ApiError>,
@@ -1177,8 +1254,12 @@ pub fn dialogflow_projects_locations_agents_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = dialogflow_projects_locations_agents_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     dialogflow_projects_locations_agents_list_execute(builder)
 }
 
@@ -1291,6 +1372,17 @@ pub fn dialogflow_projects_locations_agents_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Agent,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}
 ///
 ///
@@ -1303,9 +1395,7 @@ pub fn dialogflow_projects_locations_agents_patch_execute(
 
 pub fn dialogflow_projects_locations_agents_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Agent,
+    args: &DialogflowProjectsLocationsAgentsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Agent>, ApiError>,
@@ -1314,8 +1404,12 @@ pub fn dialogflow_projects_locations_agents_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_patch_builder(client, name, updateMask, body)?;
+    let builder = dialogflow_projects_locations_agents_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_patch_execute(builder)
 }
 
@@ -1416,6 +1510,15 @@ pub fn dialogflow_projects_locations_agents_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3RestoreAgentRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}:restore
 ///
 ///
@@ -1428,8 +1531,7 @@ pub fn dialogflow_projects_locations_agents_restore_execute(
 
 pub fn dialogflow_projects_locations_agents_restore(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDialogflowCxV3RestoreAgentRequest,
+    args: &DialogflowProjectsLocationsAgentsRestoreArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1438,7 +1540,8 @@ pub fn dialogflow_projects_locations_agents_restore(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_restore_builder(client, name, body)?;
+    let builder =
+        dialogflow_projects_locations_agents_restore_builder(client, &args.name, &args.body)?;
     dialogflow_projects_locations_agents_restore_execute(builder)
 }
 
@@ -1552,6 +1655,17 @@ pub fn dialogflow_projects_locations_agents_update_generative_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_update_generative_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsUpdateGenerativeSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3GenerativeSettings,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/generativeSettings
 ///
 ///
@@ -1564,9 +1678,7 @@ pub fn dialogflow_projects_locations_agents_update_generative_settings_execute(
 
 pub fn dialogflow_projects_locations_agents_update_generative_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3GenerativeSettings,
+    args: &DialogflowProjectsLocationsAgentsUpdateGenerativeSettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3GenerativeSettings>, ApiError>,
@@ -1576,7 +1688,10 @@ pub fn dialogflow_projects_locations_agents_update_generative_settings(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_update_generative_settings_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_update_generative_settings_execute(builder)
 }
@@ -1679,6 +1794,15 @@ pub fn dialogflow_projects_locations_agents_validate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_validate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsValidateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3ValidateAgentRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}:validate
 ///
 ///
@@ -1691,8 +1815,7 @@ pub fn dialogflow_projects_locations_agents_validate_execute(
 
 pub fn dialogflow_projects_locations_agents_validate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDialogflowCxV3ValidateAgentRequest,
+    args: &DialogflowProjectsLocationsAgentsValidateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3AgentValidationResult>, ApiError>,
@@ -1701,7 +1824,8 @@ pub fn dialogflow_projects_locations_agents_validate(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_validate_builder(client, name, body)?;
+    let builder =
+        dialogflow_projects_locations_agents_validate_builder(client, &args.name, &args.body)?;
     dialogflow_projects_locations_agents_validate_execute(builder)
 }
 
@@ -1799,6 +1923,13 @@ pub fn dialogflow_projects_locations_agents_changelogs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_changelogs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsChangelogsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/changelogs/{changelogsId}
 ///
 ///
@@ -1811,7 +1942,7 @@ pub fn dialogflow_projects_locations_agents_changelogs_get_execute(
 
 pub fn dialogflow_projects_locations_agents_changelogs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsChangelogsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Changelog>, ApiError>,
@@ -1820,7 +1951,7 @@ pub fn dialogflow_projects_locations_agents_changelogs_get(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_changelogs_get_builder(client, name)?;
+    let builder = dialogflow_projects_locations_agents_changelogs_get_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_changelogs_get_execute(builder)
 }
 
@@ -1939,6 +2070,19 @@ pub fn dialogflow_projects_locations_agents_changelogs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_changelogs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsChangelogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/changelogs
 ///
 ///
@@ -1951,10 +2095,7 @@ pub fn dialogflow_projects_locations_agents_changelogs_list_execute(
 
 pub fn dialogflow_projects_locations_agents_changelogs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsChangelogsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListChangelogsResponse>, ApiError>,
@@ -1964,7 +2105,11 @@ pub fn dialogflow_projects_locations_agents_changelogs_list(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_changelogs_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_changelogs_list_execute(builder)
 }
@@ -2078,6 +2223,17 @@ pub fn dialogflow_projects_locations_agents_entity_types_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_entity_types_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEntityTypesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3EntityType,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/entityTypes
 ///
 ///
@@ -2090,9 +2246,7 @@ pub fn dialogflow_projects_locations_agents_entity_types_create_execute(
 
 pub fn dialogflow_projects_locations_agents_entity_types_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3EntityType,
+    args: &DialogflowProjectsLocationsAgentsEntityTypesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3EntityType>, ApiError>,
@@ -2103,9 +2257,9 @@ pub fn dialogflow_projects_locations_agents_entity_types_create(
 > {
     let builder = dialogflow_projects_locations_agents_entity_types_create_builder(
         client,
-        parent,
-        languageCode,
-        body,
+        &args.parent,
+        args.languageCode.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_entity_types_create_execute(builder)
 }
@@ -2214,6 +2368,15 @@ pub fn dialogflow_projects_locations_agents_entity_types_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_entity_types_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEntityTypesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/entityTypes/{entityTypesId}
 ///
 ///
@@ -2226,16 +2389,16 @@ pub fn dialogflow_projects_locations_agents_entity_types_delete_execute(
 
 pub fn dialogflow_projects_locations_agents_entity_types_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DialogflowProjectsLocationsAgentsEntityTypesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_entity_types_delete_builder(client, name, force)?;
+    let builder = dialogflow_projects_locations_agents_entity_types_delete_builder(
+        client, &args.name, args.force,
+    )?;
     dialogflow_projects_locations_agents_entity_types_delete_execute(builder)
 }
 
@@ -2336,6 +2499,15 @@ pub fn dialogflow_projects_locations_agents_entity_types_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_entity_types_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEntityTypesExportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3ExportEntityTypesRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/entityTypes:export
 ///
 ///
@@ -2348,8 +2520,7 @@ pub fn dialogflow_projects_locations_agents_entity_types_export_execute(
 
 pub fn dialogflow_projects_locations_agents_entity_types_export(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3ExportEntityTypesRequest,
+    args: &DialogflowProjectsLocationsAgentsEntityTypesExportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2358,8 +2529,11 @@ pub fn dialogflow_projects_locations_agents_entity_types_export(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_entity_types_export_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_entity_types_export_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_entity_types_export_execute(builder)
 }
 
@@ -2469,6 +2643,15 @@ pub fn dialogflow_projects_locations_agents_entity_types_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_entity_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEntityTypesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/entityTypes/{entityTypesId}
 ///
 ///
@@ -2481,8 +2664,7 @@ pub fn dialogflow_projects_locations_agents_entity_types_get_execute(
 
 pub fn dialogflow_projects_locations_agents_entity_types_get(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsEntityTypesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3EntityType>, ApiError>,
@@ -2491,8 +2673,11 @@ pub fn dialogflow_projects_locations_agents_entity_types_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_entity_types_get_builder(client, name, languageCode)?;
+    let builder = dialogflow_projects_locations_agents_entity_types_get_builder(
+        client,
+        &args.name,
+        args.languageCode.as_deref(),
+    )?;
     dialogflow_projects_locations_agents_entity_types_get_execute(builder)
 }
 
@@ -2593,6 +2778,15 @@ pub fn dialogflow_projects_locations_agents_entity_types_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_entity_types_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEntityTypesImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3ImportEntityTypesRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/entityTypes:import
 ///
 ///
@@ -2605,8 +2799,7 @@ pub fn dialogflow_projects_locations_agents_entity_types_import_execute(
 
 pub fn dialogflow_projects_locations_agents_entity_types_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3ImportEntityTypesRequest,
+    args: &DialogflowProjectsLocationsAgentsEntityTypesImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2615,8 +2808,11 @@ pub fn dialogflow_projects_locations_agents_entity_types_import(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_entity_types_import_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_entity_types_import_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_entity_types_import_execute(builder)
 }
 
@@ -2735,6 +2931,19 @@ pub fn dialogflow_projects_locations_agents_entity_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_entity_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEntityTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/entityTypes
 ///
 ///
@@ -2747,10 +2956,7 @@ pub fn dialogflow_projects_locations_agents_entity_types_list_execute(
 
 pub fn dialogflow_projects_locations_agents_entity_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsEntityTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListEntityTypesResponse>, ApiError>,
@@ -2761,10 +2967,10 @@ pub fn dialogflow_projects_locations_agents_entity_types_list(
 > {
     let builder = dialogflow_projects_locations_agents_entity_types_list_builder(
         client,
-        parent,
-        languageCode,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_entity_types_list_execute(builder)
 }
@@ -2882,6 +3088,19 @@ pub fn dialogflow_projects_locations_agents_entity_types_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_entity_types_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEntityTypesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3EntityType,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/entityTypes/{entityTypesId}
 ///
 ///
@@ -2894,10 +3113,7 @@ pub fn dialogflow_projects_locations_agents_entity_types_patch_execute(
 
 pub fn dialogflow_projects_locations_agents_entity_types_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3EntityType,
+    args: &DialogflowProjectsLocationsAgentsEntityTypesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3EntityType>, ApiError>,
@@ -2908,10 +3124,10 @@ pub fn dialogflow_projects_locations_agents_entity_types_patch(
 > {
     let builder = dialogflow_projects_locations_agents_entity_types_patch_builder(
         client,
-        name,
-        languageCode,
-        updateMask,
-        body,
+        &args.name,
+        args.languageCode.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_entity_types_patch_execute(builder)
 }
@@ -3013,6 +3229,15 @@ pub fn dialogflow_projects_locations_agents_environments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Environment,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments
 ///
 ///
@@ -3025,8 +3250,7 @@ pub fn dialogflow_projects_locations_agents_environments_create_execute(
 
 pub fn dialogflow_projects_locations_agents_environments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3Environment,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3035,8 +3259,11 @@ pub fn dialogflow_projects_locations_agents_environments_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_environments_create_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_environments_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_environments_create_execute(builder)
 }
 
@@ -3132,6 +3359,13 @@ pub fn dialogflow_projects_locations_agents_environments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}
 ///
 ///
@@ -3144,14 +3378,15 @@ pub fn dialogflow_projects_locations_agents_environments_delete_execute(
 
 pub fn dialogflow_projects_locations_agents_environments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_environments_delete_builder(client, name)?;
+    let builder =
+        dialogflow_projects_locations_agents_environments_delete_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_environments_delete_execute(builder)
 }
 
@@ -3252,6 +3487,15 @@ pub fn dialogflow_projects_locations_agents_environments_deploy_flow_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_deploy_flow`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsDeployFlowArgs {
+    /// Path parameter: environment
+    pub environment: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3DeployFlowRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}:deployFlow
 ///
 ///
@@ -3264,8 +3508,7 @@ pub fn dialogflow_projects_locations_agents_environments_deploy_flow_execute(
 
 pub fn dialogflow_projects_locations_agents_environments_deploy_flow(
     client: &SimpleHttpClient,
-    environment: &str,
-    body: &GoogleCloudDialogflowCxV3DeployFlowRequest,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsDeployFlowArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3276,8 +3519,8 @@ pub fn dialogflow_projects_locations_agents_environments_deploy_flow(
 > {
     let builder = dialogflow_projects_locations_agents_environments_deploy_flow_builder(
         client,
-        environment,
-        body,
+        &args.environment,
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_environments_deploy_flow_execute(builder)
 }
@@ -3376,6 +3619,13 @@ pub fn dialogflow_projects_locations_agents_environments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}
 ///
 ///
@@ -3388,7 +3638,7 @@ pub fn dialogflow_projects_locations_agents_environments_get_execute(
 
 pub fn dialogflow_projects_locations_agents_environments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Environment>, ApiError>,
@@ -3397,7 +3647,8 @@ pub fn dialogflow_projects_locations_agents_environments_get(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_environments_get_builder(client, name)?;
+    let builder =
+        dialogflow_projects_locations_agents_environments_get_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_environments_get_execute(builder)
 }
 
@@ -3512,6 +3763,17 @@ pub fn dialogflow_projects_locations_agents_environments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments
 ///
 ///
@@ -3524,9 +3786,7 @@ pub fn dialogflow_projects_locations_agents_environments_list_execute(
 
 pub fn dialogflow_projects_locations_agents_environments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListEnvironmentsResponse>, ApiError>,
@@ -3536,7 +3796,10 @@ pub fn dialogflow_projects_locations_agents_environments_list(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_environments_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_environments_list_execute(builder)
 }
@@ -3655,6 +3918,17 @@ pub fn dialogflow_projects_locations_agents_environments_lookup_environment_hist
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_lookup_environment_history`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsLookupEnvironmentHistoryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}:lookupEnvironmentHistory
 ///
 ///
@@ -3667,9 +3941,7 @@ pub fn dialogflow_projects_locations_agents_environments_lookup_environment_hist
 
 pub fn dialogflow_projects_locations_agents_environments_lookup_environment_history(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsLookupEnvironmentHistoryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3683,7 +3955,10 @@ pub fn dialogflow_projects_locations_agents_environments_lookup_environment_hist
 > {
     let builder =
         dialogflow_projects_locations_agents_environments_lookup_environment_history_builder(
-            client, name, pageSize, pageToken,
+            client,
+            &args.name,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     dialogflow_projects_locations_agents_environments_lookup_environment_history_execute(builder)
 }
@@ -3797,6 +4072,17 @@ pub fn dialogflow_projects_locations_agents_environments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Environment,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}
 ///
 ///
@@ -3809,9 +4095,7 @@ pub fn dialogflow_projects_locations_agents_environments_patch_execute(
 
 pub fn dialogflow_projects_locations_agents_environments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Environment,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3821,7 +4105,10 @@ pub fn dialogflow_projects_locations_agents_environments_patch(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_environments_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_environments_patch_execute(builder)
 }
@@ -3923,6 +4210,15 @@ pub fn dialogflow_projects_locations_agents_environments_run_continuous_test_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_run_continuous_test`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsRunContinuousTestArgs {
+    /// Path parameter: environment
+    pub environment: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3RunContinuousTestRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}:runContinuousTest
 ///
 ///
@@ -3935,8 +4231,7 @@ pub fn dialogflow_projects_locations_agents_environments_run_continuous_test_exe
 
 pub fn dialogflow_projects_locations_agents_environments_run_continuous_test(
     client: &SimpleHttpClient,
-    environment: &str,
-    body: &GoogleCloudDialogflowCxV3RunContinuousTestRequest,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsRunContinuousTestArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3947,8 +4242,8 @@ pub fn dialogflow_projects_locations_agents_environments_run_continuous_test(
 > {
     let builder = dialogflow_projects_locations_agents_environments_run_continuous_test_builder(
         client,
-        environment,
-        body,
+        &args.environment,
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_environments_run_continuous_test_execute(builder)
 }
@@ -4067,6 +4362,17 @@ pub fn dialogflow_projects_locations_agents_environments_continuous_test_results
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_continuous_test_results_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsContinuousTestResultsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/continuousTestResults
 ///
 ///
@@ -4079,9 +4385,7 @@ pub fn dialogflow_projects_locations_agents_environments_continuous_test_results
 
 pub fn dialogflow_projects_locations_agents_environments_continuous_test_results_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsContinuousTestResultsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4095,7 +4399,10 @@ pub fn dialogflow_projects_locations_agents_environments_continuous_test_results
 > {
     let builder =
         dialogflow_projects_locations_agents_environments_continuous_test_results_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     dialogflow_projects_locations_agents_environments_continuous_test_results_list_execute(builder)
 }
@@ -4194,6 +4501,13 @@ pub fn dialogflow_projects_locations_agents_environments_deployments_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/deployments/{deploymentsId}
 ///
 ///
@@ -4206,7 +4520,7 @@ pub fn dialogflow_projects_locations_agents_environments_deployments_get_execute
 
 pub fn dialogflow_projects_locations_agents_environments_deployments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Deployment>, ApiError>,
@@ -4215,8 +4529,9 @@ pub fn dialogflow_projects_locations_agents_environments_deployments_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_environments_deployments_get_builder(client, name)?;
+    let builder = dialogflow_projects_locations_agents_environments_deployments_get_builder(
+        client, &args.name,
+    )?;
     dialogflow_projects_locations_agents_environments_deployments_get_execute(builder)
 }
 
@@ -4331,6 +4646,17 @@ pub fn dialogflow_projects_locations_agents_environments_deployments_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/deployments
 ///
 ///
@@ -4343,9 +4669,7 @@ pub fn dialogflow_projects_locations_agents_environments_deployments_list_execut
 
 pub fn dialogflow_projects_locations_agents_environments_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListDeploymentsResponse>, ApiError>,
@@ -4355,7 +4679,10 @@ pub fn dialogflow_projects_locations_agents_environments_deployments_list(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_environments_deployments_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_environments_deployments_list_execute(builder)
 }
@@ -4457,6 +4784,15 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_create_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_experiments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsExperimentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Experiment,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments
 ///
 ///
@@ -4469,8 +4805,7 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_create_exec
 
 pub fn dialogflow_projects_locations_agents_environments_experiments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3Experiment,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsExperimentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Experiment>, ApiError>,
@@ -4480,7 +4815,9 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_create(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_environments_experiments_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_environments_experiments_create_execute(builder)
 }
@@ -4577,6 +4914,13 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_delete_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_experiments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsExperimentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments/{experimentsId}
 ///
 ///
@@ -4589,15 +4933,16 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_delete_exec
 
 pub fn dialogflow_projects_locations_agents_environments_experiments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsExperimentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_environments_experiments_delete_builder(client, name)?;
+    let builder = dialogflow_projects_locations_agents_environments_experiments_delete_builder(
+        client, &args.name,
+    )?;
     dialogflow_projects_locations_agents_environments_experiments_delete_execute(builder)
 }
 
@@ -4695,6 +5040,13 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_experiments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsExperimentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments/{experimentsId}
 ///
 ///
@@ -4707,7 +5059,7 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_get_execute
 
 pub fn dialogflow_projects_locations_agents_environments_experiments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsExperimentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Experiment>, ApiError>,
@@ -4716,8 +5068,9 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_environments_experiments_get_builder(client, name)?;
+    let builder = dialogflow_projects_locations_agents_environments_experiments_get_builder(
+        client, &args.name,
+    )?;
     dialogflow_projects_locations_agents_environments_experiments_get_execute(builder)
 }
 
@@ -4832,6 +5185,17 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_experiments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsExperimentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments
 ///
 ///
@@ -4844,9 +5208,7 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_list_execut
 
 pub fn dialogflow_projects_locations_agents_environments_experiments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsExperimentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListExperimentsResponse>, ApiError>,
@@ -4856,7 +5218,10 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_list(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_environments_experiments_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_environments_experiments_list_execute(builder)
 }
@@ -4970,6 +5335,17 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_patch_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_experiments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsExperimentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Experiment,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments/{experimentsId}
 ///
 ///
@@ -4982,9 +5358,7 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_patch_execu
 
 pub fn dialogflow_projects_locations_agents_environments_experiments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Experiment,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsExperimentsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Experiment>, ApiError>,
@@ -4994,7 +5368,10 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_patch(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_environments_experiments_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_environments_experiments_patch_execute(builder)
 }
@@ -5096,6 +5473,15 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_start_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_experiments_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsExperimentsStartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3StartExperimentRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments/{experimentsId}:start
 ///
 ///
@@ -5108,8 +5494,7 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_start_execu
 
 pub fn dialogflow_projects_locations_agents_environments_experiments_start(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDialogflowCxV3StartExperimentRequest,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsExperimentsStartArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Experiment>, ApiError>,
@@ -5119,7 +5504,7 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_start(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_environments_experiments_start_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     dialogflow_projects_locations_agents_environments_experiments_start_execute(builder)
 }
@@ -5221,6 +5606,15 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_stop_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_experiments_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsExperimentsStopArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3StopExperimentRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/experiments/{experimentsId}:stop
 ///
 ///
@@ -5233,8 +5627,7 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_stop_execut
 
 pub fn dialogflow_projects_locations_agents_environments_experiments_stop(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDialogflowCxV3StopExperimentRequest,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsExperimentsStopArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Experiment>, ApiError>,
@@ -5244,7 +5637,7 @@ pub fn dialogflow_projects_locations_agents_environments_experiments_stop(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_environments_experiments_stop_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     dialogflow_projects_locations_agents_environments_experiments_stop_execute(builder)
 }
@@ -5347,6 +5740,15 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_detect_intent_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_sessions_detect_intent`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsSessionsDetectIntentArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3DetectIntentRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}:detectIntent
 ///
 ///
@@ -5359,8 +5761,7 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_detect_intent_
 
 pub fn dialogflow_projects_locations_agents_environments_sessions_detect_intent(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &GoogleCloudDialogflowCxV3DetectIntentRequest,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsDetectIntentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3DetectIntentResponse>, ApiError>,
@@ -5370,7 +5771,9 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_detect_intent(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_environments_sessions_detect_intent_builder(
-        client, session, body,
+        client,
+        &args.session,
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_environments_sessions_detect_intent_execute(builder)
 }
@@ -5473,6 +5876,15 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_fulfill_intent
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_sessions_fulfill_intent`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsSessionsFulfillIntentArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3FulfillIntentRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}:fulfillIntent
 ///
 ///
@@ -5485,8 +5897,7 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_fulfill_intent
 
 pub fn dialogflow_projects_locations_agents_environments_sessions_fulfill_intent(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &GoogleCloudDialogflowCxV3FulfillIntentRequest,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsFulfillIntentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3FulfillIntentResponse>, ApiError>,
@@ -5497,7 +5908,9 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_fulfill_intent
 > {
     let builder =
         dialogflow_projects_locations_agents_environments_sessions_fulfill_intent_builder(
-            client, session, body,
+            client,
+            &args.session,
+            &args.body,
         )?;
     dialogflow_projects_locations_agents_environments_sessions_fulfill_intent_execute(builder)
 }
@@ -5600,6 +6013,15 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_match_intent_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_sessions_match_intent`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsSessionsMatchIntentArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3MatchIntentRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}:matchIntent
 ///
 ///
@@ -5612,8 +6034,7 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_match_intent_e
 
 pub fn dialogflow_projects_locations_agents_environments_sessions_match_intent(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &GoogleCloudDialogflowCxV3MatchIntentRequest,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsMatchIntentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3MatchIntentResponse>, ApiError>,
@@ -5623,7 +6044,9 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_match_intent(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_environments_sessions_match_intent_builder(
-        client, session, body,
+        client,
+        &args.session,
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_environments_sessions_match_intent_execute(builder)
 }
@@ -5726,6 +6149,15 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_server_streami
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_sessions_server_streaming_detect_intent`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsSessionsServerStreamingDetectIntentArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3DetectIntentRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}:serverStreamingDetectIntent
 ///
 ///
@@ -5738,8 +6170,7 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_server_streami
 
 pub fn dialogflow_projects_locations_agents_environments_sessions_server_streaming_detect_intent(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &GoogleCloudDialogflowCxV3DetectIntentRequest,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsServerStreamingDetectIntentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3DetectIntentResponse>, ApiError>,
@@ -5748,7 +6179,7 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_server_streami
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_environments_sessions_server_streaming_detect_intent_builder(client, session, body)?;
+    let builder = dialogflow_projects_locations_agents_environments_sessions_server_streaming_detect_intent_builder(client, &args.session, &args.body)?;
     dialogflow_projects_locations_agents_environments_sessions_server_streaming_detect_intent_execute(builder)
 }
 
@@ -5850,6 +6281,15 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_c
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_sessions_entity_types_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3SessionEntityType,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}/entityTypes
 ///
 ///
@@ -5862,8 +6302,7 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_c
 
 pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3SessionEntityType,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3SessionEntityType>, ApiError>,
@@ -5874,7 +6313,9 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_c
 > {
     let builder =
         dialogflow_projects_locations_agents_environments_sessions_entity_types_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     dialogflow_projects_locations_agents_environments_sessions_entity_types_create_execute(builder)
 }
@@ -5971,6 +6412,13 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_d
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_sessions_entity_types_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}/entityTypes/{entityTypesId}
 ///
 ///
@@ -5983,7 +6431,7 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_d
 
 pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -5992,7 +6440,7 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_d
 > {
     let builder =
         dialogflow_projects_locations_agents_environments_sessions_entity_types_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     dialogflow_projects_locations_agents_environments_sessions_entity_types_delete_execute(builder)
 }
@@ -6092,6 +6540,13 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_g
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_sessions_entity_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}/entityTypes/{entityTypesId}
 ///
 ///
@@ -6104,7 +6559,7 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_g
 
 pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3SessionEntityType>, ApiError>,
@@ -6115,7 +6570,7 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_g
 > {
     let builder =
         dialogflow_projects_locations_agents_environments_sessions_entity_types_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     dialogflow_projects_locations_agents_environments_sessions_entity_types_get_execute(builder)
 }
@@ -6234,6 +6689,17 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_l
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_sessions_entity_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}/entityTypes
 ///
 ///
@@ -6246,9 +6712,7 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_l
 
 pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -6262,7 +6726,10 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_l
 > {
     let builder =
         dialogflow_projects_locations_agents_environments_sessions_entity_types_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     dialogflow_projects_locations_agents_environments_sessions_entity_types_list_execute(builder)
 }
@@ -6377,6 +6844,17 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_p
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_environments_sessions_entity_types_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3SessionEntityType,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/environments/{environmentsId}/sessions/{sessionsId}/entityTypes/{entityTypesId}
 ///
 ///
@@ -6389,9 +6867,7 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_p
 
 pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3SessionEntityType,
+    args: &DialogflowProjectsLocationsAgentsEnvironmentsSessionsEntityTypesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3SessionEntityType>, ApiError>,
@@ -6402,7 +6878,10 @@ pub fn dialogflow_projects_locations_agents_environments_sessions_entity_types_p
 > {
     let builder =
         dialogflow_projects_locations_agents_environments_sessions_entity_types_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     dialogflow_projects_locations_agents_environments_sessions_entity_types_patch_execute(builder)
 }
@@ -6516,6 +6995,17 @@ pub fn dialogflow_projects_locations_agents_flows_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Flow,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows
 ///
 ///
@@ -6528,9 +7018,7 @@ pub fn dialogflow_projects_locations_agents_flows_create_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Flow,
+    args: &DialogflowProjectsLocationsAgentsFlowsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Flow>, ApiError>,
@@ -6541,9 +7029,9 @@ pub fn dialogflow_projects_locations_agents_flows_create(
 > {
     let builder = dialogflow_projects_locations_agents_flows_create_builder(
         client,
-        parent,
-        languageCode,
-        body,
+        &args.parent,
+        args.languageCode.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_flows_create_execute(builder)
 }
@@ -6652,6 +7140,15 @@ pub fn dialogflow_projects_locations_agents_flows_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}
 ///
 ///
@@ -6664,15 +7161,15 @@ pub fn dialogflow_projects_locations_agents_flows_delete_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DialogflowProjectsLocationsAgentsFlowsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_flows_delete_builder(client, name, force)?;
+    let builder =
+        dialogflow_projects_locations_agents_flows_delete_builder(client, &args.name, args.force)?;
     dialogflow_projects_locations_agents_flows_delete_execute(builder)
 }
 
@@ -6773,6 +7270,15 @@ pub fn dialogflow_projects_locations_agents_flows_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsExportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3ExportFlowRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}:export
 ///
 ///
@@ -6785,8 +7291,7 @@ pub fn dialogflow_projects_locations_agents_flows_export_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_export(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDialogflowCxV3ExportFlowRequest,
+    args: &DialogflowProjectsLocationsAgentsFlowsExportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6795,7 +7300,8 @@ pub fn dialogflow_projects_locations_agents_flows_export(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_flows_export_builder(client, name, body)?;
+    let builder =
+        dialogflow_projects_locations_agents_flows_export_builder(client, &args.name, &args.body)?;
     dialogflow_projects_locations_agents_flows_export_execute(builder)
 }
 
@@ -6905,6 +7411,15 @@ pub fn dialogflow_projects_locations_agents_flows_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}
 ///
 ///
@@ -6917,8 +7432,7 @@ pub fn dialogflow_projects_locations_agents_flows_get_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_get(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsFlowsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Flow>, ApiError>,
@@ -6927,8 +7441,11 @@ pub fn dialogflow_projects_locations_agents_flows_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_flows_get_builder(client, name, languageCode)?;
+    let builder = dialogflow_projects_locations_agents_flows_get_builder(
+        client,
+        &args.name,
+        args.languageCode.as_deref(),
+    )?;
     dialogflow_projects_locations_agents_flows_get_execute(builder)
 }
 
@@ -7039,6 +7556,15 @@ pub fn dialogflow_projects_locations_agents_flows_get_validation_result_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_get_validation_result`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsGetValidationResultArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/validationResult
 ///
 ///
@@ -7051,8 +7577,7 @@ pub fn dialogflow_projects_locations_agents_flows_get_validation_result_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_get_validation_result(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsFlowsGetValidationResultArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3FlowValidationResult>, ApiError>,
@@ -7063,8 +7588,8 @@ pub fn dialogflow_projects_locations_agents_flows_get_validation_result(
 > {
     let builder = dialogflow_projects_locations_agents_flows_get_validation_result_builder(
         client,
-        name,
-        languageCode,
+        &args.name,
+        args.languageCode.as_deref(),
     )?;
     dialogflow_projects_locations_agents_flows_get_validation_result_execute(builder)
 }
@@ -7166,6 +7691,15 @@ pub fn dialogflow_projects_locations_agents_flows_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3ImportFlowRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows:import
 ///
 ///
@@ -7178,8 +7712,7 @@ pub fn dialogflow_projects_locations_agents_flows_import_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3ImportFlowRequest,
+    args: &DialogflowProjectsLocationsAgentsFlowsImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7188,7 +7721,11 @@ pub fn dialogflow_projects_locations_agents_flows_import(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_flows_import_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_flows_import_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_flows_import_execute(builder)
 }
 
@@ -7307,6 +7844,19 @@ pub fn dialogflow_projects_locations_agents_flows_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows
 ///
 ///
@@ -7319,10 +7869,7 @@ pub fn dialogflow_projects_locations_agents_flows_list_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsFlowsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListFlowsResponse>, ApiError>,
@@ -7333,10 +7880,10 @@ pub fn dialogflow_projects_locations_agents_flows_list(
 > {
     let builder = dialogflow_projects_locations_agents_flows_list_builder(
         client,
-        parent,
-        languageCode,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_flows_list_execute(builder)
 }
@@ -7454,6 +8001,19 @@ pub fn dialogflow_projects_locations_agents_flows_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Flow,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}
 ///
 ///
@@ -7466,10 +8026,7 @@ pub fn dialogflow_projects_locations_agents_flows_patch_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Flow,
+    args: &DialogflowProjectsLocationsAgentsFlowsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Flow>, ApiError>,
@@ -7480,10 +8037,10 @@ pub fn dialogflow_projects_locations_agents_flows_patch(
 > {
     let builder = dialogflow_projects_locations_agents_flows_patch_builder(
         client,
-        name,
-        languageCode,
-        updateMask,
-        body,
+        &args.name,
+        args.languageCode.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_flows_patch_execute(builder)
 }
@@ -7585,6 +8142,15 @@ pub fn dialogflow_projects_locations_agents_flows_train_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_train`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsTrainArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3TrainFlowRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}:train
 ///
 ///
@@ -7597,8 +8163,7 @@ pub fn dialogflow_projects_locations_agents_flows_train_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_train(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDialogflowCxV3TrainFlowRequest,
+    args: &DialogflowProjectsLocationsAgentsFlowsTrainArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7607,7 +8172,8 @@ pub fn dialogflow_projects_locations_agents_flows_train(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_flows_train_builder(client, name, body)?;
+    let builder =
+        dialogflow_projects_locations_agents_flows_train_builder(client, &args.name, &args.body)?;
     dialogflow_projects_locations_agents_flows_train_execute(builder)
 }
 
@@ -7709,6 +8275,15 @@ pub fn dialogflow_projects_locations_agents_flows_validate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_validate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsValidateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3ValidateFlowRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}:validate
 ///
 ///
@@ -7721,8 +8296,7 @@ pub fn dialogflow_projects_locations_agents_flows_validate_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_validate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDialogflowCxV3ValidateFlowRequest,
+    args: &DialogflowProjectsLocationsAgentsFlowsValidateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3FlowValidationResult>, ApiError>,
@@ -7731,7 +8305,9 @@ pub fn dialogflow_projects_locations_agents_flows_validate(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_flows_validate_builder(client, name, body)?;
+    let builder = dialogflow_projects_locations_agents_flows_validate_builder(
+        client, &args.name, &args.body,
+    )?;
     dialogflow_projects_locations_agents_flows_validate_execute(builder)
 }
 
@@ -7844,6 +8420,17 @@ pub fn dialogflow_projects_locations_agents_flows_pages_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_pages_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsPagesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Page,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/pages
 ///
 ///
@@ -7856,9 +8443,7 @@ pub fn dialogflow_projects_locations_agents_flows_pages_create_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_pages_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Page,
+    args: &DialogflowProjectsLocationsAgentsFlowsPagesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Page>, ApiError>,
@@ -7869,9 +8454,9 @@ pub fn dialogflow_projects_locations_agents_flows_pages_create(
 > {
     let builder = dialogflow_projects_locations_agents_flows_pages_create_builder(
         client,
-        parent,
-        languageCode,
-        body,
+        &args.parent,
+        args.languageCode.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_flows_pages_create_execute(builder)
 }
@@ -7980,6 +8565,15 @@ pub fn dialogflow_projects_locations_agents_flows_pages_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_pages_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsPagesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/pages/{pagesId}
 ///
 ///
@@ -7992,16 +8586,16 @@ pub fn dialogflow_projects_locations_agents_flows_pages_delete_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_pages_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DialogflowProjectsLocationsAgentsFlowsPagesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_flows_pages_delete_builder(client, name, force)?;
+    let builder = dialogflow_projects_locations_agents_flows_pages_delete_builder(
+        client, &args.name, args.force,
+    )?;
     dialogflow_projects_locations_agents_flows_pages_delete_execute(builder)
 }
 
@@ -8111,6 +8705,15 @@ pub fn dialogflow_projects_locations_agents_flows_pages_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_pages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsPagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/pages/{pagesId}
 ///
 ///
@@ -8123,8 +8726,7 @@ pub fn dialogflow_projects_locations_agents_flows_pages_get_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_pages_get(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsFlowsPagesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Page>, ApiError>,
@@ -8133,8 +8735,11 @@ pub fn dialogflow_projects_locations_agents_flows_pages_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_flows_pages_get_builder(client, name, languageCode)?;
+    let builder = dialogflow_projects_locations_agents_flows_pages_get_builder(
+        client,
+        &args.name,
+        args.languageCode.as_deref(),
+    )?;
     dialogflow_projects_locations_agents_flows_pages_get_execute(builder)
 }
 
@@ -8253,6 +8858,19 @@ pub fn dialogflow_projects_locations_agents_flows_pages_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_pages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsPagesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/pages
 ///
 ///
@@ -8265,10 +8883,7 @@ pub fn dialogflow_projects_locations_agents_flows_pages_list_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_pages_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsFlowsPagesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListPagesResponse>, ApiError>,
@@ -8279,10 +8894,10 @@ pub fn dialogflow_projects_locations_agents_flows_pages_list(
 > {
     let builder = dialogflow_projects_locations_agents_flows_pages_list_builder(
         client,
-        parent,
-        languageCode,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_flows_pages_list_execute(builder)
 }
@@ -8400,6 +9015,19 @@ pub fn dialogflow_projects_locations_agents_flows_pages_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_pages_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsPagesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Page,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/pages/{pagesId}
 ///
 ///
@@ -8412,10 +9040,7 @@ pub fn dialogflow_projects_locations_agents_flows_pages_patch_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_pages_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Page,
+    args: &DialogflowProjectsLocationsAgentsFlowsPagesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Page>, ApiError>,
@@ -8426,10 +9051,10 @@ pub fn dialogflow_projects_locations_agents_flows_pages_patch(
 > {
     let builder = dialogflow_projects_locations_agents_flows_pages_patch_builder(
         client,
-        name,
-        languageCode,
-        updateMask,
-        body,
+        &args.name,
+        args.languageCode.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_flows_pages_patch_execute(builder)
 }
@@ -8544,6 +9169,17 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_create
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_transition_route_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3TransitionRouteGroup,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/transitionRouteGroups
 ///
 ///
@@ -8556,9 +9192,7 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_create
 
 pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3TransitionRouteGroup,
+    args: &DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3TransitionRouteGroup>, ApiError>,
@@ -8570,9 +9204,9 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_create
     let builder =
         dialogflow_projects_locations_agents_flows_transition_route_groups_create_builder(
             client,
-            parent,
-            languageCode,
-            body,
+            &args.parent,
+            args.languageCode.as_deref(),
+            &args.body,
         )?;
     dialogflow_projects_locations_agents_flows_transition_route_groups_create_execute(builder)
 }
@@ -8681,6 +9315,15 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_delete
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_transition_route_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/transitionRouteGroups/{transitionRouteGroupsId}
 ///
 ///
@@ -8693,8 +9336,7 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_delete
 
 pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -8703,7 +9345,7 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_delete
 > {
     let builder =
         dialogflow_projects_locations_agents_flows_transition_route_groups_delete_builder(
-            client, name, force,
+            client, &args.name, args.force,
         )?;
     dialogflow_projects_locations_agents_flows_transition_route_groups_delete_execute(builder)
 }
@@ -8815,6 +9457,15 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_get_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_transition_route_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/transitionRouteGroups/{transitionRouteGroupsId}
 ///
 ///
@@ -8827,8 +9478,7 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_get_ex
 
 pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3TransitionRouteGroup>, ApiError>,
@@ -8839,8 +9489,8 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_get(
 > {
     let builder = dialogflow_projects_locations_agents_flows_transition_route_groups_get_builder(
         client,
-        name,
-        languageCode,
+        &args.name,
+        args.languageCode.as_deref(),
     )?;
     dialogflow_projects_locations_agents_flows_transition_route_groups_get_execute(builder)
 }
@@ -8963,6 +9613,19 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_transition_route_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/transitionRouteGroups
 ///
 ///
@@ -8975,10 +9638,7 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_list_e
 
 pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -8992,10 +9652,10 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_list(
 > {
     let builder = dialogflow_projects_locations_agents_flows_transition_route_groups_list_builder(
         client,
-        parent,
-        languageCode,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_flows_transition_route_groups_list_execute(builder)
 }
@@ -9114,6 +9774,19 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_patch_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_transition_route_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3TransitionRouteGroup,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/transitionRouteGroups/{transitionRouteGroupsId}
 ///
 ///
@@ -9126,10 +9799,7 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_patch_
 
 pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3TransitionRouteGroup,
+    args: &DialogflowProjectsLocationsAgentsFlowsTransitionRouteGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3TransitionRouteGroup>, ApiError>,
@@ -9140,10 +9810,10 @@ pub fn dialogflow_projects_locations_agents_flows_transition_route_groups_patch(
 > {
     let builder = dialogflow_projects_locations_agents_flows_transition_route_groups_patch_builder(
         client,
-        name,
-        languageCode,
-        updateMask,
-        body,
+        &args.name,
+        args.languageCode.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_flows_transition_route_groups_patch_execute(builder)
 }
@@ -9246,6 +9916,15 @@ pub fn dialogflow_projects_locations_agents_flows_versions_compare_versions_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_versions_compare_versions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsVersionsCompareVersionsArgs {
+    /// Path parameter: baseVersion
+    pub baseVersion: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3CompareVersionsRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions/{versionsId}:compareVersions
 ///
 ///
@@ -9258,8 +9937,7 @@ pub fn dialogflow_projects_locations_agents_flows_versions_compare_versions_exec
 
 pub fn dialogflow_projects_locations_agents_flows_versions_compare_versions(
     client: &SimpleHttpClient,
-    baseVersion: &str,
-    body: &GoogleCloudDialogflowCxV3CompareVersionsRequest,
+    args: &DialogflowProjectsLocationsAgentsFlowsVersionsCompareVersionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3CompareVersionsResponse>, ApiError>,
@@ -9270,8 +9948,8 @@ pub fn dialogflow_projects_locations_agents_flows_versions_compare_versions(
 > {
     let builder = dialogflow_projects_locations_agents_flows_versions_compare_versions_builder(
         client,
-        baseVersion,
-        body,
+        &args.baseVersion,
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_flows_versions_compare_versions_execute(builder)
 }
@@ -9373,6 +10051,15 @@ pub fn dialogflow_projects_locations_agents_flows_versions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Version,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions
 ///
 ///
@@ -9385,8 +10072,7 @@ pub fn dialogflow_projects_locations_agents_flows_versions_create_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_versions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3Version,
+    args: &DialogflowProjectsLocationsAgentsFlowsVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -9395,8 +10081,11 @@ pub fn dialogflow_projects_locations_agents_flows_versions_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_flows_versions_create_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_flows_versions_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_flows_versions_create_execute(builder)
 }
 
@@ -9492,6 +10181,13 @@ pub fn dialogflow_projects_locations_agents_flows_versions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions/{versionsId}
 ///
 ///
@@ -9504,14 +10200,15 @@ pub fn dialogflow_projects_locations_agents_flows_versions_delete_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsFlowsVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_flows_versions_delete_builder(client, name)?;
+    let builder =
+        dialogflow_projects_locations_agents_flows_versions_delete_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_flows_versions_delete_execute(builder)
 }
 
@@ -9609,6 +10306,13 @@ pub fn dialogflow_projects_locations_agents_flows_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions/{versionsId}
 ///
 ///
@@ -9621,7 +10325,7 @@ pub fn dialogflow_projects_locations_agents_flows_versions_get_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsFlowsVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Version>, ApiError>,
@@ -9630,7 +10334,8 @@ pub fn dialogflow_projects_locations_agents_flows_versions_get(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_flows_versions_get_builder(client, name)?;
+    let builder =
+        dialogflow_projects_locations_agents_flows_versions_get_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_flows_versions_get_execute(builder)
 }
 
@@ -9745,6 +10450,17 @@ pub fn dialogflow_projects_locations_agents_flows_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions
 ///
 ///
@@ -9757,9 +10473,7 @@ pub fn dialogflow_projects_locations_agents_flows_versions_list_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsFlowsVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListVersionsResponse>, ApiError>,
@@ -9769,7 +10483,10 @@ pub fn dialogflow_projects_locations_agents_flows_versions_list(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_flows_versions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_flows_versions_list_execute(builder)
 }
@@ -9871,6 +10588,15 @@ pub fn dialogflow_projects_locations_agents_flows_versions_load_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_versions_load`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsVersionsLoadArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3LoadVersionRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions/{versionsId}:load
 ///
 ///
@@ -9883,8 +10609,7 @@ pub fn dialogflow_projects_locations_agents_flows_versions_load_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_versions_load(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDialogflowCxV3LoadVersionRequest,
+    args: &DialogflowProjectsLocationsAgentsFlowsVersionsLoadArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -9893,8 +10618,9 @@ pub fn dialogflow_projects_locations_agents_flows_versions_load(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_flows_versions_load_builder(client, name, body)?;
+    let builder = dialogflow_projects_locations_agents_flows_versions_load_builder(
+        client, &args.name, &args.body,
+    )?;
     dialogflow_projects_locations_agents_flows_versions_load_execute(builder)
 }
 
@@ -10007,6 +10733,17 @@ pub fn dialogflow_projects_locations_agents_flows_versions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_flows_versions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsFlowsVersionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Version,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/flows/{flowsId}/versions/{versionsId}
 ///
 ///
@@ -10019,9 +10756,7 @@ pub fn dialogflow_projects_locations_agents_flows_versions_patch_execute(
 
 pub fn dialogflow_projects_locations_agents_flows_versions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Version,
+    args: &DialogflowProjectsLocationsAgentsFlowsVersionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Version>, ApiError>,
@@ -10031,7 +10766,10 @@ pub fn dialogflow_projects_locations_agents_flows_versions_patch(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_flows_versions_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_flows_versions_patch_execute(builder)
 }
@@ -10145,6 +10883,17 @@ pub fn dialogflow_projects_locations_agents_generators_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_generators_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsGeneratorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Generator,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/generators
 ///
 ///
@@ -10157,9 +10906,7 @@ pub fn dialogflow_projects_locations_agents_generators_create_execute(
 
 pub fn dialogflow_projects_locations_agents_generators_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Generator,
+    args: &DialogflowProjectsLocationsAgentsGeneratorsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Generator>, ApiError>,
@@ -10170,9 +10917,9 @@ pub fn dialogflow_projects_locations_agents_generators_create(
 > {
     let builder = dialogflow_projects_locations_agents_generators_create_builder(
         client,
-        parent,
-        languageCode,
-        body,
+        &args.parent,
+        args.languageCode.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_generators_create_execute(builder)
 }
@@ -10281,6 +11028,15 @@ pub fn dialogflow_projects_locations_agents_generators_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_generators_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsGeneratorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/generators/{generatorsId}
 ///
 ///
@@ -10293,16 +11049,16 @@ pub fn dialogflow_projects_locations_agents_generators_delete_execute(
 
 pub fn dialogflow_projects_locations_agents_generators_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DialogflowProjectsLocationsAgentsGeneratorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_generators_delete_builder(client, name, force)?;
+    let builder = dialogflow_projects_locations_agents_generators_delete_builder(
+        client, &args.name, args.force,
+    )?;
     dialogflow_projects_locations_agents_generators_delete_execute(builder)
 }
 
@@ -10412,6 +11168,15 @@ pub fn dialogflow_projects_locations_agents_generators_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_generators_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsGeneratorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/generators/{generatorsId}
 ///
 ///
@@ -10424,8 +11189,7 @@ pub fn dialogflow_projects_locations_agents_generators_get_execute(
 
 pub fn dialogflow_projects_locations_agents_generators_get(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsGeneratorsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Generator>, ApiError>,
@@ -10434,8 +11198,11 @@ pub fn dialogflow_projects_locations_agents_generators_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_generators_get_builder(client, name, languageCode)?;
+    let builder = dialogflow_projects_locations_agents_generators_get_builder(
+        client,
+        &args.name,
+        args.languageCode.as_deref(),
+    )?;
     dialogflow_projects_locations_agents_generators_get_execute(builder)
 }
 
@@ -10554,6 +11321,19 @@ pub fn dialogflow_projects_locations_agents_generators_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_generators_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsGeneratorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/generators
 ///
 ///
@@ -10566,10 +11346,7 @@ pub fn dialogflow_projects_locations_agents_generators_list_execute(
 
 pub fn dialogflow_projects_locations_agents_generators_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsGeneratorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListGeneratorsResponse>, ApiError>,
@@ -10580,10 +11357,10 @@ pub fn dialogflow_projects_locations_agents_generators_list(
 > {
     let builder = dialogflow_projects_locations_agents_generators_list_builder(
         client,
-        parent,
-        languageCode,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_generators_list_execute(builder)
 }
@@ -10701,6 +11478,19 @@ pub fn dialogflow_projects_locations_agents_generators_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_generators_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsGeneratorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Generator,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/generators/{generatorsId}
 ///
 ///
@@ -10713,10 +11503,7 @@ pub fn dialogflow_projects_locations_agents_generators_patch_execute(
 
 pub fn dialogflow_projects_locations_agents_generators_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Generator,
+    args: &DialogflowProjectsLocationsAgentsGeneratorsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Generator>, ApiError>,
@@ -10727,10 +11514,10 @@ pub fn dialogflow_projects_locations_agents_generators_patch(
 > {
     let builder = dialogflow_projects_locations_agents_generators_patch_builder(
         client,
-        name,
-        languageCode,
-        updateMask,
-        body,
+        &args.name,
+        args.languageCode.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_generators_patch_execute(builder)
 }
@@ -10844,6 +11631,17 @@ pub fn dialogflow_projects_locations_agents_intents_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_intents_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsIntentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Intent,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/intents
 ///
 ///
@@ -10856,9 +11654,7 @@ pub fn dialogflow_projects_locations_agents_intents_create_execute(
 
 pub fn dialogflow_projects_locations_agents_intents_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Intent,
+    args: &DialogflowProjectsLocationsAgentsIntentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Intent>, ApiError>,
@@ -10869,9 +11665,9 @@ pub fn dialogflow_projects_locations_agents_intents_create(
 > {
     let builder = dialogflow_projects_locations_agents_intents_create_builder(
         client,
-        parent,
-        languageCode,
-        body,
+        &args.parent,
+        args.languageCode.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_intents_create_execute(builder)
 }
@@ -10968,6 +11764,13 @@ pub fn dialogflow_projects_locations_agents_intents_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_intents_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsIntentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/intents/{intentsId}
 ///
 ///
@@ -10980,14 +11783,14 @@ pub fn dialogflow_projects_locations_agents_intents_delete_execute(
 
 pub fn dialogflow_projects_locations_agents_intents_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsIntentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_intents_delete_builder(client, name)?;
+    let builder = dialogflow_projects_locations_agents_intents_delete_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_intents_delete_execute(builder)
 }
 
@@ -11088,6 +11891,15 @@ pub fn dialogflow_projects_locations_agents_intents_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_intents_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsIntentsExportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3ExportIntentsRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/intents:export
 ///
 ///
@@ -11100,8 +11912,7 @@ pub fn dialogflow_projects_locations_agents_intents_export_execute(
 
 pub fn dialogflow_projects_locations_agents_intents_export(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3ExportIntentsRequest,
+    args: &DialogflowProjectsLocationsAgentsIntentsExportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11110,8 +11921,11 @@ pub fn dialogflow_projects_locations_agents_intents_export(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_intents_export_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_intents_export_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_intents_export_execute(builder)
 }
 
@@ -11221,6 +12035,15 @@ pub fn dialogflow_projects_locations_agents_intents_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_intents_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsIntentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/intents/{intentsId}
 ///
 ///
@@ -11233,8 +12056,7 @@ pub fn dialogflow_projects_locations_agents_intents_get_execute(
 
 pub fn dialogflow_projects_locations_agents_intents_get(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsIntentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Intent>, ApiError>,
@@ -11243,8 +12065,11 @@ pub fn dialogflow_projects_locations_agents_intents_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_intents_get_builder(client, name, languageCode)?;
+    let builder = dialogflow_projects_locations_agents_intents_get_builder(
+        client,
+        &args.name,
+        args.languageCode.as_deref(),
+    )?;
     dialogflow_projects_locations_agents_intents_get_execute(builder)
 }
 
@@ -11345,6 +12170,15 @@ pub fn dialogflow_projects_locations_agents_intents_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_intents_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsIntentsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3ImportIntentsRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/intents:import
 ///
 ///
@@ -11357,8 +12191,7 @@ pub fn dialogflow_projects_locations_agents_intents_import_execute(
 
 pub fn dialogflow_projects_locations_agents_intents_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3ImportIntentsRequest,
+    args: &DialogflowProjectsLocationsAgentsIntentsImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11367,8 +12200,11 @@ pub fn dialogflow_projects_locations_agents_intents_import(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_intents_import_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_intents_import_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_intents_import_execute(builder)
 }
 
@@ -11491,6 +12327,21 @@ pub fn dialogflow_projects_locations_agents_intents_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_intents_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsIntentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: intentView
+    pub intentView: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/intents
 ///
 ///
@@ -11503,11 +12354,7 @@ pub fn dialogflow_projects_locations_agents_intents_list_execute(
 
 pub fn dialogflow_projects_locations_agents_intents_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    intentView: Option<&str>,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsIntentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListIntentsResponse>, ApiError>,
@@ -11518,11 +12365,11 @@ pub fn dialogflow_projects_locations_agents_intents_list(
 > {
     let builder = dialogflow_projects_locations_agents_intents_list_builder(
         client,
-        parent,
-        intentView,
-        languageCode,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.intentView.as_deref(),
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_intents_list_execute(builder)
 }
@@ -11640,6 +12487,19 @@ pub fn dialogflow_projects_locations_agents_intents_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_intents_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsIntentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Intent,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/intents/{intentsId}
 ///
 ///
@@ -11652,10 +12512,7 @@ pub fn dialogflow_projects_locations_agents_intents_patch_execute(
 
 pub fn dialogflow_projects_locations_agents_intents_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Intent,
+    args: &DialogflowProjectsLocationsAgentsIntentsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Intent>, ApiError>,
@@ -11666,10 +12523,10 @@ pub fn dialogflow_projects_locations_agents_intents_patch(
 > {
     let builder = dialogflow_projects_locations_agents_intents_patch_builder(
         client,
-        name,
-        languageCode,
-        updateMask,
-        body,
+        &args.name,
+        args.languageCode.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_intents_patch_execute(builder)
 }
@@ -11771,6 +12628,15 @@ pub fn dialogflow_projects_locations_agents_playbooks_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Playbook,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks
 ///
 ///
@@ -11783,8 +12649,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_create_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3Playbook,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Playbook>, ApiError>,
@@ -11793,8 +12658,11 @@ pub fn dialogflow_projects_locations_agents_playbooks_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_playbooks_create_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_playbooks_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_playbooks_create_execute(builder)
 }
 
@@ -11890,6 +12758,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}
 ///
 ///
@@ -11902,14 +12777,15 @@ pub fn dialogflow_projects_locations_agents_playbooks_delete_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_playbooks_delete_builder(client, name)?;
+    let builder =
+        dialogflow_projects_locations_agents_playbooks_delete_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_playbooks_delete_execute(builder)
 }
 
@@ -12010,6 +12886,15 @@ pub fn dialogflow_projects_locations_agents_playbooks_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksExportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3ExportPlaybookRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}:export
 ///
 ///
@@ -12022,8 +12907,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_export_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_export(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDialogflowCxV3ExportPlaybookRequest,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksExportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -12032,8 +12916,9 @@ pub fn dialogflow_projects_locations_agents_playbooks_export(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_playbooks_export_builder(client, name, body)?;
+    let builder = dialogflow_projects_locations_agents_playbooks_export_builder(
+        client, &args.name, &args.body,
+    )?;
     dialogflow_projects_locations_agents_playbooks_export_execute(builder)
 }
 
@@ -12131,6 +13016,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}
 ///
 ///
@@ -12143,7 +13035,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_get_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Playbook>, ApiError>,
@@ -12152,7 +13044,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_get(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_playbooks_get_builder(client, name)?;
+    let builder = dialogflow_projects_locations_agents_playbooks_get_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_playbooks_get_execute(builder)
 }
 
@@ -12253,6 +13145,15 @@ pub fn dialogflow_projects_locations_agents_playbooks_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3ImportPlaybookRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks:import
 ///
 ///
@@ -12265,8 +13166,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_import_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3ImportPlaybookRequest,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -12275,8 +13175,11 @@ pub fn dialogflow_projects_locations_agents_playbooks_import(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_playbooks_import_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_playbooks_import_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_playbooks_import_execute(builder)
 }
 
@@ -12391,6 +13294,17 @@ pub fn dialogflow_projects_locations_agents_playbooks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks
 ///
 ///
@@ -12403,9 +13317,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_list_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListPlaybooksResponse>, ApiError>,
@@ -12415,7 +13327,10 @@ pub fn dialogflow_projects_locations_agents_playbooks_list(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_playbooks_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_playbooks_list_execute(builder)
 }
@@ -12529,6 +13444,17 @@ pub fn dialogflow_projects_locations_agents_playbooks_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Playbook,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}
 ///
 ///
@@ -12541,9 +13467,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_patch_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Playbook,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Playbook>, ApiError>,
@@ -12553,7 +13477,10 @@ pub fn dialogflow_projects_locations_agents_playbooks_patch(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_playbooks_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_playbooks_patch_execute(builder)
 }
@@ -12655,6 +13582,15 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_examples_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksExamplesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Example,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/examples
 ///
 ///
@@ -12667,8 +13603,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_create_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_examples_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3Example,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksExamplesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Example>, ApiError>,
@@ -12678,7 +13613,9 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_create(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_playbooks_examples_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_playbooks_examples_create_execute(builder)
 }
@@ -12775,6 +13712,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_examples_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksExamplesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/examples/{examplesId}
 ///
 ///
@@ -12787,7 +13731,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_delete_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_examples_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksExamplesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -12795,7 +13739,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_delete(
     ApiError,
 > {
     let builder =
-        dialogflow_projects_locations_agents_playbooks_examples_delete_builder(client, name)?;
+        dialogflow_projects_locations_agents_playbooks_examples_delete_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_playbooks_examples_delete_execute(builder)
 }
 
@@ -12893,6 +13837,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_examples_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksExamplesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/examples/{examplesId}
 ///
 ///
@@ -12905,7 +13856,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_get_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_examples_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksExamplesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Example>, ApiError>,
@@ -12915,7 +13866,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_get(
     ApiError,
 > {
     let builder =
-        dialogflow_projects_locations_agents_playbooks_examples_get_builder(client, name)?;
+        dialogflow_projects_locations_agents_playbooks_examples_get_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_playbooks_examples_get_execute(builder)
 }
 
@@ -13034,6 +13985,19 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_examples_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksExamplesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/examples
 ///
 ///
@@ -13046,10 +14010,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_list_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_examples_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksExamplesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListExamplesResponse>, ApiError>,
@@ -13060,10 +14021,10 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_list(
 > {
     let builder = dialogflow_projects_locations_agents_playbooks_examples_list_builder(
         client,
-        parent,
-        languageCode,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_playbooks_examples_list_execute(builder)
 }
@@ -13177,6 +14138,17 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_examples_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksExamplesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Example,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/examples/{examplesId}
 ///
 ///
@@ -13189,9 +14161,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_patch_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_examples_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Example,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksExamplesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Example>, ApiError>,
@@ -13201,7 +14171,10 @@ pub fn dialogflow_projects_locations_agents_playbooks_examples_patch(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_playbooks_examples_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_playbooks_examples_patch_execute(builder)
 }
@@ -13303,6 +14276,15 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3PlaybookVersion,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/versions
 ///
 ///
@@ -13315,8 +14297,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_create_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_versions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3PlaybookVersion,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3PlaybookVersion>, ApiError>,
@@ -13326,7 +14307,9 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_create(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_playbooks_versions_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_playbooks_versions_create_execute(builder)
 }
@@ -13423,6 +14406,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/versions/{versionsId}
 ///
 ///
@@ -13435,7 +14425,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_delete_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -13443,7 +14433,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_delete(
     ApiError,
 > {
     let builder =
-        dialogflow_projects_locations_agents_playbooks_versions_delete_builder(client, name)?;
+        dialogflow_projects_locations_agents_playbooks_versions_delete_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_playbooks_versions_delete_execute(builder)
 }
 
@@ -13541,6 +14531,13 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/versions/{versionsId}
 ///
 ///
@@ -13553,7 +14550,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_get_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3PlaybookVersion>, ApiError>,
@@ -13563,7 +14560,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_get(
     ApiError,
 > {
     let builder =
-        dialogflow_projects_locations_agents_playbooks_versions_get_builder(client, name)?;
+        dialogflow_projects_locations_agents_playbooks_versions_get_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_playbooks_versions_get_execute(builder)
 }
 
@@ -13681,6 +14678,17 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/versions
 ///
 ///
@@ -13693,9 +14701,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_list_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -13708,7 +14714,10 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_list(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_playbooks_versions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_playbooks_versions_list_execute(builder)
 }
@@ -13814,6 +14823,15 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_playbooks_versions_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsPlaybooksVersionsRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3RestorePlaybookVersionRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/playbooks/{playbooksId}/versions/{versionsId}:restore
 ///
 ///
@@ -13826,8 +14844,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_restore_execute(
 
 pub fn dialogflow_projects_locations_agents_playbooks_versions_restore(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDialogflowCxV3RestorePlaybookVersionRequest,
+    args: &DialogflowProjectsLocationsAgentsPlaybooksVersionsRestoreArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -13840,7 +14857,7 @@ pub fn dialogflow_projects_locations_agents_playbooks_versions_restore(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_playbooks_versions_restore_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     dialogflow_projects_locations_agents_playbooks_versions_restore_execute(builder)
 }
@@ -13943,6 +14960,15 @@ pub fn dialogflow_projects_locations_agents_sessions_detect_intent_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_sessions_detect_intent`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsSessionsDetectIntentArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3DetectIntentRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}:detectIntent
 ///
 ///
@@ -13955,8 +14981,7 @@ pub fn dialogflow_projects_locations_agents_sessions_detect_intent_execute(
 
 pub fn dialogflow_projects_locations_agents_sessions_detect_intent(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &GoogleCloudDialogflowCxV3DetectIntentRequest,
+    args: &DialogflowProjectsLocationsAgentsSessionsDetectIntentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3DetectIntentResponse>, ApiError>,
@@ -13965,8 +14990,11 @@ pub fn dialogflow_projects_locations_agents_sessions_detect_intent(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_sessions_detect_intent_builder(client, session, body)?;
+    let builder = dialogflow_projects_locations_agents_sessions_detect_intent_builder(
+        client,
+        &args.session,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_sessions_detect_intent_execute(builder)
 }
 
@@ -14068,6 +15096,15 @@ pub fn dialogflow_projects_locations_agents_sessions_fulfill_intent_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_sessions_fulfill_intent`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsSessionsFulfillIntentArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3FulfillIntentRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}:fulfillIntent
 ///
 ///
@@ -14080,8 +15117,7 @@ pub fn dialogflow_projects_locations_agents_sessions_fulfill_intent_execute(
 
 pub fn dialogflow_projects_locations_agents_sessions_fulfill_intent(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &GoogleCloudDialogflowCxV3FulfillIntentRequest,
+    args: &DialogflowProjectsLocationsAgentsSessionsFulfillIntentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3FulfillIntentResponse>, ApiError>,
@@ -14091,7 +15127,9 @@ pub fn dialogflow_projects_locations_agents_sessions_fulfill_intent(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_sessions_fulfill_intent_builder(
-        client, session, body,
+        client,
+        &args.session,
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_sessions_fulfill_intent_execute(builder)
 }
@@ -14194,6 +15232,15 @@ pub fn dialogflow_projects_locations_agents_sessions_match_intent_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_sessions_match_intent`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsSessionsMatchIntentArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3MatchIntentRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}:matchIntent
 ///
 ///
@@ -14206,8 +15253,7 @@ pub fn dialogflow_projects_locations_agents_sessions_match_intent_execute(
 
 pub fn dialogflow_projects_locations_agents_sessions_match_intent(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &GoogleCloudDialogflowCxV3MatchIntentRequest,
+    args: &DialogflowProjectsLocationsAgentsSessionsMatchIntentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3MatchIntentResponse>, ApiError>,
@@ -14216,8 +15262,11 @@ pub fn dialogflow_projects_locations_agents_sessions_match_intent(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_sessions_match_intent_builder(client, session, body)?;
+    let builder = dialogflow_projects_locations_agents_sessions_match_intent_builder(
+        client,
+        &args.session,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_sessions_match_intent_execute(builder)
 }
 
@@ -14319,6 +15368,15 @@ pub fn dialogflow_projects_locations_agents_sessions_server_streaming_detect_int
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_sessions_server_streaming_detect_intent`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsSessionsServerStreamingDetectIntentArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3DetectIntentRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}:serverStreamingDetectIntent
 ///
 ///
@@ -14331,8 +15389,7 @@ pub fn dialogflow_projects_locations_agents_sessions_server_streaming_detect_int
 
 pub fn dialogflow_projects_locations_agents_sessions_server_streaming_detect_intent(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &GoogleCloudDialogflowCxV3DetectIntentRequest,
+    args: &DialogflowProjectsLocationsAgentsSessionsServerStreamingDetectIntentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3DetectIntentResponse>, ApiError>,
@@ -14343,7 +15400,9 @@ pub fn dialogflow_projects_locations_agents_sessions_server_streaming_detect_int
 > {
     let builder =
         dialogflow_projects_locations_agents_sessions_server_streaming_detect_intent_builder(
-            client, session, body,
+            client,
+            &args.session,
+            &args.body,
         )?;
     dialogflow_projects_locations_agents_sessions_server_streaming_detect_intent_execute(builder)
 }
@@ -14446,6 +15505,15 @@ pub fn dialogflow_projects_locations_agents_sessions_submit_answer_feedback_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_sessions_submit_answer_feedback`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsSessionsSubmitAnswerFeedbackArgs {
+    /// Path parameter: session
+    pub session: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3SubmitAnswerFeedbackRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}:submitAnswerFeedback
 ///
 ///
@@ -14458,8 +15526,7 @@ pub fn dialogflow_projects_locations_agents_sessions_submit_answer_feedback_exec
 
 pub fn dialogflow_projects_locations_agents_sessions_submit_answer_feedback(
     client: &SimpleHttpClient,
-    session: &str,
-    body: &GoogleCloudDialogflowCxV3SubmitAnswerFeedbackRequest,
+    args: &DialogflowProjectsLocationsAgentsSessionsSubmitAnswerFeedbackArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3AnswerFeedback>, ApiError>,
@@ -14469,7 +15536,9 @@ pub fn dialogflow_projects_locations_agents_sessions_submit_answer_feedback(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_sessions_submit_answer_feedback_builder(
-        client, session, body,
+        client,
+        &args.session,
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_sessions_submit_answer_feedback_execute(builder)
 }
@@ -14572,6 +15641,15 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_sessions_entity_types_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsSessionsEntityTypesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3SessionEntityType,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}/entityTypes
 ///
 ///
@@ -14584,8 +15662,7 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_create_execute
 
 pub fn dialogflow_projects_locations_agents_sessions_entity_types_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3SessionEntityType,
+    args: &DialogflowProjectsLocationsAgentsSessionsEntityTypesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3SessionEntityType>, ApiError>,
@@ -14595,7 +15672,9 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_create(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_sessions_entity_types_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_sessions_entity_types_create_execute(builder)
 }
@@ -14692,6 +15771,13 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_sessions_entity_types_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsSessionsEntityTypesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}/entityTypes/{entityTypesId}
 ///
 ///
@@ -14704,15 +15790,16 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_delete_execute
 
 pub fn dialogflow_projects_locations_agents_sessions_entity_types_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsSessionsEntityTypesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_sessions_entity_types_delete_builder(client, name)?;
+    let builder = dialogflow_projects_locations_agents_sessions_entity_types_delete_builder(
+        client, &args.name,
+    )?;
     dialogflow_projects_locations_agents_sessions_entity_types_delete_execute(builder)
 }
 
@@ -14811,6 +15898,13 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_sessions_entity_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsSessionsEntityTypesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}/entityTypes/{entityTypesId}
 ///
 ///
@@ -14823,7 +15917,7 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_get_execute(
 
 pub fn dialogflow_projects_locations_agents_sessions_entity_types_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsSessionsEntityTypesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3SessionEntityType>, ApiError>,
@@ -14833,7 +15927,7 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_get(
     ApiError,
 > {
     let builder =
-        dialogflow_projects_locations_agents_sessions_entity_types_get_builder(client, name)?;
+        dialogflow_projects_locations_agents_sessions_entity_types_get_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_sessions_entity_types_get_execute(builder)
 }
 
@@ -14951,6 +16045,17 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_sessions_entity_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsSessionsEntityTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}/entityTypes
 ///
 ///
@@ -14963,9 +16068,7 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_list_execute(
 
 pub fn dialogflow_projects_locations_agents_sessions_entity_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsSessionsEntityTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -14978,7 +16081,10 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_list(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_sessions_entity_types_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_sessions_entity_types_list_execute(builder)
 }
@@ -15093,6 +16199,17 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_sessions_entity_types_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsSessionsEntityTypesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3SessionEntityType,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/sessions/{sessionsId}/entityTypes/{entityTypesId}
 ///
 ///
@@ -15105,9 +16222,7 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_patch_execute(
 
 pub fn dialogflow_projects_locations_agents_sessions_entity_types_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3SessionEntityType,
+    args: &DialogflowProjectsLocationsAgentsSessionsEntityTypesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3SessionEntityType>, ApiError>,
@@ -15117,7 +16232,10 @@ pub fn dialogflow_projects_locations_agents_sessions_entity_types_patch(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_sessions_entity_types_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_sessions_entity_types_patch_execute(builder)
 }
@@ -15217,6 +16335,15 @@ pub fn dialogflow_projects_locations_agents_test_cases_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_test_cases_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTestCasesBatchDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3BatchDeleteTestCasesRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases:batchDelete
 ///
 ///
@@ -15229,16 +16356,18 @@ pub fn dialogflow_projects_locations_agents_test_cases_batch_delete_execute(
 
 pub fn dialogflow_projects_locations_agents_test_cases_batch_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3BatchDeleteTestCasesRequest,
+    args: &DialogflowProjectsLocationsAgentsTestCasesBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_test_cases_batch_delete_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_test_cases_batch_delete_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_test_cases_batch_delete_execute(builder)
 }
 
@@ -15339,6 +16468,15 @@ pub fn dialogflow_projects_locations_agents_test_cases_batch_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_test_cases_batch_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTestCasesBatchRunArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3BatchRunTestCasesRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases:batchRun
 ///
 ///
@@ -15351,8 +16489,7 @@ pub fn dialogflow_projects_locations_agents_test_cases_batch_run_execute(
 
 pub fn dialogflow_projects_locations_agents_test_cases_batch_run(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3BatchRunTestCasesRequest,
+    args: &DialogflowProjectsLocationsAgentsTestCasesBatchRunArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -15361,8 +16498,11 @@ pub fn dialogflow_projects_locations_agents_test_cases_batch_run(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_test_cases_batch_run_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_test_cases_batch_run_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_test_cases_batch_run_execute(builder)
 }
 
@@ -15473,6 +16613,15 @@ pub fn dialogflow_projects_locations_agents_test_cases_calculate_coverage_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_test_cases_calculate_coverage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTestCasesCalculateCoverageArgs {
+    /// Path parameter: agent
+    pub agent: String,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases:calculateCoverage
 ///
 ///
@@ -15485,8 +16634,7 @@ pub fn dialogflow_projects_locations_agents_test_cases_calculate_coverage_execut
 
 pub fn dialogflow_projects_locations_agents_test_cases_calculate_coverage(
     client: &SimpleHttpClient,
-    agent: &str,
-    type_rs: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsTestCasesCalculateCoverageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3CalculateCoverageResponse>, ApiError>,
@@ -15496,7 +16644,9 @@ pub fn dialogflow_projects_locations_agents_test_cases_calculate_coverage(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_test_cases_calculate_coverage_builder(
-        client, agent, type_rs,
+        client,
+        &args.agent,
+        args.type_rs.as_deref(),
     )?;
     dialogflow_projects_locations_agents_test_cases_calculate_coverage_execute(builder)
 }
@@ -15598,6 +16748,15 @@ pub fn dialogflow_projects_locations_agents_test_cases_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_test_cases_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTestCasesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3TestCase,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases
 ///
 ///
@@ -15610,8 +16769,7 @@ pub fn dialogflow_projects_locations_agents_test_cases_create_execute(
 
 pub fn dialogflow_projects_locations_agents_test_cases_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3TestCase,
+    args: &DialogflowProjectsLocationsAgentsTestCasesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3TestCase>, ApiError>,
@@ -15620,8 +16778,11 @@ pub fn dialogflow_projects_locations_agents_test_cases_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_test_cases_create_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_test_cases_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_test_cases_create_execute(builder)
 }
 
@@ -15722,6 +16883,15 @@ pub fn dialogflow_projects_locations_agents_test_cases_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_test_cases_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTestCasesExportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3ExportTestCasesRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases:export
 ///
 ///
@@ -15734,8 +16904,7 @@ pub fn dialogflow_projects_locations_agents_test_cases_export_execute(
 
 pub fn dialogflow_projects_locations_agents_test_cases_export(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3ExportTestCasesRequest,
+    args: &DialogflowProjectsLocationsAgentsTestCasesExportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -15744,8 +16913,11 @@ pub fn dialogflow_projects_locations_agents_test_cases_export(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_test_cases_export_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_test_cases_export_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_test_cases_export_execute(builder)
 }
 
@@ -15843,6 +17015,13 @@ pub fn dialogflow_projects_locations_agents_test_cases_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_test_cases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTestCasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases/{testCasesId}
 ///
 ///
@@ -15855,7 +17034,7 @@ pub fn dialogflow_projects_locations_agents_test_cases_get_execute(
 
 pub fn dialogflow_projects_locations_agents_test_cases_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsTestCasesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3TestCase>, ApiError>,
@@ -15864,7 +17043,7 @@ pub fn dialogflow_projects_locations_agents_test_cases_get(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_test_cases_get_builder(client, name)?;
+    let builder = dialogflow_projects_locations_agents_test_cases_get_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_test_cases_get_execute(builder)
 }
 
@@ -15965,6 +17144,15 @@ pub fn dialogflow_projects_locations_agents_test_cases_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_test_cases_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTestCasesImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3ImportTestCasesRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases:import
 ///
 ///
@@ -15977,8 +17165,7 @@ pub fn dialogflow_projects_locations_agents_test_cases_import_execute(
 
 pub fn dialogflow_projects_locations_agents_test_cases_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3ImportTestCasesRequest,
+    args: &DialogflowProjectsLocationsAgentsTestCasesImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -15987,8 +17174,11 @@ pub fn dialogflow_projects_locations_agents_test_cases_import(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_test_cases_import_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_test_cases_import_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_test_cases_import_execute(builder)
 }
 
@@ -16107,6 +17297,19 @@ pub fn dialogflow_projects_locations_agents_test_cases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_test_cases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTestCasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases
 ///
 ///
@@ -16119,10 +17322,7 @@ pub fn dialogflow_projects_locations_agents_test_cases_list_execute(
 
 pub fn dialogflow_projects_locations_agents_test_cases_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsTestCasesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListTestCasesResponse>, ApiError>,
@@ -16132,7 +17332,11 @@ pub fn dialogflow_projects_locations_agents_test_cases_list(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_test_cases_list_builder(
-        client, parent, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     dialogflow_projects_locations_agents_test_cases_list_execute(builder)
 }
@@ -16246,6 +17450,17 @@ pub fn dialogflow_projects_locations_agents_test_cases_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_test_cases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTestCasesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3TestCase,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases/{testCasesId}
 ///
 ///
@@ -16258,9 +17473,7 @@ pub fn dialogflow_projects_locations_agents_test_cases_patch_execute(
 
 pub fn dialogflow_projects_locations_agents_test_cases_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3TestCase,
+    args: &DialogflowProjectsLocationsAgentsTestCasesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3TestCase>, ApiError>,
@@ -16270,7 +17483,10 @@ pub fn dialogflow_projects_locations_agents_test_cases_patch(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_test_cases_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_test_cases_patch_execute(builder)
 }
@@ -16372,6 +17588,15 @@ pub fn dialogflow_projects_locations_agents_test_cases_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_test_cases_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTestCasesRunArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3RunTestCaseRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases/{testCasesId}:run
 ///
 ///
@@ -16384,8 +17609,7 @@ pub fn dialogflow_projects_locations_agents_test_cases_run_execute(
 
 pub fn dialogflow_projects_locations_agents_test_cases_run(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDialogflowCxV3RunTestCaseRequest,
+    args: &DialogflowProjectsLocationsAgentsTestCasesRunArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -16394,7 +17618,9 @@ pub fn dialogflow_projects_locations_agents_test_cases_run(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_test_cases_run_builder(client, name, body)?;
+    let builder = dialogflow_projects_locations_agents_test_cases_run_builder(
+        client, &args.name, &args.body,
+    )?;
     dialogflow_projects_locations_agents_test_cases_run_execute(builder)
 }
 
@@ -16493,6 +17719,13 @@ pub fn dialogflow_projects_locations_agents_test_cases_results_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_test_cases_results_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTestCasesResultsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases/{testCasesId}/results/{resultsId}
 ///
 ///
@@ -16505,7 +17738,7 @@ pub fn dialogflow_projects_locations_agents_test_cases_results_get_execute(
 
 pub fn dialogflow_projects_locations_agents_test_cases_results_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsTestCasesResultsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3TestCaseResult>, ApiError>,
@@ -16515,7 +17748,7 @@ pub fn dialogflow_projects_locations_agents_test_cases_results_get(
     ApiError,
 > {
     let builder =
-        dialogflow_projects_locations_agents_test_cases_results_get_builder(client, name)?;
+        dialogflow_projects_locations_agents_test_cases_results_get_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_test_cases_results_get_execute(builder)
 }
 
@@ -16634,6 +17867,19 @@ pub fn dialogflow_projects_locations_agents_test_cases_results_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_test_cases_results_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTestCasesResultsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/testCases/{testCasesId}/results
 ///
 ///
@@ -16646,10 +17892,7 @@ pub fn dialogflow_projects_locations_agents_test_cases_results_list_execute(
 
 pub fn dialogflow_projects_locations_agents_test_cases_results_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsTestCasesResultsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListTestCaseResultsResponse>, ApiError>,
@@ -16659,7 +17902,11 @@ pub fn dialogflow_projects_locations_agents_test_cases_results_list(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_test_cases_results_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_test_cases_results_list_execute(builder)
 }
@@ -16761,6 +18008,15 @@ pub fn dialogflow_projects_locations_agents_tools_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_tools_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsToolsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Tool,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/tools
 ///
 ///
@@ -16773,8 +18029,7 @@ pub fn dialogflow_projects_locations_agents_tools_create_execute(
 
 pub fn dialogflow_projects_locations_agents_tools_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3Tool,
+    args: &DialogflowProjectsLocationsAgentsToolsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Tool>, ApiError>,
@@ -16783,7 +18038,11 @@ pub fn dialogflow_projects_locations_agents_tools_create(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_tools_create_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_tools_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_tools_create_execute(builder)
 }
 
@@ -16891,6 +18150,15 @@ pub fn dialogflow_projects_locations_agents_tools_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_tools_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsToolsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}
 ///
 ///
@@ -16903,15 +18171,15 @@ pub fn dialogflow_projects_locations_agents_tools_delete_execute(
 
 pub fn dialogflow_projects_locations_agents_tools_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DialogflowProjectsLocationsAgentsToolsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_tools_delete_builder(client, name, force)?;
+    let builder =
+        dialogflow_projects_locations_agents_tools_delete_builder(client, &args.name, args.force)?;
     dialogflow_projects_locations_agents_tools_delete_execute(builder)
 }
 
@@ -17009,6 +18277,13 @@ pub fn dialogflow_projects_locations_agents_tools_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_tools_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsToolsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}
 ///
 ///
@@ -17021,7 +18296,7 @@ pub fn dialogflow_projects_locations_agents_tools_get_execute(
 
 pub fn dialogflow_projects_locations_agents_tools_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsToolsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Tool>, ApiError>,
@@ -17030,7 +18305,7 @@ pub fn dialogflow_projects_locations_agents_tools_get(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_tools_get_builder(client, name)?;
+    let builder = dialogflow_projects_locations_agents_tools_get_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_tools_get_execute(builder)
 }
 
@@ -17145,6 +18420,17 @@ pub fn dialogflow_projects_locations_agents_tools_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_tools_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsToolsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/tools
 ///
 ///
@@ -17157,9 +18443,7 @@ pub fn dialogflow_projects_locations_agents_tools_list_execute(
 
 pub fn dialogflow_projects_locations_agents_tools_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsToolsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListToolsResponse>, ApiError>,
@@ -17169,7 +18453,10 @@ pub fn dialogflow_projects_locations_agents_tools_list(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_tools_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_tools_list_execute(builder)
 }
@@ -17283,6 +18570,17 @@ pub fn dialogflow_projects_locations_agents_tools_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_tools_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsToolsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Tool,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}
 ///
 ///
@@ -17295,9 +18593,7 @@ pub fn dialogflow_projects_locations_agents_tools_patch_execute(
 
 pub fn dialogflow_projects_locations_agents_tools_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Tool,
+    args: &DialogflowProjectsLocationsAgentsToolsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Tool>, ApiError>,
@@ -17306,8 +18602,12 @@ pub fn dialogflow_projects_locations_agents_tools_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_tools_patch_builder(client, name, updateMask, body)?;
+    let builder = dialogflow_projects_locations_agents_tools_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_tools_patch_execute(builder)
 }
 
@@ -17408,6 +18708,15 @@ pub fn dialogflow_projects_locations_agents_tools_versions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_tools_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsToolsVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3ToolVersion,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}/versions
 ///
 ///
@@ -17420,8 +18729,7 @@ pub fn dialogflow_projects_locations_agents_tools_versions_create_execute(
 
 pub fn dialogflow_projects_locations_agents_tools_versions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3ToolVersion,
+    args: &DialogflowProjectsLocationsAgentsToolsVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ToolVersion>, ApiError>,
@@ -17430,8 +18738,11 @@ pub fn dialogflow_projects_locations_agents_tools_versions_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_tools_versions_create_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_tools_versions_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_tools_versions_create_execute(builder)
 }
 
@@ -17539,6 +18850,15 @@ pub fn dialogflow_projects_locations_agents_tools_versions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_tools_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsToolsVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}/versions/{versionsId}
 ///
 ///
@@ -17551,16 +18871,16 @@ pub fn dialogflow_projects_locations_agents_tools_versions_delete_execute(
 
 pub fn dialogflow_projects_locations_agents_tools_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DialogflowProjectsLocationsAgentsToolsVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_tools_versions_delete_builder(client, name, force)?;
+    let builder = dialogflow_projects_locations_agents_tools_versions_delete_builder(
+        client, &args.name, args.force,
+    )?;
     dialogflow_projects_locations_agents_tools_versions_delete_execute(builder)
 }
 
@@ -17658,6 +18978,13 @@ pub fn dialogflow_projects_locations_agents_tools_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_tools_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsToolsVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}/versions/{versionsId}
 ///
 ///
@@ -17670,7 +18997,7 @@ pub fn dialogflow_projects_locations_agents_tools_versions_get_execute(
 
 pub fn dialogflow_projects_locations_agents_tools_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsToolsVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ToolVersion>, ApiError>,
@@ -17679,7 +19006,8 @@ pub fn dialogflow_projects_locations_agents_tools_versions_get(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_tools_versions_get_builder(client, name)?;
+    let builder =
+        dialogflow_projects_locations_agents_tools_versions_get_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_tools_versions_get_execute(builder)
 }
 
@@ -17794,6 +19122,17 @@ pub fn dialogflow_projects_locations_agents_tools_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_tools_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsToolsVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}/versions
 ///
 ///
@@ -17806,9 +19145,7 @@ pub fn dialogflow_projects_locations_agents_tools_versions_list_execute(
 
 pub fn dialogflow_projects_locations_agents_tools_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsToolsVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListToolVersionsResponse>, ApiError>,
@@ -17818,7 +19155,10 @@ pub fn dialogflow_projects_locations_agents_tools_versions_list(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_tools_versions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_tools_versions_list_execute(builder)
 }
@@ -17921,6 +19261,15 @@ pub fn dialogflow_projects_locations_agents_tools_versions_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_tools_versions_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsToolsVersionsRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3RestoreToolVersionRequest,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/tools/{toolsId}/versions/{versionsId}:restore
 ///
 ///
@@ -17933,8 +19282,7 @@ pub fn dialogflow_projects_locations_agents_tools_versions_restore_execute(
 
 pub fn dialogflow_projects_locations_agents_tools_versions_restore(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudDialogflowCxV3RestoreToolVersionRequest,
+    args: &DialogflowProjectsLocationsAgentsToolsVersionsRestoreArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3RestoreToolVersionResponse>, ApiError>,
@@ -17943,8 +19291,9 @@ pub fn dialogflow_projects_locations_agents_tools_versions_restore(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_tools_versions_restore_builder(client, name, body)?;
+    let builder = dialogflow_projects_locations_agents_tools_versions_restore_builder(
+        client, &args.name, &args.body,
+    )?;
     dialogflow_projects_locations_agents_tools_versions_restore_execute(builder)
 }
 
@@ -18058,6 +19407,17 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_transition_route_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTransitionRouteGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3TransitionRouteGroup,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/transitionRouteGroups
 ///
 ///
@@ -18070,9 +19430,7 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_create_execu
 
 pub fn dialogflow_projects_locations_agents_transition_route_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3TransitionRouteGroup,
+    args: &DialogflowProjectsLocationsAgentsTransitionRouteGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3TransitionRouteGroup>, ApiError>,
@@ -18083,9 +19441,9 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_create(
 > {
     let builder = dialogflow_projects_locations_agents_transition_route_groups_create_builder(
         client,
-        parent,
-        languageCode,
-        body,
+        &args.parent,
+        args.languageCode.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_transition_route_groups_create_execute(builder)
 }
@@ -18194,6 +19552,15 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_transition_route_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTransitionRouteGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/transitionRouteGroups/{transitionRouteGroupsId}
 ///
 ///
@@ -18206,8 +19573,7 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_delete_execu
 
 pub fn dialogflow_projects_locations_agents_transition_route_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DialogflowProjectsLocationsAgentsTransitionRouteGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -18215,7 +19581,7 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_delete(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_transition_route_groups_delete_builder(
-        client, name, force,
+        client, &args.name, args.force,
     )?;
     dialogflow_projects_locations_agents_transition_route_groups_delete_execute(builder)
 }
@@ -18327,6 +19693,15 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_transition_route_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTransitionRouteGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/transitionRouteGroups/{transitionRouteGroupsId}
 ///
 ///
@@ -18339,8 +19714,7 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_get_execute(
 
 pub fn dialogflow_projects_locations_agents_transition_route_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsTransitionRouteGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3TransitionRouteGroup>, ApiError>,
@@ -18351,8 +19725,8 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_get(
 > {
     let builder = dialogflow_projects_locations_agents_transition_route_groups_get_builder(
         client,
-        name,
-        languageCode,
+        &args.name,
+        args.languageCode.as_deref(),
     )?;
     dialogflow_projects_locations_agents_transition_route_groups_get_execute(builder)
 }
@@ -18475,6 +19849,19 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_transition_route_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTransitionRouteGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/transitionRouteGroups
 ///
 ///
@@ -18487,10 +19874,7 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_list_execute
 
 pub fn dialogflow_projects_locations_agents_transition_route_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsTransitionRouteGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -18504,10 +19888,10 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_list(
 > {
     let builder = dialogflow_projects_locations_agents_transition_route_groups_list_builder(
         client,
-        parent,
-        languageCode,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_transition_route_groups_list_execute(builder)
 }
@@ -18626,6 +20010,19 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_patch_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_transition_route_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsTransitionRouteGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3TransitionRouteGroup,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/transitionRouteGroups/{transitionRouteGroupsId}
 ///
 ///
@@ -18638,10 +20035,7 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_patch_execut
 
 pub fn dialogflow_projects_locations_agents_transition_route_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3TransitionRouteGroup,
+    args: &DialogflowProjectsLocationsAgentsTransitionRouteGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3TransitionRouteGroup>, ApiError>,
@@ -18652,10 +20046,10 @@ pub fn dialogflow_projects_locations_agents_transition_route_groups_patch(
 > {
     let builder = dialogflow_projects_locations_agents_transition_route_groups_patch_builder(
         client,
-        name,
-        languageCode,
-        updateMask,
-        body,
+        &args.name,
+        args.languageCode.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_transition_route_groups_patch_execute(builder)
 }
@@ -18757,6 +20151,15 @@ pub fn dialogflow_projects_locations_agents_webhooks_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_webhooks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsWebhooksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Webhook,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/webhooks
 ///
 ///
@@ -18769,8 +20172,7 @@ pub fn dialogflow_projects_locations_agents_webhooks_create_execute(
 
 pub fn dialogflow_projects_locations_agents_webhooks_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3Webhook,
+    args: &DialogflowProjectsLocationsAgentsWebhooksCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Webhook>, ApiError>,
@@ -18779,8 +20181,11 @@ pub fn dialogflow_projects_locations_agents_webhooks_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_webhooks_create_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_agents_webhooks_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_agents_webhooks_create_execute(builder)
 }
 
@@ -18888,6 +20293,15 @@ pub fn dialogflow_projects_locations_agents_webhooks_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_webhooks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsWebhooksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/webhooks/{webhooksId}
 ///
 ///
@@ -18900,16 +20314,16 @@ pub fn dialogflow_projects_locations_agents_webhooks_delete_execute(
 
 pub fn dialogflow_projects_locations_agents_webhooks_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &DialogflowProjectsLocationsAgentsWebhooksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_agents_webhooks_delete_builder(client, name, force)?;
+    let builder = dialogflow_projects_locations_agents_webhooks_delete_builder(
+        client, &args.name, args.force,
+    )?;
     dialogflow_projects_locations_agents_webhooks_delete_execute(builder)
 }
 
@@ -19007,6 +20421,13 @@ pub fn dialogflow_projects_locations_agents_webhooks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_webhooks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsWebhooksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/webhooks/{webhooksId}
 ///
 ///
@@ -19019,7 +20440,7 @@ pub fn dialogflow_projects_locations_agents_webhooks_get_execute(
 
 pub fn dialogflow_projects_locations_agents_webhooks_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsAgentsWebhooksGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Webhook>, ApiError>,
@@ -19028,7 +20449,7 @@ pub fn dialogflow_projects_locations_agents_webhooks_get(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_agents_webhooks_get_builder(client, name)?;
+    let builder = dialogflow_projects_locations_agents_webhooks_get_builder(client, &args.name)?;
     dialogflow_projects_locations_agents_webhooks_get_execute(builder)
 }
 
@@ -19143,6 +20564,17 @@ pub fn dialogflow_projects_locations_agents_webhooks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_webhooks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsWebhooksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/webhooks
 ///
 ///
@@ -19155,9 +20587,7 @@ pub fn dialogflow_projects_locations_agents_webhooks_list_execute(
 
 pub fn dialogflow_projects_locations_agents_webhooks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsAgentsWebhooksListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3ListWebhooksResponse>, ApiError>,
@@ -19167,7 +20597,10 @@ pub fn dialogflow_projects_locations_agents_webhooks_list(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_webhooks_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_agents_webhooks_list_execute(builder)
 }
@@ -19281,6 +20714,17 @@ pub fn dialogflow_projects_locations_agents_webhooks_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_agents_webhooks_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsAgentsWebhooksPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3Webhook,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/agents/{agentsId}/webhooks/{webhooksId}
 ///
 ///
@@ -19293,9 +20737,7 @@ pub fn dialogflow_projects_locations_agents_webhooks_patch_execute(
 
 pub fn dialogflow_projects_locations_agents_webhooks_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3Webhook,
+    args: &DialogflowProjectsLocationsAgentsWebhooksPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3Webhook>, ApiError>,
@@ -19305,7 +20747,10 @@ pub fn dialogflow_projects_locations_agents_webhooks_patch(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_agents_webhooks_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_agents_webhooks_patch_execute(builder)
 }
@@ -19402,6 +20847,13 @@ pub fn dialogflow_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 ///
 ///
@@ -19414,14 +20866,14 @@ pub fn dialogflow_projects_locations_operations_cancel_execute(
 
 pub fn dialogflow_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_operations_cancel_builder(client, name)?;
+    let builder = dialogflow_projects_locations_operations_cancel_builder(client, &args.name)?;
     dialogflow_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -19519,6 +20971,13 @@ pub fn dialogflow_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 ///
 ///
@@ -19531,7 +20990,7 @@ pub fn dialogflow_projects_locations_operations_get_execute(
 
 pub fn dialogflow_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -19540,7 +20999,7 @@ pub fn dialogflow_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_operations_get_builder(client, name)?;
+    let builder = dialogflow_projects_locations_operations_get_builder(client, &args.name)?;
     dialogflow_projects_locations_operations_get_execute(builder)
 }
 
@@ -19663,6 +21122,21 @@ pub fn dialogflow_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/operations
 ///
 ///
@@ -19675,11 +21149,7 @@ pub fn dialogflow_projects_locations_operations_list_execute(
 
 pub fn dialogflow_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DialogflowProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -19690,11 +21160,11 @@ pub fn dialogflow_projects_locations_operations_list(
 > {
     let builder = dialogflow_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     dialogflow_projects_locations_operations_list_execute(builder)
 }
@@ -19796,6 +21266,15 @@ pub fn dialogflow_projects_locations_security_settings_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_security_settings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsSecuritySettingsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3SecuritySettings,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/securitySettings
 ///
 ///
@@ -19808,8 +21287,7 @@ pub fn dialogflow_projects_locations_security_settings_create_execute(
 
 pub fn dialogflow_projects_locations_security_settings_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudDialogflowCxV3SecuritySettings,
+    args: &DialogflowProjectsLocationsSecuritySettingsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3SecuritySettings>, ApiError>,
@@ -19818,8 +21296,11 @@ pub fn dialogflow_projects_locations_security_settings_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dialogflow_projects_locations_security_settings_create_builder(client, parent, body)?;
+    let builder = dialogflow_projects_locations_security_settings_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dialogflow_projects_locations_security_settings_create_execute(builder)
 }
 
@@ -19915,6 +21396,13 @@ pub fn dialogflow_projects_locations_security_settings_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_security_settings_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsSecuritySettingsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/securitySettings/{securitySettingsId}
 ///
 ///
@@ -19927,14 +21415,15 @@ pub fn dialogflow_projects_locations_security_settings_delete_execute(
 
 pub fn dialogflow_projects_locations_security_settings_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsSecuritySettingsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_security_settings_delete_builder(client, name)?;
+    let builder =
+        dialogflow_projects_locations_security_settings_delete_builder(client, &args.name)?;
     dialogflow_projects_locations_security_settings_delete_execute(builder)
 }
 
@@ -20032,6 +21521,13 @@ pub fn dialogflow_projects_locations_security_settings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_security_settings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsSecuritySettingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/securitySettings/{securitySettingsId}
 ///
 ///
@@ -20044,7 +21540,7 @@ pub fn dialogflow_projects_locations_security_settings_get_execute(
 
 pub fn dialogflow_projects_locations_security_settings_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsLocationsSecuritySettingsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3SecuritySettings>, ApiError>,
@@ -20053,7 +21549,7 @@ pub fn dialogflow_projects_locations_security_settings_get(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_locations_security_settings_get_builder(client, name)?;
+    let builder = dialogflow_projects_locations_security_settings_get_builder(client, &args.name)?;
     dialogflow_projects_locations_security_settings_get_execute(builder)
 }
 
@@ -20171,6 +21667,17 @@ pub fn dialogflow_projects_locations_security_settings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_security_settings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsSecuritySettingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/securitySettings
 ///
 ///
@@ -20183,9 +21690,7 @@ pub fn dialogflow_projects_locations_security_settings_list_execute(
 
 pub fn dialogflow_projects_locations_security_settings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DialogflowProjectsLocationsSecuritySettingsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -20198,7 +21703,10 @@ pub fn dialogflow_projects_locations_security_settings_list(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_security_settings_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dialogflow_projects_locations_security_settings_list_execute(builder)
 }
@@ -20312,6 +21820,17 @@ pub fn dialogflow_projects_locations_security_settings_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_locations_security_settings_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsLocationsSecuritySettingsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudDialogflowCxV3SecuritySettings,
+}
+
 /// GET v3/projects/{projectsId}/locations/{locationsId}/securitySettings/{securitySettingsId}
 ///
 ///
@@ -20324,9 +21843,7 @@ pub fn dialogflow_projects_locations_security_settings_patch_execute(
 
 pub fn dialogflow_projects_locations_security_settings_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudDialogflowCxV3SecuritySettings,
+    args: &DialogflowProjectsLocationsSecuritySettingsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudDialogflowCxV3SecuritySettings>, ApiError>,
@@ -20336,7 +21853,10 @@ pub fn dialogflow_projects_locations_security_settings_patch(
     ApiError,
 > {
     let builder = dialogflow_projects_locations_security_settings_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dialogflow_projects_locations_security_settings_patch_execute(builder)
 }
@@ -20433,6 +21953,13 @@ pub fn dialogflow_projects_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/operations/{operationsId}:cancel
 ///
 ///
@@ -20445,14 +21972,14 @@ pub fn dialogflow_projects_operations_cancel_execute(
 
 pub fn dialogflow_projects_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_operations_cancel_builder(client, name)?;
+    let builder = dialogflow_projects_operations_cancel_builder(client, &args.name)?;
     dialogflow_projects_operations_cancel_execute(builder)
 }
 
@@ -20550,6 +22077,13 @@ pub fn dialogflow_projects_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v3/projects/{projectsId}/operations/{operationsId}
 ///
 ///
@@ -20562,7 +22096,7 @@ pub fn dialogflow_projects_operations_get_execute(
 
 pub fn dialogflow_projects_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DialogflowProjectsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -20571,7 +22105,7 @@ pub fn dialogflow_projects_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = dialogflow_projects_operations_get_builder(client, name)?;
+    let builder = dialogflow_projects_operations_get_builder(client, &args.name)?;
     dialogflow_projects_operations_get_execute(builder)
 }
 
@@ -20694,6 +22228,21 @@ pub fn dialogflow_projects_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dialogflow_projects_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DialogflowProjectsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v3/projects/{projectsId}/operations
 ///
 ///
@@ -20706,11 +22255,7 @@ pub fn dialogflow_projects_operations_list_execute(
 
 pub fn dialogflow_projects_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DialogflowProjectsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -20721,11 +22266,11 @@ pub fn dialogflow_projects_operations_list(
 > {
     let builder = dialogflow_projects_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     dialogflow_projects_operations_list_execute(builder)
 }

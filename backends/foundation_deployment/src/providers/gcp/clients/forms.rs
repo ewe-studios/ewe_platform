@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/forms/{formId}:batchUpdate
 /// Change the form with a batch of updates.
@@ -111,6 +113,15 @@ pub fn forms_forms_batch_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`forms_forms_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FormsFormsBatchUpdateArgs {
+    /// Path parameter: formId
+    pub formId: String,
+    /// Request body.
+    pub body: BatchUpdateFormRequest,
+}
+
 /// GET v1/forms/{formId}:batchUpdate
 /// Change the form with a batch of updates.
 ///
@@ -123,15 +134,14 @@ pub fn forms_forms_batch_update_execute(
 
 pub fn forms_forms_batch_update(
     client: &SimpleHttpClient,
-    formId: &str,
-    body: &BatchUpdateFormRequest,
+    args: &FormsFormsBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchUpdateFormResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = forms_forms_batch_update_builder(client, formId, body)?;
+    let builder = forms_forms_batch_update_builder(client, &args.formId, &args.body)?;
     forms_forms_batch_update_execute(builder)
 }
 
@@ -236,6 +246,15 @@ pub fn forms_forms_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`forms_forms_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FormsFormsCreateArgs {
+    /// Query parameter: unpublished
+    pub unpublished: Option<bool>,
+    /// Request body.
+    pub body: Form,
+}
+
 /// GET v1/forms
 /// Create a new form using the title given in the provided form message in the request. *Important:* Only the form.info.title and form.info.document_title fields are copied to the new form. All other fields including the form description, items and settings are disallowed. To create a new form and add items, you must first call forms.create to create an empty form with a title and (optional) document title, and then call forms.update to add the items.
 ///
@@ -248,13 +267,12 @@ pub fn forms_forms_create_execute(
 
 pub fn forms_forms_create(
     client: &SimpleHttpClient,
-    unpublished: Option<bool>,
-    body: &Form,
+    args: &FormsFormsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Form>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = forms_forms_create_builder(client, unpublished, body)?;
+    let builder = forms_forms_create_builder(client, args.unpublished, &args.body)?;
     forms_forms_create_execute(builder)
 }
 
@@ -345,6 +363,13 @@ pub fn forms_forms_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`forms_forms_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FormsFormsGetArgs {
+    /// Path parameter: formId
+    pub formId: String,
+}
+
 /// GET v1/forms/{formId}
 /// Get a form.
 ///
@@ -357,12 +382,12 @@ pub fn forms_forms_get_execute(
 
 pub fn forms_forms_get(
     client: &SimpleHttpClient,
-    formId: &str,
+    args: &FormsFormsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Form>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = forms_forms_get_builder(client, formId)?;
+    let builder = forms_forms_get_builder(client, &args.formId)?;
     forms_forms_get_execute(builder)
 }
 
@@ -463,6 +488,15 @@ pub fn forms_forms_set_publish_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`forms_forms_set_publish_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FormsFormsSetPublishSettingsArgs {
+    /// Path parameter: formId
+    pub formId: String,
+    /// Request body.
+    pub body: SetPublishSettingsRequest,
+}
+
 /// GET v1/forms/{formId}:setPublishSettings
 /// Updates the publish settings of a form. Legacy forms aren't supported because they don't have the publish_settings field.
 ///
@@ -475,8 +509,7 @@ pub fn forms_forms_set_publish_settings_execute(
 
 pub fn forms_forms_set_publish_settings(
     client: &SimpleHttpClient,
-    formId: &str,
-    body: &SetPublishSettingsRequest,
+    args: &FormsFormsSetPublishSettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SetPublishSettingsResponse>, ApiError>,
@@ -485,7 +518,7 @@ pub fn forms_forms_set_publish_settings(
         + 'static,
     ApiError,
 > {
-    let builder = forms_forms_set_publish_settings_builder(client, formId, body)?;
+    let builder = forms_forms_set_publish_settings_builder(client, &args.formId, &args.body)?;
     forms_forms_set_publish_settings_execute(builder)
 }
 
@@ -582,6 +615,15 @@ pub fn forms_forms_responses_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`forms_forms_responses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FormsFormsResponsesGetArgs {
+    /// Path parameter: formId
+    pub formId: String,
+    /// Path parameter: responseId
+    pub responseId: String,
+}
+
 /// GET v1/forms/{formId}/responses/{responseId}
 /// Get one response from the form.
 ///
@@ -594,15 +636,14 @@ pub fn forms_forms_responses_get_execute(
 
 pub fn forms_forms_responses_get(
     client: &SimpleHttpClient,
-    formId: &str,
-    responseId: &str,
+    args: &FormsFormsResponsesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FormResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = forms_forms_responses_get_builder(client, formId, responseId)?;
+    let builder = forms_forms_responses_get_builder(client, &args.formId, &args.responseId)?;
     forms_forms_responses_get_execute(builder)
 }
 
@@ -715,6 +756,19 @@ pub fn forms_forms_responses_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`forms_forms_responses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FormsFormsResponsesListArgs {
+    /// Path parameter: formId
+    pub formId: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/forms/{formId}/responses
 /// List a form's responses.
 ///
@@ -727,17 +781,20 @@ pub fn forms_forms_responses_list_execute(
 
 pub fn forms_forms_responses_list(
     client: &SimpleHttpClient,
-    formId: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FormsFormsResponsesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFormResponsesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = forms_forms_responses_list_builder(client, formId, filter, pageSize, pageToken)?;
+    let builder = forms_forms_responses_list_builder(
+        client,
+        &args.formId,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     forms_forms_responses_list_execute(builder)
 }
 
@@ -831,6 +888,15 @@ pub fn forms_forms_watches_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`forms_forms_watches_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FormsFormsWatchesCreateArgs {
+    /// Path parameter: formId
+    pub formId: String,
+    /// Request body.
+    pub body: CreateWatchRequest,
+}
+
 /// GET v1/forms/{formId}/watches
 /// Create a new watch. If a watch ID is provided, it must be unused. For each invoking project, the per form limit is one watch per Watch.EventType. A watch expires seven days after it is created (see Watch.expire_time).
 ///
@@ -843,13 +909,12 @@ pub fn forms_forms_watches_create_execute(
 
 pub fn forms_forms_watches_create(
     client: &SimpleHttpClient,
-    formId: &str,
-    body: &CreateWatchRequest,
+    args: &FormsFormsWatchesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Watch>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = forms_forms_watches_create_builder(client, formId, body)?;
+    let builder = forms_forms_watches_create_builder(client, &args.formId, &args.body)?;
     forms_forms_watches_create_execute(builder)
 }
 
@@ -944,6 +1009,15 @@ pub fn forms_forms_watches_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`forms_forms_watches_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FormsFormsWatchesDeleteArgs {
+    /// Path parameter: formId
+    pub formId: String,
+    /// Path parameter: watchId
+    pub watchId: String,
+}
+
 /// GET v1/forms/{formId}/watches/{watchId}
 /// Delete a watch.
 ///
@@ -956,13 +1030,12 @@ pub fn forms_forms_watches_delete_execute(
 
 pub fn forms_forms_watches_delete(
     client: &SimpleHttpClient,
-    formId: &str,
-    watchId: &str,
+    args: &FormsFormsWatchesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = forms_forms_watches_delete_builder(client, formId, watchId)?;
+    let builder = forms_forms_watches_delete_builder(client, &args.formId, &args.watchId)?;
     forms_forms_watches_delete_execute(builder)
 }
 
@@ -1055,6 +1128,13 @@ pub fn forms_forms_watches_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`forms_forms_watches_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FormsFormsWatchesListArgs {
+    /// Path parameter: formId
+    pub formId: String,
+}
+
 /// GET v1/forms/{formId}/watches
 /// Return a list of the watches owned by the invoking project. The maximum number of watches is two: For each invoker, the limit is one for each event type per form.
 ///
@@ -1067,14 +1147,14 @@ pub fn forms_forms_watches_list_execute(
 
 pub fn forms_forms_watches_list(
     client: &SimpleHttpClient,
-    formId: &str,
+    args: &FormsFormsWatchesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListWatchesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = forms_forms_watches_list_builder(client, formId)?;
+    let builder = forms_forms_watches_list_builder(client, &args.formId)?;
     forms_forms_watches_list_execute(builder)
 }
 
@@ -1172,6 +1252,17 @@ pub fn forms_forms_watches_renew_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`forms_forms_watches_renew`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FormsFormsWatchesRenewArgs {
+    /// Path parameter: formId
+    pub formId: String,
+    /// Path parameter: watchId
+    pub watchId: String,
+    /// Request body.
+    pub body: RenewWatchRequest,
+}
+
 /// GET v1/forms/{formId}/watches/{watchId}:renew
 /// Renew an existing watch for seven days. The state of the watch after renewal is `ACTIVE`, and the expire_time is seven days from the renewal. Renewing a watch in an error state (e.g. SUSPENDED) succeeds if the error is no longer present, but fail otherwise. After a watch has expired, RenewWatch returns NOT_FOUND.
 ///
@@ -1184,13 +1275,12 @@ pub fn forms_forms_watches_renew_execute(
 
 pub fn forms_forms_watches_renew(
     client: &SimpleHttpClient,
-    formId: &str,
-    watchId: &str,
-    body: &RenewWatchRequest,
+    args: &FormsFormsWatchesRenewArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Watch>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = forms_forms_watches_renew_builder(client, formId, watchId, body)?;
+    let builder =
+        forms_forms_watches_renew_builder(client, &args.formId, &args.watchId, &args.body)?;
     forms_forms_watches_renew_execute(builder)
 }

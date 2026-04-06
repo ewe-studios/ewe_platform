@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v4/users/{usersId}/identity
 /// Gets the user's identity. It includes the legacy Fitbit user ID and the Google user ID and it can be used by migrating clients to map identifiers between the two systems.
@@ -103,6 +105,13 @@ pub fn health_users_get_identity_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`health_users_get_identity`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthUsersGetIdentityArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v4/users/{usersId}/identity
 /// Gets the user's identity. It includes the legacy Fitbit user ID and the Google user ID and it can be used by migrating clients to map identifiers between the two systems.
 ///
@@ -115,12 +124,12 @@ pub fn health_users_get_identity_execute(
 
 pub fn health_users_get_identity(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthUsersGetIdentityArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Identity>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = health_users_get_identity_builder(client, name)?;
+    let builder = health_users_get_identity_builder(client, &args.name)?;
     health_users_get_identity_execute(builder)
 }
 
@@ -211,6 +220,13 @@ pub fn health_users_get_profile_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`health_users_get_profile`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthUsersGetProfileArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v4/users/{usersId}/profile
 /// Returns user Profile details.
 ///
@@ -223,12 +239,12 @@ pub fn health_users_get_profile_execute(
 
 pub fn health_users_get_profile(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthUsersGetProfileArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = health_users_get_profile_builder(client, name)?;
+    let builder = health_users_get_profile_builder(client, &args.name)?;
     health_users_get_profile_execute(builder)
 }
 
@@ -319,6 +335,13 @@ pub fn health_users_get_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`health_users_get_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthUsersGetSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v4/users/{usersId}/settings
 /// Returns user settings details.
 ///
@@ -331,12 +354,12 @@ pub fn health_users_get_settings_execute(
 
 pub fn health_users_get_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &HealthUsersGetSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = health_users_get_settings_builder(client, name)?;
+    let builder = health_users_get_settings_builder(client, &args.name)?;
     health_users_get_settings_execute(builder)
 }
 
@@ -442,6 +465,17 @@ pub fn health_users_update_profile_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`health_users_update_profile`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthUsersUpdateProfileArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Profile,
+}
+
 /// GET v4/users/{usersId}/profile
 /// Updates the user's profile details.
 ///
@@ -454,14 +488,17 @@ pub fn health_users_update_profile_execute(
 
 pub fn health_users_update_profile(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Profile,
+    args: &HealthUsersUpdateProfileArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = health_users_update_profile_builder(client, name, updateMask, body)?;
+    let builder = health_users_update_profile_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     health_users_update_profile_execute(builder)
 }
 
@@ -567,6 +604,17 @@ pub fn health_users_update_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`health_users_update_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthUsersUpdateSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Settings,
+}
+
 /// GET v4/users/{usersId}/settings
 /// Updates the user's settings details.
 ///
@@ -579,14 +627,17 @@ pub fn health_users_update_settings_execute(
 
 pub fn health_users_update_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Settings,
+    args: &HealthUsersUpdateSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Settings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = health_users_update_settings_builder(client, name, updateMask, body)?;
+    let builder = health_users_update_settings_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     health_users_update_settings_execute(builder)
 }
 
@@ -683,6 +734,15 @@ pub fn health_users_data_types_data_points_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`health_users_data_types_data_points_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthUsersDataTypesDataPointsBatchDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchDeleteDataPointsRequest,
+}
+
 /// GET v4/users/{usersId}/dataTypes/{dataTypesId}/dataPoints:batchDelete
 /// Delete a batch of identifyable data points.
 ///
@@ -695,13 +755,13 @@ pub fn health_users_data_types_data_points_batch_delete_execute(
 
 pub fn health_users_data_types_data_points_batch_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchDeleteDataPointsRequest,
+    args: &HealthUsersDataTypesDataPointsBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = health_users_data_types_data_points_batch_delete_builder(client, parent, body)?;
+    let builder =
+        health_users_data_types_data_points_batch_delete_builder(client, &args.parent, &args.body)?;
     health_users_data_types_data_points_batch_delete_execute(builder)
 }
 
@@ -798,6 +858,15 @@ pub fn health_users_data_types_data_points_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`health_users_data_types_data_points_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthUsersDataTypesDataPointsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: DataPoint,
+}
+
 /// GET v4/users/{usersId}/dataTypes/{dataTypesId}/dataPoints
 /// Creates a single identifiable data point.
 ///
@@ -810,13 +879,13 @@ pub fn health_users_data_types_data_points_create_execute(
 
 pub fn health_users_data_types_data_points_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &DataPoint,
+    args: &HealthUsersDataTypesDataPointsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = health_users_data_types_data_points_create_builder(client, parent, body)?;
+    let builder =
+        health_users_data_types_data_points_create_builder(client, &args.parent, &args.body)?;
     health_users_data_types_data_points_create_execute(builder)
 }
 
@@ -917,6 +986,15 @@ pub fn health_users_data_types_data_points_daily_roll_up_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`health_users_data_types_data_points_daily_roll_up`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthUsersDataTypesDataPointsDailyRollUpArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: DailyRollUpDataPointsRequest,
+}
+
 /// GET v4/users/{usersId}/dataTypes/{dataTypesId}/dataPoints:dailyRollUp
 /// Roll up data points over civil time intervals for supported data types.
 ///
@@ -929,8 +1007,7 @@ pub fn health_users_data_types_data_points_daily_roll_up_execute(
 
 pub fn health_users_data_types_data_points_daily_roll_up(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &DailyRollUpDataPointsRequest,
+    args: &HealthUsersDataTypesDataPointsDailyRollUpArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DailyRollUpDataPointsResponse>, ApiError>,
@@ -939,7 +1016,11 @@ pub fn health_users_data_types_data_points_daily_roll_up(
         + 'static,
     ApiError,
 > {
-    let builder = health_users_data_types_data_points_daily_roll_up_builder(client, parent, body)?;
+    let builder = health_users_data_types_data_points_daily_roll_up_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     health_users_data_types_data_points_daily_roll_up_execute(builder)
 }
 
@@ -1047,6 +1128,15 @@ pub fn health_users_data_types_data_points_export_exercise_tcx_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`health_users_data_types_data_points_export_exercise_tcx`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthUsersDataTypesDataPointsExportExerciseTcxArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: partialData
+    pub partialData: Option<bool>,
+}
+
 /// GET v4/users/{usersId}/dataTypes/{dataTypesId}/dataPoints/{dataPointsId}:exportExerciseTcx
 /// Exports exercise data in TCX format. Note: While the Authorization section below states that any one of the listed scopes is accepted, this specific method requires the user to provide both one of the activity_and_fitness scopes (normal or readonly) AND one of the location scopes (normal or readonly) in their access token to succeed.
 ///
@@ -1059,16 +1149,18 @@ pub fn health_users_data_types_data_points_export_exercise_tcx_execute(
 
 pub fn health_users_data_types_data_points_export_exercise_tcx(
     client: &SimpleHttpClient,
-    name: &str,
-    partialData: Option<bool>,
+    args: &HealthUsersDataTypesDataPointsExportExerciseTcxArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExportExerciseTcxResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        health_users_data_types_data_points_export_exercise_tcx_builder(client, name, partialData)?;
+    let builder = health_users_data_types_data_points_export_exercise_tcx_builder(
+        client,
+        &args.name,
+        args.partialData,
+    )?;
     health_users_data_types_data_points_export_exercise_tcx_execute(builder)
 }
 
@@ -1184,6 +1276,19 @@ pub fn health_users_data_types_data_points_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`health_users_data_types_data_points_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthUsersDataTypesDataPointsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/users/{usersId}/dataTypes/{dataTypesId}/dataPoints
 /// Query user health and fitness data points.
 ///
@@ -1196,10 +1301,7 @@ pub fn health_users_data_types_data_points_list_execute(
 
 pub fn health_users_data_types_data_points_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &HealthUsersDataTypesDataPointsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDataPointsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1207,7 +1309,11 @@ pub fn health_users_data_types_data_points_list(
     ApiError,
 > {
     let builder = health_users_data_types_data_points_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     health_users_data_types_data_points_list_execute(builder)
 }
@@ -1317,6 +1423,17 @@ pub fn health_users_data_types_data_points_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`health_users_data_types_data_points_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthUsersDataTypesDataPointsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: DataPoint,
+}
+
 /// GET v4/users/{usersId}/dataTypes/{dataTypesId}/dataPoints/{dataPointsId}
 /// Updates a single identifiable data point. If a data point with the specified name is not found, the request will fail.
 ///
@@ -1329,15 +1446,17 @@ pub fn health_users_data_types_data_points_patch_execute(
 
 pub fn health_users_data_types_data_points_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &DataPoint,
+    args: &HealthUsersDataTypesDataPointsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        health_users_data_types_data_points_patch_builder(client, name, updateMask, body)?;
+    let builder = health_users_data_types_data_points_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     health_users_data_types_data_points_patch_execute(builder)
 }
 
@@ -1459,6 +1578,21 @@ pub fn health_users_data_types_data_points_reconcile_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`health_users_data_types_data_points_reconcile`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthUsersDataTypesDataPointsReconcileArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataSourceFamily
+    pub dataSourceFamily: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v4/users/{usersId}/dataTypes/{dataTypesId}/dataPoints:reconcile
 /// Reconcile data points from multiple data sources into a single data stream.
 ///
@@ -1471,11 +1605,7 @@ pub fn health_users_data_types_data_points_reconcile_execute(
 
 pub fn health_users_data_types_data_points_reconcile(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataSourceFamily: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &HealthUsersDataTypesDataPointsReconcileArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ReconcileDataPointsResponse>, ApiError>,
@@ -1486,11 +1616,11 @@ pub fn health_users_data_types_data_points_reconcile(
 > {
     let builder = health_users_data_types_data_points_reconcile_builder(
         client,
-        parent,
-        dataSourceFamily,
-        filter,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.dataSourceFamily.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     health_users_data_types_data_points_reconcile_execute(builder)
 }
@@ -1590,6 +1720,15 @@ pub fn health_users_data_types_data_points_roll_up_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`health_users_data_types_data_points_roll_up`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct HealthUsersDataTypesDataPointsRollUpArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: RollUpDataPointsRequest,
+}
+
 /// GET v4/users/{usersId}/dataTypes/{dataTypesId}/dataPoints:rollUp
 /// Roll up data points over physical time intervals for supported data types.
 ///
@@ -1602,14 +1741,14 @@ pub fn health_users_data_types_data_points_roll_up_execute(
 
 pub fn health_users_data_types_data_points_roll_up(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &RollUpDataPointsRequest,
+    args: &HealthUsersDataTypesDataPointsRollUpArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RollUpDataPointsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = health_users_data_types_data_points_roll_up_builder(client, parent, body)?;
+    let builder =
+        health_users_data_types_data_points_roll_up_builder(client, &args.parent, &args.body)?;
     health_users_data_types_data_points_roll_up_execute(builder)
 }

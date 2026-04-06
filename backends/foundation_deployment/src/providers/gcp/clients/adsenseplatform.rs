@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/platforms/{platformsId}/accounts/{accountsId}:close
 /// Closes a sub-account.
@@ -111,6 +113,15 @@ pub fn adsenseplatform_platforms_accounts_close_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsenseplatform_platforms_accounts_close`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseplatformPlatformsAccountsCloseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CloseAccountRequest,
+}
+
 /// GET v1/platforms/{platformsId}/accounts/{accountsId}:close
 /// Closes a sub-account.
 ///
@@ -123,15 +134,14 @@ pub fn adsenseplatform_platforms_accounts_close_execute(
 
 pub fn adsenseplatform_platforms_accounts_close(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CloseAccountRequest,
+    args: &AdsenseplatformPlatformsAccountsCloseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CloseAccountResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = adsenseplatform_platforms_accounts_close_builder(client, name, body)?;
+    let builder = adsenseplatform_platforms_accounts_close_builder(client, &args.name, &args.body)?;
     adsenseplatform_platforms_accounts_close_execute(builder)
 }
 
@@ -228,6 +238,15 @@ pub fn adsenseplatform_platforms_accounts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsenseplatform_platforms_accounts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseplatformPlatformsAccountsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Account,
+}
+
 /// GET v1/platforms/{platformsId}/accounts
 /// Creates a sub-account.
 ///
@@ -240,13 +259,13 @@ pub fn adsenseplatform_platforms_accounts_create_execute(
 
 pub fn adsenseplatform_platforms_accounts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Account,
+    args: &AdsenseplatformPlatformsAccountsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsenseplatform_platforms_accounts_create_builder(client, parent, body)?;
+    let builder =
+        adsenseplatform_platforms_accounts_create_builder(client, &args.parent, &args.body)?;
     adsenseplatform_platforms_accounts_create_execute(builder)
 }
 
@@ -340,6 +359,13 @@ pub fn adsenseplatform_platforms_accounts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsenseplatform_platforms_accounts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseplatformPlatformsAccountsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/platforms/{platformsId}/accounts/{accountsId}
 /// Gets information about the selected sub-account.
 ///
@@ -352,12 +378,12 @@ pub fn adsenseplatform_platforms_accounts_get_execute(
 
 pub fn adsenseplatform_platforms_accounts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseplatformPlatformsAccountsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsenseplatform_platforms_accounts_get_builder(client, name)?;
+    let builder = adsenseplatform_platforms_accounts_get_builder(client, &args.name)?;
     adsenseplatform_platforms_accounts_get_execute(builder)
 }
 
@@ -469,6 +495,17 @@ pub fn adsenseplatform_platforms_accounts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsenseplatform_platforms_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseplatformPlatformsAccountsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/platforms/{platformsId}/accounts
 /// Lists a partial view of sub-accounts for a specific parent account.
 ///
@@ -481,17 +518,19 @@ pub fn adsenseplatform_platforms_accounts_list_execute(
 
 pub fn adsenseplatform_platforms_accounts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdsenseplatformPlatformsAccountsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAccountsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        adsenseplatform_platforms_accounts_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = adsenseplatform_platforms_accounts_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     adsenseplatform_platforms_accounts_list_execute(builder)
 }
 
@@ -599,6 +638,15 @@ pub fn adsenseplatform_platforms_accounts_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsenseplatform_platforms_accounts_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseplatformPlatformsAccountsLookupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: creationRequestId
+    pub creationRequestId: Option<String>,
+}
+
 /// GET v1/platforms/{platformsId}/accounts:lookup
 /// Looks up information about a sub-account for a specified creation_request_id. If no account exists for the given creation_request_id, returns 404.
 ///
@@ -611,16 +659,18 @@ pub fn adsenseplatform_platforms_accounts_lookup_execute(
 
 pub fn adsenseplatform_platforms_accounts_lookup(
     client: &SimpleHttpClient,
-    parent: &str,
-    creationRequestId: Option<&str>,
+    args: &AdsenseplatformPlatformsAccountsLookupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LookupAccountResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        adsenseplatform_platforms_accounts_lookup_builder(client, parent, creationRequestId)?;
+    let builder = adsenseplatform_platforms_accounts_lookup_builder(
+        client,
+        &args.parent,
+        args.creationRequestId.as_deref(),
+    )?;
     adsenseplatform_platforms_accounts_lookup_execute(builder)
 }
 
@@ -717,6 +767,15 @@ pub fn adsenseplatform_platforms_accounts_events_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsenseplatform_platforms_accounts_events_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseplatformPlatformsAccountsEventsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Event,
+}
+
 /// GET v1/platforms/{platformsId}/accounts/{accountsId}/events
 /// Creates an account event.
 ///
@@ -729,13 +788,13 @@ pub fn adsenseplatform_platforms_accounts_events_create_execute(
 
 pub fn adsenseplatform_platforms_accounts_events_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Event,
+    args: &AdsenseplatformPlatformsAccountsEventsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Event>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsenseplatform_platforms_accounts_events_create_builder(client, parent, body)?;
+    let builder =
+        adsenseplatform_platforms_accounts_events_create_builder(client, &args.parent, &args.body)?;
     adsenseplatform_platforms_accounts_events_create_execute(builder)
 }
 
@@ -832,6 +891,15 @@ pub fn adsenseplatform_platforms_accounts_sites_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsenseplatform_platforms_accounts_sites_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseplatformPlatformsAccountsSitesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Site,
+}
+
 /// GET v1/platforms/{platformsId}/accounts/{accountsId}/sites
 /// Creates a site for a specified account.
 ///
@@ -844,13 +912,13 @@ pub fn adsenseplatform_platforms_accounts_sites_create_execute(
 
 pub fn adsenseplatform_platforms_accounts_sites_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Site,
+    args: &AdsenseplatformPlatformsAccountsSitesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsenseplatform_platforms_accounts_sites_create_builder(client, parent, body)?;
+    let builder =
+        adsenseplatform_platforms_accounts_sites_create_builder(client, &args.parent, &args.body)?;
     adsenseplatform_platforms_accounts_sites_create_execute(builder)
 }
 
@@ -944,6 +1012,13 @@ pub fn adsenseplatform_platforms_accounts_sites_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsenseplatform_platforms_accounts_sites_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseplatformPlatformsAccountsSitesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/platforms/{platformsId}/accounts/{accountsId}/sites/{sitesId}
 /// Deletes a site from a specified account.
 ///
@@ -956,12 +1031,12 @@ pub fn adsenseplatform_platforms_accounts_sites_delete_execute(
 
 pub fn adsenseplatform_platforms_accounts_sites_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseplatformPlatformsAccountsSitesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsenseplatform_platforms_accounts_sites_delete_builder(client, name)?;
+    let builder = adsenseplatform_platforms_accounts_sites_delete_builder(client, &args.name)?;
     adsenseplatform_platforms_accounts_sites_delete_execute(builder)
 }
 
@@ -1055,6 +1130,13 @@ pub fn adsenseplatform_platforms_accounts_sites_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsenseplatform_platforms_accounts_sites_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseplatformPlatformsAccountsSitesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/platforms/{platformsId}/accounts/{accountsId}/sites/{sitesId}
 /// Gets a site from a specified sub-account.
 ///
@@ -1067,12 +1149,12 @@ pub fn adsenseplatform_platforms_accounts_sites_get_execute(
 
 pub fn adsenseplatform_platforms_accounts_sites_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseplatformPlatformsAccountsSitesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Site>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = adsenseplatform_platforms_accounts_sites_get_builder(client, name)?;
+    let builder = adsenseplatform_platforms_accounts_sites_get_builder(client, &args.name)?;
     adsenseplatform_platforms_accounts_sites_get_execute(builder)
 }
 
@@ -1184,6 +1266,17 @@ pub fn adsenseplatform_platforms_accounts_sites_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsenseplatform_platforms_accounts_sites_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseplatformPlatformsAccountsSitesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/platforms/{platformsId}/accounts/{accountsId}/sites
 /// Lists sites for a specific account.
 ///
@@ -1196,17 +1289,19 @@ pub fn adsenseplatform_platforms_accounts_sites_list_execute(
 
 pub fn adsenseplatform_platforms_accounts_sites_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AdsenseplatformPlatformsAccountsSitesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSitesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        adsenseplatform_platforms_accounts_sites_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = adsenseplatform_platforms_accounts_sites_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     adsenseplatform_platforms_accounts_sites_list_execute(builder)
 }
 
@@ -1302,6 +1397,13 @@ pub fn adsenseplatform_platforms_accounts_sites_request_review_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`adsenseplatform_platforms_accounts_sites_request_review`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AdsenseplatformPlatformsAccountsSitesRequestReviewArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/platforms/{platformsId}/accounts/{accountsId}/sites/{sitesId}:requestReview
 /// Requests the review of a site. The site should be in REQUIRES_REVIEW or NEEDS_ATTENTION state. Note: Make sure you place an [ad tag](<https://developers.google.`com/adsense/platforms/direct/ad-tags`>) on your site before requesting a review.
 ///
@@ -1314,13 +1416,14 @@ pub fn adsenseplatform_platforms_accounts_sites_request_review_execute(
 
 pub fn adsenseplatform_platforms_accounts_sites_request_review(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AdsenseplatformPlatformsAccountsSitesRequestReviewArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RequestSiteReviewResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = adsenseplatform_platforms_accounts_sites_request_review_builder(client, name)?;
+    let builder =
+        adsenseplatform_platforms_accounts_sites_request_review_builder(client, &args.name)?;
     adsenseplatform_platforms_accounts_sites_request_review_execute(builder)
 }

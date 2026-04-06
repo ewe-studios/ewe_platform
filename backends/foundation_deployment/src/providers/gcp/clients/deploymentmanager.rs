@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/cancelPreview
 /// Cancels and removes the preview currently associated with the deployment.
@@ -111,6 +113,17 @@ pub fn deploymentmanager_deployments_cancel_preview_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_deployments_cancel_preview`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerDeploymentsCancelPreviewArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: deployment
+    pub deployment: String,
+    /// Request body.
+    pub body: DeploymentsCancelPreviewRequest,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/cancelPreview
 /// Cancels and removes the preview currently associated with the deployment.
 ///
@@ -123,15 +136,17 @@ pub fn deploymentmanager_deployments_cancel_preview_execute(
 
 pub fn deploymentmanager_deployments_cancel_preview(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    body: &DeploymentsCancelPreviewRequest,
+    args: &DeploymentmanagerDeploymentsCancelPreviewArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        deploymentmanager_deployments_cancel_preview_builder(client, project, deployment, body)?;
+    let builder = deploymentmanager_deployments_cancel_preview_builder(
+        client,
+        &args.project,
+        &args.deployment,
+        &args.body,
+    )?;
     deploymentmanager_deployments_cancel_preview_execute(builder)
 }
 
@@ -243,6 +258,19 @@ pub fn deploymentmanager_deployments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerDeploymentsDeleteArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: deployment
+    pub deployment: String,
+    /// Query parameter: deletePolicy
+    pub deletePolicy: Option<String>,
+    /// Query parameter: header_bypassBillingFilter
+    pub header_bypassBillingFilter: Option<bool>,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
 /// Deletes a deployment and all of the resources in the deployment.
 ///
@@ -255,20 +283,17 @@ pub fn deploymentmanager_deployments_delete_execute(
 
 pub fn deploymentmanager_deployments_delete(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    deletePolicy: Option<&str>,
-    header_bypassBillingFilter: Option<bool>,
+    args: &DeploymentmanagerDeploymentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = deploymentmanager_deployments_delete_builder(
         client,
-        project,
-        deployment,
-        deletePolicy,
-        header_bypassBillingFilter,
+        &args.project,
+        &args.deployment,
+        args.deletePolicy.as_deref(),
+        args.header_bypassBillingFilter,
     )?;
     deploymentmanager_deployments_delete_execute(builder)
 }
@@ -377,6 +402,17 @@ pub fn deploymentmanager_deployments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerDeploymentsGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: deployment
+    pub deployment: String,
+    /// Query parameter: header_bypassBillingFilter
+    pub header_bypassBillingFilter: Option<bool>,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
 /// Gets information about a specific deployment.
 ///
@@ -389,18 +425,16 @@ pub fn deploymentmanager_deployments_get_execute(
 
 pub fn deploymentmanager_deployments_get(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    header_bypassBillingFilter: Option<bool>,
+    args: &DeploymentmanagerDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = deploymentmanager_deployments_get_builder(
         client,
-        project,
-        deployment,
-        header_bypassBillingFilter,
+        &args.project,
+        &args.deployment,
+        args.header_bypassBillingFilter,
     )?;
     deploymentmanager_deployments_get_execute(builder)
 }
@@ -513,6 +547,19 @@ pub fn deploymentmanager_deployments_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_deployments_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerDeploymentsGetIamPolicyArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: header_bypassBillingFilter
+    pub header_bypassBillingFilter: Option<bool>,
+    /// Query parameter: optionsRequestedPolicyVersion
+    pub optionsRequestedPolicyVersion: Option<i32>,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/getIamPolicy
 /// Gets the access control policy for a resource. May be empty if no such policy or resource exists.
 ///
@@ -525,20 +572,17 @@ pub fn deploymentmanager_deployments_get_iam_policy_execute(
 
 pub fn deploymentmanager_deployments_get_iam_policy(
     client: &SimpleHttpClient,
-    project: &str,
-    resource: &str,
-    header_bypassBillingFilter: Option<bool>,
-    optionsRequestedPolicyVersion: Option<i32>,
+    args: &DeploymentmanagerDeploymentsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = deploymentmanager_deployments_get_iam_policy_builder(
         client,
-        project,
-        resource,
-        header_bypassBillingFilter,
-        optionsRequestedPolicyVersion,
+        &args.project,
+        &args.resource,
+        args.header_bypassBillingFilter,
+        args.optionsRequestedPolicyVersion,
     )?;
     deploymentmanager_deployments_get_iam_policy_execute(builder)
 }
@@ -656,6 +700,21 @@ pub fn deploymentmanager_deployments_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_deployments_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerDeploymentsInsertArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: createPolicy
+    pub createPolicy: Option<String>,
+    /// Query parameter: header_bypassBillingFilter
+    pub header_bypassBillingFilter: Option<bool>,
+    /// Query parameter: preview
+    pub preview: Option<bool>,
+    /// Request body.
+    pub body: Deployment,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments
 /// Creates a deployment and all of the resources described by the deployment manifest.
 ///
@@ -668,22 +727,18 @@ pub fn deploymentmanager_deployments_insert_execute(
 
 pub fn deploymentmanager_deployments_insert(
     client: &SimpleHttpClient,
-    project: &str,
-    createPolicy: Option<&str>,
-    header_bypassBillingFilter: Option<bool>,
-    preview: Option<bool>,
-    body: &Deployment,
+    args: &DeploymentmanagerDeploymentsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = deploymentmanager_deployments_insert_builder(
         client,
-        project,
-        createPolicy,
-        header_bypassBillingFilter,
-        preview,
-        body,
+        &args.project,
+        args.createPolicy.as_deref(),
+        args.header_bypassBillingFilter,
+        args.preview,
+        &args.body,
     )?;
     deploymentmanager_deployments_insert_execute(builder)
 }
@@ -804,6 +859,21 @@ pub fn deploymentmanager_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerDeploymentsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments
 /// Lists all deployments for a given project.
 ///
@@ -816,11 +886,7 @@ pub fn deploymentmanager_deployments_list_execute(
 
 pub fn deploymentmanager_deployments_list(
     client: &SimpleHttpClient,
-    project: &str,
-    filter: Option<&str>,
-    maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
+    args: &DeploymentmanagerDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeploymentsListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -828,7 +894,12 @@ pub fn deploymentmanager_deployments_list(
     ApiError,
 > {
     let builder = deploymentmanager_deployments_list_builder(
-        client, project, filter, maxResults, orderBy, pageToken,
+        client,
+        &args.project,
+        args.filter.as_deref(),
+        args.maxResults,
+        args.orderBy.as_deref(),
+        args.pageToken.as_deref(),
     )?;
     deploymentmanager_deployments_list_execute(builder)
 }
@@ -952,6 +1023,25 @@ pub fn deploymentmanager_deployments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerDeploymentsPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: deployment
+    pub deployment: String,
+    /// Query parameter: createPolicy
+    pub createPolicy: Option<String>,
+    /// Query parameter: deletePolicy
+    pub deletePolicy: Option<String>,
+    /// Query parameter: header_bypassBillingFilter
+    pub header_bypassBillingFilter: Option<bool>,
+    /// Query parameter: preview
+    pub preview: Option<bool>,
+    /// Request body.
+    pub body: Deployment,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
 /// Patches a deployment and all of the resources described by the deployment manifest.
 ///
@@ -964,26 +1054,20 @@ pub fn deploymentmanager_deployments_patch_execute(
 
 pub fn deploymentmanager_deployments_patch(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    createPolicy: Option<&str>,
-    deletePolicy: Option<&str>,
-    header_bypassBillingFilter: Option<bool>,
-    preview: Option<bool>,
-    body: &Deployment,
+    args: &DeploymentmanagerDeploymentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = deploymentmanager_deployments_patch_builder(
         client,
-        project,
-        deployment,
-        createPolicy,
-        deletePolicy,
-        header_bypassBillingFilter,
-        preview,
-        body,
+        &args.project,
+        &args.deployment,
+        args.createPolicy.as_deref(),
+        args.deletePolicy.as_deref(),
+        args.header_bypassBillingFilter,
+        args.preview,
+        &args.body,
     )?;
     deploymentmanager_deployments_patch_execute(builder)
 }
@@ -1083,6 +1167,17 @@ pub fn deploymentmanager_deployments_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_deployments_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerDeploymentsSetIamPolicyArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GlobalSetPolicyRequest,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.
 ///
@@ -1095,15 +1190,17 @@ pub fn deploymentmanager_deployments_set_iam_policy_execute(
 
 pub fn deploymentmanager_deployments_set_iam_policy(
     client: &SimpleHttpClient,
-    project: &str,
-    resource: &str,
-    body: &GlobalSetPolicyRequest,
+    args: &DeploymentmanagerDeploymentsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        deploymentmanager_deployments_set_iam_policy_builder(client, project, resource, body)?;
+    let builder = deploymentmanager_deployments_set_iam_policy_builder(
+        client,
+        &args.project,
+        &args.resource,
+        &args.body,
+    )?;
     deploymentmanager_deployments_set_iam_policy_execute(builder)
 }
 
@@ -1202,6 +1299,17 @@ pub fn deploymentmanager_deployments_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_deployments_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerDeploymentsStopArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: deployment
+    pub deployment: String,
+    /// Request body.
+    pub body: DeploymentsStopRequest,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/stop
 /// Stops an ongoing operation. This does not roll back any work that has already been completed, but prevents any new work from being started.
 ///
@@ -1214,14 +1322,17 @@ pub fn deploymentmanager_deployments_stop_execute(
 
 pub fn deploymentmanager_deployments_stop(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    body: &DeploymentsStopRequest,
+    args: &DeploymentmanagerDeploymentsStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = deploymentmanager_deployments_stop_builder(client, project, deployment, body)?;
+    let builder = deploymentmanager_deployments_stop_builder(
+        client,
+        &args.project,
+        &args.deployment,
+        &args.body,
+    )?;
     deploymentmanager_deployments_stop_execute(builder)
 }
 
@@ -1334,6 +1445,19 @@ pub fn deploymentmanager_deployments_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_deployments_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerDeploymentsTestIamPermissionsArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: header_bypassBillingFilter
+    pub header_bypassBillingFilter: Option<bool>,
+    /// Request body.
+    pub body: TestPermissionsRequest,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{resource}/testIamPermissions
 /// Returns permissions that a caller has on the specified resource.
 ///
@@ -1346,10 +1470,7 @@ pub fn deploymentmanager_deployments_test_iam_permissions_execute(
 
 pub fn deploymentmanager_deployments_test_iam_permissions(
     client: &SimpleHttpClient,
-    project: &str,
-    resource: &str,
-    header_bypassBillingFilter: Option<bool>,
-    body: &TestPermissionsRequest,
+    args: &DeploymentmanagerDeploymentsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TestPermissionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1358,10 +1479,10 @@ pub fn deploymentmanager_deployments_test_iam_permissions(
 > {
     let builder = deploymentmanager_deployments_test_iam_permissions_builder(
         client,
-        project,
-        resource,
-        header_bypassBillingFilter,
-        body,
+        &args.project,
+        &args.resource,
+        args.header_bypassBillingFilter,
+        &args.body,
     )?;
     deploymentmanager_deployments_test_iam_permissions_execute(builder)
 }
@@ -1485,6 +1606,25 @@ pub fn deploymentmanager_deployments_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_deployments_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerDeploymentsUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: deployment
+    pub deployment: String,
+    /// Query parameter: createPolicy
+    pub createPolicy: Option<String>,
+    /// Query parameter: deletePolicy
+    pub deletePolicy: Option<String>,
+    /// Query parameter: header_bypassBillingFilter
+    pub header_bypassBillingFilter: Option<bool>,
+    /// Query parameter: preview
+    pub preview: Option<bool>,
+    /// Request body.
+    pub body: Deployment,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}
 /// Updates a deployment and all of the resources described by the deployment manifest.
 ///
@@ -1497,26 +1637,20 @@ pub fn deploymentmanager_deployments_update_execute(
 
 pub fn deploymentmanager_deployments_update(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    createPolicy: Option<&str>,
-    deletePolicy: Option<&str>,
-    header_bypassBillingFilter: Option<bool>,
-    preview: Option<bool>,
-    body: &Deployment,
+    args: &DeploymentmanagerDeploymentsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = deploymentmanager_deployments_update_builder(
         client,
-        project,
-        deployment,
-        createPolicy,
-        deletePolicy,
-        header_bypassBillingFilter,
-        preview,
-        body,
+        &args.project,
+        &args.deployment,
+        args.createPolicy.as_deref(),
+        args.deletePolicy.as_deref(),
+        args.header_bypassBillingFilter,
+        args.preview,
+        &args.body,
     )?;
     deploymentmanager_deployments_update_execute(builder)
 }
@@ -1627,6 +1761,19 @@ pub fn deploymentmanager_manifests_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_manifests_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerManifestsGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: deployment
+    pub deployment: String,
+    /// Path parameter: manifest
+    pub manifest: String,
+    /// Query parameter: header_bypassBillingFilter
+    pub header_bypassBillingFilter: Option<bool>,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/manifests/{manifest}
 /// Gets information about a specific manifest.
 ///
@@ -1639,20 +1786,17 @@ pub fn deploymentmanager_manifests_get_execute(
 
 pub fn deploymentmanager_manifests_get(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    manifest: &str,
-    header_bypassBillingFilter: Option<bool>,
+    args: &DeploymentmanagerManifestsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Manifest>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = deploymentmanager_manifests_get_builder(
         client,
-        project,
-        deployment,
-        manifest,
-        header_bypassBillingFilter,
+        &args.project,
+        &args.deployment,
+        &args.manifest,
+        args.header_bypassBillingFilter,
     )?;
     deploymentmanager_manifests_get_execute(builder)
 }
@@ -1775,6 +1919,23 @@ pub fn deploymentmanager_manifests_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_manifests_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerManifestsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: deployment
+    pub deployment: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/manifests
 /// Lists all manifests for a given deployment.
 ///
@@ -1787,12 +1948,7 @@ pub fn deploymentmanager_manifests_list_execute(
 
 pub fn deploymentmanager_manifests_list(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    filter: Option<&str>,
-    maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
+    args: &DeploymentmanagerManifestsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ManifestsListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1800,7 +1956,13 @@ pub fn deploymentmanager_manifests_list(
     ApiError,
 > {
     let builder = deploymentmanager_manifests_list_builder(
-        client, project, deployment, filter, maxResults, orderBy, pageToken,
+        client,
+        &args.project,
+        &args.deployment,
+        args.filter.as_deref(),
+        args.maxResults,
+        args.orderBy.as_deref(),
+        args.pageToken.as_deref(),
     )?;
     deploymentmanager_manifests_list_execute(builder)
 }
@@ -1909,6 +2071,17 @@ pub fn deploymentmanager_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerOperationsGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: operation
+    pub operation: String,
+    /// Query parameter: header_bypassBillingFilter
+    pub header_bypassBillingFilter: Option<bool>,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/operations/{operation}
 /// Gets information about a specific operation.
 ///
@@ -1921,18 +2094,16 @@ pub fn deploymentmanager_operations_get_execute(
 
 pub fn deploymentmanager_operations_get(
     client: &SimpleHttpClient,
-    project: &str,
-    operation: &str,
-    header_bypassBillingFilter: Option<bool>,
+    args: &DeploymentmanagerOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = deploymentmanager_operations_get_builder(
         client,
-        project,
-        operation,
-        header_bypassBillingFilter,
+        &args.project,
+        &args.operation,
+        args.header_bypassBillingFilter,
     )?;
     deploymentmanager_operations_get_execute(builder)
 }
@@ -2053,6 +2224,21 @@ pub fn deploymentmanager_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerOperationsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/operations
 /// Lists all operations for a project.
 ///
@@ -2065,11 +2251,7 @@ pub fn deploymentmanager_operations_list_execute(
 
 pub fn deploymentmanager_operations_list(
     client: &SimpleHttpClient,
-    project: &str,
-    filter: Option<&str>,
-    maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
+    args: &DeploymentmanagerOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OperationsListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2077,7 +2259,12 @@ pub fn deploymentmanager_operations_list(
     ApiError,
 > {
     let builder = deploymentmanager_operations_list_builder(
-        client, project, filter, maxResults, orderBy, pageToken,
+        client,
+        &args.project,
+        args.filter.as_deref(),
+        args.maxResults,
+        args.orderBy.as_deref(),
+        args.pageToken.as_deref(),
     )?;
     deploymentmanager_operations_list_execute(builder)
 }
@@ -2188,6 +2375,19 @@ pub fn deploymentmanager_resources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_resources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerResourcesGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: deployment
+    pub deployment: String,
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: header_bypassBillingFilter
+    pub header_bypassBillingFilter: Option<bool>,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/resources/{resource}
 /// Gets information about a single resource.
 ///
@@ -2200,20 +2400,17 @@ pub fn deploymentmanager_resources_get_execute(
 
 pub fn deploymentmanager_resources_get(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    resource: &str,
-    header_bypassBillingFilter: Option<bool>,
+    args: &DeploymentmanagerResourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Resource>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = deploymentmanager_resources_get_builder(
         client,
-        project,
-        deployment,
-        resource,
-        header_bypassBillingFilter,
+        &args.project,
+        &args.deployment,
+        &args.resource,
+        args.header_bypassBillingFilter,
     )?;
     deploymentmanager_resources_get_execute(builder)
 }
@@ -2336,6 +2533,23 @@ pub fn deploymentmanager_resources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_resources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerResourcesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: deployment
+    pub deployment: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/deployments/{deployment}/resources
 /// Lists all resources in a given deployment.
 ///
@@ -2348,12 +2562,7 @@ pub fn deploymentmanager_resources_list_execute(
 
 pub fn deploymentmanager_resources_list(
     client: &SimpleHttpClient,
-    project: &str,
-    deployment: &str,
-    filter: Option<&str>,
-    maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
+    args: &DeploymentmanagerResourcesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResourcesListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2361,7 +2570,13 @@ pub fn deploymentmanager_resources_list(
     ApiError,
 > {
     let builder = deploymentmanager_resources_list_builder(
-        client, project, deployment, filter, maxResults, orderBy, pageToken,
+        client,
+        &args.project,
+        &args.deployment,
+        args.filter.as_deref(),
+        args.maxResults,
+        args.orderBy.as_deref(),
+        args.pageToken.as_deref(),
     )?;
     deploymentmanager_resources_list_execute(builder)
 }
@@ -2482,6 +2697,21 @@ pub fn deploymentmanager_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`deploymentmanager_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeploymentmanagerTypesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET deploymentmanager/v2/projects/{project}/global/types
 /// Lists all resource types for Deployment Manager.
 ///
@@ -2494,11 +2724,7 @@ pub fn deploymentmanager_types_list_execute(
 
 pub fn deploymentmanager_types_list(
     client: &SimpleHttpClient,
-    project: &str,
-    filter: Option<&str>,
-    maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
+    args: &DeploymentmanagerTypesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TypesListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2506,7 +2732,12 @@ pub fn deploymentmanager_types_list(
     ApiError,
 > {
     let builder = deploymentmanager_types_list_builder(
-        client, project, filter, maxResults, orderBy, pageToken,
+        client,
+        &args.project,
+        args.filter.as_deref(),
+        args.maxResults,
+        args.orderBy.as_deref(),
+        args.pageToken.as_deref(),
     )?;
     deploymentmanager_types_list_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
@@ -109,6 +111,15 @@ pub fn securityposture_organizations_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -121,14 +132,14 @@ pub fn securityposture_organizations_locations_operations_cancel_execute(
 
 pub fn securityposture_organizations_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &SecuritypostureOrganizationsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        securityposture_organizations_locations_operations_cancel_builder(client, name, body)?;
+    let builder = securityposture_organizations_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     securityposture_organizations_locations_operations_cancel_execute(builder)
 }
 
@@ -222,6 +233,13 @@ pub fn securityposture_organizations_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -234,12 +252,13 @@ pub fn securityposture_organizations_locations_operations_delete_execute(
 
 pub fn securityposture_organizations_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritypostureOrganizationsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securityposture_organizations_locations_operations_delete_builder(client, name)?;
+    let builder =
+        securityposture_organizations_locations_operations_delete_builder(client, &args.name)?;
     securityposture_organizations_locations_operations_delete_execute(builder)
 }
 
@@ -333,6 +352,13 @@ pub fn securityposture_organizations_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -345,12 +371,13 @@ pub fn securityposture_organizations_locations_operations_get_execute(
 
 pub fn securityposture_organizations_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritypostureOrganizationsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securityposture_organizations_locations_operations_get_builder(client, name)?;
+    let builder =
+        securityposture_organizations_locations_operations_get_builder(client, &args.name)?;
     securityposture_organizations_locations_operations_get_execute(builder)
 }
 
@@ -470,6 +497,21 @@ pub fn securityposture_organizations_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -482,11 +524,7 @@ pub fn securityposture_organizations_locations_operations_list_execute(
 
 pub fn securityposture_organizations_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &SecuritypostureOrganizationsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -495,11 +533,11 @@ pub fn securityposture_organizations_locations_operations_list(
 > {
     let builder = securityposture_organizations_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     securityposture_organizations_locations_operations_list_execute(builder)
 }
@@ -609,6 +647,17 @@ pub fn securityposture_organizations_locations_posture_deployments_create_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_posture_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsPostureDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: postureDeploymentId
+    pub postureDeploymentId: Option<String>,
+    /// Request body.
+    pub body: PostureDeployment,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postureDeployments
 /// Creates a new PostureDeployment in a given project and location.
 ///
@@ -621,18 +670,16 @@ pub fn securityposture_organizations_locations_posture_deployments_create_execut
 
 pub fn securityposture_organizations_locations_posture_deployments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    postureDeploymentId: Option<&str>,
-    body: &PostureDeployment,
+    args: &SecuritypostureOrganizationsLocationsPostureDeploymentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securityposture_organizations_locations_posture_deployments_create_builder(
         client,
-        parent,
-        postureDeploymentId,
-        body,
+        &args.parent,
+        args.postureDeploymentId.as_deref(),
+        &args.body,
     )?;
     securityposture_organizations_locations_posture_deployments_create_execute(builder)
 }
@@ -739,6 +786,15 @@ pub fn securityposture_organizations_locations_posture_deployments_delete_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_posture_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsPostureDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postureDeployments/{postureDeploymentsId}
 /// Deletes a PostureDeployment.
 ///
@@ -751,14 +807,15 @@ pub fn securityposture_organizations_locations_posture_deployments_delete_execut
 
 pub fn securityposture_organizations_locations_posture_deployments_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &SecuritypostureOrganizationsLocationsPostureDeploymentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securityposture_organizations_locations_posture_deployments_delete_builder(
-        client, name, etag,
+        client,
+        &args.name,
+        args.etag.as_deref(),
     )?;
     securityposture_organizations_locations_posture_deployments_delete_execute(builder)
 }
@@ -855,6 +912,13 @@ pub fn securityposture_organizations_locations_posture_deployments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_posture_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsPostureDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postureDeployments/{postureDeploymentsId}
 /// Gets details for a PostureDeployment.
 ///
@@ -867,15 +931,16 @@ pub fn securityposture_organizations_locations_posture_deployments_get_execute(
 
 pub fn securityposture_organizations_locations_posture_deployments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritypostureOrganizationsLocationsPostureDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PostureDeployment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        securityposture_organizations_locations_posture_deployments_get_builder(client, name)?;
+    let builder = securityposture_organizations_locations_posture_deployments_get_builder(
+        client, &args.name,
+    )?;
     securityposture_organizations_locations_posture_deployments_get_execute(builder)
 }
 
@@ -993,6 +1058,19 @@ pub fn securityposture_organizations_locations_posture_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_posture_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsPostureDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postureDeployments
 /// Lists every PostureDeployment in a project and location.
 ///
@@ -1005,10 +1083,7 @@ pub fn securityposture_organizations_locations_posture_deployments_list_execute(
 
 pub fn securityposture_organizations_locations_posture_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritypostureOrganizationsLocationsPostureDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPostureDeploymentsResponse>, ApiError>,
@@ -1018,7 +1093,11 @@ pub fn securityposture_organizations_locations_posture_deployments_list(
     ApiError,
 > {
     let builder = securityposture_organizations_locations_posture_deployments_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securityposture_organizations_locations_posture_deployments_list_execute(builder)
 }
@@ -1128,6 +1207,17 @@ pub fn securityposture_organizations_locations_posture_deployments_patch_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_posture_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsPostureDeploymentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: PostureDeployment,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postureDeployments/{postureDeploymentsId}
 /// Updates an existing PostureDeployment. To prevent concurrent updates from overwriting each other, always follow the read-modify-write pattern when you update a posture deployment: 1. Call GetPostureDeployment to get the current version of the deployment. 2. Update the fields in the deployment as needed. 3. Call UpdatePostureDeployment to update the deployment. Ensure that your request includes the etag value from the GetPostureDeployment response. **Important:** If you omit the etag when you call UpdatePostureDeployment, then the updated deployment unconditionally overwrites the existing deployment.
 ///
@@ -1140,15 +1230,16 @@ pub fn securityposture_organizations_locations_posture_deployments_patch_execute
 
 pub fn securityposture_organizations_locations_posture_deployments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &PostureDeployment,
+    args: &SecuritypostureOrganizationsLocationsPostureDeploymentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securityposture_organizations_locations_posture_deployments_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securityposture_organizations_locations_posture_deployments_patch_execute(builder)
 }
@@ -1257,6 +1348,15 @@ pub fn securityposture_organizations_locations_posture_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_posture_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsPostureTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: revisionId
+    pub revisionId: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postureTemplates/{postureTemplatesId}
 /// Gets a single revision of a PostureTemplate.
 ///
@@ -1269,8 +1369,7 @@ pub fn securityposture_organizations_locations_posture_templates_get_execute(
 
 pub fn securityposture_organizations_locations_posture_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
-    revisionId: Option<&str>,
+    args: &SecuritypostureOrganizationsLocationsPostureTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PostureTemplate>, ApiError>, P = ApiPending>
         + Send
@@ -1278,7 +1377,9 @@ pub fn securityposture_organizations_locations_posture_templates_get(
     ApiError,
 > {
     let builder = securityposture_organizations_locations_posture_templates_get_builder(
-        client, name, revisionId,
+        client,
+        &args.name,
+        args.revisionId.as_deref(),
     )?;
     securityposture_organizations_locations_posture_templates_get_execute(builder)
 }
@@ -1397,6 +1498,19 @@ pub fn securityposture_organizations_locations_posture_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_posture_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsPostureTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postureTemplates
 /// Lists every PostureTemplate in a given organization and location.
 ///
@@ -1409,10 +1523,7 @@ pub fn securityposture_organizations_locations_posture_templates_list_execute(
 
 pub fn securityposture_organizations_locations_posture_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritypostureOrganizationsLocationsPostureTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPostureTemplatesResponse>, ApiError>,
@@ -1422,7 +1533,11 @@ pub fn securityposture_organizations_locations_posture_templates_list(
     ApiError,
 > {
     let builder = securityposture_organizations_locations_posture_templates_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securityposture_organizations_locations_posture_templates_list_execute(builder)
 }
@@ -1532,6 +1647,17 @@ pub fn securityposture_organizations_locations_postures_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_postures_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsPosturesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: postureId
+    pub postureId: Option<String>,
+    /// Request body.
+    pub body: Posture,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postures
 /// Creates a new Posture.
 ///
@@ -1544,15 +1670,16 @@ pub fn securityposture_organizations_locations_postures_create_execute(
 
 pub fn securityposture_organizations_locations_postures_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    postureId: Option<&str>,
-    body: &Posture,
+    args: &SecuritypostureOrganizationsLocationsPosturesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securityposture_organizations_locations_postures_create_builder(
-        client, parent, postureId, body,
+        client,
+        &args.parent,
+        args.postureId.as_deref(),
+        &args.body,
     )?;
     securityposture_organizations_locations_postures_create_execute(builder)
 }
@@ -1659,6 +1786,15 @@ pub fn securityposture_organizations_locations_postures_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_postures_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsPosturesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postures/{posturesId}
 /// Deletes all revisions of a Posture. You can only delete a posture if none of its revisions are deployed.
 ///
@@ -1671,14 +1807,16 @@ pub fn securityposture_organizations_locations_postures_delete_execute(
 
 pub fn securityposture_organizations_locations_postures_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &SecuritypostureOrganizationsLocationsPosturesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        securityposture_organizations_locations_postures_delete_builder(client, name, etag)?;
+    let builder = securityposture_organizations_locations_postures_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     securityposture_organizations_locations_postures_delete_execute(builder)
 }
 
@@ -1775,6 +1913,15 @@ pub fn securityposture_organizations_locations_postures_extract_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_postures_extract`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsPosturesExtractArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ExtractPostureRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postures:extract
 /// Extracts existing policies from an organization, folder, or project, and applies them to another organization, folder, or project as a Posture. If the other organization, folder, or project already has a posture, then the result of the long-running operation is an ALREADY_EXISTS error.
 ///
@@ -1787,14 +1934,16 @@ pub fn securityposture_organizations_locations_postures_extract_execute(
 
 pub fn securityposture_organizations_locations_postures_extract(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ExtractPostureRequest,
+    args: &SecuritypostureOrganizationsLocationsPosturesExtractArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        securityposture_organizations_locations_postures_extract_builder(client, parent, body)?;
+    let builder = securityposture_organizations_locations_postures_extract_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     securityposture_organizations_locations_postures_extract_execute(builder)
 }
 
@@ -1900,6 +2049,15 @@ pub fn securityposture_organizations_locations_postures_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_postures_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsPosturesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: revisionId
+    pub revisionId: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postures/{posturesId}
 /// Gets a single revision of a Posture.
 ///
@@ -1912,14 +2070,16 @@ pub fn securityposture_organizations_locations_postures_get_execute(
 
 pub fn securityposture_organizations_locations_postures_get(
     client: &SimpleHttpClient,
-    name: &str,
-    revisionId: Option<&str>,
+    args: &SecuritypostureOrganizationsLocationsPosturesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Posture>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        securityposture_organizations_locations_postures_get_builder(client, name, revisionId)?;
+    let builder = securityposture_organizations_locations_postures_get_builder(
+        client,
+        &args.name,
+        args.revisionId.as_deref(),
+    )?;
     securityposture_organizations_locations_postures_get_execute(builder)
 }
 
@@ -2035,6 +2195,19 @@ pub fn securityposture_organizations_locations_postures_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_postures_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsPosturesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postures
 /// Lists the most recent revisions of all Posture resources in a specified organization and location.
 ///
@@ -2047,10 +2220,7 @@ pub fn securityposture_organizations_locations_postures_list_execute(
 
 pub fn securityposture_organizations_locations_postures_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritypostureOrganizationsLocationsPosturesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListPosturesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2058,7 +2228,11 @@ pub fn securityposture_organizations_locations_postures_list(
     ApiError,
 > {
     let builder = securityposture_organizations_locations_postures_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securityposture_organizations_locations_postures_list_execute(builder)
 }
@@ -2173,6 +2347,17 @@ pub fn securityposture_organizations_locations_postures_list_revisions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_postures_list_revisions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsPosturesListRevisionsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postures/{posturesId}:listRevisions
 /// Lists all revisions of a single Posture.
 ///
@@ -2185,9 +2370,7 @@ pub fn securityposture_organizations_locations_postures_list_revisions_execute(
 
 pub fn securityposture_organizations_locations_postures_list_revisions(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritypostureOrganizationsLocationsPosturesListRevisionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPostureRevisionsResponse>, ApiError>,
@@ -2197,7 +2380,10 @@ pub fn securityposture_organizations_locations_postures_list_revisions(
     ApiError,
 > {
     let builder = securityposture_organizations_locations_postures_list_revisions_builder(
-        client, name, pageSize, pageToken,
+        client,
+        &args.name,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securityposture_organizations_locations_postures_list_revisions_execute(builder)
 }
@@ -2311,6 +2497,19 @@ pub fn securityposture_organizations_locations_postures_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_postures_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsPosturesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: revisionId
+    pub revisionId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Posture,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/postures/{posturesId}
 /// Updates a revision of an existing Posture. If the posture revision that you update is currently deployed, then a new revision of the posture is created. To prevent concurrent updates from overwriting each other, always follow the read-modify-write pattern when you update a posture: 1. Call GetPosture to get the current version of the posture. 2. Update the fields in the posture as needed. 3. Call UpdatePosture to update the posture. Ensure that your request includes the etag value from the GetPosture response. **Important:** If you omit the etag when you call UpdatePosture, then the updated posture unconditionally overwrites the existing posture.
 ///
@@ -2323,16 +2522,17 @@ pub fn securityposture_organizations_locations_postures_patch_execute(
 
 pub fn securityposture_organizations_locations_postures_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    revisionId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Posture,
+    args: &SecuritypostureOrganizationsLocationsPosturesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = securityposture_organizations_locations_postures_patch_builder(
-        client, name, revisionId, updateMask, body,
+        client,
+        &args.name,
+        args.revisionId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     securityposture_organizations_locations_postures_patch_execute(builder)
 }
@@ -2430,6 +2630,15 @@ pub fn securityposture_organizations_locations_reports_create_ia_cvalidation_rep
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_reports_create_ia_cvalidation_report`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsReportsCreateIaCvalidationReportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateIaCValidationReportRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/reports:createIaCValidationReport
 /// Validates a specified infrastructure-as-code (IaC) configuration, and creates a Report with the validation results. Only Terraform configurations are supported. Only modified assets are validated.
 ///
@@ -2442,15 +2651,16 @@ pub fn securityposture_organizations_locations_reports_create_ia_cvalidation_rep
 
 pub fn securityposture_organizations_locations_reports_create_ia_cvalidation_report(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateIaCValidationReportRequest,
+    args: &SecuritypostureOrganizationsLocationsReportsCreateIaCvalidationReportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         securityposture_organizations_locations_reports_create_ia_cvalidation_report_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     securityposture_organizations_locations_reports_create_ia_cvalidation_report_execute(builder)
 }
@@ -2545,6 +2755,13 @@ pub fn securityposture_organizations_locations_reports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsReportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/reports/{reportsId}
 /// Gets details for a Report.
 ///
@@ -2557,12 +2774,12 @@ pub fn securityposture_organizations_locations_reports_get_execute(
 
 pub fn securityposture_organizations_locations_reports_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritypostureOrganizationsLocationsReportsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securityposture_organizations_locations_reports_get_builder(client, name)?;
+    let builder = securityposture_organizations_locations_reports_get_builder(client, &args.name)?;
     securityposture_organizations_locations_reports_get_execute(builder)
 }
 
@@ -2678,6 +2895,19 @@ pub fn securityposture_organizations_locations_reports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_organizations_locations_reports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureOrganizationsLocationsReportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/reports
 /// Lists every Report in a given organization and location.
 ///
@@ -2690,10 +2920,7 @@ pub fn securityposture_organizations_locations_reports_list_execute(
 
 pub fn securityposture_organizations_locations_reports_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritypostureOrganizationsLocationsReportsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListReportsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2701,7 +2928,11 @@ pub fn securityposture_organizations_locations_reports_list(
     ApiError,
 > {
     let builder = securityposture_organizations_locations_reports_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securityposture_organizations_locations_reports_list_execute(builder)
 }
@@ -2796,6 +3027,13 @@ pub fn securityposture_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -2808,12 +3046,12 @@ pub fn securityposture_projects_locations_get_execute(
 
 pub fn securityposture_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &SecuritypostureProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = securityposture_projects_locations_get_builder(client, name)?;
+    let builder = securityposture_projects_locations_get_builder(client, &args.name)?;
     securityposture_projects_locations_get_execute(builder)
 }
 
@@ -2933,6 +3171,21 @@ pub fn securityposture_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`securityposture_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct SecuritypostureProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -2945,11 +3198,7 @@ pub fn securityposture_projects_locations_list_execute(
 
 pub fn securityposture_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &SecuritypostureProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2958,11 +3207,11 @@ pub fn securityposture_projects_locations_list(
 > {
     let builder = securityposture_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     securityposture_projects_locations_list_execute(builder)
 }

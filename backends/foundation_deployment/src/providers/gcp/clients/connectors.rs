@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:checkReadiness
 /// Reports readiness status of the connector. Similar logic to GetStatus but modified for kubernetes health check to understand.
@@ -108,6 +110,13 @@ pub fn connectors_projects_locations_connections_check_readiness_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_check_readiness`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsCheckReadinessArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:checkReadiness
 /// Reports readiness status of the connector. Similar logic to GetStatus but modified for kubernetes health check to understand.
 ///
@@ -120,14 +129,15 @@ pub fn connectors_projects_locations_connections_check_readiness_execute(
 
 pub fn connectors_projects_locations_connections_check_readiness(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConnectorsProjectsLocationsConnectionsCheckReadinessArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CheckReadinessResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = connectors_projects_locations_connections_check_readiness_builder(client, name)?;
+    let builder =
+        connectors_projects_locations_connections_check_readiness_builder(client, &args.name)?;
     connectors_projects_locations_connections_check_readiness_execute(builder)
 }
 
@@ -235,6 +245,15 @@ pub fn connectors_projects_locations_connections_check_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_check_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsCheckStatusArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: executionConfig_headers
+    pub executionConfig_headers: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:checkStatus
 /// Reports the status of the connection. Note that when the connection is in a state that is not `ACTIVE`, the implementation of this RPC method must return a Status with the corresponding State instead of returning a `gRPC` status code that is not "`OK`", which indicates that ConnectionStatus itself, not the connection, failed.
 ///
@@ -247,8 +266,7 @@ pub fn connectors_projects_locations_connections_check_status_execute(
 
 pub fn connectors_projects_locations_connections_check_status(
     client: &SimpleHttpClient,
-    name: &str,
-    executionConfig_headers: Option<&str>,
+    args: &ConnectorsProjectsLocationsConnectionsCheckStatusArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CheckStatusResponse>, ApiError>, P = ApiPending>
         + Send
@@ -257,8 +275,8 @@ pub fn connectors_projects_locations_connections_check_status(
 > {
     let builder = connectors_projects_locations_connections_check_status_builder(
         client,
-        name,
-        executionConfig_headers,
+        &args.name,
+        args.executionConfig_headers.as_deref(),
     )?;
     connectors_projects_locations_connections_check_status_execute(builder)
 }
@@ -358,6 +376,15 @@ pub fn connectors_projects_locations_connections_exchange_auth_code_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_exchange_auth_code`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsExchangeAuthCodeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExchangeAuthCodeRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:exchangeAuthCode
 /// ExchangeAuthCode exchanges the OAuth authorization code (and other necessary data) for an access token (and associated credentials).
 ///
@@ -370,16 +397,16 @@ pub fn connectors_projects_locations_connections_exchange_auth_code_execute(
 
 pub fn connectors_projects_locations_connections_exchange_auth_code(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExchangeAuthCodeRequest,
+    args: &ConnectorsProjectsLocationsConnectionsExchangeAuthCodeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExchangeAuthCodeResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        connectors_projects_locations_connections_exchange_auth_code_builder(client, name, body)?;
+    let builder = connectors_projects_locations_connections_exchange_auth_code_builder(
+        client, &args.name, &args.body,
+    )?;
     connectors_projects_locations_connections_exchange_auth_code_execute(builder)
 }
 
@@ -478,6 +505,15 @@ pub fn connectors_projects_locations_connections_execute_sql_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_execute_sql_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsExecuteSqlQueryArgs {
+    /// Path parameter: connection
+    pub connection: String,
+    /// Request body.
+    pub body: ExecuteSqlQueryRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:executeSqlQuery
 /// Executes a SQL statement specified in the body of the request. An example of this SQL statement in the case of Salesforce connector would be 'select * from Account a, Order o where a.Id = o.AccountId'.
 ///
@@ -490,8 +526,7 @@ pub fn connectors_projects_locations_connections_execute_sql_query_execute(
 
 pub fn connectors_projects_locations_connections_execute_sql_query(
     client: &SimpleHttpClient,
-    connection: &str,
-    body: &ExecuteSqlQueryRequest,
+    args: &ConnectorsProjectsLocationsConnectionsExecuteSqlQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExecuteSqlQueryResponse>, ApiError>, P = ApiPending>
         + Send
@@ -499,7 +534,9 @@ pub fn connectors_projects_locations_connections_execute_sql_query(
     ApiError,
 > {
     let builder = connectors_projects_locations_connections_execute_sql_query_builder(
-        client, connection, body,
+        client,
+        &args.connection,
+        &args.body,
     )?;
     connectors_projects_locations_connections_execute_sql_query_execute(builder)
 }
@@ -601,6 +638,15 @@ pub fn connectors_projects_locations_connections_generate_connection_toolspec_ov
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_generate_connection_toolspec_override`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsGenerateConnectionToolspecOverrideArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GenerateCustomToolspecRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:generateConnectionToolspecOverride
 /// Generate toolspec override for the given list of `toolNames`.
 ///
@@ -613,8 +659,7 @@ pub fn connectors_projects_locations_connections_generate_connection_toolspec_ov
 
 pub fn connectors_projects_locations_connections_generate_connection_toolspec_override(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GenerateCustomToolspecRequest,
+    args: &ConnectorsProjectsLocationsConnectionsGenerateConnectionToolspecOverrideArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateCustomToolspecResponse>, ApiError>,
@@ -625,7 +670,7 @@ pub fn connectors_projects_locations_connections_generate_connection_toolspec_ov
 > {
     let builder =
         connectors_projects_locations_connections_generate_connection_toolspec_override_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     connectors_projects_locations_connections_generate_connection_toolspec_override_execute(builder)
 }
@@ -724,6 +769,13 @@ pub fn connectors_projects_locations_connections_list_custom_tool_names_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_list_custom_tool_names`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsListCustomToolNamesArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:listCustomToolNames
 /// Lists custom tool names.
 ///
@@ -736,7 +788,7 @@ pub fn connectors_projects_locations_connections_list_custom_tool_names_execute(
 
 pub fn connectors_projects_locations_connections_list_custom_tool_names(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ConnectorsProjectsLocationsConnectionsListCustomToolNamesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCustomToolNamesResponse>, ApiError>,
@@ -745,8 +797,9 @@ pub fn connectors_projects_locations_connections_list_custom_tool_names(
         + 'static,
     ApiError,
 > {
-    let builder =
-        connectors_projects_locations_connections_list_custom_tool_names_builder(client, name)?;
+    let builder = connectors_projects_locations_connections_list_custom_tool_names_builder(
+        client, &args.name,
+    )?;
     connectors_projects_locations_connections_list_custom_tool_names_execute(builder)
 }
 
@@ -847,6 +900,15 @@ pub fn connectors_projects_locations_connections_refresh_access_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_refresh_access_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsRefreshAccessTokenArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RefreshAccessTokenRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}:refreshAccessToken
 /// RefreshAccessToken exchanges the OAuth refresh token (and other necessary data) for a new access token (and new associated credentials).
 ///
@@ -859,8 +921,7 @@ pub fn connectors_projects_locations_connections_refresh_access_token_execute(
 
 pub fn connectors_projects_locations_connections_refresh_access_token(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RefreshAccessTokenRequest,
+    args: &ConnectorsProjectsLocationsConnectionsRefreshAccessTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RefreshAccessTokenResponse>, ApiError>,
@@ -869,8 +930,9 @@ pub fn connectors_projects_locations_connections_refresh_access_token(
         + 'static,
     ApiError,
 > {
-    let builder =
-        connectors_projects_locations_connections_refresh_access_token_builder(client, name, body)?;
+    let builder = connectors_projects_locations_connections_refresh_access_token_builder(
+        client, &args.name, &args.body,
+    )?;
     connectors_projects_locations_connections_refresh_access_token_execute(builder)
 }
 
@@ -969,6 +1031,15 @@ pub fn connectors_projects_locations_connections_tools_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_tools`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsToolsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ListToolsPostRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/tools
 /// Lists all available tools with POST.
 ///
@@ -981,15 +1052,15 @@ pub fn connectors_projects_locations_connections_tools_execute(
 
 pub fn connectors_projects_locations_connections_tools(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ListToolsPostRequest,
+    args: &ConnectorsProjectsLocationsConnectionsToolsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListToolsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = connectors_projects_locations_connections_tools_builder(client, parent, body)?;
+    let builder =
+        connectors_projects_locations_connections_tools_builder(client, &args.parent, &args.body)?;
     connectors_projects_locations_connections_tools_execute(builder)
 }
 
@@ -1088,6 +1159,15 @@ pub fn connectors_projects_locations_connections_actions_execute_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_actions_execute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsActionsExecuteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExecuteActionRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/actions/{actionsId}:execute
 /// Executes an action with the name specified in the request. The input parameters for executing the action are passed through the body of the ExecuteAction request.
 ///
@@ -1100,16 +1180,16 @@ pub fn connectors_projects_locations_connections_actions_execute_execute(
 
 pub fn connectors_projects_locations_connections_actions_execute(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExecuteActionRequest,
+    args: &ConnectorsProjectsLocationsConnectionsActionsExecuteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExecuteActionResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        connectors_projects_locations_connections_actions_execute_builder(client, name, body)?;
+    let builder = connectors_projects_locations_connections_actions_execute_builder(
+        client, &args.name, &args.body,
+    )?;
     connectors_projects_locations_connections_actions_execute_execute(builder)
 }
 
@@ -1219,6 +1299,17 @@ pub fn connectors_projects_locations_connections_actions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_actions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsActionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: executionConfig_headers
+    pub executionConfig_headers: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/actions/{actionsId}
 /// Gets the schema of the given action.
 ///
@@ -1231,18 +1322,16 @@ pub fn connectors_projects_locations_connections_actions_get_execute(
 
 pub fn connectors_projects_locations_connections_actions_get(
     client: &SimpleHttpClient,
-    name: &str,
-    executionConfig_headers: Option<&str>,
-    view: Option<&str>,
+    args: &ConnectorsProjectsLocationsConnectionsActionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Action>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = connectors_projects_locations_connections_actions_get_builder(
         client,
-        name,
-        executionConfig_headers,
-        view,
+        &args.name,
+        args.executionConfig_headers.as_deref(),
+        args.view.as_deref(),
     )?;
     connectors_projects_locations_connections_actions_get_execute(builder)
 }
@@ -1363,6 +1452,21 @@ pub fn connectors_projects_locations_connections_actions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_actions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsActionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: executionConfig_headers
+    pub executionConfig_headers: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/actions
 /// Gets the schema of all the actions supported by the connector.
 ///
@@ -1375,11 +1479,7 @@ pub fn connectors_projects_locations_connections_actions_list_execute(
 
 pub fn connectors_projects_locations_connections_actions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    executionConfig_headers: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &ConnectorsProjectsLocationsConnectionsActionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListActionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1388,11 +1488,11 @@ pub fn connectors_projects_locations_connections_actions_list(
 > {
     let builder = connectors_projects_locations_connections_actions_list_builder(
         client,
-        parent,
-        executionConfig_headers,
-        pageSize,
-        pageToken,
-        view,
+        &args.parent,
+        args.executionConfig_headers.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     connectors_projects_locations_connections_actions_list_execute(builder)
 }
@@ -1507,6 +1607,19 @@ pub fn connectors_projects_locations_connections_entity_types_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_entity_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsEntityTypesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: contextMetadata
+    pub contextMetadata: Option<String>,
+    /// Query parameter: executionConfig_headers
+    pub executionConfig_headers: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}
 /// Gets metadata of given entity type
 ///
@@ -1519,20 +1632,17 @@ pub fn connectors_projects_locations_connections_entity_types_get_execute(
 
 pub fn connectors_projects_locations_connections_entity_types_get(
     client: &SimpleHttpClient,
-    name: &str,
-    contextMetadata: Option<&str>,
-    executionConfig_headers: Option<&str>,
-    view: Option<&str>,
+    args: &ConnectorsProjectsLocationsConnectionsEntityTypesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EntityType>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = connectors_projects_locations_connections_entity_types_get_builder(
         client,
-        name,
-        contextMetadata,
-        executionConfig_headers,
-        view,
+        &args.name,
+        args.contextMetadata.as_deref(),
+        args.executionConfig_headers.as_deref(),
+        args.view.as_deref(),
     )?;
     connectors_projects_locations_connections_entity_types_get_execute(builder)
 }
@@ -1653,6 +1763,21 @@ pub fn connectors_projects_locations_connections_entity_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_entity_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsEntityTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: executionConfig_headers
+    pub executionConfig_headers: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes
 /// Lists metadata related to all entity types present in the external system.
 ///
@@ -1665,11 +1790,7 @@ pub fn connectors_projects_locations_connections_entity_types_list_execute(
 
 pub fn connectors_projects_locations_connections_entity_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    executionConfig_headers: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &ConnectorsProjectsLocationsConnectionsEntityTypesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListEntityTypesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1678,11 +1799,11 @@ pub fn connectors_projects_locations_connections_entity_types_list(
 > {
     let builder = connectors_projects_locations_connections_entity_types_list_builder(
         client,
-        parent,
-        executionConfig_headers,
-        pageSize,
-        pageToken,
-        view,
+        &args.parent,
+        args.executionConfig_headers.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     connectors_projects_locations_connections_entity_types_list_execute(builder)
 }
@@ -1792,6 +1913,17 @@ pub fn connectors_projects_locations_connections_entity_types_entities_create_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_entity_types_entities_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: executionConfig_headers
+    pub executionConfig_headers: Option<String>,
+    /// Request body.
+    pub body: Entity,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities
 /// Creates a new entity row of the specified entity type in the external system. The field values for creating the row are contained in the body of the request. The response message contains a Entity message object returned as a response by the external system.
 ///
@@ -1804,18 +1936,16 @@ pub fn connectors_projects_locations_connections_entity_types_entities_create_ex
 
 pub fn connectors_projects_locations_connections_entity_types_entities_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    executionConfig_headers: Option<&str>,
-    body: &Entity,
+    args: &ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Entity>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = connectors_projects_locations_connections_entity_types_entities_create_builder(
         client,
-        parent,
-        executionConfig_headers,
-        body,
+        &args.parent,
+        args.executionConfig_headers.as_deref(),
+        &args.body,
     )?;
     connectors_projects_locations_connections_entity_types_entities_create_execute(builder)
 }
@@ -1922,6 +2052,15 @@ pub fn connectors_projects_locations_connections_entity_types_entities_delete_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_entity_types_entities_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: executionConfig_headers
+    pub executionConfig_headers: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities/{entitiesId}
 /// Deletes an existing entity row matching the entity type and entity id specified in the request.
 ///
@@ -1934,16 +2073,15 @@ pub fn connectors_projects_locations_connections_entity_types_entities_delete_ex
 
 pub fn connectors_projects_locations_connections_entity_types_entities_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    executionConfig_headers: Option<&str>,
+    args: &ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = connectors_projects_locations_connections_entity_types_entities_delete_builder(
         client,
-        name,
-        executionConfig_headers,
+        &args.name,
+        args.executionConfig_headers.as_deref(),
     )?;
     connectors_projects_locations_connections_entity_types_entities_delete_execute(builder)
 }
@@ -2054,6 +2192,18 @@ pub fn connectors_projects_locations_connections_entity_types_entities_delete_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_entity_types_entities_delete_entities_with_conditions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesDeleteEntitiesWithConditionsArgs
+{
+    /// Path parameter: entityType
+    pub entityType: String,
+    /// Query parameter: conditions
+    pub conditions: Option<String>,
+    /// Query parameter: executionConfig_headers
+    pub executionConfig_headers: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities:deleteEntitiesWithConditions
 /// Deletes entities based on conditions specified in the request and not on entity id.
 ///
@@ -2066,14 +2216,12 @@ pub fn connectors_projects_locations_connections_entity_types_entities_delete_en
 
 pub fn connectors_projects_locations_connections_entity_types_entities_delete_entities_with_conditions(
     client: &SimpleHttpClient,
-    entityType: &str,
-    conditions: Option<&str>,
-    executionConfig_headers: Option<&str>,
+    args: &ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesDeleteEntitiesWithConditionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = connectors_projects_locations_connections_entity_types_entities_delete_entities_with_conditions_builder(client, entityType, conditions, executionConfig_headers)?;
+    let builder = connectors_projects_locations_connections_entity_types_entities_delete_entities_with_conditions_builder(client, &args.entityType, args.conditions.as_deref(), args.executionConfig_headers.as_deref())?;
     connectors_projects_locations_connections_entity_types_entities_delete_entities_with_conditions_execute(builder)
 }
 
@@ -2179,6 +2327,15 @@ pub fn connectors_projects_locations_connections_entity_types_entities_get_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_entity_types_entities_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: executionConfig_headers
+    pub executionConfig_headers: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities/{entitiesId}
 /// Gets a single entity row matching the entity type and entity id specified in the request.
 ///
@@ -2191,16 +2348,15 @@ pub fn connectors_projects_locations_connections_entity_types_entities_get_execu
 
 pub fn connectors_projects_locations_connections_entity_types_entities_get(
     client: &SimpleHttpClient,
-    name: &str,
-    executionConfig_headers: Option<&str>,
+    args: &ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Entity>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = connectors_projects_locations_connections_entity_types_entities_get_builder(
         client,
-        name,
-        executionConfig_headers,
+        &args.name,
+        args.executionConfig_headers.as_deref(),
     )?;
     connectors_projects_locations_connections_entity_types_entities_get_execute(builder)
 }
@@ -2329,6 +2485,25 @@ pub fn connectors_projects_locations_connections_entity_types_entities_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_entity_types_entities_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: conditions
+    pub conditions: Option<String>,
+    /// Query parameter: executionConfig_headers
+    pub executionConfig_headers: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: sortBy
+    pub sortBy: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities
 /// Lists entity rows of a particular entity type contained in the request. Note: 1. Currently, only max of one 'sort_by' column is supported. 2. If no 'sort_by' column is provided, the primary key of the table is used. If zero or more than one primary key is available, we default to the unpaginated list entities logic which only returns the first page. 3. The values of the 'sort_by' columns must uniquely identify an entity row, otherwise undefined behaviors may be observed during pagination. 4. Since transactions are not supported, any updates, inserts or deletes during pagination can lead to stale data being returned or other unexpected behaviors.
 ///
@@ -2341,13 +2516,7 @@ pub fn connectors_projects_locations_connections_entity_types_entities_list_exec
 
 pub fn connectors_projects_locations_connections_entity_types_entities_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    conditions: Option<&str>,
-    executionConfig_headers: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    sortBy: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListEntitiesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2356,13 +2525,13 @@ pub fn connectors_projects_locations_connections_entity_types_entities_list(
 > {
     let builder = connectors_projects_locations_connections_entity_types_entities_list_builder(
         client,
-        parent,
-        conditions,
-        executionConfig_headers,
-        pageSize,
-        pageToken,
-        sortBy,
-        sortOrder,
+        &args.parent,
+        args.conditions.as_deref(),
+        args.executionConfig_headers.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.sortBy.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     connectors_projects_locations_connections_entity_types_entities_list_execute(builder)
 }
@@ -2472,6 +2641,17 @@ pub fn connectors_projects_locations_connections_entity_types_entities_patch_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_entity_types_entities_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: executionConfig_headers
+    pub executionConfig_headers: Option<String>,
+    /// Request body.
+    pub body: Entity,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities/{entitiesId}
 /// Updates an existing entity row matching the entity type and entity id specified in the request. The fields in the entity row that need to be modified are contained in the body of the request. All unspecified fields are left unchanged. The response message contains a Entity message object returned as a response by the external system.
 ///
@@ -2484,18 +2664,16 @@ pub fn connectors_projects_locations_connections_entity_types_entities_patch_exe
 
 pub fn connectors_projects_locations_connections_entity_types_entities_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    executionConfig_headers: Option<&str>,
-    body: &Entity,
+    args: &ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Entity>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = connectors_projects_locations_connections_entity_types_entities_patch_builder(
         client,
-        name,
-        executionConfig_headers,
-        body,
+        &args.name,
+        args.executionConfig_headers.as_deref(),
+        &args.body,
     )?;
     connectors_projects_locations_connections_entity_types_entities_patch_execute(builder)
 }
@@ -2613,6 +2791,20 @@ pub fn connectors_projects_locations_connections_entity_types_entities_update_en
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_entity_types_entities_update_entities_with_conditions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesUpdateEntitiesWithConditionsArgs
+{
+    /// Path parameter: entityType
+    pub entityType: String,
+    /// Query parameter: conditions
+    pub conditions: Option<String>,
+    /// Query parameter: executionConfig_headers
+    pub executionConfig_headers: Option<String>,
+    /// Request body.
+    pub body: Entity,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/entityTypes/{entityTypesId}/entities:updateEntitiesWithConditions
 /// Updates entities based on conditions specified in the request and not on entity id.
 ///
@@ -2625,10 +2817,7 @@ pub fn connectors_projects_locations_connections_entity_types_entities_update_en
 
 pub fn connectors_projects_locations_connections_entity_types_entities_update_entities_with_conditions(
     client: &SimpleHttpClient,
-    entityType: &str,
-    conditions: Option<&str>,
-    executionConfig_headers: Option<&str>,
-    body: &Entity,
+    args: &ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesUpdateEntitiesWithConditionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UpdateEntitiesWithConditionsResponse>, ApiError>,
@@ -2637,7 +2826,7 @@ pub fn connectors_projects_locations_connections_entity_types_entities_update_en
         + 'static,
     ApiError,
 > {
-    let builder = connectors_projects_locations_connections_entity_types_entities_update_entities_with_conditions_builder(client, entityType, conditions, executionConfig_headers, body)?;
+    let builder = connectors_projects_locations_connections_entity_types_entities_update_entities_with_conditions_builder(client, &args.entityType, args.conditions.as_deref(), args.executionConfig_headers.as_deref(), &args.body)?;
     connectors_projects_locations_connections_entity_types_entities_update_entities_with_conditions_execute(builder)
 }
 
@@ -2745,6 +2934,15 @@ pub fn connectors_projects_locations_connections_resources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_resources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsResourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: executionConfig_headers
+    pub executionConfig_headers: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/resources/{resourcesId}
 /// Gets a specific resource.
 ///
@@ -2757,8 +2955,7 @@ pub fn connectors_projects_locations_connections_resources_get_execute(
 
 pub fn connectors_projects_locations_connections_resources_get(
     client: &SimpleHttpClient,
-    name: &str,
-    executionConfig_headers: Option<&str>,
+    args: &ConnectorsProjectsLocationsConnectionsResourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetResourceResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2767,8 +2964,8 @@ pub fn connectors_projects_locations_connections_resources_get(
 > {
     let builder = connectors_projects_locations_connections_resources_get_builder(
         client,
-        name,
-        executionConfig_headers,
+        &args.name,
+        args.executionConfig_headers.as_deref(),
     )?;
     connectors_projects_locations_connections_resources_get_execute(builder)
 }
@@ -2868,6 +3065,15 @@ pub fn connectors_projects_locations_connections_resources_get_resource_post_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_resources_get_resource_post`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsResourcesGetResourcePostArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GetResourcePostRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/resources/{resourcesId}
 /// Gets a specific resource with POST.
 ///
@@ -2880,8 +3086,7 @@ pub fn connectors_projects_locations_connections_resources_get_resource_post_exe
 
 pub fn connectors_projects_locations_connections_resources_get_resource_post(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GetResourcePostRequest,
+    args: &ConnectorsProjectsLocationsConnectionsResourcesGetResourcePostArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetResourceResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2889,7 +3094,7 @@ pub fn connectors_projects_locations_connections_resources_get_resource_post(
     ApiError,
 > {
     let builder = connectors_projects_locations_connections_resources_get_resource_post_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     connectors_projects_locations_connections_resources_get_resource_post_execute(builder)
 }
@@ -3006,6 +3211,19 @@ pub fn connectors_projects_locations_connections_resources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_resources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsResourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: executionConfig_headers
+    pub executionConfig_headers: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/resources
 /// Lists all available resources.
 ///
@@ -3018,10 +3236,7 @@ pub fn connectors_projects_locations_connections_resources_list_execute(
 
 pub fn connectors_projects_locations_connections_resources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    executionConfig_headers: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ConnectorsProjectsLocationsConnectionsResourcesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListResourcesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3030,10 +3245,10 @@ pub fn connectors_projects_locations_connections_resources_list(
 > {
     let builder = connectors_projects_locations_connections_resources_list_builder(
         client,
-        parent,
-        executionConfig_headers,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.executionConfig_headers.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     connectors_projects_locations_connections_resources_list_execute(builder)
 }
@@ -3133,6 +3348,15 @@ pub fn connectors_projects_locations_connections_tools_execute_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_tools_execute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsToolsExecuteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExecuteToolRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/tools/{toolsId}:execute
 /// Executes a specific tool.
 ///
@@ -3145,16 +3369,16 @@ pub fn connectors_projects_locations_connections_tools_execute_execute(
 
 pub fn connectors_projects_locations_connections_tools_execute(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExecuteToolRequest,
+    args: &ConnectorsProjectsLocationsConnectionsToolsExecuteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExecuteToolResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        connectors_projects_locations_connections_tools_execute_builder(client, name, body)?;
+    let builder = connectors_projects_locations_connections_tools_execute_builder(
+        client, &args.name, &args.body,
+    )?;
     connectors_projects_locations_connections_tools_execute_execute(builder)
 }
 
@@ -3270,6 +3494,19 @@ pub fn connectors_projects_locations_connections_tools_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`connectors_projects_locations_connections_tools_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ConnectorsProjectsLocationsConnectionsToolsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: executionConfig_headers
+    pub executionConfig_headers: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/connections/{connectionsId}/tools
 /// Lists all available tools.
 ///
@@ -3282,10 +3519,7 @@ pub fn connectors_projects_locations_connections_tools_list_execute(
 
 pub fn connectors_projects_locations_connections_tools_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    executionConfig_headers: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ConnectorsProjectsLocationsConnectionsToolsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListToolsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3294,10 +3528,10 @@ pub fn connectors_projects_locations_connections_tools_list(
 > {
     let builder = connectors_projects_locations_connections_tools_list_builder(
         client,
-        parent,
-        executionConfig_headers,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.executionConfig_headers.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     connectors_projects_locations_connections_tools_list_execute(builder)
 }

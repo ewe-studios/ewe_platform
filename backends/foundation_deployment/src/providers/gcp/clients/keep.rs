@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/notes/{notesId}/attachments/{attachmentsId}
 /// Gets an attachment. To download attachment media via REST requires the alt=media query parameter. Returns a 400 bad request error if attachment media is not available in the requested MIME type.
@@ -118,6 +120,15 @@ pub fn keep_media_download_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`keep_media_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct KeepMediaDownloadArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: mimeType
+    pub mimeType: Option<String>,
+}
+
 /// GET v1/notes/{notesId}/attachments/{attachmentsId}
 /// Gets an attachment. To download attachment media via REST requires the alt=media query parameter. Returns a 400 bad request error if attachment media is not available in the requested MIME type.
 ///
@@ -130,13 +141,12 @@ pub fn keep_media_download_execute(
 
 pub fn keep_media_download(
     client: &SimpleHttpClient,
-    name: &str,
-    mimeType: Option<&str>,
+    args: &KeepMediaDownloadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Attachment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = keep_media_download_builder(client, name, mimeType)?;
+    let builder = keep_media_download_builder(client, &args.name, args.mimeType.as_deref())?;
     keep_media_download_execute(builder)
 }
 
@@ -229,6 +239,13 @@ pub fn keep_notes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`keep_notes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct KeepNotesCreateArgs {
+    /// Request body.
+    pub body: Note,
+}
+
 /// GET v1/notes
 /// Creates a new note.
 ///
@@ -241,12 +258,12 @@ pub fn keep_notes_create_execute(
 
 pub fn keep_notes_create(
     client: &SimpleHttpClient,
-    body: &Note,
+    args: &KeepNotesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = keep_notes_create_builder(client, body)?;
+    let builder = keep_notes_create_builder(client, &args.body)?;
     keep_notes_create_execute(builder)
 }
 
@@ -337,6 +354,13 @@ pub fn keep_notes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`keep_notes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct KeepNotesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/notes/{notesId}
 /// Deletes a note. Caller must have the OWNER role on the note to delete. Deleting a note removes the resource immediately and cannot be undone. Any collaborators will lose access to the note.
 ///
@@ -349,12 +373,12 @@ pub fn keep_notes_delete_execute(
 
 pub fn keep_notes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &KeepNotesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = keep_notes_delete_builder(client, name)?;
+    let builder = keep_notes_delete_builder(client, &args.name)?;
     keep_notes_delete_execute(builder)
 }
 
@@ -445,6 +469,13 @@ pub fn keep_notes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`keep_notes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct KeepNotesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/notes/{notesId}
 /// Gets a note.
 ///
@@ -457,12 +488,12 @@ pub fn keep_notes_get_execute(
 
 pub fn keep_notes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &KeepNotesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = keep_notes_get_builder(client, name)?;
+    let builder = keep_notes_get_builder(client, &args.name)?;
     keep_notes_get_execute(builder)
 }
 
@@ -574,6 +605,17 @@ pub fn keep_notes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`keep_notes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct KeepNotesListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/notes
 /// Lists notes. Every list call returns a page of results with page_size as the upper bound of returned items. A page_size of zero allows the server to choose the upper bound. The ListNotesResponse contains at most page_size entries. If there are more things left to list, it provides a next_page_token value. (Page tokens are opaque values.) To get the next page of results, copy the result's next_page_token into the next request's page_token. Repeat until the next_page_token returned with a page of results is empty. ListNotes return consistent results in the face of concurrent changes, or signals that it cannot with an ABORTED error.
 ///
@@ -586,16 +628,19 @@ pub fn keep_notes_list_execute(
 
 pub fn keep_notes_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &KeepNotesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListNotesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = keep_notes_list_builder(client, filter, pageSize, pageToken)?;
+    let builder = keep_notes_list_builder(
+        client,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     keep_notes_list_execute(builder)
 }
 
@@ -696,6 +741,15 @@ pub fn keep_notes_permissions_batch_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`keep_notes_permissions_batch_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct KeepNotesPermissionsBatchCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchCreatePermissionsRequest,
+}
+
 /// GET v1/notes/{notesId}/permissions:batchCreate
 /// Creates one or more permissions on the note. Only permissions with the WRITER role may be created. If adding any permission fails, then the entire request fails and no changes are made.
 ///
@@ -708,8 +762,7 @@ pub fn keep_notes_permissions_batch_create_execute(
 
 pub fn keep_notes_permissions_batch_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchCreatePermissionsRequest,
+    args: &KeepNotesPermissionsBatchCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchCreatePermissionsResponse>, ApiError>,
@@ -718,7 +771,7 @@ pub fn keep_notes_permissions_batch_create(
         + 'static,
     ApiError,
 > {
-    let builder = keep_notes_permissions_batch_create_builder(client, parent, body)?;
+    let builder = keep_notes_permissions_batch_create_builder(client, &args.parent, &args.body)?;
     keep_notes_permissions_batch_create_execute(builder)
 }
 
@@ -815,6 +868,15 @@ pub fn keep_notes_permissions_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`keep_notes_permissions_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct KeepNotesPermissionsBatchDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchDeletePermissionsRequest,
+}
+
 /// GET v1/notes/{notesId}/permissions:batchDelete
 /// Deletes one or more permissions on the note. The specified entities will immediately lose access. A permission with the OWNER role can't be removed. If removing a permission fails, then the entire request fails and no changes are made. Returns a 400 bad request error if a specified permission does not exist on the note.
 ///
@@ -827,12 +889,11 @@ pub fn keep_notes_permissions_batch_delete_execute(
 
 pub fn keep_notes_permissions_batch_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchDeletePermissionsRequest,
+    args: &KeepNotesPermissionsBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = keep_notes_permissions_batch_delete_builder(client, parent, body)?;
+    let builder = keep_notes_permissions_batch_delete_builder(client, &args.parent, &args.body)?;
     keep_notes_permissions_batch_delete_execute(builder)
 }

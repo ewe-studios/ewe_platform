@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn parametermanager_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parametermanager_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParametermanagerProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn parametermanager_projects_locations_get_execute(
 
 pub fn parametermanager_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ParametermanagerProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = parametermanager_projects_locations_get_builder(client, name)?;
+    let builder = parametermanager_projects_locations_get_builder(client, &args.name)?;
     parametermanager_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn parametermanager_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parametermanager_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParametermanagerProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn parametermanager_projects_locations_list_execute(
 
 pub fn parametermanager_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ParametermanagerProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn parametermanager_projects_locations_list(
 > {
     let builder = parametermanager_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     parametermanager_projects_locations_list_execute(builder)
 }
@@ -386,6 +406,19 @@ pub fn parametermanager_projects_locations_parameters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parametermanager_projects_locations_parameters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParametermanagerProjectsLocationsParametersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: parameterId
+    pub parameterId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Parameter,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/parameters
 /// Creates a new Parameter in a given project and location.
 ///
@@ -398,20 +431,17 @@ pub fn parametermanager_projects_locations_parameters_create_execute(
 
 pub fn parametermanager_projects_locations_parameters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    parameterId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Parameter,
+    args: &ParametermanagerProjectsLocationsParametersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Parameter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = parametermanager_projects_locations_parameters_create_builder(
         client,
-        parent,
-        parameterId,
-        requestId,
-        body,
+        &args.parent,
+        args.parameterId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     parametermanager_projects_locations_parameters_create_execute(builder)
 }
@@ -518,6 +548,15 @@ pub fn parametermanager_projects_locations_parameters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parametermanager_projects_locations_parameters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParametermanagerProjectsLocationsParametersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}
 /// Deletes a single Parameter.
 ///
@@ -530,14 +569,16 @@ pub fn parametermanager_projects_locations_parameters_delete_execute(
 
 pub fn parametermanager_projects_locations_parameters_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &ParametermanagerProjectsLocationsParametersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        parametermanager_projects_locations_parameters_delete_builder(client, name, requestId)?;
+    let builder = parametermanager_projects_locations_parameters_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     parametermanager_projects_locations_parameters_delete_execute(builder)
 }
 
@@ -631,6 +672,13 @@ pub fn parametermanager_projects_locations_parameters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parametermanager_projects_locations_parameters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParametermanagerProjectsLocationsParametersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}
 /// Gets details of a single Parameter.
 ///
@@ -643,12 +691,12 @@ pub fn parametermanager_projects_locations_parameters_get_execute(
 
 pub fn parametermanager_projects_locations_parameters_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ParametermanagerProjectsLocationsParametersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Parameter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = parametermanager_projects_locations_parameters_get_builder(client, name)?;
+    let builder = parametermanager_projects_locations_parameters_get_builder(client, &args.name)?;
     parametermanager_projects_locations_parameters_get_execute(builder)
 }
 
@@ -768,6 +816,21 @@ pub fn parametermanager_projects_locations_parameters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parametermanager_projects_locations_parameters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParametermanagerProjectsLocationsParametersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/parameters
 /// Lists Parameters in a given project and location.
 ///
@@ -780,11 +843,7 @@ pub fn parametermanager_projects_locations_parameters_list_execute(
 
 pub fn parametermanager_projects_locations_parameters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ParametermanagerProjectsLocationsParametersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListParametersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -792,7 +851,12 @@ pub fn parametermanager_projects_locations_parameters_list(
     ApiError,
 > {
     let builder = parametermanager_projects_locations_parameters_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     parametermanager_projects_locations_parameters_list_execute(builder)
 }
@@ -906,6 +970,19 @@ pub fn parametermanager_projects_locations_parameters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parametermanager_projects_locations_parameters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParametermanagerProjectsLocationsParametersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Parameter,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}
 /// Updates a single Parameter.
 ///
@@ -918,16 +995,17 @@ pub fn parametermanager_projects_locations_parameters_patch_execute(
 
 pub fn parametermanager_projects_locations_parameters_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Parameter,
+    args: &ParametermanagerProjectsLocationsParametersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Parameter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = parametermanager_projects_locations_parameters_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     parametermanager_projects_locations_parameters_patch_execute(builder)
 }
@@ -1043,6 +1121,19 @@ pub fn parametermanager_projects_locations_parameters_versions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parametermanager_projects_locations_parameters_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParametermanagerProjectsLocationsParametersVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: parameterVersionId
+    pub parameterVersionId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: ParameterVersion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}/versions
 /// Creates a new ParameterVersion in a given project, location, and parameter.
 ///
@@ -1055,10 +1146,7 @@ pub fn parametermanager_projects_locations_parameters_versions_create_execute(
 
 pub fn parametermanager_projects_locations_parameters_versions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    parameterVersionId: Option<&str>,
-    requestId: Option<&str>,
-    body: &ParameterVersion,
+    args: &ParametermanagerProjectsLocationsParametersVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ParameterVersion>, ApiError>, P = ApiPending>
         + Send
@@ -1067,10 +1155,10 @@ pub fn parametermanager_projects_locations_parameters_versions_create(
 > {
     let builder = parametermanager_projects_locations_parameters_versions_create_builder(
         client,
-        parent,
-        parameterVersionId,
-        requestId,
-        body,
+        &args.parent,
+        args.parameterVersionId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     parametermanager_projects_locations_parameters_versions_create_execute(builder)
 }
@@ -1177,6 +1265,15 @@ pub fn parametermanager_projects_locations_parameters_versions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parametermanager_projects_locations_parameters_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParametermanagerProjectsLocationsParametersVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}/versions/{versionsId}
 /// Deletes a single ParameterVersion.
 ///
@@ -1189,14 +1286,15 @@ pub fn parametermanager_projects_locations_parameters_versions_delete_execute(
 
 pub fn parametermanager_projects_locations_parameters_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &ParametermanagerProjectsLocationsParametersVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = parametermanager_projects_locations_parameters_versions_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     parametermanager_projects_locations_parameters_versions_delete_execute(builder)
 }
@@ -1305,6 +1403,15 @@ pub fn parametermanager_projects_locations_parameters_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parametermanager_projects_locations_parameters_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParametermanagerProjectsLocationsParametersVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}/versions/{versionsId}
 /// Gets details of a single ParameterVersion.
 ///
@@ -1317,16 +1424,18 @@ pub fn parametermanager_projects_locations_parameters_versions_get_execute(
 
 pub fn parametermanager_projects_locations_parameters_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &ParametermanagerProjectsLocationsParametersVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ParameterVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        parametermanager_projects_locations_parameters_versions_get_builder(client, name, view)?;
+    let builder = parametermanager_projects_locations_parameters_versions_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     parametermanager_projects_locations_parameters_versions_get_execute(builder)
 }
 
@@ -1448,6 +1557,21 @@ pub fn parametermanager_projects_locations_parameters_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parametermanager_projects_locations_parameters_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParametermanagerProjectsLocationsParametersVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}/versions
 /// Lists ParameterVersions in a given project, location, and parameter.
 ///
@@ -1460,11 +1584,7 @@ pub fn parametermanager_projects_locations_parameters_versions_list_execute(
 
 pub fn parametermanager_projects_locations_parameters_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ParametermanagerProjectsLocationsParametersVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListParameterVersionsResponse>, ApiError>,
@@ -1474,7 +1594,12 @@ pub fn parametermanager_projects_locations_parameters_versions_list(
     ApiError,
 > {
     let builder = parametermanager_projects_locations_parameters_versions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     parametermanager_projects_locations_parameters_versions_list_execute(builder)
 }
@@ -1590,6 +1715,19 @@ pub fn parametermanager_projects_locations_parameters_versions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parametermanager_projects_locations_parameters_versions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParametermanagerProjectsLocationsParametersVersionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ParameterVersion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}/versions/{versionsId}
 /// Updates a single ParameterVersion.
 ///
@@ -1602,10 +1740,7 @@ pub fn parametermanager_projects_locations_parameters_versions_patch_execute(
 
 pub fn parametermanager_projects_locations_parameters_versions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &ParameterVersion,
+    args: &ParametermanagerProjectsLocationsParametersVersionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ParameterVersion>, ApiError>, P = ApiPending>
         + Send
@@ -1613,7 +1748,11 @@ pub fn parametermanager_projects_locations_parameters_versions_patch(
     ApiError,
 > {
     let builder = parametermanager_projects_locations_parameters_versions_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     parametermanager_projects_locations_parameters_versions_patch_execute(builder)
 }
@@ -1712,6 +1851,13 @@ pub fn parametermanager_projects_locations_parameters_versions_render_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`parametermanager_projects_locations_parameters_versions_render`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ParametermanagerProjectsLocationsParametersVersionsRenderArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/parameters/{parametersId}/versions/{versionsId}:render
 /// Gets rendered version of a ParameterVersion.
 ///
@@ -1724,7 +1870,7 @@ pub fn parametermanager_projects_locations_parameters_versions_render_execute(
 
 pub fn parametermanager_projects_locations_parameters_versions_render(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ParametermanagerProjectsLocationsParametersVersionsRenderArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RenderParameterVersionResponse>, ApiError>,
@@ -1734,6 +1880,6 @@ pub fn parametermanager_projects_locations_parameters_versions_render(
     ApiError,
 > {
     let builder =
-        parametermanager_projects_locations_parameters_versions_render_builder(client, name)?;
+        parametermanager_projects_locations_parameters_versions_render_builder(client, &args.name)?;
     parametermanager_projects_locations_parameters_versions_render_execute(builder)
 }

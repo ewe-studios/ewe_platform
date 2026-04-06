@@ -8,10 +8,11 @@
 #![cfg(feature = "supabase")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// ActionRunResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionRunResponse {
     pub branch_id: String,
     pub check_run_id: f64,
@@ -25,13 +26,13 @@ pub struct ActionRunResponse {
 }
 
 /// ActivateVanitySubdomainResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivateVanitySubdomainResponse {
     pub custom_domain: String,
 }
 
 /// AnalyticsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyticsResponse {
     #[serde(default)]
     pub error: ::core::option::Option<serde_json::Value>,
@@ -40,7 +41,7 @@ pub struct AnalyticsResponse {
 }
 
 /// ApiKeyResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiKeyResponse {
     #[serde(default)]
     pub api_key: ::core::option::Option<String>,
@@ -65,7 +66,7 @@ pub struct ApiKeyResponse {
 }
 
 /// ApplyProjectAddonBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplyProjectAddonBody {
     /// TODO: enum values: ["custom_domain", "compute_instance", "pitr", "ipv4", "auth_mfa_phone", "auth_mfa_web_authn", "log_drain"]
     pub addon_type: String,
@@ -73,7 +74,7 @@ pub struct ApplyProjectAddonBody {
 }
 
 /// AuthConfigResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthConfigResponse {
     pub api_max_request_duration: i64,
     pub custom_oauth_enabled: bool,
@@ -319,28 +320,28 @@ pub struct AuthConfigResponse {
 }
 
 /// AuthorizeJitAccessBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthorizeJitAccessBody {
     pub rhost: String,
     pub role: String,
 }
 
 /// BranchActionBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BranchActionBody {
     #[serde(default)]
     pub migration_version: ::core::option::Option<String>,
 }
 
 /// BranchDeleteResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BranchDeleteResponse {
     /// TODO: enum values: ["ok"]
     pub message: String,
 }
 
 /// BranchDetailResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BranchDetailResponse {
     pub db_host: String,
     #[serde(default)]
@@ -360,7 +361,7 @@ pub struct BranchDetailResponse {
 }
 
 /// BranchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BranchResponse {
     pub created_at: String,
     #[serde(default)]
@@ -392,14 +393,14 @@ pub struct BranchResponse {
 }
 
 /// BranchRestoreResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BranchRestoreResponse {
     /// TODO: enum values: ["Branch restoration initiated"]
     pub message: String,
 }
 
 /// BranchUpdateResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BranchUpdateResponse {
     /// TODO: enum values: ["ok"]
     pub message: String,
@@ -407,13 +408,13 @@ pub struct BranchUpdateResponse {
 }
 
 /// BulkUpdateFunctionResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkUpdateFunctionResponse {
     pub functions: ::std::vec::Vec<serde_json::Value>,
 }
 
 /// CreateApiKeyBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateApiKeyBody {
     #[serde(default)]
     pub description: ::core::option::Option<String>,
@@ -426,7 +427,7 @@ pub struct CreateApiKeyBody {
 }
 
 /// CreateBranchBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateBranchBody {
     pub branch_name: String,
     /// TODO: enum values: ["pico", "nano", "micro", "small", "medium", "large", "xlarge", "2xlarge", "4xlarge", "8xlarge", "12xlarge", "16xlarge", "24xlarge", "24xlarge_optimized_memory", "24xlarge_optimized_cpu", "24xlarge_high_memory", "48xlarge", "48xlarge_optimized_memory", "48xlarge_optimized_cpu", "48xlarge_high_memory"]
@@ -456,13 +457,13 @@ pub struct CreateBranchBody {
 }
 
 /// CreateOrganizationV1 resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateOrganizationV1 {
     pub name: String,
 }
 
 /// CreateProjectClaimTokenResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateProjectClaimTokenResponse {
     pub created_at: String,
     pub created_by: String,
@@ -472,7 +473,7 @@ pub struct CreateProjectClaimTokenResponse {
 }
 
 /// CreateProviderBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateProviderBody {
     #[serde(default)]
     pub attribute_mapping: ::core::option::Option<serde_json::Value>,
@@ -491,7 +492,7 @@ pub struct CreateProviderBody {
 }
 
 /// CreateProviderResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateProviderResponse {
     #[serde(default)]
     pub created_at: ::core::option::Option<String>,
@@ -505,13 +506,13 @@ pub struct CreateProviderResponse {
 }
 
 /// CreateRoleBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateRoleBody {
     pub read_only: bool,
 }
 
 /// CreateRoleResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateRoleResponse {
     pub password: String,
     pub role: String,
@@ -519,7 +520,7 @@ pub struct CreateRoleResponse {
 }
 
 /// CreateSigningKeyBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateSigningKeyBody {
     /// TODO: enum values: ["EdDSA", "ES256", "RS256", "HS256"]
     pub algorithm: String,
@@ -531,7 +532,7 @@ pub struct CreateSigningKeyBody {
 }
 
 /// CreateThirdPartyAuthBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateThirdPartyAuthBody {
     #[serde(default)]
     pub custom_jwks: ::core::option::Option<serde_json::Value>,
@@ -542,14 +543,14 @@ pub struct CreateThirdPartyAuthBody {
 }
 
 /// DatabaseUpgradeStatusResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseUpgradeStatusResponse {
     #[serde(rename = "databaseUpgradeStatus")]
     pub database_upgrade_status: serde_json::Value,
 }
 
 /// DeleteProviderResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteProviderResponse {
     #[serde(default)]
     pub created_at: ::core::option::Option<String>,
@@ -563,14 +564,14 @@ pub struct DeleteProviderResponse {
 }
 
 /// DeleteRolesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteRolesResponse {
     /// TODO: enum values: ["ok"]
     pub message: String,
 }
 
 /// DeployFunctionResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeployFunctionResponse {
     #[serde(default)]
     pub created_at: ::core::option::Option<i64>,
@@ -595,7 +596,7 @@ pub struct DeployFunctionResponse {
 }
 
 /// DiskAutoscaleConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskAutoscaleConfig {
     /// Growth percentage for disk autoscaling
     pub growth_percent: i64,
@@ -606,13 +607,13 @@ pub struct DiskAutoscaleConfig {
 }
 
 /// DiskRequestBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskRequestBody {
     pub attributes: serde_json::Value,
 }
 
 /// DiskResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskResponse {
     pub attributes: serde_json::Value,
     #[serde(default)]
@@ -620,14 +621,14 @@ pub struct DiskResponse {
 }
 
 /// DiskUtilMetricsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskUtilMetricsResponse {
     pub metrics: serde_json::Value,
     pub timestamp: String,
 }
 
 /// FunctionDeployBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FunctionDeployBody {
     #[serde(default)]
     pub file: ::core::option::Option<::std::vec::Vec<String>>,
@@ -635,7 +636,7 @@ pub struct FunctionDeployBody {
 }
 
 /// FunctionResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FunctionResponse {
     pub created_at: i64,
     #[serde(default)]
@@ -658,7 +659,7 @@ pub struct FunctionResponse {
 }
 
 /// FunctionSlugResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FunctionSlugResponse {
     pub created_at: i64,
     #[serde(default)]
@@ -681,19 +682,19 @@ pub struct FunctionSlugResponse {
 }
 
 /// GetProjectAvailableRestoreVersionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetProjectAvailableRestoreVersionsResponse {
     pub available_versions: ::std::vec::Vec<serde_json::Value>,
 }
 
 /// GetProjectDbMetadataResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetProjectDbMetadataResponse {
     pub databases: ::std::vec::Vec<serde_json::Value>,
 }
 
 /// GetProviderResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetProviderResponse {
     #[serde(default)]
     pub created_at: ::core::option::Option<String>,
@@ -707,65 +708,65 @@ pub struct GetProviderResponse {
 }
 
 /// JitAccessRequestRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JitAccessRequestRequest {
     /// TODO: enum values: ["enabled", "disabled", "unavailable"]
     pub state: String,
 }
 
 /// JitAccessResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JitAccessResponse {
     pub user_id: String,
     pub user_roles: ::std::vec::Vec<serde_json::Value>,
 }
 
 /// JitAuthorizeAccessResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JitAuthorizeAccessResponse {
     pub user_id: String,
     pub user_role: serde_json::Value,
 }
 
 /// JitListAccessResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JitListAccessResponse {
     pub items: ::std::vec::Vec<serde_json::Value>,
 }
 
 /// LegacyApiKeysResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LegacyApiKeysResponse {
     pub enabled: bool,
 }
 
 /// ListProjectAddonsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProjectAddonsResponse {
     pub available_addons: ::std::vec::Vec<serde_json::Value>,
     pub selected_addons: ::std::vec::Vec<serde_json::Value>,
 }
 
 /// ListProvidersResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProvidersResponse {
     pub items: ::std::vec::Vec<serde_json::Value>,
 }
 
 /// NetworkBanResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkBanResponse {
     pub banned_ipv4_addresses: ::std::vec::Vec<String>,
 }
 
 /// NetworkBanResponseEnriched resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkBanResponseEnriched {
     pub banned_ipv4_addresses: ::std::vec::Vec<serde_json::Value>,
 }
 
 /// NetworkRestrictionsPatchRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkRestrictionsPatchRequest {
     #[serde(default)]
     pub add: ::core::option::Option<serde_json::Value>,
@@ -774,7 +775,7 @@ pub struct NetworkRestrictionsPatchRequest {
 }
 
 /// NetworkRestrictionsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkRestrictionsRequest {
     #[serde(default, rename = "dbAllowedCidrs")]
     pub db_allowed_cidrs: ::core::option::Option<::std::vec::Vec<String>>,
@@ -783,7 +784,7 @@ pub struct NetworkRestrictionsRequest {
 }
 
 /// NetworkRestrictionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkRestrictionsResponse {
     #[serde(default)]
     pub applied_at: ::core::option::Option<String>,
@@ -801,7 +802,7 @@ pub struct NetworkRestrictionsResponse {
 }
 
 /// NetworkRestrictionsV2Response resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkRestrictionsV2Response {
     #[serde(default)]
     pub applied_at: ::core::option::Option<String>,
@@ -819,7 +820,7 @@ pub struct NetworkRestrictionsV2Response {
 }
 
 /// OAuthRevokeTokenBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OAuthRevokeTokenBody {
     pub client_id: String,
     pub client_secret: String,
@@ -827,7 +828,7 @@ pub struct OAuthRevokeTokenBody {
 }
 
 /// OAuthTokenBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OAuthTokenBody {
     #[serde(default)]
     pub client_id: ::core::option::Option<String>,
@@ -852,7 +853,7 @@ pub struct OAuthTokenBody {
 }
 
 /// OAuthTokenResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OAuthTokenResponse {
     pub access_token: String,
     pub expires_in: i64,
@@ -862,7 +863,7 @@ pub struct OAuthTokenResponse {
 }
 
 /// OrganizationProjectClaimResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationProjectClaimResponse {
     pub created_at: String,
     pub created_by: String,
@@ -872,14 +873,14 @@ pub struct OrganizationProjectClaimResponse {
 }
 
 /// OrganizationProjectsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationProjectsResponse {
     pub pagination: serde_json::Value,
     pub projects: ::std::vec::Vec<serde_json::Value>,
 }
 
 /// OrganizationResponseV1 resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationResponseV1 {
     /// Deprecated: Use slug instead.
     pub id: String,
@@ -889,13 +890,13 @@ pub struct OrganizationResponseV1 {
 }
 
 /// PgsodiumConfigResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PgsodiumConfigResponse {
     pub root_key: String,
 }
 
 /// PostgresConfigResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostgresConfigResponse {
     /// Default unit: s
     #[serde(default)]
@@ -954,7 +955,7 @@ pub struct PostgresConfigResponse {
 }
 
 /// PostgrestConfigWithJWTSecretResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostgrestConfigWithJWTSecretResponse {
     pub db_extra_search_path: String,
     /// If null, the value is automatically configured based on compute size.
@@ -966,7 +967,7 @@ pub struct PostgrestConfigWithJWTSecretResponse {
 }
 
 /// ProjectClaimTokenResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectClaimTokenResponse {
     pub created_at: String,
     pub created_by: String,
@@ -975,7 +976,7 @@ pub struct ProjectClaimTokenResponse {
 }
 
 /// ProjectUpgradeEligibilityResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectUpgradeEligibilityResponse {
     pub current_app_version: String,
     /// TODO: enum values: ["internal", "alpha", "beta", "ga", "withdrawn", "preview"]
@@ -995,13 +996,13 @@ pub struct ProjectUpgradeEligibilityResponse {
 }
 
 /// ProjectUpgradeInitiateResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectUpgradeInitiateResponse {
     pub tracking_id: String,
 }
 
 /// ReadOnlyStatusResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadOnlyStatusResponse {
     pub enabled: bool,
     pub override_active_until: String,
@@ -1009,7 +1010,7 @@ pub struct ReadOnlyStatusResponse {
 }
 
 /// RealtimeConfigResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RealtimeConfigResponse {
     /// Sets connection pool size for Realtime Authorization
     pub connection_pool: i64,
@@ -1036,14 +1037,14 @@ pub struct RealtimeConfigResponse {
 }
 
 /// RegionsInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionsInfo {
     pub all: serde_json::Value,
     pub recommendations: serde_json::Value,
 }
 
 /// RemoveNetworkBanRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveNetworkBanRequest {
     #[serde(default)]
     pub identifier: ::core::option::Option<String>,
@@ -1055,13 +1056,13 @@ pub struct RemoveNetworkBanRequest {
 }
 
 /// RemoveReadReplicaBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveReadReplicaBody {
     pub database_identifier: String,
 }
 
 /// SecretResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretResponse {
     pub name: String,
     #[serde(default)]
@@ -1070,14 +1071,14 @@ pub struct SecretResponse {
 }
 
 /// SetUpReadReplicaBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetUpReadReplicaBody {
     /// Region you want your read replica to reside in // TODO: enum values: ["us-east-1", "us-east-2", "us-west-1", "us-west-2", "ap-east-1", "ap-southeast-1", "ap-northeast-1", "ap-northeast-2", "ap-southeast-2", "eu-west-1", "eu-west-2", "eu-west-3", "eu-north-1", "eu-central-1", "eu-central-2", "ca-central-1", "ap-south-1", "sa-east-1"]
     pub read_replica_region: String,
 }
 
 /// SigningKeyResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SigningKeyResponse {
     /// TODO: enum values: ["EdDSA", "ES256", "RS256", "HS256"]
     pub algorithm: String,
@@ -1091,13 +1092,13 @@ pub struct SigningKeyResponse {
 }
 
 /// SigningKeysResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SigningKeysResponse {
     pub keys: ::std::vec::Vec<serde_json::Value>,
 }
 
 /// SnippetList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SnippetList {
     #[serde(default)]
     pub cursor: ::core::option::Option<String>,
@@ -1105,7 +1106,7 @@ pub struct SnippetList {
 }
 
 /// SnippetResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SnippetResponse {
     pub content: serde_json::Value,
     pub description: String,
@@ -1125,14 +1126,14 @@ pub struct SnippetResponse {
 }
 
 /// SslEnforcementRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslEnforcementRequest {
     #[serde(rename = "requestedConfig")]
     pub requested_config: serde_json::Value,
 }
 
 /// SslEnforcementResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SslEnforcementResponse {
     #[serde(rename = "appliedSuccessfully")]
     pub applied_successfully: bool,
@@ -1141,7 +1142,7 @@ pub struct SslEnforcementResponse {
 }
 
 /// StorageConfigResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorageConfigResponse {
     pub capabilities: serde_json::Value,
     #[serde(rename = "databasePoolMode")]
@@ -1155,17 +1156,17 @@ pub struct StorageConfigResponse {
 }
 
 /// StreamableFile resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamableFile {}
 
 /// SubdomainAvailabilityResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubdomainAvailabilityResponse {
     pub available: bool,
 }
 
 /// SupavisorConfigResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SupavisorConfigResponse {
     /// Use connection_string instead
     #[serde(rename = "connectionString")]
@@ -1185,7 +1186,7 @@ pub struct SupavisorConfigResponse {
 }
 
 /// ThirdPartyAuth resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyAuth {
     #[serde(default)]
     pub custom_jwks: ::core::option::Option<serde_json::Value>,
@@ -1205,13 +1206,13 @@ pub struct ThirdPartyAuth {
 }
 
 /// TypescriptResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TypescriptResponse {
     pub types: String,
 }
 
 /// UpdateApiKeyBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateApiKeyBody {
     #[serde(default)]
     pub description: ::core::option::Option<String>,
@@ -1222,7 +1223,7 @@ pub struct UpdateApiKeyBody {
 }
 
 /// UpdateAuthConfigBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateAuthConfigBody {
     #[serde(default)]
     pub api_max_request_duration: ::core::option::Option<i64>,
@@ -1699,7 +1700,7 @@ pub struct UpdateAuthConfigBody {
 }
 
 /// UpdateBranchBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateBranchBody {
     #[serde(default)]
     pub branch_name: ::core::option::Option<String>,
@@ -1721,13 +1722,13 @@ pub struct UpdateBranchBody {
 }
 
 /// UpdateCustomHostnameBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateCustomHostnameBody {
     pub custom_hostname: String,
 }
 
 /// UpdateCustomHostnameResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateCustomHostnameResponse {
     pub custom_hostname: String,
     pub data: serde_json::Value,
@@ -1736,20 +1737,20 @@ pub struct UpdateCustomHostnameResponse {
 }
 
 /// UpdateJitAccessBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateJitAccessBody {
     pub roles: ::std::vec::Vec<serde_json::Value>,
     pub user_id: String,
 }
 
 /// UpdatePgsodiumConfigBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdatePgsodiumConfigBody {
     pub root_key: String,
 }
 
 /// UpdatePostgresConfigBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdatePostgresConfigBody {
     /// Default unit: s
     #[serde(default)]
@@ -1810,7 +1811,7 @@ pub struct UpdatePostgresConfigBody {
 }
 
 /// UpdateProviderBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateProviderBody {
     #[serde(default)]
     pub attribute_mapping: ::core::option::Option<serde_json::Value>,
@@ -1826,7 +1827,7 @@ pub struct UpdateProviderBody {
 }
 
 /// UpdateProviderResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateProviderResponse {
     #[serde(default)]
     pub created_at: ::core::option::Option<String>,
@@ -1840,7 +1841,7 @@ pub struct UpdateProviderResponse {
 }
 
 /// UpdateRealtimeConfigBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateRealtimeConfigBody {
     /// Sets connection pool size for Realtime Authorization
     #[serde(default)]
@@ -1878,7 +1879,7 @@ pub struct UpdateRealtimeConfigBody {
 }
 
 /// UpdateRunStatusBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateRunStatusBody {
     /// TODO: enum values: ["CREATED", "DEAD", "EXITED", "PAUSED", "REMOVING", "RESTARTING", "RUNNING"]
     #[serde(default)]
@@ -1904,21 +1905,21 @@ pub struct UpdateRunStatusBody {
 }
 
 /// UpdateRunStatusResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateRunStatusResponse {
     /// TODO: enum values: ["ok"]
     pub message: String,
 }
 
 /// UpdateSigningKeyBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateSigningKeyBody {
     /// TODO: enum values: ["in_use", "previously_used", "revoked", "standby"]
     pub status: String,
 }
 
 /// UpdateStorageConfigBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateStorageConfigBody {
     #[serde(default)]
     pub external: ::core::option::Option<serde_json::Value>,
@@ -1929,7 +1930,7 @@ pub struct UpdateStorageConfigBody {
 }
 
 /// UpdateSupavisorConfigBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateSupavisorConfigBody {
     #[serde(default)]
     pub default_pool_size: ::core::option::Option<i64>,
@@ -1939,14 +1940,14 @@ pub struct UpdateSupavisorConfigBody {
 }
 
 /// UpdateSupavisorConfigResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateSupavisorConfigResponse {
     pub default_pool_size: i64,
     pub pool_mode: String,
 }
 
 /// UpgradeDatabaseBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeDatabaseBody {
     /// TODO: enum values: ["internal", "alpha", "beta", "ga", "withdrawn", "preview"]
     #[serde(default)]
@@ -1955,7 +1956,7 @@ pub struct UpgradeDatabaseBody {
 }
 
 /// V1BackupsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1BackupsResponse {
     pub backups: ::std::vec::Vec<serde_json::Value>,
     pub physical_backup_data: serde_json::Value,
@@ -1965,7 +1966,7 @@ pub struct V1BackupsResponse {
 }
 
 /// V1CreateFunctionBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1CreateFunctionBody {
     pub body: String,
     pub name: String,
@@ -1975,7 +1976,7 @@ pub struct V1CreateFunctionBody {
 }
 
 /// V1CreateMigrationBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1CreateMigrationBody {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -1985,7 +1986,7 @@ pub struct V1CreateMigrationBody {
 }
 
 /// V1CreateProjectBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1CreateProjectBody {
     /// Database password
     pub db_pass: String,
@@ -2017,7 +2018,7 @@ pub struct V1CreateProjectBody {
 }
 
 /// V1GetMigrationResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1GetMigrationResponse {
     #[serde(default)]
     pub created_by: ::core::option::Option<String>,
@@ -2033,7 +2034,7 @@ pub struct V1GetMigrationResponse {
 }
 
 /// V1GetUsageApiCountResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1GetUsageApiCountResponse {
     #[serde(default)]
     pub error: ::core::option::Option<serde_json::Value>,
@@ -2042,7 +2043,7 @@ pub struct V1GetUsageApiCountResponse {
 }
 
 /// V1GetUsageApiRequestsCountResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1GetUsageApiRequestsCountResponse {
     #[serde(default)]
     pub error: ::core::option::Option<serde_json::Value>,
@@ -2051,20 +2052,20 @@ pub struct V1GetUsageApiRequestsCountResponse {
 }
 
 /// V1ListEntitlementsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1ListEntitlementsResponse {
     pub entitlements: ::std::vec::Vec<serde_json::Value>,
 }
 
 /// V1ListProjectsPaginatedResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1ListProjectsPaginatedResponse {
     pub pagination: serde_json::Value,
     pub projects: ::std::vec::Vec<serde_json::Value>,
 }
 
 /// V1OrganizationMemberResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1OrganizationMemberResponse {
     #[serde(default)]
     pub email: ::core::option::Option<String>,
@@ -2075,7 +2076,7 @@ pub struct V1OrganizationMemberResponse {
 }
 
 /// V1OrganizationSlugResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1OrganizationSlugResponse {
     pub allowed_release_channels: ::std::vec::Vec<String>,
     pub id: String,
@@ -2087,7 +2088,7 @@ pub struct V1OrganizationSlugResponse {
 }
 
 /// V1PatchMigrationBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1PatchMigrationBody {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -2096,7 +2097,7 @@ pub struct V1PatchMigrationBody {
 }
 
 /// V1PgbouncerConfigResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1PgbouncerConfigResponse {
     #[serde(default)]
     pub connection_string: ::core::option::Option<String>,
@@ -2120,7 +2121,7 @@ pub struct V1PgbouncerConfigResponse {
 }
 
 /// V1PostgrestConfigResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1PostgrestConfigResponse {
     pub db_extra_search_path: String,
     /// If null, the value is automatically configured based on compute size.
@@ -2130,7 +2131,7 @@ pub struct V1PostgrestConfigResponse {
 }
 
 /// V1ProfileResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1ProfileResponse {
     pub gotrue_id: String,
     pub primary_email: String,
@@ -2138,13 +2139,13 @@ pub struct V1ProfileResponse {
 }
 
 /// V1ProjectAdvisorsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1ProjectAdvisorsResponse {
     pub lints: ::std::vec::Vec<serde_json::Value>,
 }
 
 /// V1ProjectRefResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1ProjectRefResponse {
     pub id: i64,
     pub name: String,
@@ -2153,7 +2154,7 @@ pub struct V1ProjectRefResponse {
 }
 
 /// V1ProjectResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1ProjectResponse {
     /// Creation timestamp
     pub created_at: String,
@@ -2175,7 +2176,7 @@ pub struct V1ProjectResponse {
 }
 
 /// V1ProjectWithDatabaseResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1ProjectWithDatabaseResponse {
     /// Creation timestamp
     pub created_at: String,
@@ -2198,7 +2199,7 @@ pub struct V1ProjectWithDatabaseResponse {
 }
 
 /// V1ReadOnlyQueryBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1ReadOnlyQueryBody {
     #[serde(default)]
     pub parameters: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
@@ -2206,19 +2207,19 @@ pub struct V1ReadOnlyQueryBody {
 }
 
 /// V1RestorePitrBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1RestorePitrBody {
     pub recovery_time_target_unix: i64,
 }
 
 /// V1RestorePointPostBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1RestorePointPostBody {
     pub name: String,
 }
 
 /// V1RestorePointResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1RestorePointResponse {
     pub completed_on: String,
     pub name: String,
@@ -2227,7 +2228,7 @@ pub struct V1RestorePointResponse {
 }
 
 /// V1RunQueryBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1RunQueryBody {
     #[serde(default)]
     pub parameters: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
@@ -2237,7 +2238,7 @@ pub struct V1RunQueryBody {
 }
 
 /// V1ServiceHealthResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1ServiceHealthResponse {
     #[serde(default)]
     pub error: ::core::option::Option<String>,
@@ -2252,7 +2253,7 @@ pub struct V1ServiceHealthResponse {
 }
 
 /// V1StorageBucketResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1StorageBucketResponse {
     pub created_at: String,
     pub id: String,
@@ -2263,13 +2264,13 @@ pub struct V1StorageBucketResponse {
 }
 
 /// V1UndoBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1UndoBody {
     pub name: String,
 }
 
 /// V1UpdateFunctionBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1UpdateFunctionBody {
     #[serde(default)]
     pub body: ::core::option::Option<String>,
@@ -2280,19 +2281,19 @@ pub struct V1UpdateFunctionBody {
 }
 
 /// V1UpdatePasswordBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1UpdatePasswordBody {
     pub password: String,
 }
 
 /// V1UpdatePasswordResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1UpdatePasswordResponse {
     pub message: String,
 }
 
 /// V1UpdatePostgrestConfigBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1UpdatePostgrestConfigBody {
     #[serde(default)]
     pub db_extra_search_path: ::core::option::Option<String>,
@@ -2305,13 +2306,13 @@ pub struct V1UpdatePostgrestConfigBody {
 }
 
 /// V1UpdateProjectBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1UpdateProjectBody {
     pub name: String,
 }
 
 /// V1UpsertMigrationBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V1UpsertMigrationBody {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -2321,13 +2322,13 @@ pub struct V1UpsertMigrationBody {
 }
 
 /// VanitySubdomainBody resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VanitySubdomainBody {
     pub vanity_subdomain: String,
 }
 
 /// VanitySubdomainConfigResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VanitySubdomainConfigResponse {
     #[serde(default)]
     pub custom_domain: ::core::option::Option<String>,

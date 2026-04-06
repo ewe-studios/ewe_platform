@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/accounts/{accountsId}
 /// Retrieves a single CSS/MC account by ID.
@@ -115,6 +117,15 @@ pub fn css_accounts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`css_accounts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CssAccountsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}
 /// Retrieves a single CSS/MC account by ID.
 ///
@@ -127,13 +138,12 @@ pub fn css_accounts_get_execute(
 
 pub fn css_accounts_get(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
+    args: &CssAccountsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = css_accounts_get_builder(client, name, parent)?;
+    let builder = css_accounts_get_builder(client, &args.name, args.parent.as_deref())?;
     css_accounts_get_execute(builder)
 }
 
@@ -253,6 +263,21 @@ pub fn css_accounts_list_child_accounts_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`css_accounts_list_child_accounts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CssAccountsListChildAccountsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: fullName
+    pub fullName: Option<String>,
+    /// Query parameter: labelId
+    pub labelId: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}:listChildAccounts
 /// Lists all the accounts under the specified CSS account ID, and optionally filters by label ID and account name.
 ///
@@ -265,11 +290,7 @@ pub fn css_accounts_list_child_accounts_execute(
 
 pub fn css_accounts_list_child_accounts(
     client: &SimpleHttpClient,
-    parent: &str,
-    fullName: Option<&str>,
-    labelId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CssAccountsListChildAccountsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListChildAccountsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -277,7 +298,12 @@ pub fn css_accounts_list_child_accounts(
     ApiError,
 > {
     let builder = css_accounts_list_child_accounts_builder(
-        client, parent, fullName, labelId, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.fullName.as_deref(),
+        args.labelId.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     css_accounts_list_child_accounts_execute(builder)
 }
@@ -375,6 +401,15 @@ pub fn css_accounts_update_labels_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`css_accounts_update_labels`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CssAccountsUpdateLabelsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpdateAccountLabelsRequest,
+}
+
 /// GET v1/accounts/{accountsId}:updateLabels
 /// Updates labels assigned to CSS/MC accounts by a CSS domain.
 ///
@@ -387,13 +422,12 @@ pub fn css_accounts_update_labels_execute(
 
 pub fn css_accounts_update_labels(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateAccountLabelsRequest,
+    args: &CssAccountsUpdateLabelsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = css_accounts_update_labels_builder(client, name, body)?;
+    let builder = css_accounts_update_labels_builder(client, &args.name, &args.body)?;
     css_accounts_update_labels_execute(builder)
 }
 
@@ -499,6 +533,15 @@ pub fn css_accounts_css_product_inputs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`css_accounts_css_product_inputs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CssAccountsCssProductInputsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: supplementalFeedId
+    pub supplementalFeedId: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/cssProductInputs/{cssProductInputsId}
 /// Deletes a CSS Product input from your CSS Center account. After a delete it may take several minutes until the input is no longer available.
 ///
@@ -511,13 +554,16 @@ pub fn css_accounts_css_product_inputs_delete_execute(
 
 pub fn css_accounts_css_product_inputs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    supplementalFeedId: Option<&str>,
+    args: &CssAccountsCssProductInputsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = css_accounts_css_product_inputs_delete_builder(client, name, supplementalFeedId)?;
+    let builder = css_accounts_css_product_inputs_delete_builder(
+        client,
+        &args.name,
+        args.supplementalFeedId.as_deref(),
+    )?;
     css_accounts_css_product_inputs_delete_execute(builder)
 }
 
@@ -628,6 +674,17 @@ pub fn css_accounts_css_product_inputs_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`css_accounts_css_product_inputs_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CssAccountsCssProductInputsInsertArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: feedId
+    pub feedId: Option<String>,
+    /// Request body.
+    pub body: CssProductInput,
+}
+
 /// GET v1/accounts/{accountsId}/cssProductInputs:insert
 /// Uploads a CssProductInput to your CSS Center account. If an input with the same `contentLanguage`, identity, `feedLabel` and `feedId` already exists, this method replaces that entry. After inserting, updating, or deleting a CSS Product input, it may take several minutes before the processed CSS Product can be retrieved.
 ///
@@ -640,16 +697,19 @@ pub fn css_accounts_css_product_inputs_insert_execute(
 
 pub fn css_accounts_css_product_inputs_insert(
     client: &SimpleHttpClient,
-    parent: &str,
-    feedId: Option<&str>,
-    body: &CssProductInput,
+    args: &CssAccountsCssProductInputsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CssProductInput>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = css_accounts_css_product_inputs_insert_builder(client, parent, feedId, body)?;
+    let builder = css_accounts_css_product_inputs_insert_builder(
+        client,
+        &args.parent,
+        args.feedId.as_deref(),
+        &args.body,
+    )?;
     css_accounts_css_product_inputs_insert_execute(builder)
 }
 
@@ -760,6 +820,17 @@ pub fn css_accounts_css_product_inputs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`css_accounts_css_product_inputs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CssAccountsCssProductInputsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CssProductInput,
+}
+
 /// GET v1/accounts/{accountsId}/cssProductInputs/{cssProductInputsId}
 /// Updates the existing Css Product input in your CSS Center account. After inserting, updating, or deleting a CSS Product input, it may take several minutes before the processed Css Product can be retrieved.
 ///
@@ -772,16 +843,19 @@ pub fn css_accounts_css_product_inputs_patch_execute(
 
 pub fn css_accounts_css_product_inputs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &CssProductInput,
+    args: &CssAccountsCssProductInputsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CssProductInput>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = css_accounts_css_product_inputs_patch_builder(client, name, updateMask, body)?;
+    let builder = css_accounts_css_product_inputs_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     css_accounts_css_product_inputs_patch_execute(builder)
 }
 
@@ -875,6 +949,13 @@ pub fn css_accounts_css_products_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`css_accounts_css_products_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CssAccountsCssProductsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/cssProducts/{cssProductsId}
 /// Retrieves the processed CSS Product from your CSS Center account. After inserting, updating, or deleting a product input, it may take several minutes before the updated final product can be retrieved.
 ///
@@ -887,12 +968,12 @@ pub fn css_accounts_css_products_get_execute(
 
 pub fn css_accounts_css_products_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CssAccountsCssProductsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CssProduct>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = css_accounts_css_products_get_builder(client, name)?;
+    let builder = css_accounts_css_products_get_builder(client, &args.name)?;
     css_accounts_css_products_get_execute(builder)
 }
 
@@ -1004,6 +1085,17 @@ pub fn css_accounts_css_products_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`css_accounts_css_products_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CssAccountsCssProductsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/cssProducts
 /// Lists the processed CSS Products in your CSS Center account. The response might contain fewer items than specified by `pageSize`. Rely on `pageToken` to determine if there are more items to be requested. After inserting, updating, or deleting a CSS product input, it may take several minutes before the updated processed CSS product can be retrieved.
 ///
@@ -1016,16 +1108,19 @@ pub fn css_accounts_css_products_list_execute(
 
 pub fn css_accounts_css_products_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CssAccountsCssProductsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCssProductsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = css_accounts_css_products_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = css_accounts_css_products_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     css_accounts_css_products_list_execute(builder)
 }
 
@@ -1121,6 +1216,15 @@ pub fn css_accounts_labels_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`css_accounts_labels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CssAccountsLabelsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AccountLabel,
+}
+
 /// GET v1/accounts/{accountsId}/labels
 /// Creates a new label, not assigned to any account.
 ///
@@ -1133,15 +1237,14 @@ pub fn css_accounts_labels_create_execute(
 
 pub fn css_accounts_labels_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AccountLabel,
+    args: &CssAccountsLabelsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountLabel>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = css_accounts_labels_create_builder(client, parent, body)?;
+    let builder = css_accounts_labels_create_builder(client, &args.parent, &args.body)?;
     css_accounts_labels_create_execute(builder)
 }
 
@@ -1232,6 +1335,13 @@ pub fn css_accounts_labels_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`css_accounts_labels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CssAccountsLabelsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/labels/{labelsId}
 /// Deletes a label and removes it from all accounts to which it was assigned.
 ///
@@ -1244,12 +1354,12 @@ pub fn css_accounts_labels_delete_execute(
 
 pub fn css_accounts_labels_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CssAccountsLabelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = css_accounts_labels_delete_builder(client, name)?;
+    let builder = css_accounts_labels_delete_builder(client, &args.name)?;
     css_accounts_labels_delete_execute(builder)
 }
 
@@ -1358,6 +1468,17 @@ pub fn css_accounts_labels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`css_accounts_labels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CssAccountsLabelsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/labels
 /// Lists the labels owned by an account.
 ///
@@ -1370,16 +1491,19 @@ pub fn css_accounts_labels_list_execute(
 
 pub fn css_accounts_labels_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CssAccountsLabelsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAccountLabelsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = css_accounts_labels_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = css_accounts_labels_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     css_accounts_labels_list_execute(builder)
 }
 
@@ -1475,6 +1599,15 @@ pub fn css_accounts_labels_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`css_accounts_labels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CssAccountsLabelsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AccountLabel,
+}
+
 /// GET v1/accounts/{accountsId}/labels/{labelsId}
 /// Updates a label.
 ///
@@ -1487,15 +1620,14 @@ pub fn css_accounts_labels_patch_execute(
 
 pub fn css_accounts_labels_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AccountLabel,
+    args: &CssAccountsLabelsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccountLabel>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = css_accounts_labels_patch_builder(client, name, body)?;
+    let builder = css_accounts_labels_patch_builder(client, &args.name, &args.body)?;
     css_accounts_labels_patch_execute(builder)
 }
 
@@ -1604,6 +1736,17 @@ pub fn css_accounts_quotas_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`css_accounts_quotas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CssAccountsQuotasListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/quotas
 /// Lists the daily call quota and usage per group for your CSS Center account.
 ///
@@ -1616,15 +1759,18 @@ pub fn css_accounts_quotas_list_execute(
 
 pub fn css_accounts_quotas_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CssAccountsQuotasListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListQuotaGroupsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = css_accounts_quotas_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = css_accounts_quotas_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     css_accounts_quotas_list_execute(builder)
 }

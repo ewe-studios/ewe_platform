@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/hybrid/issuers
 /// Lists hybrid services and its trusted issuers service account ids. This api is authenticated and unauthorized(allow all the users) and used by runtime authn-authz service to query control plane's issuer service account ids.
@@ -108,6 +110,13 @@ pub fn apigee_hybrid_issuers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_hybrid_issuers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeHybridIssuersListArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/hybrid/issuers
 /// Lists hybrid services and its trusted issuers service account ids. This api is authenticated and unauthorized(allow all the users) and used by runtime authn-authz service to query control plane's issuer service account ids.
 ///
@@ -120,7 +129,7 @@ pub fn apigee_hybrid_issuers_list_execute(
 
 pub fn apigee_hybrid_issuers_list(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeHybridIssuersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListHybridIssuersResponse>, ApiError>,
@@ -129,7 +138,7 @@ pub fn apigee_hybrid_issuers_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_hybrid_issuers_list_builder(client, name)?;
+    let builder = apigee_hybrid_issuers_list_builder(client, &args.name)?;
     apigee_hybrid_issuers_list_execute(builder)
 }
 
@@ -238,6 +247,15 @@ pub fn apigee_organizations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsCreateArgs {
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Organization,
+}
+
 /// GET v1/organizations
 /// Creates an Apigee organization. See [Create an Apigee organization](<https://cloud.google.`com/apigee/docs/api-platform/get-started/create-org`>).
 ///
@@ -250,8 +268,7 @@ pub fn apigee_organizations_create_execute(
 
 pub fn apigee_organizations_create(
     client: &SimpleHttpClient,
-    parent: Option<&str>,
-    body: &GoogleCloudApigeeV1Organization,
+    args: &ApigeeOrganizationsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -260,7 +277,7 @@ pub fn apigee_organizations_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_create_builder(client, args.parent.as_deref(), &args.body)?;
     apigee_organizations_create_execute(builder)
 }
 
@@ -367,6 +384,15 @@ pub fn apigee_organizations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: retention
+    pub retention: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}
 /// Delete an Apigee organization. For organizations with BillingType EVALUATION, an immediate deletion is performed. For paid organizations (Subscription or Pay-as-you-go), a soft-deletion is performed. The organization can be restored within the soft-deletion period, which is specified using the retention field in the request or by filing a support ticket with Apigee. During the data retention period specified in the request, the Apigee organization cannot be recreated in the same Google Cloud project. **IMPORTANT: The default data retention setting for this operation is 7 days. To permanently delete the organization in 24 hours, set the retention parameter to MINIMUM.**
 ///
@@ -379,8 +405,7 @@ pub fn apigee_organizations_delete_execute(
 
 pub fn apigee_organizations_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    retention: Option<&str>,
+    args: &ApigeeOrganizationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -389,7 +414,8 @@ pub fn apigee_organizations_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_delete_builder(client, name, retention)?;
+    let builder =
+        apigee_organizations_delete_builder(client, &args.name, args.retention.as_deref())?;
     apigee_organizations_delete_execute(builder)
 }
 
@@ -484,6 +510,13 @@ pub fn apigee_organizations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}
 /// Gets the profile for an Apigee organization. See [Understanding organizations](<https://cloud.google.`com/apigee/docs/api-platform/fundamentals/organization-structure`>).
 ///
@@ -496,7 +529,7 @@ pub fn apigee_organizations_get_execute(
 
 pub fn apigee_organizations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Organization>, ApiError>,
@@ -505,7 +538,7 @@ pub fn apigee_organizations_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_get_builder(client, name)?;
+    let builder = apigee_organizations_get_builder(client, &args.name)?;
     apigee_organizations_get_execute(builder)
 }
 
@@ -603,6 +636,13 @@ pub fn apigee_organizations_get_control_plane_access_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_get_control_plane_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsGetControlPlaneAccessArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/controlPlaneAccess
 /// Lists the service accounts allowed to access Apigee control plane directly for limited functionality. **Note**: Available to Apigee hybrid only.
 ///
@@ -615,7 +655,7 @@ pub fn apigee_organizations_get_control_plane_access_execute(
 
 pub fn apigee_organizations_get_control_plane_access(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsGetControlPlaneAccessArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ControlPlaneAccess>, ApiError>,
@@ -624,7 +664,7 @@ pub fn apigee_organizations_get_control_plane_access(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_get_control_plane_access_builder(client, name)?;
+    let builder = apigee_organizations_get_control_plane_access_builder(client, &args.name)?;
     apigee_organizations_get_control_plane_access_execute(builder)
 }
 
@@ -734,6 +774,15 @@ pub fn apigee_organizations_get_deployed_ingress_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_get_deployed_ingress_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsGetDeployedIngressConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/deployedIngressConfig
 /// Gets the deployed ingress configuration for an organization.
 ///
@@ -746,8 +795,7 @@ pub fn apigee_organizations_get_deployed_ingress_config_execute(
 
 pub fn apigee_organizations_get_deployed_ingress_config(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &ApigeeOrganizationsGetDeployedIngressConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1IngressConfig>, ApiError>,
@@ -756,7 +804,11 @@ pub fn apigee_organizations_get_deployed_ingress_config(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_get_deployed_ingress_config_builder(client, name, view)?;
+    let builder = apigee_organizations_get_deployed_ingress_config_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     apigee_organizations_get_deployed_ingress_config_execute(builder)
 }
 
@@ -855,6 +907,13 @@ pub fn apigee_organizations_get_project_mapping_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_get_project_mapping`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsGetProjectMappingArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}:getProjectMapping
 /// Gets the project ID and region for an Apigee organization.
 ///
@@ -867,7 +926,7 @@ pub fn apigee_organizations_get_project_mapping_execute(
 
 pub fn apigee_organizations_get_project_mapping(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsGetProjectMappingArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1OrganizationProjectMapping>, ApiError>,
@@ -876,7 +935,7 @@ pub fn apigee_organizations_get_project_mapping(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_get_project_mapping_builder(client, name)?;
+    let builder = apigee_organizations_get_project_mapping_builder(client, &args.name)?;
     apigee_organizations_get_project_mapping_execute(builder)
 }
 
@@ -974,6 +1033,13 @@ pub fn apigee_organizations_get_runtime_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_get_runtime_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsGetRuntimeConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/runtimeConfig
 /// Get runtime config for an organization.
 ///
@@ -986,7 +1052,7 @@ pub fn apigee_organizations_get_runtime_config_execute(
 
 pub fn apigee_organizations_get_runtime_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsGetRuntimeConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1RuntimeConfig>, ApiError>,
@@ -995,7 +1061,7 @@ pub fn apigee_organizations_get_runtime_config(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_get_runtime_config_builder(client, name)?;
+    let builder = apigee_organizations_get_runtime_config_builder(client, &args.name)?;
     apigee_organizations_get_runtime_config_execute(builder)
 }
 
@@ -1093,6 +1159,13 @@ pub fn apigee_organizations_get_security_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_get_security_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsGetSecuritySettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/securitySettings
 /// GetSecuritySettings gets the security settings for API Security.
 ///
@@ -1105,7 +1178,7 @@ pub fn apigee_organizations_get_security_settings_execute(
 
 pub fn apigee_organizations_get_security_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsGetSecuritySettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecuritySettings>, ApiError>,
@@ -1114,7 +1187,7 @@ pub fn apigee_organizations_get_security_settings(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_get_security_settings_builder(client, name)?;
+    let builder = apigee_organizations_get_security_settings_builder(client, &args.name)?;
     apigee_organizations_get_security_settings_execute(builder)
 }
 
@@ -1215,6 +1288,15 @@ pub fn apigee_organizations_get_sync_authorization_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_get_sync_authorization`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsGetSyncAuthorizationArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1GetSyncAuthorizationRequest,
+}
+
 /// GET v1/organizations/{organizationsId}:getSyncAuthorization
 /// Lists the service accounts with the permissions required to allow the Synchronizer to download environment data from the control plane. An ETag is returned in the response to `getSyncAuthorization`. Pass that ETag when calling [`setSyncAuthorization`](`setSyncAuthorization`) to ensure that you are updating the correct version. If you don't pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
 ///
@@ -1227,8 +1309,7 @@ pub fn apigee_organizations_get_sync_authorization_execute(
 
 pub fn apigee_organizations_get_sync_authorization(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1GetSyncAuthorizationRequest,
+    args: &ApigeeOrganizationsGetSyncAuthorizationArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SyncAuthorization>, ApiError>,
@@ -1237,7 +1318,8 @@ pub fn apigee_organizations_get_sync_authorization(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_get_sync_authorization_builder(client, name, body)?;
+    let builder =
+        apigee_organizations_get_sync_authorization_builder(client, &args.name, &args.body)?;
     apigee_organizations_get_sync_authorization_execute(builder)
 }
 
@@ -1333,6 +1415,13 @@ pub fn apigee_organizations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/organizations
 /// Lists the Apigee organizations and associated Google Cloud projects that you have permission to access. See [Understanding organizations](<https://cloud.google.`com/apigee/docs/api-platform/fundamentals/organization-structure`>).
 ///
@@ -1345,7 +1434,7 @@ pub fn apigee_organizations_list_execute(
 
 pub fn apigee_organizations_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ApigeeOrganizationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListOrganizationsResponse>, ApiError>,
@@ -1354,7 +1443,7 @@ pub fn apigee_organizations_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_list_builder(client, parent)?;
+    let builder = apigee_organizations_list_builder(client, &args.parent)?;
     apigee_organizations_list_execute(builder)
 }
 
@@ -1455,6 +1544,15 @@ pub fn apigee_organizations_set_addons_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_set_addons`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSetAddonsArgs {
+    /// Path parameter: org
+    pub org: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SetAddonsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}:setAddons
 /// Configures the add-ons for the Apigee organization. The existing add-on configuration will be fully replaced.
 ///
@@ -1467,8 +1565,7 @@ pub fn apigee_organizations_set_addons_execute(
 
 pub fn apigee_organizations_set_addons(
     client: &SimpleHttpClient,
-    org: &str,
-    body: &GoogleCloudApigeeV1SetAddonsRequest,
+    args: &ApigeeOrganizationsSetAddonsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1477,7 +1574,7 @@ pub fn apigee_organizations_set_addons(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_set_addons_builder(client, org, body)?;
+    let builder = apigee_organizations_set_addons_builder(client, &args.org, &args.body)?;
     apigee_organizations_set_addons_execute(builder)
 }
 
@@ -1578,6 +1675,15 @@ pub fn apigee_organizations_set_sync_authorization_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_set_sync_authorization`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSetSyncAuthorizationArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SyncAuthorization,
+}
+
 /// GET v1/organizations/{organizationsId}:setSyncAuthorization
 /// Sets the permissions required to allow the Synchronizer to download environment data from the control plane. You must call this API to enable proper functioning of hybrid. Pass the ETag when calling `setSyncAuthorization` to ensure that you are updating the correct version. To get an ETag, call [`getSyncAuthorization`](`getSyncAuthorization`). If you don't pass the ETag in the call to `setSyncAuthorization`, then the existing authorization is overwritten indiscriminately. For more information, see [Configure the Synchronizer](<https://cloud.google.`com/apigee/docs/hybrid/latest/synchronizer-access`>). **Note**: Available to Apigee hybrid only.
 ///
@@ -1590,8 +1696,7 @@ pub fn apigee_organizations_set_sync_authorization_execute(
 
 pub fn apigee_organizations_set_sync_authorization(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1SyncAuthorization,
+    args: &ApigeeOrganizationsSetSyncAuthorizationArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SyncAuthorization>, ApiError>,
@@ -1600,7 +1705,8 @@ pub fn apigee_organizations_set_sync_authorization(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_set_sync_authorization_builder(client, name, body)?;
+    let builder =
+        apigee_organizations_set_sync_authorization_builder(client, &args.name, &args.body)?;
     apigee_organizations_set_sync_authorization_execute(builder)
 }
 
@@ -1698,6 +1804,15 @@ pub fn apigee_organizations_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Organization,
+}
+
 /// GET v1/organizations/{organizationsId}
 /// Updates the properties for an Apigee organization. No other fields in the organization profile will be updated.
 ///
@@ -1710,8 +1825,7 @@ pub fn apigee_organizations_update_execute(
 
 pub fn apigee_organizations_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1Organization,
+    args: &ApigeeOrganizationsUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Organization>, ApiError>,
@@ -1720,7 +1834,7 @@ pub fn apigee_organizations_update(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_update_builder(client, name, body)?;
+    let builder = apigee_organizations_update_builder(client, &args.name, &args.body)?;
     apigee_organizations_update_execute(builder)
 }
 
@@ -1833,6 +1947,17 @@ pub fn apigee_organizations_update_control_plane_access_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_update_control_plane_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsUpdateControlPlaneAccessArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ControlPlaneAccess,
+}
+
 /// GET v1/organizations/{organizationsId}/controlPlaneAccess
 /// Updates the permissions required to allow Apigee runtime-plane components access to the control plane. Currently, the permissions required are to: 1. Allow runtime components to publish analytics data to the control plane. **Note**: Available to Apigee hybrid only.
 ///
@@ -1845,9 +1970,7 @@ pub fn apigee_organizations_update_control_plane_access_execute(
 
 pub fn apigee_organizations_update_control_plane_access(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1ControlPlaneAccess,
+    args: &ApigeeOrganizationsUpdateControlPlaneAccessArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1856,8 +1979,12 @@ pub fn apigee_organizations_update_control_plane_access(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_update_control_plane_access_builder(client, name, updateMask, body)?;
+    let builder = apigee_organizations_update_control_plane_access_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_update_control_plane_access_execute(builder)
 }
 
@@ -1970,6 +2097,17 @@ pub fn apigee_organizations_update_security_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_update_security_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsUpdateSecuritySettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecuritySettings,
+}
+
 /// GET v1/organizations/{organizationsId}/securitySettings
 /// UpdateSecuritySettings updates the current security settings for API Security.
 ///
@@ -1982,9 +2120,7 @@ pub fn apigee_organizations_update_security_settings_execute(
 
 pub fn apigee_organizations_update_security_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1SecuritySettings,
+    args: &ApigeeOrganizationsUpdateSecuritySettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecuritySettings>, ApiError>,
@@ -1993,8 +2129,12 @@ pub fn apigee_organizations_update_security_settings(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_update_security_settings_builder(client, name, updateMask, body)?;
+    let builder = apigee_organizations_update_security_settings_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_update_security_settings_execute(builder)
 }
 
@@ -2095,6 +2235,15 @@ pub fn apigee_organizations_analytics_datastores_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_analytics_datastores_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAnalyticsDatastoresCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Datastore,
+}
+
 /// GET v1/organizations/{organizationsId}/analytics/datastores
 /// Create a Datastore for an org
 ///
@@ -2107,8 +2256,7 @@ pub fn apigee_organizations_analytics_datastores_create_execute(
 
 pub fn apigee_organizations_analytics_datastores_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1Datastore,
+    args: &ApigeeOrganizationsAnalyticsDatastoresCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Datastore>, ApiError>,
@@ -2117,7 +2265,8 @@ pub fn apigee_organizations_analytics_datastores_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_analytics_datastores_create_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_analytics_datastores_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_analytics_datastores_create_execute(builder)
 }
 
@@ -2213,6 +2362,13 @@ pub fn apigee_organizations_analytics_datastores_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_analytics_datastores_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAnalyticsDatastoresDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/analytics/datastores/{datastoresId}
 /// Delete a Datastore from an org.
 ///
@@ -2225,14 +2381,14 @@ pub fn apigee_organizations_analytics_datastores_delete_execute(
 
 pub fn apigee_organizations_analytics_datastores_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsAnalyticsDatastoresDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_analytics_datastores_delete_builder(client, name)?;
+    let builder = apigee_organizations_analytics_datastores_delete_builder(client, &args.name)?;
     apigee_organizations_analytics_datastores_delete_execute(builder)
 }
 
@@ -2330,6 +2486,13 @@ pub fn apigee_organizations_analytics_datastores_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_analytics_datastores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAnalyticsDatastoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/analytics/datastores/{datastoresId}
 /// Get a Datastore
 ///
@@ -2342,7 +2505,7 @@ pub fn apigee_organizations_analytics_datastores_get_execute(
 
 pub fn apigee_organizations_analytics_datastores_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsAnalyticsDatastoresGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Datastore>, ApiError>,
@@ -2351,7 +2514,7 @@ pub fn apigee_organizations_analytics_datastores_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_analytics_datastores_get_builder(client, name)?;
+    let builder = apigee_organizations_analytics_datastores_get_builder(client, &args.name)?;
     apigee_organizations_analytics_datastores_get_execute(builder)
 }
 
@@ -2461,6 +2624,15 @@ pub fn apigee_organizations_analytics_datastores_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_analytics_datastores_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAnalyticsDatastoresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: targetType
+    pub targetType: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/analytics/datastores
 /// List Datastores
 ///
@@ -2473,8 +2645,7 @@ pub fn apigee_organizations_analytics_datastores_list_execute(
 
 pub fn apigee_organizations_analytics_datastores_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    targetType: Option<&str>,
+    args: &ApigeeOrganizationsAnalyticsDatastoresListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListDatastoresResponse>, ApiError>,
@@ -2483,8 +2654,11 @@ pub fn apigee_organizations_analytics_datastores_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_analytics_datastores_list_builder(client, parent, targetType)?;
+    let builder = apigee_organizations_analytics_datastores_list_builder(
+        client,
+        &args.parent,
+        args.targetType.as_deref(),
+    )?;
     apigee_organizations_analytics_datastores_list_execute(builder)
 }
 
@@ -2585,6 +2759,15 @@ pub fn apigee_organizations_analytics_datastores_test_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_analytics_datastores_test`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAnalyticsDatastoresTestArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Datastore,
+}
+
 /// GET v1/organizations/{organizationsId}/analytics/datastores:test
 /// Test if Datastore configuration is correct. This includes checking if credentials provided by customer have required permissions in target destination storage
 ///
@@ -2597,8 +2780,7 @@ pub fn apigee_organizations_analytics_datastores_test_execute(
 
 pub fn apigee_organizations_analytics_datastores_test(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1Datastore,
+    args: &ApigeeOrganizationsAnalyticsDatastoresTestArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1TestDatastoreResponse>, ApiError>,
@@ -2607,7 +2789,8 @@ pub fn apigee_organizations_analytics_datastores_test(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_analytics_datastores_test_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_analytics_datastores_test_builder(client, &args.parent, &args.body)?;
     apigee_organizations_analytics_datastores_test_execute(builder)
 }
 
@@ -2708,6 +2891,15 @@ pub fn apigee_organizations_analytics_datastores_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_analytics_datastores_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAnalyticsDatastoresUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Datastore,
+}
+
 /// GET v1/organizations/{organizationsId}/analytics/datastores/{datastoresId}
 /// Update a Datastore
 ///
@@ -2720,8 +2912,7 @@ pub fn apigee_organizations_analytics_datastores_update_execute(
 
 pub fn apigee_organizations_analytics_datastores_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1Datastore,
+    args: &ApigeeOrganizationsAnalyticsDatastoresUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Datastore>, ApiError>,
@@ -2730,7 +2921,8 @@ pub fn apigee_organizations_analytics_datastores_update(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_analytics_datastores_update_builder(client, name, body)?;
+    let builder =
+        apigee_organizations_analytics_datastores_update_builder(client, &args.name, &args.body)?;
     apigee_organizations_analytics_datastores_update_execute(builder)
 }
 
@@ -2843,6 +3035,17 @@ pub fn apigee_organizations_apim_service_extensions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apim_service_extensions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApimServiceExtensionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: apimServiceExtensionId
+    pub apimServiceExtensionId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ApimServiceExtension,
+}
+
 /// GET v1/organizations/{organizationsId}/apimServiceExtensions
 /// Creates an APIM ServiceExtension in an organization.
 ///
@@ -2855,9 +3058,7 @@ pub fn apigee_organizations_apim_service_extensions_create_execute(
 
 pub fn apigee_organizations_apim_service_extensions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    apimServiceExtensionId: Option<&str>,
-    body: &GoogleCloudApigeeV1ApimServiceExtension,
+    args: &ApigeeOrganizationsApimServiceExtensionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2868,9 +3069,9 @@ pub fn apigee_organizations_apim_service_extensions_create(
 > {
     let builder = apigee_organizations_apim_service_extensions_create_builder(
         client,
-        parent,
-        apimServiceExtensionId,
-        body,
+        &args.parent,
+        args.apimServiceExtensionId.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_apim_service_extensions_create_execute(builder)
 }
@@ -2969,6 +3170,13 @@ pub fn apigee_organizations_apim_service_extensions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apim_service_extensions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApimServiceExtensionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apimServiceExtensions/{apimServiceExtensionsId}
 /// Deletes APIM service extension from an organization.
 ///
@@ -2981,7 +3189,7 @@ pub fn apigee_organizations_apim_service_extensions_delete_execute(
 
 pub fn apigee_organizations_apim_service_extensions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsApimServiceExtensionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2990,7 +3198,7 @@ pub fn apigee_organizations_apim_service_extensions_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apim_service_extensions_delete_builder(client, name)?;
+    let builder = apigee_organizations_apim_service_extensions_delete_builder(client, &args.name)?;
     apigee_organizations_apim_service_extensions_delete_execute(builder)
 }
 
@@ -3089,6 +3297,13 @@ pub fn apigee_organizations_apim_service_extensions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apim_service_extensions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApimServiceExtensionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apimServiceExtensions/{apimServiceExtensionsId}
 /// Gets APIM service extension details.
 ///
@@ -3101,7 +3316,7 @@ pub fn apigee_organizations_apim_service_extensions_get_execute(
 
 pub fn apigee_organizations_apim_service_extensions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsApimServiceExtensionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApimServiceExtension>, ApiError>,
@@ -3110,7 +3325,7 @@ pub fn apigee_organizations_apim_service_extensions_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apim_service_extensions_get_builder(client, name)?;
+    let builder = apigee_organizations_apim_service_extensions_get_builder(client, &args.name)?;
     apigee_organizations_apim_service_extensions_get_execute(builder)
 }
 
@@ -3225,6 +3440,17 @@ pub fn apigee_organizations_apim_service_extensions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apim_service_extensions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApimServiceExtensionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/apimServiceExtensions
 /// Lists all APIM service extensions in an organization.
 ///
@@ -3237,9 +3463,7 @@ pub fn apigee_organizations_apim_service_extensions_list_execute(
 
 pub fn apigee_organizations_apim_service_extensions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsApimServiceExtensionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListApimServiceExtensionsResponse>, ApiError>,
@@ -3249,7 +3473,10 @@ pub fn apigee_organizations_apim_service_extensions_list(
     ApiError,
 > {
     let builder = apigee_organizations_apim_service_extensions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigee_organizations_apim_service_extensions_list_execute(builder)
 }
@@ -3367,6 +3594,19 @@ pub fn apigee_organizations_apim_service_extensions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apim_service_extensions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApimServiceExtensionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ApimServiceExtension,
+}
+
 /// GET v1/organizations/{organizationsId}/apimServiceExtensions/{apimServiceExtensionsId}
 /// Updates an APIM service extension in an organization.
 ///
@@ -3379,10 +3619,7 @@ pub fn apigee_organizations_apim_service_extensions_patch_execute(
 
 pub fn apigee_organizations_apim_service_extensions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1ApimServiceExtension,
+    args: &ApigeeOrganizationsApimServiceExtensionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3393,10 +3630,10 @@ pub fn apigee_organizations_apim_service_extensions_patch(
 > {
     let builder = apigee_organizations_apim_service_extensions_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_apim_service_extensions_patch_execute(builder)
 }
@@ -3498,6 +3735,15 @@ pub fn apigee_organizations_apiproducts_attributes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_attributes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsAttributesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Attributes,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/attributes
 /// Updates or creates API product attributes. This API **replaces** the current list of attributes with the attributes specified in the request body. In this way, you can update existing attributes, add new attributes, or delete existing attributes by omitting them from the request body. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
 ///
@@ -3510,8 +3756,7 @@ pub fn apigee_organizations_apiproducts_attributes_execute(
 
 pub fn apigee_organizations_apiproducts_attributes(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1Attributes,
+    args: &ApigeeOrganizationsApiproductsAttributesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Attributes>, ApiError>,
@@ -3520,7 +3765,8 @@ pub fn apigee_organizations_apiproducts_attributes(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apiproducts_attributes_builder(client, name, body)?;
+    let builder =
+        apigee_organizations_apiproducts_attributes_builder(client, &args.name, &args.body)?;
     apigee_organizations_apiproducts_attributes_execute(builder)
 }
 
@@ -3621,6 +3867,15 @@ pub fn apigee_organizations_apiproducts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ApiProduct,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts
 /// Creates an API product in an organization. You create API products after you have proxied backend services using API proxies. An API product is a collection of API resources combined with quota settings and metadata that you can use to deliver customized and productized API bundles to your developer community. This metadata can include: - Scope - Environments - API proxies - Extensible profile API products enable you repackage APIs on the fly, without having to do any additional coding or configuration. Apigee recommends that you start with a simple API product including only required elements. You then provision credentials to apps to enable them to start testing your APIs. After you have authentication and authorization working against a simple API product, you can iterate to create finer-grained API products, defining different sets of API resources for each API product. **WARNING:** - If you don't specify an API proxy in the request body, *any* app associated with the product can make calls to *any* API in your entire organization. - If you don't specify an environment in the request body, the product allows access to all environments. For more information, see What is an API product?
 ///
@@ -3633,8 +3888,7 @@ pub fn apigee_organizations_apiproducts_create_execute(
 
 pub fn apigee_organizations_apiproducts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1ApiProduct,
+    args: &ApigeeOrganizationsApiproductsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiProduct>, ApiError>,
@@ -3643,7 +3897,8 @@ pub fn apigee_organizations_apiproducts_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apiproducts_create_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_apiproducts_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_apiproducts_create_execute(builder)
 }
 
@@ -3741,6 +3996,13 @@ pub fn apigee_organizations_apiproducts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts/{apiproductsId}
 /// Deletes an API product from an organization. Deleting an API product causes app requests to the resource URIs defined in the API product to fail. Ensure that you create a new API product to serve existing apps, unless your intention is to disable access to the resources defined in the API product. The API product name required in the request URL is the internal name of the product, not the display name. While they may be the same, it depends on whether the API product was created via the UI or the API. View the list of API products to verify the internal name.
 ///
@@ -3753,7 +4015,7 @@ pub fn apigee_organizations_apiproducts_delete_execute(
 
 pub fn apigee_organizations_apiproducts_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsApiproductsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiProduct>, ApiError>,
@@ -3762,7 +4024,7 @@ pub fn apigee_organizations_apiproducts_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apiproducts_delete_builder(client, name)?;
+    let builder = apigee_organizations_apiproducts_delete_builder(client, &args.name)?;
     apigee_organizations_apiproducts_delete_execute(builder)
 }
 
@@ -3860,6 +4122,13 @@ pub fn apigee_organizations_apiproducts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts/{apiproductsId}
 /// Gets configuration details for an API product. The API product name required in the request URL is the internal name of the product, not the display name. While they may be the same, it depends on whether the API product was created via the UI or the API. View the list of API products to verify the internal name.
 ///
@@ -3872,7 +4141,7 @@ pub fn apigee_organizations_apiproducts_get_execute(
 
 pub fn apigee_organizations_apiproducts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsApiproductsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiProduct>, ApiError>,
@@ -3881,7 +4150,7 @@ pub fn apigee_organizations_apiproducts_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apiproducts_get_builder(client, name)?;
+    let builder = apigee_organizations_apiproducts_get_builder(client, &args.name)?;
     apigee_organizations_apiproducts_get_execute(builder)
 }
 
@@ -4012,6 +4281,25 @@ pub fn apigee_organizations_apiproducts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: attributename
+    pub attributename: Option<String>,
+    /// Query parameter: attributevalue
+    pub attributevalue: Option<String>,
+    /// Query parameter: count
+    pub count: Option<String>,
+    /// Query parameter: expand
+    pub expand: Option<bool>,
+    /// Query parameter: space
+    pub space: Option<String>,
+    /// Query parameter: startKey
+    pub startKey: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts
 /// Lists all API product names for an organization. Filter the list by passing an attributename and attibutevalue. The maximum number of API products returned is 1000. You can paginate the list of API products returned using the `startKey` and count query parameters. If the resource has the space attribute set, the response may not return all resources. To learn more, read the [Apigee Spaces Overview](<https://cloud.google.`com/apigee/docs/api-platform/system-administration/spaces/apigee-spaces-overview`>).
 ///
@@ -4024,13 +4312,7 @@ pub fn apigee_organizations_apiproducts_list_execute(
 
 pub fn apigee_organizations_apiproducts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    attributename: Option<&str>,
-    attributevalue: Option<&str>,
-    count: Option<&str>,
-    expand: Option<bool>,
-    space: Option<&str>,
-    startKey: Option<&str>,
+    args: &ApigeeOrganizationsApiproductsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListApiProductsResponse>, ApiError>,
@@ -4041,13 +4323,13 @@ pub fn apigee_organizations_apiproducts_list(
 > {
     let builder = apigee_organizations_apiproducts_list_builder(
         client,
-        parent,
-        attributename,
-        attributevalue,
-        count,
-        expand,
-        space,
-        startKey,
+        &args.parent,
+        args.attributename.as_deref(),
+        args.attributevalue.as_deref(),
+        args.count.as_deref(),
+        args.expand,
+        args.space.as_deref(),
+        args.startKey.as_deref(),
     )?;
     apigee_organizations_apiproducts_list_execute(builder)
 }
@@ -4149,6 +4431,15 @@ pub fn apigee_organizations_apiproducts_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1MoveApiProductRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts/{apiproductsId}:move
 /// Moves an API product to a different space.
 ///
@@ -4161,8 +4452,7 @@ pub fn apigee_organizations_apiproducts_move_execute(
 
 pub fn apigee_organizations_apiproducts_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1MoveApiProductRequest,
+    args: &ApigeeOrganizationsApiproductsMoveArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiProduct>, ApiError>,
@@ -4171,7 +4461,7 @@ pub fn apigee_organizations_apiproducts_move(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apiproducts_move_builder(client, name, body)?;
+    let builder = apigee_organizations_apiproducts_move_builder(client, &args.name, &args.body)?;
     apigee_organizations_apiproducts_move_execute(builder)
 }
 
@@ -4272,6 +4562,15 @@ pub fn apigee_organizations_apiproducts_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ApiProduct,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts/{apiproductsId}
 /// Updates an existing API product. You must include all required values, whether or not you are updating them, as well as any optional values that you are updating. The API product name required in the request URL is the internal name of the product, not the display name. While they may be the same, it depends on whether the API product was created via UI or API. View the list of API products to identify their internal names.
 ///
@@ -4284,8 +4583,7 @@ pub fn apigee_organizations_apiproducts_update_execute(
 
 pub fn apigee_organizations_apiproducts_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1ApiProduct,
+    args: &ApigeeOrganizationsApiproductsUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiProduct>, ApiError>,
@@ -4294,7 +4592,7 @@ pub fn apigee_organizations_apiproducts_update(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apiproducts_update_builder(client, name, body)?;
+    let builder = apigee_organizations_apiproducts_update_builder(client, &args.name, &args.body)?;
     apigee_organizations_apiproducts_update_execute(builder)
 }
 
@@ -4392,6 +4690,13 @@ pub fn apigee_organizations_apiproducts_attributes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_attributes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsAttributesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/attributes/{attributesId}
 /// Deletes an API product attribute.
 ///
@@ -4404,7 +4709,7 @@ pub fn apigee_organizations_apiproducts_attributes_delete_execute(
 
 pub fn apigee_organizations_apiproducts_attributes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsApiproductsAttributesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Attribute>, ApiError>,
@@ -4413,7 +4718,7 @@ pub fn apigee_organizations_apiproducts_attributes_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apiproducts_attributes_delete_builder(client, name)?;
+    let builder = apigee_organizations_apiproducts_attributes_delete_builder(client, &args.name)?;
     apigee_organizations_apiproducts_attributes_delete_execute(builder)
 }
 
@@ -4511,6 +4816,13 @@ pub fn apigee_organizations_apiproducts_attributes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_attributes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsAttributesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/attributes/{attributesId}
 /// Gets the value of an API product attribute.
 ///
@@ -4523,7 +4835,7 @@ pub fn apigee_organizations_apiproducts_attributes_get_execute(
 
 pub fn apigee_organizations_apiproducts_attributes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsApiproductsAttributesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Attribute>, ApiError>,
@@ -4532,7 +4844,7 @@ pub fn apigee_organizations_apiproducts_attributes_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apiproducts_attributes_get_builder(client, name)?;
+    let builder = apigee_organizations_apiproducts_attributes_get_builder(client, &args.name)?;
     apigee_organizations_apiproducts_attributes_get_execute(builder)
 }
 
@@ -4630,6 +4942,13 @@ pub fn apigee_organizations_apiproducts_attributes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_attributes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsAttributesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/attributes
 /// Lists all API product attributes.
 ///
@@ -4642,7 +4961,7 @@ pub fn apigee_organizations_apiproducts_attributes_list_execute(
 
 pub fn apigee_organizations_apiproducts_attributes_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ApigeeOrganizationsApiproductsAttributesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Attributes>, ApiError>,
@@ -4651,7 +4970,7 @@ pub fn apigee_organizations_apiproducts_attributes_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apiproducts_attributes_list_builder(client, parent)?;
+    let builder = apigee_organizations_apiproducts_attributes_list_builder(client, &args.parent)?;
     apigee_organizations_apiproducts_attributes_list_execute(builder)
 }
 
@@ -4752,6 +5071,15 @@ pub fn apigee_organizations_apiproducts_attributes_update_api_product_attribute_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_attributes_update_api_product_attribute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsAttributesUpdateApiProductAttributeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Attribute,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/attributes/{attributesId}
 /// Updates the value of an API product attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with entities also get cached for at least 180 seconds after entity is accessed during runtime. In this case, the ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
 ///
@@ -4764,8 +5092,7 @@ pub fn apigee_organizations_apiproducts_attributes_update_api_product_attribute_
 
 pub fn apigee_organizations_apiproducts_attributes_update_api_product_attribute(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1Attribute,
+    args: &ApigeeOrganizationsApiproductsAttributesUpdateApiProductAttributeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Attribute>, ApiError>,
@@ -4775,7 +5102,7 @@ pub fn apigee_organizations_apiproducts_attributes_update_api_product_attribute(
     ApiError,
 > {
     let builder = apigee_organizations_apiproducts_attributes_update_api_product_attribute_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     apigee_organizations_apiproducts_attributes_update_api_product_attribute_execute(builder)
 }
@@ -4877,6 +5204,15 @@ pub fn apigee_organizations_apiproducts_rateplans_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_rateplans_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsRateplansCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1RatePlan,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/rateplans
 /// Create a rate plan that is associated with an API product in an organization. Using rate plans, API product owners can monetize their API products by configuring one or more of the following: - Billing frequency - Initial setup fees for using an API product - Payment funding model (postpaid only) - Fixed recurring or consumption-based charges for using an API product - Revenue sharing with developer partners An API product can have multiple rate plans associated with it but *only one* rate plan can be active at any point of time. **Note: From the developer's perspective, they purchase API products not rate plans.
 ///
@@ -4889,8 +5225,7 @@ pub fn apigee_organizations_apiproducts_rateplans_create_execute(
 
 pub fn apigee_organizations_apiproducts_rateplans_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1RatePlan,
+    args: &ApigeeOrganizationsApiproductsRateplansCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1RatePlan>, ApiError>,
@@ -4899,7 +5234,11 @@ pub fn apigee_organizations_apiproducts_rateplans_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apiproducts_rateplans_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_apiproducts_rateplans_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_apiproducts_rateplans_create_execute(builder)
 }
 
@@ -4997,6 +5336,13 @@ pub fn apigee_organizations_apiproducts_rateplans_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_rateplans_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsRateplansDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/rateplans/{rateplansId}
 /// Deletes a rate plan.
 ///
@@ -5009,7 +5355,7 @@ pub fn apigee_organizations_apiproducts_rateplans_delete_execute(
 
 pub fn apigee_organizations_apiproducts_rateplans_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsApiproductsRateplansDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1RatePlan>, ApiError>,
@@ -5018,7 +5364,7 @@ pub fn apigee_organizations_apiproducts_rateplans_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apiproducts_rateplans_delete_builder(client, name)?;
+    let builder = apigee_organizations_apiproducts_rateplans_delete_builder(client, &args.name)?;
     apigee_organizations_apiproducts_rateplans_delete_execute(builder)
 }
 
@@ -5116,6 +5462,13 @@ pub fn apigee_organizations_apiproducts_rateplans_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_rateplans_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsRateplansGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/rateplans/{rateplansId}
 /// Gets the details of a rate plan.
 ///
@@ -5128,7 +5481,7 @@ pub fn apigee_organizations_apiproducts_rateplans_get_execute(
 
 pub fn apigee_organizations_apiproducts_rateplans_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsApiproductsRateplansGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1RatePlan>, ApiError>,
@@ -5137,7 +5490,7 @@ pub fn apigee_organizations_apiproducts_rateplans_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apiproducts_rateplans_get_builder(client, name)?;
+    let builder = apigee_organizations_apiproducts_rateplans_get_builder(client, &args.name)?;
     apigee_organizations_apiproducts_rateplans_get_execute(builder)
 }
 
@@ -5263,6 +5616,23 @@ pub fn apigee_organizations_apiproducts_rateplans_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_rateplans_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsRateplansListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: count
+    pub count: Option<i32>,
+    /// Query parameter: expand
+    pub expand: Option<bool>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: startKey
+    pub startKey: Option<String>,
+    /// Query parameter: state
+    pub state: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/rateplans
 /// Lists all the rate plans for an API product.
 ///
@@ -5275,12 +5645,7 @@ pub fn apigee_organizations_apiproducts_rateplans_list_execute(
 
 pub fn apigee_organizations_apiproducts_rateplans_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    count: Option<i32>,
-    expand: Option<bool>,
-    orderBy: Option<&str>,
-    startKey: Option<&str>,
-    state: Option<&str>,
+    args: &ApigeeOrganizationsApiproductsRateplansListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListRatePlansResponse>, ApiError>,
@@ -5290,7 +5655,13 @@ pub fn apigee_organizations_apiproducts_rateplans_list(
     ApiError,
 > {
     let builder = apigee_organizations_apiproducts_rateplans_list_builder(
-        client, parent, count, expand, orderBy, startKey, state,
+        client,
+        &args.parent,
+        args.count,
+        args.expand,
+        args.orderBy.as_deref(),
+        args.startKey.as_deref(),
+        args.state.as_deref(),
     )?;
     apigee_organizations_apiproducts_rateplans_list_execute(builder)
 }
@@ -5392,6 +5763,15 @@ pub fn apigee_organizations_apiproducts_rateplans_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apiproducts_rateplans_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApiproductsRateplansUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1RatePlan,
+}
+
 /// GET v1/organizations/{organizationsId}/apiproducts/{apiproductsId}/rateplans/{rateplansId}
 /// Updates an existing rate plan.
 ///
@@ -5404,8 +5784,7 @@ pub fn apigee_organizations_apiproducts_rateplans_update_execute(
 
 pub fn apigee_organizations_apiproducts_rateplans_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1RatePlan,
+    args: &ApigeeOrganizationsApiproductsRateplansUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1RatePlan>, ApiError>,
@@ -5414,7 +5793,8 @@ pub fn apigee_organizations_apiproducts_rateplans_update(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apiproducts_rateplans_update_builder(client, name, body)?;
+    let builder =
+        apigee_organizations_apiproducts_rateplans_update_builder(client, &args.name, &args.body)?;
     apigee_organizations_apiproducts_rateplans_update_execute(builder)
 }
 
@@ -5539,6 +5919,23 @@ pub fn apigee_organizations_apis_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: action
+    pub action: Option<String>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: space
+    pub space: Option<String>,
+    /// Query parameter: validate
+    pub validate: Option<bool>,
+    /// Request body.
+    pub body: GoogleApiHttpBody,
+}
+
 /// GET v1/organizations/{organizationsId}/apis
 /// Creates an API proxy. The API proxy created will not be accessible at runtime until it is deployed to an environment. Create a new API proxy by setting the name query parameter to the name of the API proxy. Import an API proxy configuration bundle stored in zip format on your local machine to your organization by doing the following: * Set the name query parameter to the name of the API proxy. * Set the action query parameter to import. * Set the Content-Type header to `multipart/form-data`. * Pass as a file the name of API proxy configuration bundle stored in zip format on your local machine using the file form field. **Note**: To validate the API proxy configuration bundle only without importing it, set the action query parameter to validate. When importing an API proxy configuration bundle, if the API proxy does not exist, it will be created. If the API proxy exists, then a new revision is created. Invalid API proxy configurations are rejected, and a list of validation errors is returned to the client.
 ///
@@ -5551,12 +5948,7 @@ pub fn apigee_organizations_apis_create_execute(
 
 pub fn apigee_organizations_apis_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    action: Option<&str>,
-    name: Option<&str>,
-    space: Option<&str>,
-    validate: Option<bool>,
-    body: &GoogleApiHttpBody,
+    args: &ApigeeOrganizationsApisCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiProxyRevision>, ApiError>,
@@ -5566,7 +5958,13 @@ pub fn apigee_organizations_apis_create(
     ApiError,
 > {
     let builder = apigee_organizations_apis_create_builder(
-        client, parent, action, name, space, validate, body,
+        client,
+        &args.parent,
+        args.action.as_deref(),
+        args.name.as_deref(),
+        args.space.as_deref(),
+        args.validate,
+        &args.body,
     )?;
     apigee_organizations_apis_create_execute(builder)
 }
@@ -5665,6 +6063,13 @@ pub fn apigee_organizations_apis_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}
 /// Deletes an API proxy and all associated endpoints, policies, resources, and revisions. The API proxy must be undeployed before you can delete it.
 ///
@@ -5677,7 +6082,7 @@ pub fn apigee_organizations_apis_delete_execute(
 
 pub fn apigee_organizations_apis_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsApisDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiProxy>, ApiError>,
@@ -5686,7 +6091,7 @@ pub fn apigee_organizations_apis_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apis_delete_builder(client, name)?;
+    let builder = apigee_organizations_apis_delete_builder(client, &args.name)?;
     apigee_organizations_apis_delete_execute(builder)
 }
 
@@ -5784,6 +6189,13 @@ pub fn apigee_organizations_apis_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}
 /// Gets an API proxy including a list of existing revisions.
 ///
@@ -5796,7 +6208,7 @@ pub fn apigee_organizations_apis_get_execute(
 
 pub fn apigee_organizations_apis_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsApisGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiProxy>, ApiError>,
@@ -5805,7 +6217,7 @@ pub fn apigee_organizations_apis_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apis_get_builder(client, name)?;
+    let builder = apigee_organizations_apis_get_builder(client, &args.name)?;
     apigee_organizations_apis_get_execute(builder)
 }
 
@@ -5923,6 +6335,19 @@ pub fn apigee_organizations_apis_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: includeMetaData
+    pub includeMetaData: Option<bool>,
+    /// Query parameter: includeRevisions
+    pub includeRevisions: Option<bool>,
+    /// Query parameter: space
+    pub space: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/apis
 /// Lists the names of all API proxies in an organization. The names returned correspond to the names defined in the configuration files for each API proxy. If the resource has the space attribute set, the response may not return all resources. To learn more, read the [Apigee Spaces Overview](<https://cloud.google.`com/apigee/docs/api-platform/system-administration/spaces/apigee-spaces-overview`>).
 ///
@@ -5935,10 +6360,7 @@ pub fn apigee_organizations_apis_list_execute(
 
 pub fn apigee_organizations_apis_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    includeMetaData: Option<bool>,
-    includeRevisions: Option<bool>,
-    space: Option<&str>,
+    args: &ApigeeOrganizationsApisListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListApiProxiesResponse>, ApiError>,
@@ -5949,10 +6371,10 @@ pub fn apigee_organizations_apis_list(
 > {
     let builder = apigee_organizations_apis_list_builder(
         client,
-        parent,
-        includeMetaData,
-        includeRevisions,
-        space,
+        &args.parent,
+        args.includeMetaData,
+        args.includeRevisions,
+        args.space.as_deref(),
     )?;
     apigee_organizations_apis_list_execute(builder)
 }
@@ -6054,6 +6476,15 @@ pub fn apigee_organizations_apis_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1MoveApiProxyRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}:move
 /// Moves an API proxy to a different space.
 ///
@@ -6066,8 +6497,7 @@ pub fn apigee_organizations_apis_move_execute(
 
 pub fn apigee_organizations_apis_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1MoveApiProxyRequest,
+    args: &ApigeeOrganizationsApisMoveArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiProxy>, ApiError>,
@@ -6076,7 +6506,7 @@ pub fn apigee_organizations_apis_move(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apis_move_builder(client, name, body)?;
+    let builder = apigee_organizations_apis_move_builder(client, &args.name, &args.body)?;
     apigee_organizations_apis_move_execute(builder)
 }
 
@@ -6189,6 +6619,17 @@ pub fn apigee_organizations_apis_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ApiProxy,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}
 /// Updates an existing API proxy.
 ///
@@ -6201,9 +6642,7 @@ pub fn apigee_organizations_apis_patch_execute(
 
 pub fn apigee_organizations_apis_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1ApiProxy,
+    args: &ApigeeOrganizationsApisPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiProxy>, ApiError>,
@@ -6212,7 +6651,12 @@ pub fn apigee_organizations_apis_patch(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apis_patch_builder(client, name, updateMask, body)?;
+    let builder = apigee_organizations_apis_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_apis_patch_execute(builder)
 }
 
@@ -6327,6 +6771,17 @@ pub fn apigee_organizations_apis_debugsessions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_debugsessions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisDebugsessionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/debugsessions
 /// Lists debug sessions that are currently active in the given API Proxy.
 ///
@@ -6339,9 +6794,7 @@ pub fn apigee_organizations_apis_debugsessions_list_execute(
 
 pub fn apigee_organizations_apis_debugsessions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsApisDebugsessionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListApiDebugSessionsResponse>, ApiError>,
@@ -6350,8 +6803,12 @@ pub fn apigee_organizations_apis_debugsessions_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_apis_debugsessions_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = apigee_organizations_apis_debugsessions_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apigee_organizations_apis_debugsessions_list_execute(builder)
 }
 
@@ -6450,6 +6907,13 @@ pub fn apigee_organizations_apis_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/deployments
 /// Lists all deployments of an API proxy.
 ///
@@ -6462,7 +6926,7 @@ pub fn apigee_organizations_apis_deployments_list_execute(
 
 pub fn apigee_organizations_apis_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ApigeeOrganizationsApisDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListDeploymentsResponse>, ApiError>,
@@ -6471,7 +6935,7 @@ pub fn apigee_organizations_apis_deployments_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apis_deployments_list_builder(client, parent)?;
+    let builder = apigee_organizations_apis_deployments_list_builder(client, &args.parent)?;
     apigee_organizations_apis_deployments_list_execute(builder)
 }
 
@@ -6572,6 +7036,15 @@ pub fn apigee_organizations_apis_keyvaluemaps_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_keyvaluemaps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisKeyvaluemapsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1KeyValueMap,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/keyvaluemaps
 /// Creates a key value map in an API proxy.
 ///
@@ -6584,8 +7057,7 @@ pub fn apigee_organizations_apis_keyvaluemaps_create_execute(
 
 pub fn apigee_organizations_apis_keyvaluemaps_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1KeyValueMap,
+    args: &ApigeeOrganizationsApisKeyvaluemapsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueMap>, ApiError>,
@@ -6594,7 +7066,8 @@ pub fn apigee_organizations_apis_keyvaluemaps_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apis_keyvaluemaps_create_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_apis_keyvaluemaps_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_apis_keyvaluemaps_create_execute(builder)
 }
 
@@ -6692,6 +7165,13 @@ pub fn apigee_organizations_apis_keyvaluemaps_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_keyvaluemaps_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisKeyvaluemapsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}
 /// Deletes a key value map from an API proxy.
 ///
@@ -6704,7 +7184,7 @@ pub fn apigee_organizations_apis_keyvaluemaps_delete_execute(
 
 pub fn apigee_organizations_apis_keyvaluemaps_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsApisKeyvaluemapsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueMap>, ApiError>,
@@ -6713,7 +7193,7 @@ pub fn apigee_organizations_apis_keyvaluemaps_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apis_keyvaluemaps_delete_builder(client, name)?;
+    let builder = apigee_organizations_apis_keyvaluemaps_delete_builder(client, &args.name)?;
     apigee_organizations_apis_keyvaluemaps_delete_execute(builder)
 }
 
@@ -6811,6 +7291,13 @@ pub fn apigee_organizations_apis_keyvaluemaps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_keyvaluemaps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisKeyvaluemapsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}
 /// Get the key value map scoped to an organization, environment, or API proxy.
 ///
@@ -6823,7 +7310,7 @@ pub fn apigee_organizations_apis_keyvaluemaps_get_execute(
 
 pub fn apigee_organizations_apis_keyvaluemaps_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsApisKeyvaluemapsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueMap>, ApiError>,
@@ -6832,7 +7319,7 @@ pub fn apigee_organizations_apis_keyvaluemaps_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apis_keyvaluemaps_get_builder(client, name)?;
+    let builder = apigee_organizations_apis_keyvaluemaps_get_builder(client, &args.name)?;
     apigee_organizations_apis_keyvaluemaps_get_execute(builder)
 }
 
@@ -6933,6 +7420,15 @@ pub fn apigee_organizations_apis_keyvaluemaps_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_keyvaluemaps_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisKeyvaluemapsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1KeyValueMap,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}
 /// Update the key value map scoped to an organization, environment, or API proxy.
 ///
@@ -6945,8 +7441,7 @@ pub fn apigee_organizations_apis_keyvaluemaps_update_execute(
 
 pub fn apigee_organizations_apis_keyvaluemaps_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1KeyValueMap,
+    args: &ApigeeOrganizationsApisKeyvaluemapsUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueMap>, ApiError>,
@@ -6955,7 +7450,8 @@ pub fn apigee_organizations_apis_keyvaluemaps_update(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apis_keyvaluemaps_update_builder(client, name, body)?;
+    let builder =
+        apigee_organizations_apis_keyvaluemaps_update_builder(client, &args.name, &args.body)?;
     apigee_organizations_apis_keyvaluemaps_update_execute(builder)
 }
 
@@ -7056,6 +7552,15 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_keyvaluemaps_entries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisKeyvaluemapsEntriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1KeyValueEntry,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}/entries
 /// Creates key value entries in a key value map scoped to an organization, environment, or API proxy. **Note**: Supported for Apigee hybrid 1.8.x and higher.
 ///
@@ -7068,8 +7573,7 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_create_execute(
 
 pub fn apigee_organizations_apis_keyvaluemaps_entries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1KeyValueEntry,
+    args: &ApigeeOrganizationsApisKeyvaluemapsEntriesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueEntry>, ApiError>,
@@ -7078,8 +7582,11 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_apis_keyvaluemaps_entries_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_apis_keyvaluemaps_entries_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_apis_keyvaluemaps_entries_create_execute(builder)
 }
 
@@ -7177,6 +7684,13 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_keyvaluemaps_entries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisKeyvaluemapsEntriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}
 /// Deletes a key value entry from a key value map scoped to an organization, environment, or API proxy. **Notes:** * After you delete the key value entry, the policy consuming the entry will continue to function with its cached values for a few minutes. This is expected behavior. * Supported for Apigee hybrid 1.8.x and higher.
 ///
@@ -7189,7 +7703,7 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_delete_execute(
 
 pub fn apigee_organizations_apis_keyvaluemaps_entries_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsApisKeyvaluemapsEntriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueEntry>, ApiError>,
@@ -7198,7 +7712,8 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apis_keyvaluemaps_entries_delete_builder(client, name)?;
+    let builder =
+        apigee_organizations_apis_keyvaluemaps_entries_delete_builder(client, &args.name)?;
     apigee_organizations_apis_keyvaluemaps_entries_delete_execute(builder)
 }
 
@@ -7296,6 +7811,13 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_keyvaluemaps_entries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisKeyvaluemapsEntriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}
 /// Get the key value entry value for a key value map scoped to an organization, environment, or API proxy. **Note**: Supported for Apigee hybrid 1.8.x and higher.
 ///
@@ -7308,7 +7830,7 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_get_execute(
 
 pub fn apigee_organizations_apis_keyvaluemaps_entries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsApisKeyvaluemapsEntriesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueEntry>, ApiError>,
@@ -7317,7 +7839,7 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apis_keyvaluemaps_entries_get_builder(client, name)?;
+    let builder = apigee_organizations_apis_keyvaluemaps_entries_get_builder(client, &args.name)?;
     apigee_organizations_apis_keyvaluemaps_entries_get_execute(builder)
 }
 
@@ -7432,6 +7954,17 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_keyvaluemaps_entries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisKeyvaluemapsEntriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}/entries
 /// Lists key value entries for key values maps scoped to an organization, environment, or API proxy. **Note**: Supported for Apigee hybrid 1.8.x and higher.
 ///
@@ -7444,9 +7977,7 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_list_execute(
 
 pub fn apigee_organizations_apis_keyvaluemaps_entries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsApisKeyvaluemapsEntriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListKeyValueEntriesResponse>, ApiError>,
@@ -7456,7 +7987,10 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_list(
     ApiError,
 > {
     let builder = apigee_organizations_apis_keyvaluemaps_entries_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigee_organizations_apis_keyvaluemaps_entries_list_execute(builder)
 }
@@ -7558,6 +8092,15 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_keyvaluemaps_entries_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisKeyvaluemapsEntriesUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1KeyValueEntry,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}
 /// Update key value entry scoped to an organization, environment, or API proxy for an existing key.
 ///
@@ -7570,8 +8113,7 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_update_execute(
 
 pub fn apigee_organizations_apis_keyvaluemaps_entries_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1KeyValueEntry,
+    args: &ApigeeOrganizationsApisKeyvaluemapsEntriesUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueEntry>, ApiError>,
@@ -7580,8 +8122,9 @@ pub fn apigee_organizations_apis_keyvaluemaps_entries_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_apis_keyvaluemaps_entries_update_builder(client, name, body)?;
+    let builder = apigee_organizations_apis_keyvaluemaps_entries_update_builder(
+        client, &args.name, &args.body,
+    )?;
     apigee_organizations_apis_keyvaluemaps_entries_update_execute(builder)
 }
 
@@ -7679,6 +8222,13 @@ pub fn apigee_organizations_apis_revisions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_revisions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisRevisionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/revisions/{revisionsId}
 /// Deletes an API proxy revision and all policies, resources, endpoints, and revisions associated with it. The API proxy revision must be undeployed before you can delete it.
 ///
@@ -7691,7 +8241,7 @@ pub fn apigee_organizations_apis_revisions_delete_execute(
 
 pub fn apigee_organizations_apis_revisions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsApisRevisionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiProxyRevision>, ApiError>,
@@ -7700,7 +8250,7 @@ pub fn apigee_organizations_apis_revisions_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apis_revisions_delete_builder(client, name)?;
+    let builder = apigee_organizations_apis_revisions_delete_builder(client, &args.name)?;
     apigee_organizations_apis_revisions_delete_execute(builder)
 }
 
@@ -7808,6 +8358,15 @@ pub fn apigee_organizations_apis_revisions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_revisions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisRevisionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: format
+    pub format: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/revisions/{revisionsId}
 /// Gets an API proxy revision. To download the API proxy configuration bundle for the specified revision as a zip file, set the format query parameter to bundle. If you are using curl, specify -o filename.zip to save the output to a file; otherwise, it displays to stdout. Then, develop the API proxy configuration locally and upload the updated API proxy configuration revision, as described in [`updateApiProxyRevision`](`updateApiProxyRevision`).
 ///
@@ -7820,15 +8379,18 @@ pub fn apigee_organizations_apis_revisions_get_execute(
 
 pub fn apigee_organizations_apis_revisions_get(
     client: &SimpleHttpClient,
-    name: &str,
-    format: Option<&str>,
+    args: &ApigeeOrganizationsApisRevisionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApiHttpBody>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apis_revisions_get_builder(client, name, format)?;
+    let builder = apigee_organizations_apis_revisions_get_builder(
+        client,
+        &args.name,
+        args.format.as_deref(),
+    )?;
     apigee_organizations_apis_revisions_get_execute(builder)
 }
 
@@ -7941,6 +8503,17 @@ pub fn apigee_organizations_apis_revisions_update_api_proxy_revision_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_revisions_update_api_proxy_revision`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisRevisionsUpdateApiProxyRevisionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: validate
+    pub validate: Option<bool>,
+    /// Request body.
+    pub body: GoogleApiHttpBody,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/revisions/{revisionsId}
 /// Updates an existing API proxy revision by uploading the API proxy configuration bundle as a zip file from your local machine. You can update only API proxy revisions that have never been deployed. After deployment, an API proxy revision becomes immutable, even if it is undeployed. Set the Content-Type header to either `multipart/form-data` or `application/octet-stream`.
 ///
@@ -7953,9 +8526,7 @@ pub fn apigee_organizations_apis_revisions_update_api_proxy_revision_execute(
 
 pub fn apigee_organizations_apis_revisions_update_api_proxy_revision(
     client: &SimpleHttpClient,
-    name: &str,
-    validate: Option<bool>,
-    body: &GoogleApiHttpBody,
+    args: &ApigeeOrganizationsApisRevisionsUpdateApiProxyRevisionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiProxyRevision>, ApiError>,
@@ -7965,7 +8536,10 @@ pub fn apigee_organizations_apis_revisions_update_api_proxy_revision(
     ApiError,
 > {
     let builder = apigee_organizations_apis_revisions_update_api_proxy_revision_builder(
-        client, name, validate, body,
+        client,
+        &args.name,
+        args.validate,
+        &args.body,
     )?;
     apigee_organizations_apis_revisions_update_api_proxy_revision_execute(builder)
 }
@@ -8065,6 +8639,13 @@ pub fn apigee_organizations_apis_revisions_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apis_revisions_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsApisRevisionsDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apis/{apisId}/revisions/{revisionsId}/deployments
 /// Lists all deployments of an API proxy revision.
 ///
@@ -8077,7 +8658,7 @@ pub fn apigee_organizations_apis_revisions_deployments_list_execute(
 
 pub fn apigee_organizations_apis_revisions_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ApigeeOrganizationsApisRevisionsDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListDeploymentsResponse>, ApiError>,
@@ -8086,7 +8667,8 @@ pub fn apigee_organizations_apis_revisions_deployments_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apis_revisions_deployments_list_builder(client, parent)?;
+    let builder =
+        apigee_organizations_apis_revisions_deployments_list_builder(client, &args.parent)?;
     apigee_organizations_apis_revisions_deployments_list_execute(builder)
 }
 
@@ -8187,6 +8769,15 @@ pub fn apigee_organizations_appgroups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1AppGroup,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups
 /// Creates an AppGroup. Once created, user can register apps under the AppGroup to obtain secret key and password. At creation time, the AppGroup's state is set as active.
 ///
@@ -8199,8 +8790,7 @@ pub fn apigee_organizations_appgroups_create_execute(
 
 pub fn apigee_organizations_appgroups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1AppGroup,
+    args: &ApigeeOrganizationsAppgroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroup>, ApiError>,
@@ -8209,7 +8799,7 @@ pub fn apigee_organizations_appgroups_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_appgroups_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_appgroups_create_execute(builder)
 }
 
@@ -8307,6 +8897,13 @@ pub fn apigee_organizations_appgroups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}
 /// Deletes an AppGroup. All app and API keys associations with the AppGroup are also removed. **Warning**: This API will permanently delete the AppGroup and related artifacts. **Note**: The delete operation is asynchronous. The AppGroup is deleted immediately, but its associated resources, such as apps and API keys, may take anywhere from a few seconds to a few minutes to be deleted.
 ///
@@ -8319,7 +8916,7 @@ pub fn apigee_organizations_appgroups_delete_execute(
 
 pub fn apigee_organizations_appgroups_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsAppgroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroup>, ApiError>,
@@ -8328,7 +8925,7 @@ pub fn apigee_organizations_appgroups_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_delete_builder(client, name)?;
+    let builder = apigee_organizations_appgroups_delete_builder(client, &args.name)?;
     apigee_organizations_appgroups_delete_execute(builder)
 }
 
@@ -8426,6 +9023,13 @@ pub fn apigee_organizations_appgroups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}
 /// Returns the AppGroup details for the provided AppGroup name in the request URI.
 ///
@@ -8438,7 +9042,7 @@ pub fn apigee_organizations_appgroups_get_execute(
 
 pub fn apigee_organizations_appgroups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsAppgroupsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroup>, ApiError>,
@@ -8447,7 +9051,7 @@ pub fn apigee_organizations_appgroups_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_get_builder(client, name)?;
+    let builder = apigee_organizations_appgroups_get_builder(client, &args.name)?;
     apigee_organizations_appgroups_get_execute(builder)
 }
 
@@ -8545,6 +9149,13 @@ pub fn apigee_organizations_appgroups_get_balance_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_get_balance`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsGetBalanceArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/balance
 /// Gets the account balance for the AppGroup.
 ///
@@ -8557,7 +9168,7 @@ pub fn apigee_organizations_appgroups_get_balance_execute(
 
 pub fn apigee_organizations_appgroups_get_balance(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsAppgroupsGetBalanceArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupBalance>, ApiError>,
@@ -8566,7 +9177,7 @@ pub fn apigee_organizations_appgroups_get_balance(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_get_balance_builder(client, name)?;
+    let builder = apigee_organizations_appgroups_get_balance_builder(client, &args.name)?;
     apigee_organizations_appgroups_get_balance_execute(builder)
 }
 
@@ -8665,6 +9276,13 @@ pub fn apigee_organizations_appgroups_get_monetization_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_get_monetization_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsGetMonetizationConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/monetizationConfig
 /// Gets the monetization configuration for the AppGroup.
 ///
@@ -8677,7 +9295,7 @@ pub fn apigee_organizations_appgroups_get_monetization_config_execute(
 
 pub fn apigee_organizations_appgroups_get_monetization_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsAppgroupsGetMonetizationConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupMonetizationConfig>, ApiError>,
@@ -8686,7 +9304,8 @@ pub fn apigee_organizations_appgroups_get_monetization_config(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_get_monetization_config_builder(client, name)?;
+    let builder =
+        apigee_organizations_appgroups_get_monetization_config_builder(client, &args.name)?;
     apigee_organizations_appgroups_get_monetization_config_execute(builder)
 }
 
@@ -8804,6 +9423,19 @@ pub fn apigee_organizations_appgroups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups
 /// Lists all AppGroups in an organization. A maximum of 1000 AppGroups are returned in the response if PageSize is not specified, or if the PageSize is greater than 1000.
 ///
@@ -8816,10 +9448,7 @@ pub fn apigee_organizations_appgroups_list_execute(
 
 pub fn apigee_organizations_appgroups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsAppgroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListAppGroupsResponse>, ApiError>,
@@ -8828,8 +9457,13 @@ pub fn apigee_organizations_appgroups_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_appgroups_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = apigee_organizations_appgroups_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apigee_organizations_appgroups_list_execute(builder)
 }
 
@@ -8942,6 +9576,17 @@ pub fn apigee_organizations_appgroups_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: action
+    pub action: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1AppGroup,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}
 /// Updates an AppGroup. This API replaces the existing AppGroup details with those specified in the request. Include or exclude any existing details that you want to retain or delete, respectively. Note that the state of the AppGroup should be updated using action, and not via AppGroup.
 ///
@@ -8954,9 +9599,7 @@ pub fn apigee_organizations_appgroups_update_execute(
 
 pub fn apigee_organizations_appgroups_update(
     client: &SimpleHttpClient,
-    name: &str,
-    action: Option<&str>,
-    body: &GoogleCloudApigeeV1AppGroup,
+    args: &ApigeeOrganizationsAppgroupsUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroup>, ApiError>,
@@ -8965,7 +9608,12 @@ pub fn apigee_organizations_appgroups_update(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_update_builder(client, name, action, body)?;
+    let builder = apigee_organizations_appgroups_update_builder(
+        client,
+        &args.name,
+        args.action.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_appgroups_update_execute(builder)
 }
 
@@ -9067,6 +9715,15 @@ pub fn apigee_organizations_appgroups_update_monetization_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_update_monetization_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsUpdateMonetizationConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1AppGroupMonetizationConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/monetizationConfig
 /// Updates the monetization configuration for the AppGroup.
 ///
@@ -9079,8 +9736,7 @@ pub fn apigee_organizations_appgroups_update_monetization_config_execute(
 
 pub fn apigee_organizations_appgroups_update_monetization_config(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1AppGroupMonetizationConfig,
+    args: &ApigeeOrganizationsAppgroupsUpdateMonetizationConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupMonetizationConfig>, ApiError>,
@@ -9089,8 +9745,9 @@ pub fn apigee_organizations_appgroups_update_monetization_config(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_appgroups_update_monetization_config_builder(client, name, body)?;
+    let builder = apigee_organizations_appgroups_update_monetization_config_builder(
+        client, &args.name, &args.body,
+    )?;
     apigee_organizations_appgroups_update_monetization_config_execute(builder)
 }
 
@@ -9191,6 +9848,15 @@ pub fn apigee_organizations_appgroups_apps_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_apps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsAppsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1AppGroupApp,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps
 /// Creates an app and associates it with an AppGroup. This API associates the AppGroup app with the specified API product and auto-generates an API key for the app to use in calls to API proxies inside that API product. The name is the unique ID of the app that you can use in API calls.
 ///
@@ -9203,8 +9869,7 @@ pub fn apigee_organizations_appgroups_apps_create_execute(
 
 pub fn apigee_organizations_appgroups_apps_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1AppGroupApp,
+    args: &ApigeeOrganizationsAppgroupsAppsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupApp>, ApiError>,
@@ -9213,7 +9878,8 @@ pub fn apigee_organizations_appgroups_apps_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_apps_create_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_appgroups_apps_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_appgroups_apps_create_execute(builder)
 }
 
@@ -9311,6 +9977,13 @@ pub fn apigee_organizations_appgroups_apps_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_apps_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsAppsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}
 /// Deletes an AppGroup app. **Note**: The delete operation is asynchronous. The AppGroup app is deleted immediately, but its associated resources, such as app keys or access tokens, may take anywhere from a few seconds to a few minutes to be deleted.
 ///
@@ -9323,7 +9996,7 @@ pub fn apigee_organizations_appgroups_apps_delete_execute(
 
 pub fn apigee_organizations_appgroups_apps_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsAppgroupsAppsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupApp>, ApiError>,
@@ -9332,7 +10005,7 @@ pub fn apigee_organizations_appgroups_apps_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_apps_delete_builder(client, name)?;
+    let builder = apigee_organizations_appgroups_apps_delete_builder(client, &args.name)?;
     apigee_organizations_appgroups_apps_delete_execute(builder)
 }
 
@@ -9430,6 +10103,13 @@ pub fn apigee_organizations_appgroups_apps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_apps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsAppsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}
 /// Returns the details for an AppGroup app.
 ///
@@ -9442,7 +10122,7 @@ pub fn apigee_organizations_appgroups_apps_get_execute(
 
 pub fn apigee_organizations_appgroups_apps_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsAppgroupsAppsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupApp>, ApiError>,
@@ -9451,7 +10131,7 @@ pub fn apigee_organizations_appgroups_apps_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_apps_get_builder(client, name)?;
+    let builder = apigee_organizations_appgroups_apps_get_builder(client, &args.name)?;
     apigee_organizations_appgroups_apps_get_execute(builder)
 }
 
@@ -9566,6 +10246,17 @@ pub fn apigee_organizations_appgroups_apps_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_apps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsAppsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps
 /// Lists all apps created by an AppGroup in an Apigee organization. Optionally, you can request an expanded view of the AppGroup apps. Lists all AppGroupApps in an AppGroup. A maximum of 1000 AppGroup apps are returned in the response if PageSize is not specified, or if the PageSize is greater than 1000.
 ///
@@ -9578,9 +10269,7 @@ pub fn apigee_organizations_appgroups_apps_list_execute(
 
 pub fn apigee_organizations_appgroups_apps_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsAppgroupsAppsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListAppGroupAppsResponse>, ApiError>,
@@ -9589,8 +10278,12 @@ pub fn apigee_organizations_appgroups_apps_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_appgroups_apps_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = apigee_organizations_appgroups_apps_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apigee_organizations_appgroups_apps_list_execute(builder)
 }
 
@@ -9703,6 +10396,17 @@ pub fn apigee_organizations_appgroups_apps_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_apps_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsAppsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: action
+    pub action: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1AppGroupApp,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}
 /// Updates the details for an AppGroup app. In addition, you can add an API product to an AppGroup app and automatically generate an API key for the app to use when calling APIs in the API product. If you want to use an existing API key for the API product, add the API product to the API key using the UpdateAppGroupAppKey API. Using this API, you cannot update the app name, as it is the primary key used to identify the app and cannot be changed. This API replaces the existing attributes with those specified in the request. Include or exclude any existing attributes that you want to retain or delete, respectively.
 ///
@@ -9715,9 +10419,7 @@ pub fn apigee_organizations_appgroups_apps_update_execute(
 
 pub fn apigee_organizations_appgroups_apps_update(
     client: &SimpleHttpClient,
-    name: &str,
-    action: Option<&str>,
-    body: &GoogleCloudApigeeV1AppGroupApp,
+    args: &ApigeeOrganizationsAppgroupsAppsUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupApp>, ApiError>,
@@ -9726,7 +10428,12 @@ pub fn apigee_organizations_appgroups_apps_update(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_apps_update_builder(client, name, action, body)?;
+    let builder = apigee_organizations_appgroups_apps_update_builder(
+        client,
+        &args.name,
+        args.action.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_appgroups_apps_update_execute(builder)
 }
 
@@ -9827,6 +10534,15 @@ pub fn apigee_organizations_appgroups_apps_keys_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_apps_keys_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsAppsKeysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1AppGroupAppKey,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}/keys
 /// Creates a custom consumer key and secret for a AppGroup app. This is particularly useful if you want to migrate existing consumer keys and secrets to Apigee from another system. Consumer keys and secrets can contain letters, numbers, underscores, and hyphens. No other special characters are allowed. To avoid service disruptions, a consumer key and secret should not exceed 2 KBs each. **Note**: When creating the consumer key and secret, an association to API products will not be made. Therefore, you should not specify the associated API products in your request. Instead, use the UpdateAppGroupAppKey API to make the association after the consumer key and secret are created. If a consumer key and secret already exist, you can keep them or delete them using the DeleteAppGroupAppKey API.
 ///
@@ -9839,8 +10555,7 @@ pub fn apigee_organizations_appgroups_apps_keys_create_execute(
 
 pub fn apigee_organizations_appgroups_apps_keys_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1AppGroupAppKey,
+    args: &ApigeeOrganizationsAppgroupsAppsKeysCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupAppKey>, ApiError>,
@@ -9849,7 +10564,8 @@ pub fn apigee_organizations_appgroups_apps_keys_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_apps_keys_create_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_appgroups_apps_keys_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_appgroups_apps_keys_create_execute(builder)
 }
 
@@ -9947,6 +10663,13 @@ pub fn apigee_organizations_appgroups_apps_keys_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_apps_keys_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsAppsKeysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}
 /// Deletes an app's consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs.
 ///
@@ -9959,7 +10682,7 @@ pub fn apigee_organizations_appgroups_apps_keys_delete_execute(
 
 pub fn apigee_organizations_appgroups_apps_keys_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsAppgroupsAppsKeysDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupAppKey>, ApiError>,
@@ -9968,7 +10691,7 @@ pub fn apigee_organizations_appgroups_apps_keys_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_apps_keys_delete_builder(client, name)?;
+    let builder = apigee_organizations_appgroups_apps_keys_delete_builder(client, &args.name)?;
     apigee_organizations_appgroups_apps_keys_delete_execute(builder)
 }
 
@@ -10066,6 +10789,13 @@ pub fn apigee_organizations_appgroups_apps_keys_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_apps_keys_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsAppsKeysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}
 /// Gets details for a consumer key for a AppGroup app, including the key and secret value, associated API products, and other information.
 ///
@@ -10078,7 +10808,7 @@ pub fn apigee_organizations_appgroups_apps_keys_get_execute(
 
 pub fn apigee_organizations_appgroups_apps_keys_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsAppgroupsAppsKeysGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupAppKey>, ApiError>,
@@ -10087,7 +10817,7 @@ pub fn apigee_organizations_appgroups_apps_keys_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_apps_keys_get_builder(client, name)?;
+    let builder = apigee_organizations_appgroups_apps_keys_get_builder(client, &args.name)?;
     apigee_organizations_appgroups_apps_keys_get_execute(builder)
 }
 
@@ -10188,6 +10918,15 @@ pub fn apigee_organizations_appgroups_apps_keys_update_app_group_app_key_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_apps_keys_update_app_group_app_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsAppsKeysUpdateAppGroupAppKeyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1UpdateAppGroupAppKeyRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}
 /// Adds an API product to an AppGroupAppKey, enabling the app that holds the key to access the API resources bundled in the API product. In addition, you can add attributes and scopes to the AppGroupAppKey. This API replaces the existing attributes with those specified in the request. Include or exclude any existing attributes that you want to retain or delete, respectively. You can use the same key to access all API products associated with the app.
 ///
@@ -10200,8 +10939,7 @@ pub fn apigee_organizations_appgroups_apps_keys_update_app_group_app_key_execute
 
 pub fn apigee_organizations_appgroups_apps_keys_update_app_group_app_key(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1UpdateAppGroupAppKeyRequest,
+    args: &ApigeeOrganizationsAppgroupsAppsKeysUpdateAppGroupAppKeyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupAppKey>, ApiError>,
@@ -10211,7 +10949,7 @@ pub fn apigee_organizations_appgroups_apps_keys_update_app_group_app_key(
     ApiError,
 > {
     let builder = apigee_organizations_appgroups_apps_keys_update_app_group_app_key_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     apigee_organizations_appgroups_apps_keys_update_app_group_app_key_execute(builder)
 }
@@ -10310,6 +11048,13 @@ pub fn apigee_organizations_appgroups_apps_keys_apiproducts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_apps_keys_apiproducts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsAppsKeysApiproductsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}
 /// Removes an API product from an app's consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
 ///
@@ -10322,7 +11067,7 @@ pub fn apigee_organizations_appgroups_apps_keys_apiproducts_delete_execute(
 
 pub fn apigee_organizations_appgroups_apps_keys_apiproducts_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsAppgroupsAppsKeysApiproductsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupAppKey>, ApiError>,
@@ -10332,7 +11077,7 @@ pub fn apigee_organizations_appgroups_apps_keys_apiproducts_delete(
     ApiError,
 > {
     let builder =
-        apigee_organizations_appgroups_apps_keys_apiproducts_delete_builder(client, name)?;
+        apigee_organizations_appgroups_apps_keys_apiproducts_delete_builder(client, &args.name)?;
     apigee_organizations_appgroups_apps_keys_apiproducts_delete_execute(builder)
 }
 
@@ -10440,6 +11185,15 @@ pub fn apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app_key_api_product`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsAppsKeysApiproductsUpdateAppGroupAppKeyApiProductArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: action
+    pub action: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}
 /// Approves or revokes the consumer key for an API product. After a consumer key is approved, the app can use it to access APIs. A consumer key that is revoked or pending cannot be used to access an API. Any access tokens associated with a revoked consumer key will remain active. However, Apigee checks the status of the consumer key and if set to revoked will not allow access to the API.
 ///
@@ -10452,15 +11206,14 @@ pub fn apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app
 
 pub fn apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app_key_api_product(
     client: &SimpleHttpClient,
-    name: &str,
-    action: Option<&str>,
+    args: &ApigeeOrganizationsAppgroupsAppsKeysApiproductsUpdateAppGroupAppKeyApiProductArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app_key_api_product_builder(client, name, action)?;
+    let builder = apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app_key_api_product_builder(client, &args.name, args.action.as_deref())?;
     apigee_organizations_appgroups_apps_keys_apiproducts_update_app_group_app_key_api_product_execute(builder)
 }
 
@@ -10561,6 +11314,15 @@ pub fn apigee_organizations_appgroups_balance_adjust_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_balance_adjust`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsBalanceAdjustArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1AdjustAppGroupBalanceRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/balance:adjust
 /// Adjust the prepaid balance for the AppGroup. This API will be used in scenarios where the AppGroup has been under-charged or over-charged.
 ///
@@ -10573,8 +11335,7 @@ pub fn apigee_organizations_appgroups_balance_adjust_execute(
 
 pub fn apigee_organizations_appgroups_balance_adjust(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1AdjustAppGroupBalanceRequest,
+    args: &ApigeeOrganizationsAppgroupsBalanceAdjustArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupBalance>, ApiError>,
@@ -10583,7 +11344,8 @@ pub fn apigee_organizations_appgroups_balance_adjust(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_balance_adjust_builder(client, name, body)?;
+    let builder =
+        apigee_organizations_appgroups_balance_adjust_builder(client, &args.name, &args.body)?;
     apigee_organizations_appgroups_balance_adjust_execute(builder)
 }
 
@@ -10684,6 +11446,15 @@ pub fn apigee_organizations_appgroups_balance_credit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_balance_credit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsBalanceCreditArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1CreditAppGroupBalanceRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/balance:credit
 /// Credits the account balance for the AppGroup.
 ///
@@ -10696,8 +11467,7 @@ pub fn apigee_organizations_appgroups_balance_credit_execute(
 
 pub fn apigee_organizations_appgroups_balance_credit(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1CreditAppGroupBalanceRequest,
+    args: &ApigeeOrganizationsAppgroupsBalanceCreditArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupBalance>, ApiError>,
@@ -10706,7 +11476,8 @@ pub fn apigee_organizations_appgroups_balance_credit(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_balance_credit_builder(client, name, body)?;
+    let builder =
+        apigee_organizations_appgroups_balance_credit_builder(client, &args.name, &args.body)?;
     apigee_organizations_appgroups_balance_credit_execute(builder)
 }
 
@@ -10808,6 +11579,15 @@ pub fn apigee_organizations_appgroups_subscriptions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_subscriptions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsSubscriptionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1AppGroupSubscription,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/subscriptions
 /// Creates a subscription to an API product.
 ///
@@ -10820,8 +11600,7 @@ pub fn apigee_organizations_appgroups_subscriptions_create_execute(
 
 pub fn apigee_organizations_appgroups_subscriptions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1AppGroupSubscription,
+    args: &ApigeeOrganizationsAppgroupsSubscriptionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupSubscription>, ApiError>,
@@ -10830,8 +11609,11 @@ pub fn apigee_organizations_appgroups_subscriptions_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_appgroups_subscriptions_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_appgroups_subscriptions_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_appgroups_subscriptions_create_execute(builder)
 }
 
@@ -10933,6 +11715,15 @@ pub fn apigee_organizations_appgroups_subscriptions_expire_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_subscriptions_expire`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsSubscriptionsExpireArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ExpireAppGroupSubscriptionRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/subscriptions/{subscriptionsId}:expire
 /// Expires an API product subscription immediately.
 ///
@@ -10945,8 +11736,7 @@ pub fn apigee_organizations_appgroups_subscriptions_expire_execute(
 
 pub fn apigee_organizations_appgroups_subscriptions_expire(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1ExpireAppGroupSubscriptionRequest,
+    args: &ApigeeOrganizationsAppgroupsSubscriptionsExpireArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupSubscription>, ApiError>,
@@ -10955,7 +11745,9 @@ pub fn apigee_organizations_appgroups_subscriptions_expire(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_subscriptions_expire_builder(client, name, body)?;
+    let builder = apigee_organizations_appgroups_subscriptions_expire_builder(
+        client, &args.name, &args.body,
+    )?;
     apigee_organizations_appgroups_subscriptions_expire_execute(builder)
 }
 
@@ -11054,6 +11846,13 @@ pub fn apigee_organizations_appgroups_subscriptions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_subscriptions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsSubscriptionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/subscriptions/{subscriptionsId}
 /// Get an api product subscription for an appgroup.
 ///
@@ -11066,7 +11865,7 @@ pub fn apigee_organizations_appgroups_subscriptions_get_execute(
 
 pub fn apigee_organizations_appgroups_subscriptions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsAppgroupsSubscriptionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AppGroupSubscription>, ApiError>,
@@ -11075,7 +11874,7 @@ pub fn apigee_organizations_appgroups_subscriptions_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_appgroups_subscriptions_get_builder(client, name)?;
+    let builder = apigee_organizations_appgroups_subscriptions_get_builder(client, &args.name)?;
     apigee_organizations_appgroups_subscriptions_get_execute(builder)
 }
 
@@ -11190,6 +11989,17 @@ pub fn apigee_organizations_appgroups_subscriptions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_appgroups_subscriptions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppgroupsSubscriptionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/appgroups/{appgroupsId}/subscriptions
 /// List all api product subscriptions for an appgroup.
 ///
@@ -11202,9 +12012,7 @@ pub fn apigee_organizations_appgroups_subscriptions_list_execute(
 
 pub fn apigee_organizations_appgroups_subscriptions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsAppgroupsSubscriptionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListAppGroupSubscriptionsResponse>, ApiError>,
@@ -11214,7 +12022,10 @@ pub fn apigee_organizations_appgroups_subscriptions_list(
     ApiError,
 > {
     let builder = apigee_organizations_appgroups_subscriptions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigee_organizations_appgroups_subscriptions_list_execute(builder)
 }
@@ -11311,6 +12122,13 @@ pub fn apigee_organizations_apps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/apps/{appsId}
 /// Gets the app profile for the specified app ID.
 ///
@@ -11323,14 +12141,14 @@ pub fn apigee_organizations_apps_get_execute(
 
 pub fn apigee_organizations_apps_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsAppsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApigeeV1App>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_apps_get_builder(client, name)?;
+    let builder = apigee_organizations_apps_get_builder(client, &args.name)?;
     apigee_organizations_apps_get_execute(builder)
 }
 
@@ -11484,6 +12302,37 @@ pub fn apigee_organizations_apps_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_apps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsAppsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: apiProduct
+    pub apiProduct: Option<String>,
+    /// Query parameter: apptype
+    pub apptype: Option<String>,
+    /// Query parameter: expand
+    pub expand: Option<bool>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: includeCred
+    pub includeCred: Option<bool>,
+    /// Query parameter: keyStatus
+    pub keyStatus: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: rows
+    pub rows: Option<String>,
+    /// Query parameter: startKey
+    pub startKey: Option<String>,
+    /// Query parameter: status
+    pub status: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/apps
 /// Lists IDs of apps within an organization that have the specified app status (approved or revoked) or are of the specified app type (developer or company).
 ///
@@ -11496,19 +12345,7 @@ pub fn apigee_organizations_apps_list_execute(
 
 pub fn apigee_organizations_apps_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    apiProduct: Option<&str>,
-    apptype: Option<&str>,
-    expand: Option<bool>,
-    filter: Option<&str>,
-    ids: Option<&str>,
-    includeCred: Option<bool>,
-    keyStatus: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    rows: Option<&str>,
-    startKey: Option<&str>,
-    status: Option<&str>,
+    args: &ApigeeOrganizationsAppsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListAppsResponse>, ApiError>,
@@ -11519,19 +12356,19 @@ pub fn apigee_organizations_apps_list(
 > {
     let builder = apigee_organizations_apps_list_builder(
         client,
-        parent,
-        apiProduct,
-        apptype,
-        expand,
-        filter,
-        ids,
-        includeCred,
-        keyStatus,
-        pageSize,
-        pageToken,
-        rows,
-        startKey,
-        status,
+        &args.parent,
+        args.apiProduct.as_deref(),
+        args.apptype.as_deref(),
+        args.expand,
+        args.filter.as_deref(),
+        args.ids.as_deref(),
+        args.includeCred,
+        args.keyStatus.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.rows.as_deref(),
+        args.startKey.as_deref(),
+        args.status.as_deref(),
     )?;
     apigee_organizations_apps_list_execute(builder)
 }
@@ -11645,6 +12482,17 @@ pub fn apigee_organizations_datacollectors_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_datacollectors_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDatacollectorsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataCollectorId
+    pub dataCollectorId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1DataCollector,
+}
+
 /// GET v1/organizations/{organizationsId}/datacollectors
 /// Creates a new data collector.
 ///
@@ -11657,9 +12505,7 @@ pub fn apigee_organizations_datacollectors_create_execute(
 
 pub fn apigee_organizations_datacollectors_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataCollectorId: Option<&str>,
-    body: &GoogleCloudApigeeV1DataCollector,
+    args: &ApigeeOrganizationsDatacollectorsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DataCollector>, ApiError>,
@@ -11668,8 +12514,12 @@ pub fn apigee_organizations_datacollectors_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_datacollectors_create_builder(client, parent, dataCollectorId, body)?;
+    let builder = apigee_organizations_datacollectors_create_builder(
+        client,
+        &args.parent,
+        args.dataCollectorId.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_datacollectors_create_execute(builder)
 }
 
@@ -11765,6 +12615,13 @@ pub fn apigee_organizations_datacollectors_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_datacollectors_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDatacollectorsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/datacollectors/{datacollectorsId}
 /// Deletes a data collector.
 ///
@@ -11777,14 +12634,14 @@ pub fn apigee_organizations_datacollectors_delete_execute(
 
 pub fn apigee_organizations_datacollectors_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDatacollectorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_datacollectors_delete_builder(client, name)?;
+    let builder = apigee_organizations_datacollectors_delete_builder(client, &args.name)?;
     apigee_organizations_datacollectors_delete_execute(builder)
 }
 
@@ -11882,6 +12739,13 @@ pub fn apigee_organizations_datacollectors_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_datacollectors_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDatacollectorsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/datacollectors/{datacollectorsId}
 /// Gets a data collector.
 ///
@@ -11894,7 +12758,7 @@ pub fn apigee_organizations_datacollectors_get_execute(
 
 pub fn apigee_organizations_datacollectors_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDatacollectorsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DataCollector>, ApiError>,
@@ -11903,7 +12767,7 @@ pub fn apigee_organizations_datacollectors_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_datacollectors_get_builder(client, name)?;
+    let builder = apigee_organizations_datacollectors_get_builder(client, &args.name)?;
     apigee_organizations_datacollectors_get_execute(builder)
 }
 
@@ -12018,6 +12882,17 @@ pub fn apigee_organizations_datacollectors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_datacollectors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDatacollectorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/datacollectors
 /// Lists all data collectors.
 ///
@@ -12030,9 +12905,7 @@ pub fn apigee_organizations_datacollectors_list_execute(
 
 pub fn apigee_organizations_datacollectors_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsDatacollectorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListDataCollectorsResponse>, ApiError>,
@@ -12041,8 +12914,12 @@ pub fn apigee_organizations_datacollectors_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_datacollectors_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = apigee_organizations_datacollectors_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apigee_organizations_datacollectors_list_execute(builder)
 }
 
@@ -12155,6 +13032,17 @@ pub fn apigee_organizations_datacollectors_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_datacollectors_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDatacollectorsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1DataCollector,
+}
+
 /// GET v1/organizations/{organizationsId}/datacollectors/{datacollectorsId}
 /// Updates a data collector.
 ///
@@ -12167,9 +13055,7 @@ pub fn apigee_organizations_datacollectors_patch_execute(
 
 pub fn apigee_organizations_datacollectors_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1DataCollector,
+    args: &ApigeeOrganizationsDatacollectorsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DataCollector>, ApiError>,
@@ -12178,8 +13064,12 @@ pub fn apigee_organizations_datacollectors_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_datacollectors_patch_builder(client, name, updateMask, body)?;
+    let builder = apigee_organizations_datacollectors_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_datacollectors_patch_execute(builder)
 }
 
@@ -12290,6 +13180,15 @@ pub fn apigee_organizations_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: sharedFlows
+    pub sharedFlows: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/deployments
 /// Lists all deployments of API proxies or shared flows.
 ///
@@ -12302,8 +13201,7 @@ pub fn apigee_organizations_deployments_list_execute(
 
 pub fn apigee_organizations_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    sharedFlows: Option<bool>,
+    args: &ApigeeOrganizationsDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListDeploymentsResponse>, ApiError>,
@@ -12312,7 +13210,8 @@ pub fn apigee_organizations_deployments_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_deployments_list_builder(client, parent, sharedFlows)?;
+    let builder =
+        apigee_organizations_deployments_list_builder(client, &args.parent, args.sharedFlows)?;
     apigee_organizations_deployments_list_execute(builder)
 }
 
@@ -12413,6 +13312,15 @@ pub fn apigee_organizations_developers_attributes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_attributes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAttributesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Attributes,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/attributes
 /// Updates developer attributes. This API replaces the existing attributes with those specified in the request. Add new attributes, and include or exclude any existing attributes that you want to retain or remove, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
 ///
@@ -12425,8 +13333,7 @@ pub fn apigee_organizations_developers_attributes_execute(
 
 pub fn apigee_organizations_developers_attributes(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1Attributes,
+    args: &ApigeeOrganizationsDevelopersAttributesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Attributes>, ApiError>,
@@ -12435,7 +13342,8 @@ pub fn apigee_organizations_developers_attributes(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_attributes_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_developers_attributes_builder(client, &args.parent, &args.body)?;
     apigee_organizations_developers_attributes_execute(builder)
 }
 
@@ -12536,6 +13444,15 @@ pub fn apigee_organizations_developers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Developer,
+}
+
 /// GET v1/organizations/{organizationsId}/developers
 /// Creates a developer. Once created, the developer can register an app and obtain an API key. At creation time, a developer is set as active. To change the developer status, use the SetDeveloperStatus API.
 ///
@@ -12548,8 +13465,7 @@ pub fn apigee_organizations_developers_create_execute(
 
 pub fn apigee_organizations_developers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1Developer,
+    args: &ApigeeOrganizationsDevelopersCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Developer>, ApiError>,
@@ -12558,7 +13474,7 @@ pub fn apigee_organizations_developers_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_developers_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_developers_create_execute(builder)
 }
 
@@ -12656,6 +13572,13 @@ pub fn apigee_organizations_developers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}
 /// Deletes a developer. All apps and API keys associated with the developer are also removed. **Warning**: This API will permanently delete the developer and related artifacts. To avoid permanently deleting developers and their artifacts, set the developer status to inactive using the SetDeveloperStatus API. **Note**: The delete operation is asynchronous. The developer is deleted immediately, but its associated resources, such as apps and API keys, may take anywhere from a few seconds to a few minutes to be deleted.
 ///
@@ -12668,7 +13591,7 @@ pub fn apigee_organizations_developers_delete_execute(
 
 pub fn apigee_organizations_developers_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDevelopersDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Developer>, ApiError>,
@@ -12677,7 +13600,7 @@ pub fn apigee_organizations_developers_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_delete_builder(client, name)?;
+    let builder = apigee_organizations_developers_delete_builder(client, &args.name)?;
     apigee_organizations_developers_delete_execute(builder)
 }
 
@@ -12787,6 +13710,15 @@ pub fn apigee_organizations_developers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: action
+    pub action: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}
 /// Returns the developer details, including the developer's name, email address, apps, and other information. **Note**: The response includes only the first 100 developer apps.
 ///
@@ -12799,8 +13731,7 @@ pub fn apigee_organizations_developers_get_execute(
 
 pub fn apigee_organizations_developers_get(
     client: &SimpleHttpClient,
-    name: &str,
-    action: Option<&str>,
+    args: &ApigeeOrganizationsDevelopersGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Developer>, ApiError>,
@@ -12809,7 +13740,8 @@ pub fn apigee_organizations_developers_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_get_builder(client, name, action)?;
+    let builder =
+        apigee_organizations_developers_get_builder(client, &args.name, args.action.as_deref())?;
     apigee_organizations_developers_get_execute(builder)
 }
 
@@ -12907,6 +13839,13 @@ pub fn apigee_organizations_developers_get_balance_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_get_balance`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersGetBalanceArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/balance
 /// Gets the account balance for the developer.
 ///
@@ -12919,7 +13858,7 @@ pub fn apigee_organizations_developers_get_balance_execute(
 
 pub fn apigee_organizations_developers_get_balance(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDevelopersGetBalanceArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperBalance>, ApiError>,
@@ -12928,7 +13867,7 @@ pub fn apigee_organizations_developers_get_balance(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_get_balance_builder(client, name)?;
+    let builder = apigee_organizations_developers_get_balance_builder(client, &args.name)?;
     apigee_organizations_developers_get_balance_execute(builder)
 }
 
@@ -13027,6 +13966,13 @@ pub fn apigee_organizations_developers_get_monetization_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_get_monetization_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersGetMonetizationConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/monetizationConfig
 /// Gets the monetization configuration for the developer.
 ///
@@ -13039,7 +13985,7 @@ pub fn apigee_organizations_developers_get_monetization_config_execute(
 
 pub fn apigee_organizations_developers_get_monetization_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDevelopersGetMonetizationConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperMonetizationConfig>, ApiError>,
@@ -13048,7 +13994,8 @@ pub fn apigee_organizations_developers_get_monetization_config(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_get_monetization_config_builder(client, name)?;
+    let builder =
+        apigee_organizations_developers_get_monetization_config_builder(client, &args.name)?;
     apigee_organizations_developers_get_monetization_config_execute(builder)
 }
 
@@ -13179,6 +14126,25 @@ pub fn apigee_organizations_developers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: app
+    pub app: Option<String>,
+    /// Query parameter: count
+    pub count: Option<String>,
+    /// Query parameter: expand
+    pub expand: Option<bool>,
+    /// Query parameter: ids
+    pub ids: Option<String>,
+    /// Query parameter: includeCompany
+    pub includeCompany: Option<bool>,
+    /// Query parameter: startKey
+    pub startKey: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/developers
 /// Lists all developers in an organization by email address. By default, the response does not include company developers. Set the `includeCompany` query parameter to `true` to include company developers. **Note**: A maximum of 1000 developers are returned in the response. You paginate the list of developers returned using the `startKey` and count query parameters.
 ///
@@ -13191,13 +14157,7 @@ pub fn apigee_organizations_developers_list_execute(
 
 pub fn apigee_organizations_developers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    app: Option<&str>,
-    count: Option<&str>,
-    expand: Option<bool>,
-    ids: Option<&str>,
-    includeCompany: Option<bool>,
-    startKey: Option<&str>,
+    args: &ApigeeOrganizationsDevelopersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListOfDevelopersResponse>, ApiError>,
@@ -13208,13 +14168,13 @@ pub fn apigee_organizations_developers_list(
 > {
     let builder = apigee_organizations_developers_list_builder(
         client,
-        parent,
-        app,
-        count,
-        expand,
-        ids,
-        includeCompany,
-        startKey,
+        &args.parent,
+        args.app.as_deref(),
+        args.count.as_deref(),
+        args.expand,
+        args.ids.as_deref(),
+        args.includeCompany,
+        args.startKey.as_deref(),
     )?;
     apigee_organizations_developers_list_execute(builder)
 }
@@ -13323,6 +14283,15 @@ pub fn apigee_organizations_developers_set_developer_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_set_developer_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersSetDeveloperStatusArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: action
+    pub action: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}
 /// Sets the status of a developer. A developer is active by default. If you set a developer's status to inactive, the API keys assigned to the developer apps are no longer valid even though the API keys are set to approved. Inactive developers can still sign in to the developer portal and create apps; however, any new API keys generated during app creation won't work. To set the status of a developer, set the action query parameter to active or inactive, and the Content-Type header to `application/octet-stream`. If successful, the API call returns the following HTTP status code: 204 No Content
 ///
@@ -13335,16 +14304,18 @@ pub fn apigee_organizations_developers_set_developer_status_execute(
 
 pub fn apigee_organizations_developers_set_developer_status(
     client: &SimpleHttpClient,
-    name: &str,
-    action: Option<&str>,
+    args: &ApigeeOrganizationsDevelopersSetDeveloperStatusArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_developers_set_developer_status_builder(client, name, action)?;
+    let builder = apigee_organizations_developers_set_developer_status_builder(
+        client,
+        &args.name,
+        args.action.as_deref(),
+    )?;
     apigee_organizations_developers_set_developer_status_execute(builder)
 }
 
@@ -13445,6 +14416,15 @@ pub fn apigee_organizations_developers_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Developer,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}
 /// Updates a developer. This API replaces the existing developer details with those specified in the request. Include or exclude any existing details that you want to retain or delete, respectively. The custom attribute limit is 18. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
 ///
@@ -13457,8 +14437,7 @@ pub fn apigee_organizations_developers_update_execute(
 
 pub fn apigee_organizations_developers_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1Developer,
+    args: &ApigeeOrganizationsDevelopersUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Developer>, ApiError>,
@@ -13467,7 +14446,7 @@ pub fn apigee_organizations_developers_update(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_update_builder(client, name, body)?;
+    let builder = apigee_organizations_developers_update_builder(client, &args.name, &args.body)?;
     apigee_organizations_developers_update_execute(builder)
 }
 
@@ -13569,6 +14548,15 @@ pub fn apigee_organizations_developers_update_monetization_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_update_monetization_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersUpdateMonetizationConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1DeveloperMonetizationConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/monetizationConfig
 /// Updates the monetization configuration for the developer.
 ///
@@ -13581,8 +14569,7 @@ pub fn apigee_organizations_developers_update_monetization_config_execute(
 
 pub fn apigee_organizations_developers_update_monetization_config(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1DeveloperMonetizationConfig,
+    args: &ApigeeOrganizationsDevelopersUpdateMonetizationConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperMonetizationConfig>, ApiError>,
@@ -13591,8 +14578,9 @@ pub fn apigee_organizations_developers_update_monetization_config(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_developers_update_monetization_config_builder(client, name, body)?;
+    let builder = apigee_organizations_developers_update_monetization_config_builder(
+        client, &args.name, &args.body,
+    )?;
     apigee_organizations_developers_update_monetization_config_execute(builder)
 }
 
@@ -13693,6 +14681,15 @@ pub fn apigee_organizations_developers_apps_attributes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_attributes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsAttributesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Attributes,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/attributes
 /// Updates attributes for a developer app. This API replaces the current attributes with those specified in the request.
 ///
@@ -13705,8 +14702,7 @@ pub fn apigee_organizations_developers_apps_attributes_execute(
 
 pub fn apigee_organizations_developers_apps_attributes(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1Attributes,
+    args: &ApigeeOrganizationsDevelopersAppsAttributesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Attributes>, ApiError>,
@@ -13715,7 +14711,8 @@ pub fn apigee_organizations_developers_apps_attributes(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_apps_attributes_builder(client, name, body)?;
+    let builder =
+        apigee_organizations_developers_apps_attributes_builder(client, &args.name, &args.body)?;
     apigee_organizations_developers_apps_attributes_execute(builder)
 }
 
@@ -13816,6 +14813,15 @@ pub fn apigee_organizations_developers_apps_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1DeveloperApp,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps
 /// Creates an app associated with a developer. This API associates the developer app with the specified API product and auto-generates an API key for the app to use in calls to API proxies inside that API product. The name is the unique ID of the app that you can use in API calls. The DisplayName (set as an attribute) appears in the UI. If you don't set the DisplayName attribute, the name appears in the UI.
 ///
@@ -13828,8 +14834,7 @@ pub fn apigee_organizations_developers_apps_create_execute(
 
 pub fn apigee_organizations_developers_apps_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1DeveloperApp,
+    args: &ApigeeOrganizationsDevelopersAppsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperApp>, ApiError>,
@@ -13838,7 +14843,8 @@ pub fn apigee_organizations_developers_apps_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_apps_create_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_developers_apps_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_developers_apps_create_execute(builder)
 }
 
@@ -13936,6 +14942,13 @@ pub fn apigee_organizations_developers_apps_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}
 /// Deletes a developer app. **Note**: The delete operation is asynchronous. The developer app is deleted immediately, but its associated resources, such as app keys or access tokens, may take anywhere from a few seconds to a few minutes to be deleted.
 ///
@@ -13948,7 +14961,7 @@ pub fn apigee_organizations_developers_apps_delete_execute(
 
 pub fn apigee_organizations_developers_apps_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDevelopersAppsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperApp>, ApiError>,
@@ -13957,7 +14970,7 @@ pub fn apigee_organizations_developers_apps_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_apps_delete_builder(client, name)?;
+    let builder = apigee_organizations_developers_apps_delete_builder(client, &args.name)?;
     apigee_organizations_developers_apps_delete_execute(builder)
 }
 
@@ -14070,6 +15083,17 @@ pub fn apigee_organizations_developers_apps_generate_key_pair_or_update_develope
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsGenerateKeyPairOrUpdateDeveloperAppStatusArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: action
+    pub action: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1DeveloperApp,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}
 /// Manages access to a developer app by enabling you to: * Approve or revoke a developer app * Generate a new consumer key and secret for a developer app To approve or revoke a developer app, set the action query parameter to approve or revoke, respectively, and the Content-Type header to `application/octet-stream`. If a developer app is revoked, none of its API keys are valid for API calls even though the keys are still approved. If successful, the API call returns the following HTTP status code: 204 No Content To generate a new consumer key and secret for a developer app, pass the new `key/secret` details. Rather than replace an existing key, this API generates a new key. In this case, multiple key pairs may be associated with a single developer app. Each key pair has an independent status (approve or revoke) and expiration time. Any approved, non-expired key can be used in an API call. For example, if you're using API key rotation, you can generate new keys with expiration times that overlap keys that are going to expire. You might also generate a new consumer `key/secret` if the security of the original `key/secret` is compromised. The `keyExpiresIn` property defines the expiration time for the API key in milliseconds. If you don't set this property or set it to -1, the API key never expires. **Notes**: * When generating a new `key/secret`, this API replaces the existing attributes, notes, and callback URLs with those specified in the request. Include or exclude any existing information that you want to retain or delete, respectively. * To migrate existing consumer keys and secrets to hybrid from another system, see the CreateDeveloperAppKey API.
 ///
@@ -14082,9 +15106,7 @@ pub fn apigee_organizations_developers_apps_generate_key_pair_or_update_develope
 
 pub fn apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status(
     client: &SimpleHttpClient,
-    name: &str,
-    action: Option<&str>,
-    body: &GoogleCloudApigeeV1DeveloperApp,
+    args: &ApigeeOrganizationsDevelopersAppsGenerateKeyPairOrUpdateDeveloperAppStatusArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperApp>, ApiError>,
@@ -14093,7 +15115,7 @@ pub fn apigee_organizations_developers_apps_generate_key_pair_or_update_develope
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status_builder(client, name, action, body)?;
+    let builder = apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status_builder(client, &args.name, args.action.as_deref(), &args.body)?;
     apigee_organizations_developers_apps_generate_key_pair_or_update_developer_app_status_execute(
         builder,
     )
@@ -14209,6 +15231,17 @@ pub fn apigee_organizations_developers_apps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: entity
+    pub entity: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}
 /// Returns the details for a developer app.
 ///
@@ -14221,9 +15254,7 @@ pub fn apigee_organizations_developers_apps_get_execute(
 
 pub fn apigee_organizations_developers_apps_get(
     client: &SimpleHttpClient,
-    name: &str,
-    entity: Option<&str>,
-    query: Option<&str>,
+    args: &ApigeeOrganizationsDevelopersAppsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperApp>, ApiError>,
@@ -14232,7 +15263,12 @@ pub fn apigee_organizations_developers_apps_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_apps_get_builder(client, name, entity, query)?;
+    let builder = apigee_organizations_developers_apps_get_builder(
+        client,
+        &args.name,
+        args.entity.as_deref(),
+        args.query.as_deref(),
+    )?;
     apigee_organizations_developers_apps_get_execute(builder)
 }
 
@@ -14355,6 +15391,21 @@ pub fn apigee_organizations_developers_apps_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: count
+    pub count: Option<String>,
+    /// Query parameter: expand
+    pub expand: Option<bool>,
+    /// Query parameter: shallowExpand
+    pub shallowExpand: Option<bool>,
+    /// Query parameter: startKey
+    pub startKey: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps
 /// Lists all apps created by a developer in an Apigee organization. Optionally, you can request an expanded view of the developer apps. A maximum of 100 developer apps are returned per API call. You can paginate the list of deveoper apps returned using the `startKey` and count query parameters.
 ///
@@ -14367,11 +15418,7 @@ pub fn apigee_organizations_developers_apps_list_execute(
 
 pub fn apigee_organizations_developers_apps_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    count: Option<&str>,
-    expand: Option<bool>,
-    shallowExpand: Option<bool>,
-    startKey: Option<&str>,
+    args: &ApigeeOrganizationsDevelopersAppsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListDeveloperAppsResponse>, ApiError>,
@@ -14382,11 +15429,11 @@ pub fn apigee_organizations_developers_apps_list(
 > {
     let builder = apigee_organizations_developers_apps_list_builder(
         client,
-        parent,
-        count,
-        expand,
-        shallowExpand,
-        startKey,
+        &args.parent,
+        args.count.as_deref(),
+        args.expand,
+        args.shallowExpand,
+        args.startKey.as_deref(),
     )?;
     apigee_organizations_developers_apps_list_execute(builder)
 }
@@ -14488,6 +15535,15 @@ pub fn apigee_organizations_developers_apps_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1DeveloperApp,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}
 /// Updates the details for a developer app. In addition, you can add an API product to a developer app and automatically generate an API key for the app to use when calling APIs in the API product. If you want to use an existing API key for the API product, add the API product to the API key using the UpdateDeveloperAppKey API. Using this API, you cannot update the following: * App name as it is the primary key used to identify the app and cannot be changed. * Scopes associated with the app. Instead, use the ReplaceDeveloperAppKey API. This API replaces the existing attributes with those specified in the request. Include or exclude any existing attributes that you want to retain or delete, respectively.
 ///
@@ -14500,8 +15556,7 @@ pub fn apigee_organizations_developers_apps_update_execute(
 
 pub fn apigee_organizations_developers_apps_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1DeveloperApp,
+    args: &ApigeeOrganizationsDevelopersAppsUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperApp>, ApiError>,
@@ -14510,7 +15565,8 @@ pub fn apigee_organizations_developers_apps_update(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_apps_update_builder(client, name, body)?;
+    let builder =
+        apigee_organizations_developers_apps_update_builder(client, &args.name, &args.body)?;
     apigee_organizations_developers_apps_update_execute(builder)
 }
 
@@ -14608,6 +15664,13 @@ pub fn apigee_organizations_developers_apps_attributes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_attributes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsAttributesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/attributes/{attributesId}
 /// Deletes a developer app attribute.
 ///
@@ -14620,7 +15683,7 @@ pub fn apigee_organizations_developers_apps_attributes_delete_execute(
 
 pub fn apigee_organizations_developers_apps_attributes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDevelopersAppsAttributesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Attribute>, ApiError>,
@@ -14629,7 +15692,8 @@ pub fn apigee_organizations_developers_apps_attributes_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_apps_attributes_delete_builder(client, name)?;
+    let builder =
+        apigee_organizations_developers_apps_attributes_delete_builder(client, &args.name)?;
     apigee_organizations_developers_apps_attributes_delete_execute(builder)
 }
 
@@ -14727,6 +15791,13 @@ pub fn apigee_organizations_developers_apps_attributes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_attributes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsAttributesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/attributes/{attributesId}
 /// Returns a developer app attribute.
 ///
@@ -14739,7 +15810,7 @@ pub fn apigee_organizations_developers_apps_attributes_get_execute(
 
 pub fn apigee_organizations_developers_apps_attributes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDevelopersAppsAttributesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Attribute>, ApiError>,
@@ -14748,7 +15819,7 @@ pub fn apigee_organizations_developers_apps_attributes_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_apps_attributes_get_builder(client, name)?;
+    let builder = apigee_organizations_developers_apps_attributes_get_builder(client, &args.name)?;
     apigee_organizations_developers_apps_attributes_get_execute(builder)
 }
 
@@ -14846,6 +15917,13 @@ pub fn apigee_organizations_developers_apps_attributes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_attributes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsAttributesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/attributes
 /// Returns a list of all developer app attributes.
 ///
@@ -14858,7 +15936,7 @@ pub fn apigee_organizations_developers_apps_attributes_list_execute(
 
 pub fn apigee_organizations_developers_apps_attributes_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ApigeeOrganizationsDevelopersAppsAttributesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Attributes>, ApiError>,
@@ -14867,7 +15945,8 @@ pub fn apigee_organizations_developers_apps_attributes_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_apps_attributes_list_builder(client, parent)?;
+    let builder =
+        apigee_organizations_developers_apps_attributes_list_builder(client, &args.parent)?;
     apigee_organizations_developers_apps_attributes_list_execute(builder)
 }
 
@@ -14968,6 +16047,15 @@ pub fn apigee_organizations_developers_apps_attributes_update_developer_app_attr
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_attributes_update_developer_app_attribute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsAttributesUpdateDeveloperAppAttributeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Attribute,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/attributes/{attributesId}
 /// Updates a developer app attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (current default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
 ///
@@ -14980,8 +16068,7 @@ pub fn apigee_organizations_developers_apps_attributes_update_developer_app_attr
 
 pub fn apigee_organizations_developers_apps_attributes_update_developer_app_attribute(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1Attribute,
+    args: &ApigeeOrganizationsDevelopersAppsAttributesUpdateDeveloperAppAttributeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Attribute>, ApiError>,
@@ -14992,7 +16079,7 @@ pub fn apigee_organizations_developers_apps_attributes_update_developer_app_attr
 > {
     let builder =
         apigee_organizations_developers_apps_attributes_update_developer_app_attribute_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     apigee_organizations_developers_apps_attributes_update_developer_app_attribute_execute(builder)
 }
@@ -15094,6 +16181,15 @@ pub fn apigee_organizations_developers_apps_keys_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_keys_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsKeysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1DeveloperAppKey,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys
 /// Creates a custom consumer key and secret for a developer app. This is particularly useful if you want to migrate existing consumer keys and secrets to Apigee from another system. Consumer keys and secrets can contain letters, numbers, underscores, and hyphens. No other special characters are allowed. To avoid service disruptions, a consumer key and secret should not exceed 2 KBs each. **Note**: When creating the consumer key and secret, an association to API products will not be made. Therefore, you should not specify the associated API products in your request. Instead, use the UpdateDeveloperAppKey API to make the association after the consumer key and secret are created. If a consumer key and secret already exist, you can keep them or delete them using the DeleteDeveloperAppKey API. **Note**: All keys start out with status=approved, even if status=revoked is passed when the key is created. To revoke a key, use the UpdateDeveloperAppKey API.
 ///
@@ -15106,8 +16202,7 @@ pub fn apigee_organizations_developers_apps_keys_create_execute(
 
 pub fn apigee_organizations_developers_apps_keys_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1DeveloperAppKey,
+    args: &ApigeeOrganizationsDevelopersAppsKeysCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperAppKey>, ApiError>,
@@ -15116,7 +16211,8 @@ pub fn apigee_organizations_developers_apps_keys_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_apps_keys_create_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_developers_apps_keys_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_developers_apps_keys_create_execute(builder)
 }
 
@@ -15214,6 +16310,13 @@ pub fn apigee_organizations_developers_apps_keys_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_keys_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsKeysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}
 /// Deletes an app's consumer key and removes all API products associated with the app. After the consumer key is deleted, it cannot be used to access any APIs. **Note**: After you delete a consumer key, you may want to: 1. Create a new consumer key and secret for the developer app using the CreateDeveloperAppKey API, and subsequently add an API product to the key using the UpdateDeveloperAppKey API. 2. Delete the developer app, if it is no longer required.
 ///
@@ -15226,7 +16329,7 @@ pub fn apigee_organizations_developers_apps_keys_delete_execute(
 
 pub fn apigee_organizations_developers_apps_keys_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDevelopersAppsKeysDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperAppKey>, ApiError>,
@@ -15235,7 +16338,7 @@ pub fn apigee_organizations_developers_apps_keys_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_apps_keys_delete_builder(client, name)?;
+    let builder = apigee_organizations_developers_apps_keys_delete_builder(client, &args.name)?;
     apigee_organizations_developers_apps_keys_delete_execute(builder)
 }
 
@@ -15333,6 +16436,13 @@ pub fn apigee_organizations_developers_apps_keys_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_keys_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsKeysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}
 /// Gets details for a consumer key for a developer app, including the key and secret value, associated API products, and other information.
 ///
@@ -15345,7 +16455,7 @@ pub fn apigee_organizations_developers_apps_keys_get_execute(
 
 pub fn apigee_organizations_developers_apps_keys_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDevelopersAppsKeysGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperAppKey>, ApiError>,
@@ -15354,7 +16464,7 @@ pub fn apigee_organizations_developers_apps_keys_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_apps_keys_get_builder(client, name)?;
+    let builder = apigee_organizations_developers_apps_keys_get_builder(client, &args.name)?;
     apigee_organizations_developers_apps_keys_get_execute(builder)
 }
 
@@ -15455,6 +16565,15 @@ pub fn apigee_organizations_developers_apps_keys_replace_developer_app_key_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_keys_replace_developer_app_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsKeysReplaceDeveloperAppKeyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1DeveloperAppKey,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}
 /// Updates the scope of an app. This API replaces the existing scopes with those specified in the request. Include or exclude any existing scopes that you want to retain or delete, respectively. The specified scopes must already be defined for the API products associated with the app. This API sets the scopes element under the `apiProducts` element in the attributes of the app.
 ///
@@ -15467,8 +16586,7 @@ pub fn apigee_organizations_developers_apps_keys_replace_developer_app_key_execu
 
 pub fn apigee_organizations_developers_apps_keys_replace_developer_app_key(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1DeveloperAppKey,
+    args: &ApigeeOrganizationsDevelopersAppsKeysReplaceDeveloperAppKeyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperAppKey>, ApiError>,
@@ -15478,7 +16596,7 @@ pub fn apigee_organizations_developers_apps_keys_replace_developer_app_key(
     ApiError,
 > {
     let builder = apigee_organizations_developers_apps_keys_replace_developer_app_key_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     apigee_organizations_developers_apps_keys_replace_developer_app_key_execute(builder)
 }
@@ -15592,6 +16710,17 @@ pub fn apigee_organizations_developers_apps_keys_update_developer_app_key_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_keys_update_developer_app_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsKeysUpdateDeveloperAppKeyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: action
+    pub action: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1DeveloperAppKey,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}
 /// Adds an API product to a developer app key, enabling the app that holds the key to access the API resources bundled in the API product. In addition, you can add attributes and scopes associated with the API product to the developer app key. The status of the key can be updated via "action" Query Parameter. None of the other fields can be updated via this API. This API replaces the existing attributes with those specified in the request. Include or exclude any existing attributes that you want to retain or delete, respectively. None of the other fields can be updated. You can use the same key to access all API products associated with the app.
 ///
@@ -15604,9 +16733,7 @@ pub fn apigee_organizations_developers_apps_keys_update_developer_app_key_execut
 
 pub fn apigee_organizations_developers_apps_keys_update_developer_app_key(
     client: &SimpleHttpClient,
-    name: &str,
-    action: Option<&str>,
-    body: &GoogleCloudApigeeV1DeveloperAppKey,
+    args: &ApigeeOrganizationsDevelopersAppsKeysUpdateDeveloperAppKeyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperAppKey>, ApiError>,
@@ -15616,7 +16743,10 @@ pub fn apigee_organizations_developers_apps_keys_update_developer_app_key(
     ApiError,
 > {
     let builder = apigee_organizations_developers_apps_keys_update_developer_app_key_builder(
-        client, name, action, body,
+        client,
+        &args.name,
+        args.action.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_developers_apps_keys_update_developer_app_key_execute(builder)
 }
@@ -15715,6 +16845,13 @@ pub fn apigee_organizations_developers_apps_keys_apiproducts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_keys_apiproducts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsKeysApiproductsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}
 /// Removes an API product from an app's consumer key. After the API product is removed, the app cannot access the API resources defined in that API product. **Note**: The consumer key is not removed, only its association with the API product.
 ///
@@ -15727,7 +16864,7 @@ pub fn apigee_organizations_developers_apps_keys_apiproducts_delete_execute(
 
 pub fn apigee_organizations_developers_apps_keys_apiproducts_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDevelopersAppsKeysApiproductsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperAppKey>, ApiError>,
@@ -15737,7 +16874,7 @@ pub fn apigee_organizations_developers_apps_keys_apiproducts_delete(
     ApiError,
 > {
     let builder =
-        apigee_organizations_developers_apps_keys_apiproducts_delete_builder(client, name)?;
+        apigee_organizations_developers_apps_keys_apiproducts_delete_builder(client, &args.name)?;
     apigee_organizations_developers_apps_keys_apiproducts_delete_execute(builder)
 }
 
@@ -15845,6 +16982,15 @@ pub fn apigee_organizations_developers_apps_keys_apiproducts_update_developer_ap
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_keys_apiproducts_update_developer_app_key_api_product`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsKeysApiproductsUpdateDeveloperAppKeyApiProductArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: action
+    pub action: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/{keysId}/apiproducts/{apiproductsId}
 /// Approves or revokes the consumer key for an API product. After a consumer key is approved, the app can use it to access APIs. A consumer key that is revoked or pending cannot be used to access an API. Any access tokens associated with a revoked consumer key will remain active. However, Apigee checks the status of the consumer key and if set to revoked will not allow access to the API.
 ///
@@ -15857,15 +17003,14 @@ pub fn apigee_organizations_developers_apps_keys_apiproducts_update_developer_ap
 
 pub fn apigee_organizations_developers_apps_keys_apiproducts_update_developer_app_key_api_product(
     client: &SimpleHttpClient,
-    name: &str,
-    action: Option<&str>,
+    args: &ApigeeOrganizationsDevelopersAppsKeysApiproductsUpdateDeveloperAppKeyApiProductArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_apps_keys_apiproducts_update_developer_app_key_api_product_builder(client, name, action)?;
+    let builder = apigee_organizations_developers_apps_keys_apiproducts_update_developer_app_key_api_product_builder(client, &args.name, args.action.as_deref())?;
     apigee_organizations_developers_apps_keys_apiproducts_update_developer_app_key_api_product_execute(builder)
 }
 
@@ -15966,6 +17111,15 @@ pub fn apigee_organizations_developers_apps_keys_create_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_apps_keys_create_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAppsKeysCreateCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1DeveloperAppKey,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/apps/{appsId}/keys/create
 /// Creates a custom consumer key and secret for a developer app. This is particularly useful if you want to migrate existing consumer keys and secrets to Apigee from another system. Consumer keys and secrets can contain letters, numbers, underscores, and hyphens. No other special characters are allowed. To avoid service disruptions, a consumer key and secret should not exceed 2 KBs each. **Note**: When creating the consumer key and secret, an association to API products will not be made. Therefore, you should not specify the associated API products in your request. Instead, use the UpdateDeveloperAppKey API to make the association after the consumer key and secret are created. If a consumer key and secret already exist, you can keep them or delete them using the DeleteDeveloperAppKey API. **Note**: All keys start out with status=approved, even if status=revoked is passed when the key is created. To revoke a key, use the UpdateDeveloperAppKey API.
 ///
@@ -15978,8 +17132,7 @@ pub fn apigee_organizations_developers_apps_keys_create_create_execute(
 
 pub fn apigee_organizations_developers_apps_keys_create_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1DeveloperAppKey,
+    args: &ApigeeOrganizationsDevelopersAppsKeysCreateCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperAppKey>, ApiError>,
@@ -15988,8 +17141,11 @@ pub fn apigee_organizations_developers_apps_keys_create_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_developers_apps_keys_create_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_developers_apps_keys_create_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_developers_apps_keys_create_create_execute(builder)
 }
 
@@ -16087,6 +17243,13 @@ pub fn apigee_organizations_developers_attributes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_attributes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAttributesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/attributes/{attributesId}
 /// Deletes a developer attribute.
 ///
@@ -16099,7 +17262,7 @@ pub fn apigee_organizations_developers_attributes_delete_execute(
 
 pub fn apigee_organizations_developers_attributes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDevelopersAttributesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Attribute>, ApiError>,
@@ -16108,7 +17271,7 @@ pub fn apigee_organizations_developers_attributes_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_attributes_delete_builder(client, name)?;
+    let builder = apigee_organizations_developers_attributes_delete_builder(client, &args.name)?;
     apigee_organizations_developers_attributes_delete_execute(builder)
 }
 
@@ -16206,6 +17369,13 @@ pub fn apigee_organizations_developers_attributes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_attributes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAttributesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/attributes/{attributesId}
 /// Returns the value of the specified developer attribute.
 ///
@@ -16218,7 +17388,7 @@ pub fn apigee_organizations_developers_attributes_get_execute(
 
 pub fn apigee_organizations_developers_attributes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDevelopersAttributesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Attribute>, ApiError>,
@@ -16227,7 +17397,7 @@ pub fn apigee_organizations_developers_attributes_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_attributes_get_builder(client, name)?;
+    let builder = apigee_organizations_developers_attributes_get_builder(client, &args.name)?;
     apigee_organizations_developers_attributes_get_execute(builder)
 }
 
@@ -16325,6 +17495,13 @@ pub fn apigee_organizations_developers_attributes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_attributes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAttributesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/attributes
 /// Returns a list of all developer attributes.
 ///
@@ -16337,7 +17514,7 @@ pub fn apigee_organizations_developers_attributes_list_execute(
 
 pub fn apigee_organizations_developers_attributes_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ApigeeOrganizationsDevelopersAttributesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Attributes>, ApiError>,
@@ -16346,7 +17523,7 @@ pub fn apigee_organizations_developers_attributes_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_attributes_list_builder(client, parent)?;
+    let builder = apigee_organizations_developers_attributes_list_builder(client, &args.parent)?;
     apigee_organizations_developers_attributes_list_execute(builder)
 }
 
@@ -16447,6 +17624,15 @@ pub fn apigee_organizations_developers_attributes_update_developer_attribute_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_attributes_update_developer_attribute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersAttributesUpdateDeveloperAttributeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Attribute,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/attributes/{attributesId}
 /// Updates a developer attribute. **Note**: OAuth access tokens and Key Management Service (KMS) entities (apps, developers, and API products) are cached for 180 seconds (default). Any custom attributes associated with these entities are cached for at least 180 seconds after the entity is accessed at runtime. Therefore, an ExpiresIn element on the OAuthV2 policy won't be able to expire an access token in less than 180 seconds.
 ///
@@ -16459,8 +17645,7 @@ pub fn apigee_organizations_developers_attributes_update_developer_attribute_exe
 
 pub fn apigee_organizations_developers_attributes_update_developer_attribute(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1Attribute,
+    args: &ApigeeOrganizationsDevelopersAttributesUpdateDeveloperAttributeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Attribute>, ApiError>,
@@ -16470,7 +17655,7 @@ pub fn apigee_organizations_developers_attributes_update_developer_attribute(
     ApiError,
 > {
     let builder = apigee_organizations_developers_attributes_update_developer_attribute_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     apigee_organizations_developers_attributes_update_developer_attribute_execute(builder)
 }
@@ -16572,6 +17757,15 @@ pub fn apigee_organizations_developers_balance_adjust_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_balance_adjust`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersBalanceAdjustArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1AdjustDeveloperBalanceRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/balance:adjust
 /// Adjust the prepaid balance for the developer. This API will be used in scenarios where the developer has been under-charged or over-charged.
 ///
@@ -16584,8 +17778,7 @@ pub fn apigee_organizations_developers_balance_adjust_execute(
 
 pub fn apigee_organizations_developers_balance_adjust(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1AdjustDeveloperBalanceRequest,
+    args: &ApigeeOrganizationsDevelopersBalanceAdjustArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperBalance>, ApiError>,
@@ -16594,7 +17787,8 @@ pub fn apigee_organizations_developers_balance_adjust(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_balance_adjust_builder(client, name, body)?;
+    let builder =
+        apigee_organizations_developers_balance_adjust_builder(client, &args.name, &args.body)?;
     apigee_organizations_developers_balance_adjust_execute(builder)
 }
 
@@ -16695,6 +17889,15 @@ pub fn apigee_organizations_developers_balance_credit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_balance_credit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersBalanceCreditArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1CreditDeveloperBalanceRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/balance:credit
 /// Credits the account balance for the developer.
 ///
@@ -16707,8 +17910,7 @@ pub fn apigee_organizations_developers_balance_credit_execute(
 
 pub fn apigee_organizations_developers_balance_credit(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1CreditDeveloperBalanceRequest,
+    args: &ApigeeOrganizationsDevelopersBalanceCreditArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperBalance>, ApiError>,
@@ -16717,7 +17919,8 @@ pub fn apigee_organizations_developers_balance_credit(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_balance_credit_builder(client, name, body)?;
+    let builder =
+        apigee_organizations_developers_balance_credit_builder(client, &args.name, &args.body)?;
     apigee_organizations_developers_balance_credit_execute(builder)
 }
 
@@ -16818,6 +18021,15 @@ pub fn apigee_organizations_developers_subscriptions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_subscriptions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersSubscriptionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1DeveloperSubscription,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/subscriptions
 /// Creates a subscription to an API product.
 ///
@@ -16830,8 +18042,7 @@ pub fn apigee_organizations_developers_subscriptions_create_execute(
 
 pub fn apigee_organizations_developers_subscriptions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1DeveloperSubscription,
+    args: &ApigeeOrganizationsDevelopersSubscriptionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperSubscription>, ApiError>,
@@ -16840,8 +18051,11 @@ pub fn apigee_organizations_developers_subscriptions_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_developers_subscriptions_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_developers_subscriptions_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_developers_subscriptions_create_execute(builder)
 }
 
@@ -16942,6 +18156,15 @@ pub fn apigee_organizations_developers_subscriptions_expire_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_subscriptions_expire`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersSubscriptionsExpireArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ExpireDeveloperSubscriptionRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/subscriptions/{subscriptionsId}:expire
 /// Expires an API product subscription immediately.
 ///
@@ -16954,8 +18177,7 @@ pub fn apigee_organizations_developers_subscriptions_expire_execute(
 
 pub fn apigee_organizations_developers_subscriptions_expire(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1ExpireDeveloperSubscriptionRequest,
+    args: &ApigeeOrganizationsDevelopersSubscriptionsExpireArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperSubscription>, ApiError>,
@@ -16964,7 +18186,9 @@ pub fn apigee_organizations_developers_subscriptions_expire(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_subscriptions_expire_builder(client, name, body)?;
+    let builder = apigee_organizations_developers_subscriptions_expire_builder(
+        client, &args.name, &args.body,
+    )?;
     apigee_organizations_developers_subscriptions_expire_execute(builder)
 }
 
@@ -17062,6 +18286,13 @@ pub fn apigee_organizations_developers_subscriptions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_subscriptions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersSubscriptionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/subscriptions/{subscriptionsId}
 /// Gets details for an API product subscription.
 ///
@@ -17074,7 +18305,7 @@ pub fn apigee_organizations_developers_subscriptions_get_execute(
 
 pub fn apigee_organizations_developers_subscriptions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDevelopersSubscriptionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeveloperSubscription>, ApiError>,
@@ -17083,7 +18314,7 @@ pub fn apigee_organizations_developers_subscriptions_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_developers_subscriptions_get_builder(client, name)?;
+    let builder = apigee_organizations_developers_subscriptions_get_builder(client, &args.name)?;
     apigee_organizations_developers_subscriptions_get_execute(builder)
 }
 
@@ -17201,6 +18432,17 @@ pub fn apigee_organizations_developers_subscriptions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_developers_subscriptions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDevelopersSubscriptionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: count
+    pub count: Option<i32>,
+    /// Query parameter: startKey
+    pub startKey: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/developers/{developersId}/subscriptions
 /// Lists all API product subscriptions for a developer.
 ///
@@ -17213,9 +18455,7 @@ pub fn apigee_organizations_developers_subscriptions_list_execute(
 
 pub fn apigee_organizations_developers_subscriptions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    count: Option<i32>,
-    startKey: Option<&str>,
+    args: &ApigeeOrganizationsDevelopersSubscriptionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -17228,7 +18468,10 @@ pub fn apigee_organizations_developers_subscriptions_list(
     ApiError,
 > {
     let builder = apigee_organizations_developers_subscriptions_list_builder(
-        client, parent, count, startKey,
+        client,
+        &args.parent,
+        args.count,
+        args.startKey.as_deref(),
     )?;
     apigee_organizations_developers_subscriptions_list_execute(builder)
 }
@@ -17342,6 +18585,17 @@ pub fn apigee_organizations_dns_zones_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_dns_zones_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDnsZonesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dnsZoneId
+    pub dnsZoneId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1DnsZone,
+}
+
 /// GET v1/organizations/{organizationsId}/dnsZones
 /// Creates a new DNS zone.
 ///
@@ -17354,9 +18608,7 @@ pub fn apigee_organizations_dns_zones_create_execute(
 
 pub fn apigee_organizations_dns_zones_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dnsZoneId: Option<&str>,
-    body: &GoogleCloudApigeeV1DnsZone,
+    args: &ApigeeOrganizationsDnsZonesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -17365,7 +18617,12 @@ pub fn apigee_organizations_dns_zones_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_dns_zones_create_builder(client, parent, dnsZoneId, body)?;
+    let builder = apigee_organizations_dns_zones_create_builder(
+        client,
+        &args.parent,
+        args.dnsZoneId.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_dns_zones_create_execute(builder)
 }
 
@@ -17463,6 +18720,13 @@ pub fn apigee_organizations_dns_zones_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_dns_zones_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDnsZonesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/dnsZones/{dnsZonesId}
 /// Deletes a previously created DNS zone.
 ///
@@ -17475,7 +18739,7 @@ pub fn apigee_organizations_dns_zones_delete_execute(
 
 pub fn apigee_organizations_dns_zones_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDnsZonesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -17484,7 +18748,7 @@ pub fn apigee_organizations_dns_zones_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_dns_zones_delete_builder(client, name)?;
+    let builder = apigee_organizations_dns_zones_delete_builder(client, &args.name)?;
     apigee_organizations_dns_zones_delete_execute(builder)
 }
 
@@ -17582,6 +18846,13 @@ pub fn apigee_organizations_dns_zones_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_dns_zones_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDnsZonesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/dnsZones/{dnsZonesId}
 /// Fetches the representation of an existing DNS zone.
 ///
@@ -17594,7 +18865,7 @@ pub fn apigee_organizations_dns_zones_get_execute(
 
 pub fn apigee_organizations_dns_zones_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsDnsZonesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DnsZone>, ApiError>,
@@ -17603,7 +18874,7 @@ pub fn apigee_organizations_dns_zones_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_dns_zones_get_builder(client, name)?;
+    let builder = apigee_organizations_dns_zones_get_builder(client, &args.name)?;
     apigee_organizations_dns_zones_get_execute(builder)
 }
 
@@ -17718,6 +18989,17 @@ pub fn apigee_organizations_dns_zones_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_dns_zones_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsDnsZonesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/dnsZones
 /// Enumerates DNS zones that have been created but not yet deleted.
 ///
@@ -17730,9 +19012,7 @@ pub fn apigee_organizations_dns_zones_list_execute(
 
 pub fn apigee_organizations_dns_zones_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsDnsZonesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListDnsZonesResponse>, ApiError>,
@@ -17741,7 +19021,12 @@ pub fn apigee_organizations_dns_zones_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_dns_zones_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = apigee_organizations_dns_zones_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apigee_organizations_dns_zones_list_execute(builder)
 }
 
@@ -17854,6 +19139,17 @@ pub fn apigee_organizations_endpoint_attachments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_endpoint_attachments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEndpointAttachmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: endpointAttachmentId
+    pub endpointAttachmentId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1EndpointAttachment,
+}
+
 /// GET v1/organizations/{organizationsId}/endpointAttachments
 /// Creates an endpoint attachment. **Note:** Not supported for Apigee hybrid.
 ///
@@ -17866,9 +19162,7 @@ pub fn apigee_organizations_endpoint_attachments_create_execute(
 
 pub fn apigee_organizations_endpoint_attachments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    endpointAttachmentId: Option<&str>,
-    body: &GoogleCloudApigeeV1EndpointAttachment,
+    args: &ApigeeOrganizationsEndpointAttachmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -17879,9 +19173,9 @@ pub fn apigee_organizations_endpoint_attachments_create(
 > {
     let builder = apigee_organizations_endpoint_attachments_create_builder(
         client,
-        parent,
-        endpointAttachmentId,
-        body,
+        &args.parent,
+        args.endpointAttachmentId.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_endpoint_attachments_create_execute(builder)
 }
@@ -17980,6 +19274,13 @@ pub fn apigee_organizations_endpoint_attachments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_endpoint_attachments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEndpointAttachmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/endpointAttachments/{endpointAttachmentsId}
 /// Deletes an endpoint attachment.
 ///
@@ -17992,7 +19293,7 @@ pub fn apigee_organizations_endpoint_attachments_delete_execute(
 
 pub fn apigee_organizations_endpoint_attachments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEndpointAttachmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -18001,7 +19302,7 @@ pub fn apigee_organizations_endpoint_attachments_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_endpoint_attachments_delete_builder(client, name)?;
+    let builder = apigee_organizations_endpoint_attachments_delete_builder(client, &args.name)?;
     apigee_organizations_endpoint_attachments_delete_execute(builder)
 }
 
@@ -18099,6 +19400,13 @@ pub fn apigee_organizations_endpoint_attachments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_endpoint_attachments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEndpointAttachmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/endpointAttachments/{endpointAttachmentsId}
 /// Gets the endpoint attachment.
 ///
@@ -18111,7 +19419,7 @@ pub fn apigee_organizations_endpoint_attachments_get_execute(
 
 pub fn apigee_organizations_endpoint_attachments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEndpointAttachmentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1EndpointAttachment>, ApiError>,
@@ -18120,7 +19428,7 @@ pub fn apigee_organizations_endpoint_attachments_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_endpoint_attachments_get_builder(client, name)?;
+    let builder = apigee_organizations_endpoint_attachments_get_builder(client, &args.name)?;
     apigee_organizations_endpoint_attachments_get_execute(builder)
 }
 
@@ -18235,6 +19543,17 @@ pub fn apigee_organizations_endpoint_attachments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_endpoint_attachments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEndpointAttachmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/endpointAttachments
 /// Lists the endpoint attachments in an organization.
 ///
@@ -18247,9 +19566,7 @@ pub fn apigee_organizations_endpoint_attachments_list_execute(
 
 pub fn apigee_organizations_endpoint_attachments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsEndpointAttachmentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListEndpointAttachmentsResponse>, ApiError>,
@@ -18259,7 +19576,10 @@ pub fn apigee_organizations_endpoint_attachments_list(
     ApiError,
 > {
     let builder = apigee_organizations_endpoint_attachments_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigee_organizations_endpoint_attachments_list_execute(builder)
 }
@@ -18373,6 +19693,17 @@ pub fn apigee_organizations_envgroups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_envgroups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvgroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1EnvironmentGroup,
+}
+
 /// GET v1/organizations/{organizationsId}/envgroups
 /// Creates a new environment group.
 ///
@@ -18385,9 +19716,7 @@ pub fn apigee_organizations_envgroups_create_execute(
 
 pub fn apigee_organizations_envgroups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    name: Option<&str>,
-    body: &GoogleCloudApigeeV1EnvironmentGroup,
+    args: &ApigeeOrganizationsEnvgroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -18396,7 +19725,12 @@ pub fn apigee_organizations_envgroups_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_envgroups_create_builder(client, parent, name, body)?;
+    let builder = apigee_organizations_envgroups_create_builder(
+        client,
+        &args.parent,
+        args.name.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_envgroups_create_execute(builder)
 }
 
@@ -18494,6 +19828,13 @@ pub fn apigee_organizations_envgroups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_envgroups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvgroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/envgroups/{envgroupsId}
 /// Deletes an environment group.
 ///
@@ -18506,7 +19847,7 @@ pub fn apigee_organizations_envgroups_delete_execute(
 
 pub fn apigee_organizations_envgroups_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvgroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -18515,7 +19856,7 @@ pub fn apigee_organizations_envgroups_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_envgroups_delete_builder(client, name)?;
+    let builder = apigee_organizations_envgroups_delete_builder(client, &args.name)?;
     apigee_organizations_envgroups_delete_execute(builder)
 }
 
@@ -18613,6 +19954,13 @@ pub fn apigee_organizations_envgroups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_envgroups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvgroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/envgroups/{envgroupsId}
 /// Gets an environment group.
 ///
@@ -18625,7 +19973,7 @@ pub fn apigee_organizations_envgroups_get_execute(
 
 pub fn apigee_organizations_envgroups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvgroupsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1EnvironmentGroup>, ApiError>,
@@ -18634,7 +19982,7 @@ pub fn apigee_organizations_envgroups_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_envgroups_get_builder(client, name)?;
+    let builder = apigee_organizations_envgroups_get_builder(client, &args.name)?;
     apigee_organizations_envgroups_get_execute(builder)
 }
 
@@ -18744,6 +20092,15 @@ pub fn apigee_organizations_envgroups_get_deployed_ingress_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_envgroups_get_deployed_ingress_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvgroupsGetDeployedIngressConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/envgroups/{envgroupsId}/deployedIngressConfig
 /// Gets the deployed ingress configuration for an environment group.
 ///
@@ -18756,8 +20113,7 @@ pub fn apigee_organizations_envgroups_get_deployed_ingress_config_execute(
 
 pub fn apigee_organizations_envgroups_get_deployed_ingress_config(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &ApigeeOrganizationsEnvgroupsGetDeployedIngressConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1EnvironmentGroupConfig>, ApiError>,
@@ -18766,8 +20122,11 @@ pub fn apigee_organizations_envgroups_get_deployed_ingress_config(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_envgroups_get_deployed_ingress_config_builder(client, name, view)?;
+    let builder = apigee_organizations_envgroups_get_deployed_ingress_config_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     apigee_organizations_envgroups_get_deployed_ingress_config_execute(builder)
 }
 
@@ -18882,6 +20241,17 @@ pub fn apigee_organizations_envgroups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_envgroups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvgroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/envgroups
 /// Lists all environment groups.
 ///
@@ -18894,9 +20264,7 @@ pub fn apigee_organizations_envgroups_list_execute(
 
 pub fn apigee_organizations_envgroups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsEnvgroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListEnvironmentGroupsResponse>, ApiError>,
@@ -18905,7 +20273,12 @@ pub fn apigee_organizations_envgroups_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_envgroups_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = apigee_organizations_envgroups_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apigee_organizations_envgroups_list_execute(builder)
 }
 
@@ -19018,6 +20391,17 @@ pub fn apigee_organizations_envgroups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_envgroups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvgroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1EnvironmentGroup,
+}
+
 /// GET v1/organizations/{organizationsId}/envgroups/{envgroupsId}
 /// Updates an environment group.
 ///
@@ -19030,9 +20414,7 @@ pub fn apigee_organizations_envgroups_patch_execute(
 
 pub fn apigee_organizations_envgroups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1EnvironmentGroup,
+    args: &ApigeeOrganizationsEnvgroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -19041,7 +20423,12 @@ pub fn apigee_organizations_envgroups_patch(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_envgroups_patch_builder(client, name, updateMask, body)?;
+    let builder = apigee_organizations_envgroups_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_envgroups_patch_execute(builder)
 }
 
@@ -19142,6 +20529,15 @@ pub fn apigee_organizations_envgroups_attachments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_envgroups_attachments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvgroupsAttachmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1EnvironmentGroupAttachment,
+}
+
 /// GET v1/organizations/{organizationsId}/envgroups/{envgroupsId}/attachments
 /// Creates a new attachment of an environment to an environment group.
 ///
@@ -19154,8 +20550,7 @@ pub fn apigee_organizations_envgroups_attachments_create_execute(
 
 pub fn apigee_organizations_envgroups_attachments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1EnvironmentGroupAttachment,
+    args: &ApigeeOrganizationsEnvgroupsAttachmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -19164,7 +20559,11 @@ pub fn apigee_organizations_envgroups_attachments_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_envgroups_attachments_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_envgroups_attachments_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_envgroups_attachments_create_execute(builder)
 }
 
@@ -19262,6 +20661,13 @@ pub fn apigee_organizations_envgroups_attachments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_envgroups_attachments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvgroupsAttachmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/envgroups/{envgroupsId}/attachments/{attachmentsId}
 /// Deletes an environment group attachment.
 ///
@@ -19274,7 +20680,7 @@ pub fn apigee_organizations_envgroups_attachments_delete_execute(
 
 pub fn apigee_organizations_envgroups_attachments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvgroupsAttachmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -19283,7 +20689,7 @@ pub fn apigee_organizations_envgroups_attachments_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_envgroups_attachments_delete_builder(client, name)?;
+    let builder = apigee_organizations_envgroups_attachments_delete_builder(client, &args.name)?;
     apigee_organizations_envgroups_attachments_delete_execute(builder)
 }
 
@@ -19382,6 +20788,13 @@ pub fn apigee_organizations_envgroups_attachments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_envgroups_attachments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvgroupsAttachmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/envgroups/{envgroupsId}/attachments/{attachmentsId}
 /// Gets an environment group attachment.
 ///
@@ -19394,7 +20807,7 @@ pub fn apigee_organizations_envgroups_attachments_get_execute(
 
 pub fn apigee_organizations_envgroups_attachments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvgroupsAttachmentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1EnvironmentGroupAttachment>, ApiError>,
@@ -19403,7 +20816,7 @@ pub fn apigee_organizations_envgroups_attachments_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_envgroups_attachments_get_builder(client, name)?;
+    let builder = apigee_organizations_envgroups_attachments_get_builder(client, &args.name)?;
     apigee_organizations_envgroups_attachments_get_execute(builder)
 }
 
@@ -19521,6 +20934,17 @@ pub fn apigee_organizations_envgroups_attachments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_envgroups_attachments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvgroupsAttachmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/envgroups/{envgroupsId}/attachments
 /// Lists all attachments of an environment group.
 ///
@@ -19533,9 +20957,7 @@ pub fn apigee_organizations_envgroups_attachments_list_execute(
 
 pub fn apigee_organizations_envgroups_attachments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsEnvgroupsAttachmentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -19548,7 +20970,10 @@ pub fn apigee_organizations_envgroups_attachments_list(
     ApiError,
 > {
     let builder = apigee_organizations_envgroups_attachments_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigee_organizations_envgroups_attachments_list_execute(builder)
 }
@@ -19662,6 +21087,17 @@ pub fn apigee_organizations_environments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Environment,
+}
+
 /// GET v1/organizations/{organizationsId}/environments
 /// Creates an environment in an organization.
 ///
@@ -19674,9 +21110,7 @@ pub fn apigee_organizations_environments_create_execute(
 
 pub fn apigee_organizations_environments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    name: Option<&str>,
-    body: &GoogleCloudApigeeV1Environment,
+    args: &ApigeeOrganizationsEnvironmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -19685,7 +21119,12 @@ pub fn apigee_organizations_environments_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_create_builder(client, parent, name, body)?;
+    let builder = apigee_organizations_environments_create_builder(
+        client,
+        &args.parent,
+        args.name.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_environments_create_execute(builder)
 }
 
@@ -19783,6 +21222,13 @@ pub fn apigee_organizations_environments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}
 /// Deletes an environment from an organization. **Warning: You must delete all key value maps and key value entries before you delete an environment.** Otherwise, if you re-create the environment the key value map entry operations will encounter `encryption/decryption` discrepancies.
 ///
@@ -19795,7 +21241,7 @@ pub fn apigee_organizations_environments_delete_execute(
 
 pub fn apigee_organizations_environments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -19804,7 +21250,7 @@ pub fn apigee_organizations_environments_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_delete_builder(client, name)?;
+    let builder = apigee_organizations_environments_delete_builder(client, &args.name)?;
     apigee_organizations_environments_delete_execute(builder)
 }
 
@@ -19902,6 +21348,13 @@ pub fn apigee_organizations_environments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}
 /// Gets environment details.
 ///
@@ -19914,7 +21367,7 @@ pub fn apigee_organizations_environments_get_execute(
 
 pub fn apigee_organizations_environments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Environment>, ApiError>,
@@ -19923,7 +21376,7 @@ pub fn apigee_organizations_environments_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_get_builder(client, name)?;
+    let builder = apigee_organizations_environments_get_builder(client, &args.name)?;
     apigee_organizations_environments_get_execute(builder)
 }
 
@@ -20021,6 +21474,13 @@ pub fn apigee_organizations_environments_get_addons_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_get_addons_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsGetAddonsConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/addonsConfig
 /// Gets the add-ons config of an environment.
 ///
@@ -20033,7 +21493,7 @@ pub fn apigee_organizations_environments_get_addons_config_execute(
 
 pub fn apigee_organizations_environments_get_addons_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsGetAddonsConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AddonsConfig>, ApiError>,
@@ -20042,7 +21502,7 @@ pub fn apigee_organizations_environments_get_addons_config(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_get_addons_config_builder(client, name)?;
+    let builder = apigee_organizations_environments_get_addons_config_builder(client, &args.name)?;
     apigee_organizations_environments_get_addons_config_execute(builder)
 }
 
@@ -20141,6 +21601,13 @@ pub fn apigee_organizations_environments_get_api_security_runtime_config_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_get_api_security_runtime_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsGetApiSecurityRuntimeConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/apiSecurityRuntimeConfig
 /// Gets the API Security runtime configuration for an environment. This named ApiSecurityRuntimeConfig to prevent conflicts with ApiSecurityConfig from addon config.
 ///
@@ -20153,7 +21620,7 @@ pub fn apigee_organizations_environments_get_api_security_runtime_config_execute
 
 pub fn apigee_organizations_environments_get_api_security_runtime_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsGetApiSecurityRuntimeConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiSecurityRuntimeConfig>, ApiError>,
@@ -20162,8 +21629,9 @@ pub fn apigee_organizations_environments_get_api_security_runtime_config(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_get_api_security_runtime_config_builder(client, name)?;
+    let builder = apigee_organizations_environments_get_api_security_runtime_config_builder(
+        client, &args.name,
+    )?;
     apigee_organizations_environments_get_api_security_runtime_config_execute(builder)
 }
 
@@ -20261,6 +21729,13 @@ pub fn apigee_organizations_environments_get_debugmask_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_get_debugmask`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsGetDebugmaskArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/debugmask
 /// Gets the debug mask singleton resource for an environment.
 ///
@@ -20273,7 +21748,7 @@ pub fn apigee_organizations_environments_get_debugmask_execute(
 
 pub fn apigee_organizations_environments_get_debugmask(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsGetDebugmaskArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DebugMask>, ApiError>,
@@ -20282,7 +21757,7 @@ pub fn apigee_organizations_environments_get_debugmask(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_get_debugmask_builder(client, name)?;
+    let builder = apigee_organizations_environments_get_debugmask_builder(client, &args.name)?;
     apigee_organizations_environments_get_debugmask_execute(builder)
 }
 
@@ -20380,6 +21855,13 @@ pub fn apigee_organizations_environments_get_deployed_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_get_deployed_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsGetDeployedConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/deployedConfig
 /// Gets the deployed configuration for an environment.
 ///
@@ -20392,7 +21874,7 @@ pub fn apigee_organizations_environments_get_deployed_config_execute(
 
 pub fn apigee_organizations_environments_get_deployed_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsGetDeployedConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1EnvironmentConfig>, ApiError>,
@@ -20401,7 +21883,8 @@ pub fn apigee_organizations_environments_get_deployed_config(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_get_deployed_config_builder(client, name)?;
+    let builder =
+        apigee_organizations_environments_get_deployed_config_builder(client, &args.name)?;
     apigee_organizations_environments_get_deployed_config_execute(builder)
 }
 
@@ -20509,6 +21992,15 @@ pub fn apigee_organizations_environments_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}:getIamPolicy
 /// Gets the IAM policy on an environment. For more information, see [Manage users, roles, and permissions using the API](<https://cloud.google.`com/apigee/docs/api-platform/system-administration/manage-users-roles`>). You must have the apigee.environments.`getIamPolicy` permission to call this API.
 ///
@@ -20521,8 +22013,7 @@ pub fn apigee_organizations_environments_get_iam_policy_execute(
 
 pub fn apigee_organizations_environments_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigeeOrganizationsEnvironmentsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -20531,8 +22022,8 @@ pub fn apigee_organizations_environments_get_iam_policy(
 > {
     let builder = apigee_organizations_environments_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigee_organizations_environments_get_iam_policy_execute(builder)
 }
@@ -20631,6 +22122,13 @@ pub fn apigee_organizations_environments_get_security_actions_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_get_security_actions_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsGetSecurityActionsConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityActionsConfig
 /// GetSecurityActionConfig returns the current SecurityActions configuration.
 ///
@@ -20643,7 +22141,7 @@ pub fn apigee_organizations_environments_get_security_actions_config_execute(
 
 pub fn apigee_organizations_environments_get_security_actions_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsGetSecurityActionsConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityActionsConfig>, ApiError>,
@@ -20653,7 +22151,7 @@ pub fn apigee_organizations_environments_get_security_actions_config(
     ApiError,
 > {
     let builder =
-        apigee_organizations_environments_get_security_actions_config_builder(client, name)?;
+        apigee_organizations_environments_get_security_actions_config_builder(client, &args.name)?;
     apigee_organizations_environments_get_security_actions_config_execute(builder)
 }
 
@@ -20751,6 +22249,13 @@ pub fn apigee_organizations_environments_get_trace_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_get_trace_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsGetTraceConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/traceConfig
 /// Get distributed trace configuration in an environment.
 ///
@@ -20763,7 +22268,7 @@ pub fn apigee_organizations_environments_get_trace_config_execute(
 
 pub fn apigee_organizations_environments_get_trace_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsGetTraceConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1TraceConfig>, ApiError>,
@@ -20772,7 +22277,7 @@ pub fn apigee_organizations_environments_get_trace_config(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_get_trace_config_builder(client, name)?;
+    let builder = apigee_organizations_environments_get_trace_config_builder(client, &args.name)?;
     apigee_organizations_environments_get_trace_config_execute(builder)
 }
 
@@ -20885,6 +22390,17 @@ pub fn apigee_organizations_environments_modify_environment_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_modify_environment`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsModifyEnvironmentArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Environment,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}
 /// Updates properties for an Apigee environment with patch semantics using a field mask. **Note:** Not supported for Apigee hybrid.
 ///
@@ -20897,9 +22413,7 @@ pub fn apigee_organizations_environments_modify_environment_execute(
 
 pub fn apigee_organizations_environments_modify_environment(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1Environment,
+    args: &ApigeeOrganizationsEnvironmentsModifyEnvironmentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -20909,7 +22423,10 @@ pub fn apigee_organizations_environments_modify_environment(
     ApiError,
 > {
     let builder = apigee_organizations_environments_modify_environment_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_environments_modify_environment_execute(builder)
 }
@@ -21009,6 +22526,15 @@ pub fn apigee_organizations_environments_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}:setIamPolicy
 /// Sets the IAM policy on an environment, if the policy already exists it will be replaced. For more information, see [Manage users, roles, and permissions using the API](<https://cloud.google.`com/apigee/docs/api-platform/system-administration/manage-users-roles`>). You must have the apigee.environments.`setIamPolicy` permission to call this API.
 ///
@@ -21021,15 +22547,18 @@ pub fn apigee_organizations_environments_set_iam_policy_execute(
 
 pub fn apigee_organizations_environments_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &ApigeeOrganizationsEnvironmentsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_set_iam_policy_builder(client, resource, body)?;
+    let builder = apigee_organizations_environments_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     apigee_organizations_environments_set_iam_policy_execute(builder)
 }
 
@@ -21127,6 +22656,13 @@ pub fn apigee_organizations_environments_subscribe_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_subscribe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSubscribeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}:subscribe
 /// Creates a subscription for the environment's P`ub/Sub` topic. The server will assign a random name for this subscription. The "name" and "push_config" must *not* be specified.
 ///
@@ -21139,7 +22675,7 @@ pub fn apigee_organizations_environments_subscribe_execute(
 
 pub fn apigee_organizations_environments_subscribe(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ApigeeOrganizationsEnvironmentsSubscribeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Subscription>, ApiError>,
@@ -21148,7 +22684,7 @@ pub fn apigee_organizations_environments_subscribe(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_subscribe_builder(client, parent)?;
+    let builder = apigee_organizations_environments_subscribe_builder(client, &args.parent)?;
     apigee_organizations_environments_subscribe_execute(builder)
 }
 
@@ -21249,6 +22785,15 @@ pub fn apigee_organizations_environments_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}:testIamPermissions
 /// Tests the permissions of a user on an environment, and returns a subset of permissions that the user has on the environment. If the environment does not exist, an empty permission set is returned (a NOT_FOUND error is not returned).
 ///
@@ -21261,8 +22806,7 @@ pub fn apigee_organizations_environments_test_iam_permissions_execute(
 
 pub fn apigee_organizations_environments_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &ApigeeOrganizationsEnvironmentsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -21271,8 +22815,11 @@ pub fn apigee_organizations_environments_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_test_iam_permissions_builder(client, resource, body)?;
+    let builder = apigee_organizations_environments_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     apigee_organizations_environments_test_iam_permissions_execute(builder)
 }
 
@@ -21371,6 +22918,15 @@ pub fn apigee_organizations_environments_unsubscribe_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_unsubscribe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsUnsubscribeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Subscription,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}:unsubscribe
 /// Deletes a subscription for the environment's P`ub/Sub` topic.
 ///
@@ -21383,15 +22939,15 @@ pub fn apigee_organizations_environments_unsubscribe_execute(
 
 pub fn apigee_organizations_environments_unsubscribe(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1Subscription,
+    args: &ApigeeOrganizationsEnvironmentsUnsubscribeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_unsubscribe_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_environments_unsubscribe_builder(client, &args.parent, &args.body)?;
     apigee_organizations_environments_unsubscribe_execute(builder)
 }
 
@@ -21492,6 +23048,15 @@ pub fn apigee_organizations_environments_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Environment,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}
 /// Updates an existing environment. When updating properties, you must pass all existing properties to the API, even if they are not being changed. If you omit properties from the payload, the properties are removed. To get the current list of properties for the environment, use the [Get Environment API](get). **Note**: Both PUT and POST methods are supported for updating an existing environment.
 ///
@@ -21504,8 +23069,7 @@ pub fn apigee_organizations_environments_update_execute(
 
 pub fn apigee_organizations_environments_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1Environment,
+    args: &ApigeeOrganizationsEnvironmentsUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Environment>, ApiError>,
@@ -21514,7 +23078,7 @@ pub fn apigee_organizations_environments_update(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_update_builder(client, name, body)?;
+    let builder = apigee_organizations_environments_update_builder(client, &args.name, &args.body)?;
     apigee_organizations_environments_update_execute(builder)
 }
 
@@ -21631,6 +23195,19 @@ pub fn apigee_organizations_environments_update_debugmask_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_update_debugmask`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsUpdateDebugmaskArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: replaceRepeatedFields
+    pub replaceRepeatedFields: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1DebugMask,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/debugmask
 /// Updates the debug mask singleton resource for an environment.
 ///
@@ -21643,10 +23220,7 @@ pub fn apigee_organizations_environments_update_debugmask_execute(
 
 pub fn apigee_organizations_environments_update_debugmask(
     client: &SimpleHttpClient,
-    name: &str,
-    replaceRepeatedFields: Option<bool>,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1DebugMask,
+    args: &ApigeeOrganizationsEnvironmentsUpdateDebugmaskArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DebugMask>, ApiError>,
@@ -21657,10 +23231,10 @@ pub fn apigee_organizations_environments_update_debugmask(
 > {
     let builder = apigee_organizations_environments_update_debugmask_builder(
         client,
-        name,
-        replaceRepeatedFields,
-        updateMask,
-        body,
+        &args.name,
+        args.replaceRepeatedFields,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_environments_update_debugmask_execute(builder)
 }
@@ -21762,6 +23336,15 @@ pub fn apigee_organizations_environments_update_environment_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_update_environment`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsUpdateEnvironmentArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Environment,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}
 /// Updates an existing environment. When updating properties, you must pass all existing properties to the API, even if they are not being changed. If you omit properties from the payload, the properties are removed. To get the current list of properties for the environment, use the [Get Environment API](get). **Note**: Both PUT and POST methods are supported for updating an existing environment.
 ///
@@ -21774,8 +23357,7 @@ pub fn apigee_organizations_environments_update_environment_execute(
 
 pub fn apigee_organizations_environments_update_environment(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1Environment,
+    args: &ApigeeOrganizationsEnvironmentsUpdateEnvironmentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Environment>, ApiError>,
@@ -21784,7 +23366,9 @@ pub fn apigee_organizations_environments_update_environment(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_update_environment_builder(client, name, body)?;
+    let builder = apigee_organizations_environments_update_environment_builder(
+        client, &args.name, &args.body,
+    )?;
     apigee_organizations_environments_update_environment_execute(builder)
 }
 
@@ -21897,6 +23481,17 @@ pub fn apigee_organizations_environments_update_security_actions_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_update_security_actions_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsUpdateSecurityActionsConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecurityActionsConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityActionsConfig
 /// UpdateSecurityActionConfig updates the current SecurityActions configuration. This method is used to `enable/disable` the feature at the environment level.
 ///
@@ -21909,9 +23504,7 @@ pub fn apigee_organizations_environments_update_security_actions_config_execute(
 
 pub fn apigee_organizations_environments_update_security_actions_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1SecurityActionsConfig,
+    args: &ApigeeOrganizationsEnvironmentsUpdateSecurityActionsConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityActionsConfig>, ApiError>,
@@ -21921,7 +23514,10 @@ pub fn apigee_organizations_environments_update_security_actions_config(
     ApiError,
 > {
     let builder = apigee_organizations_environments_update_security_actions_config_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_environments_update_security_actions_config_execute(builder)
 }
@@ -22035,6 +23631,17 @@ pub fn apigee_organizations_environments_update_trace_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_update_trace_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsUpdateTraceConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1TraceConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/traceConfig
 /// Updates the trace configurations in an environment. Note that the repeated fields have replace semantics when included in the field mask and that they will be overwritten by the value of the fields in the request body.
 ///
@@ -22047,9 +23654,7 @@ pub fn apigee_organizations_environments_update_trace_config_execute(
 
 pub fn apigee_organizations_environments_update_trace_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1TraceConfig,
+    args: &ApigeeOrganizationsEnvironmentsUpdateTraceConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1TraceConfig>, ApiError>,
@@ -22059,7 +23664,10 @@ pub fn apigee_organizations_environments_update_trace_config(
     ApiError,
 > {
     let builder = apigee_organizations_environments_update_trace_config_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_environments_update_trace_config_execute(builder)
 }
@@ -22161,6 +23769,15 @@ pub fn apigee_organizations_environments_addons_config_set_addon_enablement_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_addons_config_set_addon_enablement`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsAddonsConfigSetAddonEnablementArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SetAddonEnablementRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/addonsConfig:setAddonEnablement
 /// Updates an add-on enablement status of an environment.
 ///
@@ -22173,8 +23790,7 @@ pub fn apigee_organizations_environments_addons_config_set_addon_enablement_exec
 
 pub fn apigee_organizations_environments_addons_config_set_addon_enablement(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1SetAddonEnablementRequest,
+    args: &ApigeeOrganizationsEnvironmentsAddonsConfigSetAddonEnablementArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -22184,7 +23800,7 @@ pub fn apigee_organizations_environments_addons_config_set_addon_enablement(
     ApiError,
 > {
     let builder = apigee_organizations_environments_addons_config_set_addon_enablement_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     apigee_organizations_environments_addons_config_set_addon_enablement_execute(builder)
 }
@@ -22297,6 +23913,17 @@ pub fn apigee_organizations_environments_analytics_admin_get_schemav2_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_analytics_admin_get_schemav2`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsAnalyticsAdminGetSchemav2Args {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: disableCache
+    pub disableCache: Option<bool>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/analytics/admin/schemav2
 /// Gets a list of metrics and dimensions that can be used to create analytics queries and reports. Each schema element contains the name of the field, its associated type, and a flag indicating whether it is a standard or custom field.
 ///
@@ -22309,9 +23936,7 @@ pub fn apigee_organizations_environments_analytics_admin_get_schemav2_execute(
 
 pub fn apigee_organizations_environments_analytics_admin_get_schemav2(
     client: &SimpleHttpClient,
-    name: &str,
-    disableCache: Option<bool>,
-    type_rs: Option<&str>,
+    args: &ApigeeOrganizationsEnvironmentsAnalyticsAdminGetSchemav2Args,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApigeeV1Schema>, ApiError>, P = ApiPending>
         + Send
@@ -22320,9 +23945,9 @@ pub fn apigee_organizations_environments_analytics_admin_get_schemav2(
 > {
     let builder = apigee_organizations_environments_analytics_admin_get_schemav2_builder(
         client,
-        name,
-        disableCache,
-        type_rs,
+        &args.name,
+        args.disableCache,
+        args.type_rs.as_deref(),
     )?;
     apigee_organizations_environments_analytics_admin_get_schemav2_execute(builder)
 }
@@ -22422,6 +24047,15 @@ pub fn apigee_organizations_environments_analytics_exports_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_analytics_exports_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsAnalyticsExportsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ExportRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/analytics/exports
 /// Submit a data export job to be processed in the background. If the request is successful, the API returns a 201 status, a URI that can be used to retrieve the status of the export job, and the state value of "enqueued".
 ///
@@ -22434,16 +24068,18 @@ pub fn apigee_organizations_environments_analytics_exports_create_execute(
 
 pub fn apigee_organizations_environments_analytics_exports_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1ExportRequest,
+    args: &ApigeeOrganizationsEnvironmentsAnalyticsExportsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApigeeV1Export>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_analytics_exports_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_environments_analytics_exports_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_environments_analytics_exports_create_execute(builder)
 }
 
@@ -22539,6 +24175,13 @@ pub fn apigee_organizations_environments_analytics_exports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_analytics_exports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsAnalyticsExportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/analytics/exports/{exportsId}
 /// Gets the details and status of an analytics export job. If the export job is still in progress, its state is set to "running". After the export job has completed successfully, its state is set to "completed". If the export job fails, its state is set to failed.
 ///
@@ -22551,14 +24194,15 @@ pub fn apigee_organizations_environments_analytics_exports_get_execute(
 
 pub fn apigee_organizations_environments_analytics_exports_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsAnalyticsExportsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApigeeV1Export>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_analytics_exports_get_builder(client, name)?;
+    let builder =
+        apigee_organizations_environments_analytics_exports_get_builder(client, &args.name)?;
     apigee_organizations_environments_analytics_exports_get_execute(builder)
 }
 
@@ -22656,6 +24300,13 @@ pub fn apigee_organizations_environments_analytics_exports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_analytics_exports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsAnalyticsExportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/analytics/exports
 /// Lists the details and status of all analytics export jobs belonging to the parent organization and environment.
 ///
@@ -22668,7 +24319,7 @@ pub fn apigee_organizations_environments_analytics_exports_list_execute(
 
 pub fn apigee_organizations_environments_analytics_exports_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ApigeeOrganizationsEnvironmentsAnalyticsExportsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListExportsResponse>, ApiError>,
@@ -22677,7 +24328,8 @@ pub fn apigee_organizations_environments_analytics_exports_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_analytics_exports_list_builder(client, parent)?;
+    let builder =
+        apigee_organizations_environments_analytics_exports_list_builder(client, &args.parent)?;
     apigee_organizations_environments_analytics_exports_list_execute(builder)
 }
 
@@ -22776,6 +24428,13 @@ pub fn apigee_organizations_environments_apis_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_apis_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsApisDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/deployments
 /// Lists all deployments of an API proxy in an environment.
 ///
@@ -22788,7 +24447,7 @@ pub fn apigee_organizations_environments_apis_deployments_list_execute(
 
 pub fn apigee_organizations_environments_apis_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ApigeeOrganizationsEnvironmentsApisDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListDeploymentsResponse>, ApiError>,
@@ -22797,7 +24456,8 @@ pub fn apigee_organizations_environments_apis_deployments_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_apis_deployments_list_builder(client, parent)?;
+    let builder =
+        apigee_organizations_environments_apis_deployments_list_builder(client, &args.parent)?;
     apigee_organizations_environments_apis_deployments_list_execute(builder)
 }
 
@@ -22915,6 +24575,19 @@ pub fn apigee_organizations_environments_apis_revisions_deploy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_apis_revisions_deploy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsApisRevisionsDeployArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: override
+    pub override_rs: Option<bool>,
+    /// Query parameter: sequencedRollout
+    pub sequencedRollout: Option<bool>,
+    /// Query parameter: serviceAccount
+    pub serviceAccount: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments
 /// Deploys a revision of an API proxy. If another revision of the same API proxy revision is currently deployed, set the override parameter to `true` to have this revision replace the currently deployed revision. You cannot invoke an API proxy until it has been deployed to an environment. After you deploy an API proxy revision, you cannot edit it. To edit the API proxy, you must create and deploy a new revision. For a request path `organizations/{org}/environments/{env}/apis/{api}/revisions/{rev}/deployments`, two permissions are required: * apigee.deployments.create on the resource `organizations/{org}/environments/{env}` * apigee.proxyrevisions.deploy on the resource `organizations/{org}/apis/{api}/revisions/{rev}` All successful API proxy deployments to Apigee are [zero-downtime deployments](<https://cloud.google.`com/apigee/docs/api-platform/deploy/ui-deploy-overview`#zero-downtime-deployment>). Apigee hybrid validates the dependencies between shared flows and API proxies at deployment time. For example, if the Flow Callout policy in an API proxy references a shared flow that either doesn't exist or isn't deployed, the API proxy deployment fails.
 ///
@@ -22927,10 +24600,7 @@ pub fn apigee_organizations_environments_apis_revisions_deploy_execute(
 
 pub fn apigee_organizations_environments_apis_revisions_deploy(
     client: &SimpleHttpClient,
-    name: &str,
-    override_rs: Option<bool>,
-    sequencedRollout: Option<bool>,
-    serviceAccount: Option<&str>,
+    args: &ApigeeOrganizationsEnvironmentsApisRevisionsDeployArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Deployment>, ApiError>,
@@ -22941,10 +24611,10 @@ pub fn apigee_organizations_environments_apis_revisions_deploy(
 > {
     let builder = apigee_organizations_environments_apis_revisions_deploy_builder(
         client,
-        name,
-        override_rs,
-        sequencedRollout,
-        serviceAccount,
+        &args.name,
+        args.override_rs,
+        args.sequencedRollout,
+        args.serviceAccount.as_deref(),
     )?;
     apigee_organizations_environments_apis_revisions_deploy_execute(builder)
 }
@@ -23043,6 +24713,13 @@ pub fn apigee_organizations_environments_apis_revisions_get_deployments_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_apis_revisions_get_deployments`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsApisRevisionsGetDeploymentsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments
 /// Gets the deployment of an API proxy revision and actual state reported by runtime pods.
 ///
@@ -23055,7 +24732,7 @@ pub fn apigee_organizations_environments_apis_revisions_get_deployments_execute(
 
 pub fn apigee_organizations_environments_apis_revisions_get_deployments(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsApisRevisionsGetDeploymentsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Deployment>, ApiError>,
@@ -23064,8 +24741,9 @@ pub fn apigee_organizations_environments_apis_revisions_get_deployments(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_apis_revisions_get_deployments_builder(client, name)?;
+    let builder = apigee_organizations_environments_apis_revisions_get_deployments_builder(
+        client, &args.name,
+    )?;
     apigee_organizations_environments_apis_revisions_get_deployments_execute(builder)
 }
 
@@ -23173,6 +24851,15 @@ pub fn apigee_organizations_environments_apis_revisions_undeploy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_apis_revisions_undeploy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsApisRevisionsUndeployArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: sequencedRollout
+    pub sequencedRollout: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments
 /// Undeploys an API proxy revision from an environment. For a request path `organizations/{org}/environments/{env}/apis/{api}/revisions/{rev}/deployments`, two permissions are required: * apigee.deployments.delete on the resource `organizations/{org}/environments/{env}` * apigee.proxyrevisions.undeploy on the resource `organizations/{org}/apis/{api}/revisions/{rev}`
 ///
@@ -23185,8 +24872,7 @@ pub fn apigee_organizations_environments_apis_revisions_undeploy_execute(
 
 pub fn apigee_organizations_environments_apis_revisions_undeploy(
     client: &SimpleHttpClient,
-    name: &str,
-    sequencedRollout: Option<bool>,
+    args: &ApigeeOrganizationsEnvironmentsApisRevisionsUndeployArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -23195,8 +24881,8 @@ pub fn apigee_organizations_environments_apis_revisions_undeploy(
 > {
     let builder = apigee_organizations_environments_apis_revisions_undeploy_builder(
         client,
-        name,
-        sequencedRollout,
+        &args.name,
+        args.sequencedRollout,
     )?;
     apigee_organizations_environments_apis_revisions_undeploy_execute(builder)
 }
@@ -23310,6 +24996,17 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_create_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_apis_revisions_debugsessions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: timeout
+    pub timeout: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1DebugSession,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/debugsessions
 /// Creates a debug session for a deployed API Proxy revision.
 ///
@@ -23322,9 +25019,7 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_create_exe
 
 pub fn apigee_organizations_environments_apis_revisions_debugsessions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    timeout: Option<&str>,
-    body: &GoogleCloudApigeeV1DebugSession,
+    args: &ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DebugSession>, ApiError>,
@@ -23334,7 +25029,10 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_create(
     ApiError,
 > {
     let builder = apigee_organizations_environments_apis_revisions_debugsessions_create_builder(
-        client, parent, timeout, body,
+        client,
+        &args.parent,
+        args.timeout.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_environments_apis_revisions_debugsessions_create_execute(builder)
 }
@@ -23431,6 +25129,13 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_delete_dat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_apis_revisions_debugsessions_delete_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsDeleteDataArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/debugsessions/{debugsessionsId}/data
 /// Deletes the data from a debug session. This does not cancel the debug session or prevent further data from being collected if the session is still active in runtime pods.
 ///
@@ -23443,7 +25148,7 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_delete_dat
 
 pub fn apigee_organizations_environments_apis_revisions_debugsessions_delete_data(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsDeleteDataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -23452,7 +25157,7 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_delete_dat
 > {
     let builder =
         apigee_organizations_environments_apis_revisions_debugsessions_delete_data_builder(
-            client, name,
+            client, &args.name,
         )?;
     apigee_organizations_environments_apis_revisions_debugsessions_delete_data_execute(builder)
 }
@@ -23551,6 +25256,13 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_apis_revisions_debugsessions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/debugsessions/{debugsessionsId}
 /// Retrieves a debug session.
 ///
@@ -23563,7 +25275,7 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_get_execut
 
 pub fn apigee_organizations_environments_apis_revisions_debugsessions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DebugSession>, ApiError>,
@@ -23572,8 +25284,9 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_apis_revisions_debugsessions_get_builder(client, name)?;
+    let builder = apigee_organizations_environments_apis_revisions_debugsessions_get_builder(
+        client, &args.name,
+    )?;
     apigee_organizations_environments_apis_revisions_debugsessions_get_execute(builder)
 }
 
@@ -23688,6 +25401,17 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_apis_revisions_debugsessions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/debugsessions
 /// Lists debug sessions that are currently active in the given API Proxy revision.
 ///
@@ -23700,9 +25424,7 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_list_execu
 
 pub fn apigee_organizations_environments_apis_revisions_debugsessions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListDebugSessionsResponse>, ApiError>,
@@ -23712,7 +25434,10 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_list(
     ApiError,
 > {
     let builder = apigee_organizations_environments_apis_revisions_debugsessions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigee_organizations_environments_apis_revisions_debugsessions_list_execute(builder)
 }
@@ -23812,6 +25537,13 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_data_get_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_apis_revisions_debugsessions_data_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsDataGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/debugsessions/{debugsessionsId}/data/{dataId}
 /// Gets the debug data from a transaction.
 ///
@@ -23824,7 +25556,7 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_data_get_e
 
 pub fn apigee_organizations_environments_apis_revisions_debugsessions_data_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsApisRevisionsDebugsessionsDataGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DebugSessionTransaction>, ApiError>,
@@ -23834,7 +25566,7 @@ pub fn apigee_organizations_environments_apis_revisions_debugsessions_data_get(
     ApiError,
 > {
     let builder = apigee_organizations_environments_apis_revisions_debugsessions_data_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     apigee_organizations_environments_apis_revisions_debugsessions_data_get_execute(builder)
 }
@@ -23945,6 +25677,15 @@ pub fn apigee_organizations_environments_apis_revisions_deployments_generate_dep
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_apis_revisions_deployments_generate_deploy_change_report`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsApisRevisionsDeploymentsGenerateDeployChangeReportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: override
+    pub override_rs: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments:generateDeployChangeReport
 /// Generates a report for a dry run analysis of a DeployApiProxy request without committing the deployment. In addition to the standard validations performed when adding deployments, additional analysis will be done to detect possible traffic routing changes that would result from this deployment being created. Any potential routing conflicts or unsafe changes will be reported in the response. This routing analysis is not performed for a non-dry-run DeployApiProxy request. For a request path `organizations/{org}/environments/{env}/apis/{api}/revisions/{rev}/deployments`:`generateDeployChangeReport`, two permissions are required: * apigee.deployments.create on the resource `organizations/{org}/environments/{env}` * apigee.proxyrevisions.deploy on the resource `organizations/{org}/apis/{api}/revisions/{rev}`
 ///
@@ -23957,8 +25698,7 @@ pub fn apigee_organizations_environments_apis_revisions_deployments_generate_dep
 
 pub fn apigee_organizations_environments_apis_revisions_deployments_generate_deploy_change_report(
     client: &SimpleHttpClient,
-    name: &str,
-    override_rs: Option<bool>,
+    args: &ApigeeOrganizationsEnvironmentsApisRevisionsDeploymentsGenerateDeployChangeReportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeploymentChangeReport>, ApiError>,
@@ -23967,7 +25707,7 @@ pub fn apigee_organizations_environments_apis_revisions_deployments_generate_dep
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_apis_revisions_deployments_generate_deploy_change_report_builder(client, name, override_rs)?;
+    let builder = apigee_organizations_environments_apis_revisions_deployments_generate_deploy_change_report_builder(client, &args.name, args.override_rs)?;
     apigee_organizations_environments_apis_revisions_deployments_generate_deploy_change_report_execute(builder)
 }
 
@@ -24065,6 +25805,13 @@ pub fn apigee_organizations_environments_apis_revisions_deployments_generate_und
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_apis_revisions_deployments_generate_undeploy_change_report`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsApisRevisionsDeploymentsGenerateUndeployChangeReportArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/apis/{apisId}/revisions/{revisionsId}/deployments:generateUndeployChangeReport
 /// Generates a report for a dry run analysis of an UndeployApiProxy request without committing the undeploy. In addition to the standard validations performed when removing deployments, additional analysis will be done to detect possible traffic routing changes that would result from this deployment being removed. Any potential routing conflicts or unsafe changes will be reported in the response. This routing analysis is not performed for a non-dry-run UndeployApiProxy request. For a request path `organizations/{org}/environments/{env}/apis/{api}/revisions/{rev}/deployments`:`generateUndeployChangeReport`, two permissions are required: * apigee.deployments.delete on the resource `organizations/{org}/environments/{env}` * apigee.proxyrevisions.undeploy on the resource `organizations/{org}/apis/{api}/revisions/{rev}`
 ///
@@ -24077,7 +25824,7 @@ pub fn apigee_organizations_environments_apis_revisions_deployments_generate_und
 
 pub fn apigee_organizations_environments_apis_revisions_deployments_generate_undeploy_change_report(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsApisRevisionsDeploymentsGenerateUndeployChangeReportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeploymentChangeReport>, ApiError>,
@@ -24086,7 +25833,7 @@ pub fn apigee_organizations_environments_apis_revisions_deployments_generate_und
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_apis_revisions_deployments_generate_undeploy_change_report_builder(client, name)?;
+    let builder = apigee_organizations_environments_apis_revisions_deployments_generate_undeploy_change_report_builder(client, &args.name)?;
     apigee_organizations_environments_apis_revisions_deployments_generate_undeploy_change_report_execute(builder)
 }
 
@@ -24187,6 +25934,15 @@ pub fn apigee_organizations_environments_archive_deployments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_archive_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsArchiveDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ArchiveDeployment,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/archiveDeployments
 /// Creates a new ArchiveDeployment.
 ///
@@ -24199,8 +25955,7 @@ pub fn apigee_organizations_environments_archive_deployments_create_execute(
 
 pub fn apigee_organizations_environments_archive_deployments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1ArchiveDeployment,
+    args: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -24209,8 +25964,11 @@ pub fn apigee_organizations_environments_archive_deployments_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_archive_deployments_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_environments_archive_deployments_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_environments_archive_deployments_create_execute(builder)
 }
 
@@ -24306,6 +26064,13 @@ pub fn apigee_organizations_environments_archive_deployments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_archive_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsArchiveDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/archiveDeployments/{archiveDeploymentsId}
 /// Deletes an archive deployment.
 ///
@@ -24318,7 +26083,7 @@ pub fn apigee_organizations_environments_archive_deployments_delete_execute(
 
 pub fn apigee_organizations_environments_archive_deployments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -24326,7 +26091,7 @@ pub fn apigee_organizations_environments_archive_deployments_delete(
     ApiError,
 > {
     let builder =
-        apigee_organizations_environments_archive_deployments_delete_builder(client, name)?;
+        apigee_organizations_environments_archive_deployments_delete_builder(client, &args.name)?;
     apigee_organizations_environments_archive_deployments_delete_execute(builder)
 }
 
@@ -24428,6 +26193,15 @@ pub fn apigee_organizations_environments_archive_deployments_generate_download_u
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_archive_deployments_generate_download_url`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsArchiveDeploymentsGenerateDownloadUrlArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1GenerateDownloadUrlRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/archiveDeployments/{archiveDeploymentsId}:generateDownloadUrl
 /// Generates a signed URL for downloading the original zip file used to create an Archive Deployment. The URL is only valid for a limited period and should be used within minutes after generation. Each call returns a new upload URL.
 ///
@@ -24440,8 +26214,7 @@ pub fn apigee_organizations_environments_archive_deployments_generate_download_u
 
 pub fn apigee_organizations_environments_archive_deployments_generate_download_url(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1GenerateDownloadUrlRequest,
+    args: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsGenerateDownloadUrlArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1GenerateDownloadUrlResponse>, ApiError>,
@@ -24452,7 +26225,7 @@ pub fn apigee_organizations_environments_archive_deployments_generate_download_u
 > {
     let builder =
         apigee_organizations_environments_archive_deployments_generate_download_url_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     apigee_organizations_environments_archive_deployments_generate_download_url_execute(builder)
 }
@@ -24555,6 +26328,15 @@ pub fn apigee_organizations_environments_archive_deployments_generate_upload_url
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_archive_deployments_generate_upload_url`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsArchiveDeploymentsGenerateUploadUrlArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1GenerateUploadUrlRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/archiveDeployments:generateUploadUrl
 /// Generates a signed URL for uploading an Archive zip file to Google Cloud Storage. Once the upload is complete, the signed URL should be passed to CreateArchiveDeployment. When uploading to the generated signed URL, please follow these restrictions: * Source file type should be a zip file. * Source file size should not exceed 1GB limit. * No credentials should be attached - the signed URLs provide access to the target bucket using internal service identity; if credentials were attached, the identity from the credentials would be used, but that identity does not have permissions to upload files to the URL. When making a HTTP PUT request, these two headers need to be specified: * content-type: `application/zip` * x-goog-content-length-range: 0,1073741824 And this header SHOULD NOT be specified: * Authorization: Bearer YOUR_TOKEN
 ///
@@ -24567,8 +26349,7 @@ pub fn apigee_organizations_environments_archive_deployments_generate_upload_url
 
 pub fn apigee_organizations_environments_archive_deployments_generate_upload_url(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1GenerateUploadUrlRequest,
+    args: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsGenerateUploadUrlArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1GenerateUploadUrlResponse>, ApiError>,
@@ -24579,7 +26360,9 @@ pub fn apigee_organizations_environments_archive_deployments_generate_upload_url
 > {
     let builder =
         apigee_organizations_environments_archive_deployments_generate_upload_url_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     apigee_organizations_environments_archive_deployments_generate_upload_url_execute(builder)
 }
@@ -24678,6 +26461,13 @@ pub fn apigee_organizations_environments_archive_deployments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_archive_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsArchiveDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/archiveDeployments/{archiveDeploymentsId}
 /// Gets the specified ArchiveDeployment.
 ///
@@ -24690,7 +26480,7 @@ pub fn apigee_organizations_environments_archive_deployments_get_execute(
 
 pub fn apigee_organizations_environments_archive_deployments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ArchiveDeployment>, ApiError>,
@@ -24699,7 +26489,8 @@ pub fn apigee_organizations_environments_archive_deployments_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_archive_deployments_get_builder(client, name)?;
+    let builder =
+        apigee_organizations_environments_archive_deployments_get_builder(client, &args.name)?;
     apigee_organizations_environments_archive_deployments_get_execute(builder)
 }
 
@@ -24818,6 +26609,19 @@ pub fn apigee_organizations_environments_archive_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_archive_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsArchiveDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/archiveDeployments
 /// Lists the ArchiveDeployments in the specified Environment.
 ///
@@ -24830,10 +26634,7 @@ pub fn apigee_organizations_environments_archive_deployments_list_execute(
 
 pub fn apigee_organizations_environments_archive_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListArchiveDeploymentsResponse>, ApiError>,
@@ -24843,7 +26644,11 @@ pub fn apigee_organizations_environments_archive_deployments_list(
     ApiError,
 > {
     let builder = apigee_organizations_environments_archive_deployments_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigee_organizations_environments_archive_deployments_list_execute(builder)
 }
@@ -24957,6 +26762,17 @@ pub fn apigee_organizations_environments_archive_deployments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_archive_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsArchiveDeploymentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ArchiveDeployment,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/archiveDeployments/{archiveDeploymentsId}
 /// Updates an existing ArchiveDeployment. Labels can modified but most of the other fields are not modifiable.
 ///
@@ -24969,9 +26785,7 @@ pub fn apigee_organizations_environments_archive_deployments_patch_execute(
 
 pub fn apigee_organizations_environments_archive_deployments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1ArchiveDeployment,
+    args: &ApigeeOrganizationsEnvironmentsArchiveDeploymentsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ArchiveDeployment>, ApiError>,
@@ -24981,7 +26795,10 @@ pub fn apigee_organizations_environments_archive_deployments_patch(
     ApiError,
 > {
     let builder = apigee_organizations_environments_archive_deployments_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_environments_archive_deployments_patch_execute(builder)
 }
@@ -25078,6 +26895,13 @@ pub fn apigee_organizations_environments_caches_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_caches_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsCachesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/caches/{cachesId}
 /// Deletes a cache.
 ///
@@ -25090,14 +26914,14 @@ pub fn apigee_organizations_environments_caches_delete_execute(
 
 pub fn apigee_organizations_environments_caches_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsCachesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_caches_delete_builder(client, name)?;
+    let builder = apigee_organizations_environments_caches_delete_builder(client, &args.name)?;
     apigee_organizations_environments_caches_delete_execute(builder)
 }
 
@@ -25195,6 +27019,13 @@ pub fn apigee_organizations_environments_deployments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/deployments/{deploymentsId}
 /// Gets a particular deployment of Api proxy or a shared flow in an environment
 ///
@@ -25207,7 +27038,7 @@ pub fn apigee_organizations_environments_deployments_get_execute(
 
 pub fn apigee_organizations_environments_deployments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Deployment>, ApiError>,
@@ -25216,7 +27047,7 @@ pub fn apigee_organizations_environments_deployments_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_deployments_get_builder(client, name)?;
+    let builder = apigee_organizations_environments_deployments_get_builder(client, &args.name)?;
     apigee_organizations_environments_deployments_get_execute(builder)
 }
 
@@ -25324,6 +27155,15 @@ pub fn apigee_organizations_environments_deployments_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_deployments_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsDeploymentsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/deployments/{deploymentsId}:getIamPolicy
 /// Gets the IAM policy on a deployment. For more information, see [Manage users, roles, and permissions using the API](<https://cloud.google.`com/apigee/docs/api-platform/system-administration/manage-users-roles`>). You must have the apigee.deployments.`getIamPolicy` permission to call this API.
 ///
@@ -25336,8 +27176,7 @@ pub fn apigee_organizations_environments_deployments_get_iam_policy_execute(
 
 pub fn apigee_organizations_environments_deployments_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigeeOrganizationsEnvironmentsDeploymentsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -25346,8 +27185,8 @@ pub fn apigee_organizations_environments_deployments_get_iam_policy(
 > {
     let builder = apigee_organizations_environments_deployments_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigee_organizations_environments_deployments_get_iam_policy_execute(builder)
 }
@@ -25459,6 +27298,15 @@ pub fn apigee_organizations_environments_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: sharedFlows
+    pub sharedFlows: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/deployments
 /// Lists all deployments of API proxies or shared flows in an environment.
 ///
@@ -25471,8 +27319,7 @@ pub fn apigee_organizations_environments_deployments_list_execute(
 
 pub fn apigee_organizations_environments_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    sharedFlows: Option<bool>,
+    args: &ApigeeOrganizationsEnvironmentsDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListDeploymentsResponse>, ApiError>,
@@ -25481,8 +27328,11 @@ pub fn apigee_organizations_environments_deployments_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_deployments_list_builder(client, parent, sharedFlows)?;
+    let builder = apigee_organizations_environments_deployments_list_builder(
+        client,
+        &args.parent,
+        args.sharedFlows,
+    )?;
     apigee_organizations_environments_deployments_list_execute(builder)
 }
 
@@ -25581,6 +27431,15 @@ pub fn apigee_organizations_environments_deployments_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_deployments_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsDeploymentsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/deployments/{deploymentsId}:setIamPolicy
 /// Sets the IAM policy on a deployment, if the policy already exists it will be replaced. For more information, see [Manage users, roles, and permissions using the API](<https://cloud.google.`com/apigee/docs/api-platform/system-administration/manage-users-roles`>). You must have the apigee.deployments.`setIamPolicy` permission to call this API.
 ///
@@ -25593,8 +27452,7 @@ pub fn apigee_organizations_environments_deployments_set_iam_policy_execute(
 
 pub fn apigee_organizations_environments_deployments_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &ApigeeOrganizationsEnvironmentsDeploymentsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -25602,7 +27460,9 @@ pub fn apigee_organizations_environments_deployments_set_iam_policy(
     ApiError,
 > {
     let builder = apigee_organizations_environments_deployments_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigee_organizations_environments_deployments_set_iam_policy_execute(builder)
 }
@@ -25704,6 +27564,15 @@ pub fn apigee_organizations_environments_deployments_test_iam_permissions_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_deployments_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsDeploymentsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/deployments/{deploymentsId}:testIamPermissions
 /// Tests the permissions of a user on a deployment, and returns a subset of permissions that the user has on the deployment. If the deployment does not exist, an empty permission set is returned (a NOT_FOUND error is not returned).
 ///
@@ -25716,8 +27585,7 @@ pub fn apigee_organizations_environments_deployments_test_iam_permissions_execut
 
 pub fn apigee_organizations_environments_deployments_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &ApigeeOrganizationsEnvironmentsDeploymentsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -25727,7 +27595,9 @@ pub fn apigee_organizations_environments_deployments_test_iam_permissions(
     ApiError,
 > {
     let builder = apigee_organizations_environments_deployments_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigee_organizations_environments_deployments_test_iam_permissions_execute(builder)
 }
@@ -25829,6 +27699,15 @@ pub fn apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_ho
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_hook`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsFlowhooksAttachSharedFlowToFlowHookArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1FlowHook,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/flowhooks/{flowhooksId}
 /// Attaches a shared flow to a flow hook.
 ///
@@ -25841,8 +27720,7 @@ pub fn apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_ho
 
 pub fn apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_hook(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1FlowHook,
+    args: &ApigeeOrganizationsEnvironmentsFlowhooksAttachSharedFlowToFlowHookArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1FlowHook>, ApiError>,
@@ -25853,7 +27731,7 @@ pub fn apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_ho
 > {
     let builder =
         apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_hook_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     apigee_organizations_environments_flowhooks_attach_shared_flow_to_flow_hook_execute(builder)
 }
@@ -25952,6 +27830,13 @@ pub fn apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_hook`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsFlowhooksDetachSharedFlowFromFlowHookArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/flowhooks/{flowhooksId}
 /// Detaches a shared flow from a flow hook.
 ///
@@ -25964,7 +27849,7 @@ pub fn apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_
 
 pub fn apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_hook(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsFlowhooksDetachSharedFlowFromFlowHookArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1FlowHook>, ApiError>,
@@ -25975,7 +27860,7 @@ pub fn apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_
 > {
     let builder =
         apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_hook_builder(
-            client, name,
+            client, &args.name,
         )?;
     apigee_organizations_environments_flowhooks_detach_shared_flow_from_flow_hook_execute(builder)
 }
@@ -26074,6 +27959,13 @@ pub fn apigee_organizations_environments_flowhooks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_flowhooks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsFlowhooksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/flowhooks/{flowhooksId}
 /// Returns the name of the shared flow attached to the specified flow hook. If there's no shared flow attached to the flow hook, the API does not return an error; it simply does not return a name in the response.
 ///
@@ -26086,7 +27978,7 @@ pub fn apigee_organizations_environments_flowhooks_get_execute(
 
 pub fn apigee_organizations_environments_flowhooks_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsFlowhooksGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1FlowHook>, ApiError>,
@@ -26095,7 +27987,7 @@ pub fn apigee_organizations_environments_flowhooks_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_flowhooks_get_builder(client, name)?;
+    let builder = apigee_organizations_environments_flowhooks_get_builder(client, &args.name)?;
     apigee_organizations_environments_flowhooks_get_execute(builder)
 }
 
@@ -26208,6 +28100,17 @@ pub fn apigee_organizations_environments_keystores_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keystores_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeystoresCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Keystore,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keystores
 /// Creates a keystore or truststore. - Keystore: Contains certificates and their associated keys. - Truststore: Contains trusted certificates used to validate a server's certificate. These certificates are typically self-signed certificates or certificates that are not signed by a trusted CA.
 ///
@@ -26220,9 +28123,7 @@ pub fn apigee_organizations_environments_keystores_create_execute(
 
 pub fn apigee_organizations_environments_keystores_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    name: Option<&str>,
-    body: &GoogleCloudApigeeV1Keystore,
+    args: &ApigeeOrganizationsEnvironmentsKeystoresCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Keystore>, ApiError>,
@@ -26231,8 +28132,12 @@ pub fn apigee_organizations_environments_keystores_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_keystores_create_builder(client, parent, name, body)?;
+    let builder = apigee_organizations_environments_keystores_create_builder(
+        client,
+        &args.parent,
+        args.name.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_environments_keystores_create_execute(builder)
 }
 
@@ -26330,6 +28235,13 @@ pub fn apigee_organizations_environments_keystores_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keystores_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeystoresDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keystores/{keystoresId}
 /// Deletes a keystore or truststore.
 ///
@@ -26342,7 +28254,7 @@ pub fn apigee_organizations_environments_keystores_delete_execute(
 
 pub fn apigee_organizations_environments_keystores_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsKeystoresDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Keystore>, ApiError>,
@@ -26351,7 +28263,7 @@ pub fn apigee_organizations_environments_keystores_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_keystores_delete_builder(client, name)?;
+    let builder = apigee_organizations_environments_keystores_delete_builder(client, &args.name)?;
     apigee_organizations_environments_keystores_delete_execute(builder)
 }
 
@@ -26449,6 +28361,13 @@ pub fn apigee_organizations_environments_keystores_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keystores_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeystoresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keystores/{keystoresId}
 /// Gets a keystore or truststore.
 ///
@@ -26461,7 +28380,7 @@ pub fn apigee_organizations_environments_keystores_get_execute(
 
 pub fn apigee_organizations_environments_keystores_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsKeystoresGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Keystore>, ApiError>,
@@ -26470,7 +28389,7 @@ pub fn apigee_organizations_environments_keystores_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_keystores_get_builder(client, name)?;
+    let builder = apigee_organizations_environments_keystores_get_builder(client, &args.name)?;
     apigee_organizations_environments_keystores_get_execute(builder)
 }
 
@@ -26597,6 +28516,25 @@ pub fn apigee_organizations_environments_keystores_aliases_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keystores_aliases_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeystoresAliasesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: _password
+    pub _password: Option<String>,
+    /// Query parameter: alias
+    pub alias: Option<String>,
+    /// Query parameter: format
+    pub format: Option<String>,
+    /// Query parameter: ignoreExpiryValidation
+    pub ignoreExpiryValidation: Option<bool>,
+    /// Query parameter: ignoreNewlineValidation
+    pub ignoreNewlineValidation: Option<bool>,
+    /// Request body.
+    pub body: GoogleApiHttpBody,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keystores/{keystoresId}/aliases
 /// Creates an alias from a `key/certificate` pair. The structure of the request is controlled by the format query parameter: - keycertfile - Separate PEM-encoded key and certificate files are uploaded. Set Content-Type: `multipart/form-data` and include the `keyFile`, `certFile`, and password (if keys are encrypted) fields in the request body. If uploading to a truststore, omit `keyFile`. - pkcs12 - A PKCS12 file is uploaded. Set Content-Type: `multipart/form-data`, provide the file in the file field, and include the password field if the file is encrypted in the request body. - selfsignedcert - A new private key and certificate are generated. Set Content-Type: `application/json` and include CertificateGenerationSpec in the request body.
 ///
@@ -26609,13 +28547,7 @@ pub fn apigee_organizations_environments_keystores_aliases_create_execute(
 
 pub fn apigee_organizations_environments_keystores_aliases_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    _password: Option<&str>,
-    alias: Option<&str>,
-    format: Option<&str>,
-    ignoreExpiryValidation: Option<bool>,
-    ignoreNewlineValidation: Option<bool>,
-    body: &GoogleApiHttpBody,
+    args: &ApigeeOrganizationsEnvironmentsKeystoresAliasesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApigeeV1Alias>, ApiError>, P = ApiPending>
         + Send
@@ -26624,13 +28556,13 @@ pub fn apigee_organizations_environments_keystores_aliases_create(
 > {
     let builder = apigee_organizations_environments_keystores_aliases_create_builder(
         client,
-        parent,
-        _password,
-        alias,
-        format,
-        ignoreExpiryValidation,
-        ignoreNewlineValidation,
-        body,
+        &args.parent,
+        args._password.as_deref(),
+        args.alias.as_deref(),
+        args.format.as_deref(),
+        args.ignoreExpiryValidation,
+        args.ignoreNewlineValidation,
+        &args.body,
     )?;
     apigee_organizations_environments_keystores_aliases_create_execute(builder)
 }
@@ -26727,6 +28659,13 @@ pub fn apigee_organizations_environments_keystores_aliases_csr_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keystores_aliases_csr`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeystoresAliasesCsrArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keystores/{keystoresId}/aliases/{aliasesId}/csr
 /// Generates a PKCS #10 Certificate Signing Request for the private key in an alias.
 ///
@@ -26739,14 +28678,15 @@ pub fn apigee_organizations_environments_keystores_aliases_csr_execute(
 
 pub fn apigee_organizations_environments_keystores_aliases_csr(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsKeystoresAliasesCsrArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApiHttpBody>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_keystores_aliases_csr_builder(client, name)?;
+    let builder =
+        apigee_organizations_environments_keystores_aliases_csr_builder(client, &args.name)?;
     apigee_organizations_environments_keystores_aliases_csr_execute(builder)
 }
 
@@ -26842,6 +28782,13 @@ pub fn apigee_organizations_environments_keystores_aliases_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keystores_aliases_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeystoresAliasesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keystores/{keystoresId}/aliases/{aliasesId}
 /// Deletes an alias.
 ///
@@ -26854,14 +28801,15 @@ pub fn apigee_organizations_environments_keystores_aliases_delete_execute(
 
 pub fn apigee_organizations_environments_keystores_aliases_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsKeystoresAliasesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApigeeV1Alias>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_keystores_aliases_delete_builder(client, name)?;
+    let builder =
+        apigee_organizations_environments_keystores_aliases_delete_builder(client, &args.name)?;
     apigee_organizations_environments_keystores_aliases_delete_execute(builder)
 }
 
@@ -26957,6 +28905,13 @@ pub fn apigee_organizations_environments_keystores_aliases_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keystores_aliases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeystoresAliasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keystores/{keystoresId}/aliases/{aliasesId}
 /// Gets an alias.
 ///
@@ -26969,14 +28924,15 @@ pub fn apigee_organizations_environments_keystores_aliases_get_execute(
 
 pub fn apigee_organizations_environments_keystores_aliases_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsKeystoresAliasesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApigeeV1Alias>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_keystores_aliases_get_builder(client, name)?;
+    let builder =
+        apigee_organizations_environments_keystores_aliases_get_builder(client, &args.name)?;
     apigee_organizations_environments_keystores_aliases_get_execute(builder)
 }
 
@@ -27072,6 +29028,13 @@ pub fn apigee_organizations_environments_keystores_aliases_get_certificate_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keystores_aliases_get_certificate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeystoresAliasesGetCertificateArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keystores/{keystoresId}/aliases/{aliasesId}/certificate
 /// Gets the certificate from an alias in PEM-encoded form.
 ///
@@ -27084,15 +29047,16 @@ pub fn apigee_organizations_environments_keystores_aliases_get_certificate_execu
 
 pub fn apigee_organizations_environments_keystores_aliases_get_certificate(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsKeystoresAliasesGetCertificateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApiHttpBody>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_keystores_aliases_get_certificate_builder(client, name)?;
+    let builder = apigee_organizations_environments_keystores_aliases_get_certificate_builder(
+        client, &args.name,
+    )?;
     apigee_organizations_environments_keystores_aliases_get_certificate_execute(builder)
 }
 
@@ -27207,6 +29171,19 @@ pub fn apigee_organizations_environments_keystores_aliases_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keystores_aliases_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeystoresAliasesUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: ignoreExpiryValidation
+    pub ignoreExpiryValidation: Option<bool>,
+    /// Query parameter: ignoreNewlineValidation
+    pub ignoreNewlineValidation: Option<bool>,
+    /// Request body.
+    pub body: GoogleApiHttpBody,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keystores/{keystoresId}/aliases/{aliasesId}
 /// Updates the certificate in an alias. The updated certificate must be in PEM- or DER-encoded X.509 format.
 ///
@@ -27219,10 +29196,7 @@ pub fn apigee_organizations_environments_keystores_aliases_update_execute(
 
 pub fn apigee_organizations_environments_keystores_aliases_update(
     client: &SimpleHttpClient,
-    name: &str,
-    ignoreExpiryValidation: Option<bool>,
-    ignoreNewlineValidation: Option<bool>,
-    body: &GoogleApiHttpBody,
+    args: &ApigeeOrganizationsEnvironmentsKeystoresAliasesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApigeeV1Alias>, ApiError>, P = ApiPending>
         + Send
@@ -27231,10 +29205,10 @@ pub fn apigee_organizations_environments_keystores_aliases_update(
 > {
     let builder = apigee_organizations_environments_keystores_aliases_update_builder(
         client,
-        name,
-        ignoreExpiryValidation,
-        ignoreNewlineValidation,
-        body,
+        &args.name,
+        args.ignoreExpiryValidation,
+        args.ignoreNewlineValidation,
+        &args.body,
     )?;
     apigee_organizations_environments_keystores_aliases_update_execute(builder)
 }
@@ -27336,6 +29310,15 @@ pub fn apigee_organizations_environments_keyvaluemaps_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keyvaluemaps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeyvaluemapsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1KeyValueMap,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keyvaluemaps
 /// Creates a key value map in an environment.
 ///
@@ -27348,8 +29331,7 @@ pub fn apigee_organizations_environments_keyvaluemaps_create_execute(
 
 pub fn apigee_organizations_environments_keyvaluemaps_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1KeyValueMap,
+    args: &ApigeeOrganizationsEnvironmentsKeyvaluemapsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueMap>, ApiError>,
@@ -27358,8 +29340,11 @@ pub fn apigee_organizations_environments_keyvaluemaps_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_keyvaluemaps_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_environments_keyvaluemaps_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_environments_keyvaluemaps_create_execute(builder)
 }
 
@@ -27457,6 +29442,13 @@ pub fn apigee_organizations_environments_keyvaluemaps_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keyvaluemaps_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeyvaluemapsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}
 /// Deletes a key value map from an environment.
 ///
@@ -27469,7 +29461,7 @@ pub fn apigee_organizations_environments_keyvaluemaps_delete_execute(
 
 pub fn apigee_organizations_environments_keyvaluemaps_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsKeyvaluemapsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueMap>, ApiError>,
@@ -27478,7 +29470,8 @@ pub fn apigee_organizations_environments_keyvaluemaps_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_keyvaluemaps_delete_builder(client, name)?;
+    let builder =
+        apigee_organizations_environments_keyvaluemaps_delete_builder(client, &args.name)?;
     apigee_organizations_environments_keyvaluemaps_delete_execute(builder)
 }
 
@@ -27576,6 +29569,13 @@ pub fn apigee_organizations_environments_keyvaluemaps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keyvaluemaps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeyvaluemapsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}
 /// Get the key value map scoped to an organization, environment, or API proxy.
 ///
@@ -27588,7 +29588,7 @@ pub fn apigee_organizations_environments_keyvaluemaps_get_execute(
 
 pub fn apigee_organizations_environments_keyvaluemaps_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsKeyvaluemapsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueMap>, ApiError>,
@@ -27597,7 +29597,7 @@ pub fn apigee_organizations_environments_keyvaluemaps_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_keyvaluemaps_get_builder(client, name)?;
+    let builder = apigee_organizations_environments_keyvaluemaps_get_builder(client, &args.name)?;
     apigee_organizations_environments_keyvaluemaps_get_execute(builder)
 }
 
@@ -27698,6 +29698,15 @@ pub fn apigee_organizations_environments_keyvaluemaps_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keyvaluemaps_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeyvaluemapsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1KeyValueMap,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}
 /// Update the key value map scoped to an organization, environment, or API proxy.
 ///
@@ -27710,8 +29719,7 @@ pub fn apigee_organizations_environments_keyvaluemaps_update_execute(
 
 pub fn apigee_organizations_environments_keyvaluemaps_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1KeyValueMap,
+    args: &ApigeeOrganizationsEnvironmentsKeyvaluemapsUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueMap>, ApiError>,
@@ -27720,8 +29728,9 @@ pub fn apigee_organizations_environments_keyvaluemaps_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_keyvaluemaps_update_builder(client, name, body)?;
+    let builder = apigee_organizations_environments_keyvaluemaps_update_builder(
+        client, &args.name, &args.body,
+    )?;
     apigee_organizations_environments_keyvaluemaps_update_execute(builder)
 }
 
@@ -27822,6 +29831,15 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keyvaluemaps_entries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1KeyValueEntry,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}/entries
 /// Creates key value entries in a key value map scoped to an organization, environment, or API proxy. **Note**: Supported for Apigee hybrid 1.8.x and higher.
 ///
@@ -27834,8 +29852,7 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_create_execute(
 
 pub fn apigee_organizations_environments_keyvaluemaps_entries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1KeyValueEntry,
+    args: &ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueEntry>, ApiError>,
@@ -27845,7 +29862,9 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_create(
     ApiError,
 > {
     let builder = apigee_organizations_environments_keyvaluemaps_entries_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     apigee_organizations_environments_keyvaluemaps_entries_create_execute(builder)
 }
@@ -27944,6 +29963,13 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keyvaluemaps_entries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}
 /// Deletes a key value entry from a key value map scoped to an organization, environment, or API proxy. **Notes:** * After you delete the key value entry, the policy consuming the entry will continue to function with its cached values for a few minutes. This is expected behavior. * Supported for Apigee hybrid 1.8.x and higher.
 ///
@@ -27956,7 +29982,7 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_delete_execute(
 
 pub fn apigee_organizations_environments_keyvaluemaps_entries_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueEntry>, ApiError>,
@@ -27966,7 +29992,7 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_delete(
     ApiError,
 > {
     let builder =
-        apigee_organizations_environments_keyvaluemaps_entries_delete_builder(client, name)?;
+        apigee_organizations_environments_keyvaluemaps_entries_delete_builder(client, &args.name)?;
     apigee_organizations_environments_keyvaluemaps_entries_delete_execute(builder)
 }
 
@@ -28064,6 +30090,13 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keyvaluemaps_entries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}
 /// Get the key value entry value for a key value map scoped to an organization, environment, or API proxy. **Note**: Supported for Apigee hybrid 1.8.x and higher.
 ///
@@ -28076,7 +30109,7 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_get_execute(
 
 pub fn apigee_organizations_environments_keyvaluemaps_entries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueEntry>, ApiError>,
@@ -28085,7 +30118,8 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_keyvaluemaps_entries_get_builder(client, name)?;
+    let builder =
+        apigee_organizations_environments_keyvaluemaps_entries_get_builder(client, &args.name)?;
     apigee_organizations_environments_keyvaluemaps_entries_get_execute(builder)
 }
 
@@ -28200,6 +30234,17 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keyvaluemaps_entries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}/entries
 /// Lists key value entries for key values maps scoped to an organization, environment, or API proxy. **Note**: Supported for Apigee hybrid 1.8.x and higher.
 ///
@@ -28212,9 +30257,7 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_list_execute(
 
 pub fn apigee_organizations_environments_keyvaluemaps_entries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListKeyValueEntriesResponse>, ApiError>,
@@ -28224,7 +30267,10 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_list(
     ApiError,
 > {
     let builder = apigee_organizations_environments_keyvaluemaps_entries_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigee_organizations_environments_keyvaluemaps_entries_list_execute(builder)
 }
@@ -28326,6 +30372,15 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_keyvaluemaps_entries_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1KeyValueEntry,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}
 /// Update key value entry scoped to an organization, environment, or API proxy for an existing key.
 ///
@@ -28338,8 +30393,7 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_update_execute(
 
 pub fn apigee_organizations_environments_keyvaluemaps_entries_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1KeyValueEntry,
+    args: &ApigeeOrganizationsEnvironmentsKeyvaluemapsEntriesUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueEntry>, ApiError>,
@@ -28348,8 +30402,9 @@ pub fn apigee_organizations_environments_keyvaluemaps_entries_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_keyvaluemaps_entries_update_builder(client, name, body)?;
+    let builder = apigee_organizations_environments_keyvaluemaps_entries_update_builder(
+        client, &args.name, &args.body,
+    )?;
     apigee_organizations_environments_keyvaluemaps_entries_update_execute(builder)
 }
 
@@ -28515,6 +30570,43 @@ pub fn apigee_organizations_environments_optimized_stats_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_optimized_stats_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsOptimizedStatsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: accuracy
+    pub accuracy: Option<String>,
+    /// Query parameter: aggTable
+    pub aggTable: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<String>,
+    /// Query parameter: offset
+    pub offset: Option<String>,
+    /// Query parameter: realtime
+    pub realtime: Option<bool>,
+    /// Query parameter: select
+    pub select: Option<String>,
+    /// Query parameter: sonar
+    pub sonar: Option<bool>,
+    /// Query parameter: sort
+    pub sort: Option<String>,
+    /// Query parameter: sortby
+    pub sortby: Option<String>,
+    /// Query parameter: timeRange
+    pub timeRange: Option<String>,
+    /// Query parameter: timeUnit
+    pub timeUnit: Option<String>,
+    /// Query parameter: topk
+    pub topk: Option<String>,
+    /// Query parameter: tsAscending
+    pub tsAscending: Option<bool>,
+    /// Query parameter: tzo
+    pub tzo: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/optimizedStats/{optimizedStatsId}
 /// Similar to GetStats except that the response is less verbose.
 ///
@@ -28527,22 +30619,7 @@ pub fn apigee_organizations_environments_optimized_stats_get_execute(
 
 pub fn apigee_organizations_environments_optimized_stats_get(
     client: &SimpleHttpClient,
-    name: &str,
-    accuracy: Option<&str>,
-    aggTable: Option<&str>,
-    filter: Option<&str>,
-    limit: Option<&str>,
-    offset: Option<&str>,
-    realtime: Option<bool>,
-    select: Option<&str>,
-    sonar: Option<bool>,
-    sort: Option<&str>,
-    sortby: Option<&str>,
-    timeRange: Option<&str>,
-    timeUnit: Option<&str>,
-    topk: Option<&str>,
-    tsAscending: Option<bool>,
-    tzo: Option<&str>,
+    args: &ApigeeOrganizationsEnvironmentsOptimizedStatsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1OptimizedStats>, ApiError>,
@@ -28553,22 +30630,22 @@ pub fn apigee_organizations_environments_optimized_stats_get(
 > {
     let builder = apigee_organizations_environments_optimized_stats_get_builder(
         client,
-        name,
-        accuracy,
-        aggTable,
-        filter,
-        limit,
-        offset,
-        realtime,
-        select,
-        sonar,
-        sort,
-        sortby,
-        timeRange,
-        timeUnit,
-        topk,
-        tsAscending,
-        tzo,
+        &args.name,
+        args.accuracy.as_deref(),
+        args.aggTable.as_deref(),
+        args.filter.as_deref(),
+        args.limit.as_deref(),
+        args.offset.as_deref(),
+        args.realtime,
+        args.select.as_deref(),
+        args.sonar,
+        args.sort.as_deref(),
+        args.sortby.as_deref(),
+        args.timeRange.as_deref(),
+        args.timeUnit.as_deref(),
+        args.topk.as_deref(),
+        args.tsAscending,
+        args.tzo.as_deref(),
     )?;
     apigee_organizations_environments_optimized_stats_get_execute(builder)
 }
@@ -28670,6 +30747,15 @@ pub fn apigee_organizations_environments_queries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_queries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsQueriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Query,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/queries
 /// Submit a query to be processed in the background. If the submission of the query succeeds, the API returns a 201 status and an ID that refer to the query. In addition to the HTTP status 201, the state of "enqueued" means that the request succeeded.
 ///
@@ -28682,8 +30768,7 @@ pub fn apigee_organizations_environments_queries_create_execute(
 
 pub fn apigee_organizations_environments_queries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1Query,
+    args: &ApigeeOrganizationsEnvironmentsQueriesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AsyncQuery>, ApiError>,
@@ -28692,7 +30777,8 @@ pub fn apigee_organizations_environments_queries_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_queries_create_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_environments_queries_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_environments_queries_create_execute(builder)
 }
 
@@ -28790,6 +30876,13 @@ pub fn apigee_organizations_environments_queries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_queries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsQueriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/queries/{queriesId}
 /// Get query status If the query is still in progress, the state is set to "running" After the query has completed successfully, state is set to "completed"
 ///
@@ -28802,7 +30895,7 @@ pub fn apigee_organizations_environments_queries_get_execute(
 
 pub fn apigee_organizations_environments_queries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsQueriesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AsyncQuery>, ApiError>,
@@ -28811,7 +30904,7 @@ pub fn apigee_organizations_environments_queries_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_queries_get_builder(client, name)?;
+    let builder = apigee_organizations_environments_queries_get_builder(client, &args.name)?;
     apigee_organizations_environments_queries_get_execute(builder)
 }
 
@@ -28907,6 +31000,13 @@ pub fn apigee_organizations_environments_queries_get_result_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_queries_get_result`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsQueriesGetResultArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/queries/{queriesId}/result
 /// After the query is completed, use this API to retrieve the results. If the request succeeds, and there is a non-zero result set, the result is downloaded to the client as a zipped JSON file. The name of the downloaded file will be: OfflineQueryResult-.zip Example: OfflineQueryResult-9cfc0d85-0f30-46d6-ae6f-318d0cb961bd.zip
 ///
@@ -28919,14 +31019,14 @@ pub fn apigee_organizations_environments_queries_get_result_execute(
 
 pub fn apigee_organizations_environments_queries_get_result(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsQueriesGetResultArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApiHttpBody>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_queries_get_result_builder(client, name)?;
+    let builder = apigee_organizations_environments_queries_get_result_builder(client, &args.name)?;
     apigee_organizations_environments_queries_get_result_execute(builder)
 }
 
@@ -29025,6 +31125,13 @@ pub fn apigee_organizations_environments_queries_get_resulturl_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_queries_get_resulturl`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsQueriesGetResulturlArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/queries/{queriesId}/resulturl
 /// After the query is completed, use this API to retrieve the results. If the request succeeds, and there is a non-zero result set, the result is sent to the client as a list of urls to JSON files.
 ///
@@ -29037,7 +31144,7 @@ pub fn apigee_organizations_environments_queries_get_resulturl_execute(
 
 pub fn apigee_organizations_environments_queries_get_resulturl(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsQueriesGetResulturlArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1GetAsyncQueryResultUrlResponse>, ApiError>,
@@ -29046,7 +31153,8 @@ pub fn apigee_organizations_environments_queries_get_resulturl(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_queries_get_resulturl_builder(client, name)?;
+    let builder =
+        apigee_organizations_environments_queries_get_resulturl_builder(client, &args.name)?;
     apigee_organizations_environments_queries_get_resulturl_execute(builder)
 }
 
@@ -29177,6 +31285,25 @@ pub fn apigee_organizations_environments_queries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_queries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsQueriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataset
+    pub dataset: Option<String>,
+    /// Query parameter: from
+    pub from: Option<String>,
+    /// Query parameter: inclQueriesWithoutReport
+    pub inclQueriesWithoutReport: Option<String>,
+    /// Query parameter: status
+    pub status: Option<String>,
+    /// Query parameter: submittedBy
+    pub submittedBy: Option<String>,
+    /// Query parameter: to
+    pub to: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/queries
 /// Return a list of Asynchronous Queries
 ///
@@ -29189,13 +31316,7 @@ pub fn apigee_organizations_environments_queries_list_execute(
 
 pub fn apigee_organizations_environments_queries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataset: Option<&str>,
-    from: Option<&str>,
-    inclQueriesWithoutReport: Option<&str>,
-    status: Option<&str>,
-    submittedBy: Option<&str>,
-    to: Option<&str>,
+    args: &ApigeeOrganizationsEnvironmentsQueriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListAsyncQueriesResponse>, ApiError>,
@@ -29206,13 +31327,13 @@ pub fn apigee_organizations_environments_queries_list(
 > {
     let builder = apigee_organizations_environments_queries_list_builder(
         client,
-        parent,
-        dataset,
-        from,
-        inclQueriesWithoutReport,
-        status,
-        submittedBy,
-        to,
+        &args.parent,
+        args.dataset.as_deref(),
+        args.from.as_deref(),
+        args.inclQueriesWithoutReport.as_deref(),
+        args.status.as_deref(),
+        args.submittedBy.as_deref(),
+        args.to.as_deref(),
     )?;
     apigee_organizations_environments_queries_list_execute(builder)
 }
@@ -29314,6 +31435,15 @@ pub fn apigee_organizations_environments_references_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_references_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsReferencesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Reference,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/references
 /// Creates a Reference in the specified environment.
 ///
@@ -29326,8 +31456,7 @@ pub fn apigee_organizations_environments_references_create_execute(
 
 pub fn apigee_organizations_environments_references_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1Reference,
+    args: &ApigeeOrganizationsEnvironmentsReferencesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Reference>, ApiError>,
@@ -29336,8 +31465,11 @@ pub fn apigee_organizations_environments_references_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_references_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_environments_references_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_environments_references_create_execute(builder)
 }
 
@@ -29435,6 +31567,13 @@ pub fn apigee_organizations_environments_references_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_references_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsReferencesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/references/{referencesId}
 /// Deletes a Reference from an environment. Returns the deleted Reference resource.
 ///
@@ -29447,7 +31586,7 @@ pub fn apigee_organizations_environments_references_delete_execute(
 
 pub fn apigee_organizations_environments_references_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsReferencesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Reference>, ApiError>,
@@ -29456,7 +31595,7 @@ pub fn apigee_organizations_environments_references_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_references_delete_builder(client, name)?;
+    let builder = apigee_organizations_environments_references_delete_builder(client, &args.name)?;
     apigee_organizations_environments_references_delete_execute(builder)
 }
 
@@ -29554,6 +31693,13 @@ pub fn apigee_organizations_environments_references_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_references_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsReferencesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/references/{referencesId}
 /// Gets a Reference resource.
 ///
@@ -29566,7 +31712,7 @@ pub fn apigee_organizations_environments_references_get_execute(
 
 pub fn apigee_organizations_environments_references_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsReferencesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Reference>, ApiError>,
@@ -29575,7 +31721,7 @@ pub fn apigee_organizations_environments_references_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_references_get_builder(client, name)?;
+    let builder = apigee_organizations_environments_references_get_builder(client, &args.name)?;
     apigee_organizations_environments_references_get_execute(builder)
 }
 
@@ -29676,6 +31822,15 @@ pub fn apigee_organizations_environments_references_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_references_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsReferencesUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Reference,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/references/{referencesId}
 /// Updates an existing Reference. Note that this operation has PUT semantics; it will replace the entirety of the existing Reference with the resource in the request body.
 ///
@@ -29688,8 +31843,7 @@ pub fn apigee_organizations_environments_references_update_execute(
 
 pub fn apigee_organizations_environments_references_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1Reference,
+    args: &ApigeeOrganizationsEnvironmentsReferencesUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Reference>, ApiError>,
@@ -29698,7 +31852,9 @@ pub fn apigee_organizations_environments_references_update(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_references_update_builder(client, name, body)?;
+    let builder = apigee_organizations_environments_references_update_builder(
+        client, &args.name, &args.body,
+    )?;
     apigee_organizations_environments_references_update_execute(builder)
 }
 
@@ -29815,6 +31971,19 @@ pub fn apigee_organizations_environments_resourcefiles_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_resourcefiles_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsResourcefilesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+    /// Request body.
+    pub body: GoogleApiHttpBody,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/resourcefiles
 /// Creates a resource file. Specify the Content-Type as `application/octet-stream` or `multipart/form-data`. For more information about resource files, see [Resource files](<https://cloud.google.`com/apigee/docs/api-platform/develop/resource-files`>).
 ///
@@ -29827,10 +31996,7 @@ pub fn apigee_organizations_environments_resourcefiles_create_execute(
 
 pub fn apigee_organizations_environments_resourcefiles_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    name: Option<&str>,
-    type_rs: Option<&str>,
-    body: &GoogleApiHttpBody,
+    args: &ApigeeOrganizationsEnvironmentsResourcefilesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ResourceFile>, ApiError>,
@@ -29840,7 +32006,11 @@ pub fn apigee_organizations_environments_resourcefiles_create(
     ApiError,
 > {
     let builder = apigee_organizations_environments_resourcefiles_create_builder(
-        client, parent, name, type_rs, body,
+        client,
+        &args.parent,
+        args.name.as_deref(),
+        args.type_rs.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_environments_resourcefiles_create_execute(builder)
 }
@@ -29941,6 +32111,17 @@ pub fn apigee_organizations_environments_resourcefiles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_resourcefiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsResourcefilesDeleteArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: type
+    pub type_rs: String,
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/resourcefiles/{type}/{name}
 /// Deletes a resource file. For more information about resource files, see [Resource files](<https://cloud.google.`com/apigee/docs/api-platform/develop/resource-files`>).
 ///
@@ -29953,9 +32134,7 @@ pub fn apigee_organizations_environments_resourcefiles_delete_execute(
 
 pub fn apigee_organizations_environments_resourcefiles_delete(
     client: &SimpleHttpClient,
-    parent: &str,
-    type_rs: &str,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsResourcefilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ResourceFile>, ApiError>,
@@ -29965,7 +32144,10 @@ pub fn apigee_organizations_environments_resourcefiles_delete(
     ApiError,
 > {
     let builder = apigee_organizations_environments_resourcefiles_delete_builder(
-        client, parent, type_rs, name,
+        client,
+        &args.parent,
+        &args.type_rs,
+        &args.name,
     )?;
     apigee_organizations_environments_resourcefiles_delete_execute(builder)
 }
@@ -30064,6 +32246,17 @@ pub fn apigee_organizations_environments_resourcefiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_resourcefiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsResourcefilesGetArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: type
+    pub type_rs: String,
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/resourcefiles/{type}/{name}
 /// Gets the contents of a resource file. For more information about resource files, see [Resource files](<https://cloud.google.`com/apigee/docs/api-platform/develop/resource-files`>).
 ///
@@ -30076,17 +32269,19 @@ pub fn apigee_organizations_environments_resourcefiles_get_execute(
 
 pub fn apigee_organizations_environments_resourcefiles_get(
     client: &SimpleHttpClient,
-    parent: &str,
-    type_rs: &str,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsResourcefilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApiHttpBody>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_resourcefiles_get_builder(client, parent, type_rs, name)?;
+    let builder = apigee_organizations_environments_resourcefiles_get_builder(
+        client,
+        &args.parent,
+        &args.type_rs,
+        &args.name,
+    )?;
     apigee_organizations_environments_resourcefiles_get_execute(builder)
 }
 
@@ -30197,6 +32392,15 @@ pub fn apigee_organizations_environments_resourcefiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_resourcefiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsResourcefilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/resourcefiles
 /// Lists all resource files, optionally filtering by type. For more information about resource files, see [Resource files](<https://cloud.google.`com/apigee/docs/api-platform/develop/resource-files`>).
 ///
@@ -30209,8 +32413,7 @@ pub fn apigee_organizations_environments_resourcefiles_list_execute(
 
 pub fn apigee_organizations_environments_resourcefiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    type_rs: Option<&str>,
+    args: &ApigeeOrganizationsEnvironmentsResourcefilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListEnvironmentResourcesResponse>, ApiError>,
@@ -30219,8 +32422,11 @@ pub fn apigee_organizations_environments_resourcefiles_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_resourcefiles_list_builder(client, parent, type_rs)?;
+    let builder = apigee_organizations_environments_resourcefiles_list_builder(
+        client,
+        &args.parent,
+        args.type_rs.as_deref(),
+    )?;
     apigee_organizations_environments_resourcefiles_list_execute(builder)
 }
 
@@ -30320,6 +32526,15 @@ pub fn apigee_organizations_environments_resourcefiles_list_environment_resource
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_resourcefiles_list_environment_resources`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsResourcefilesListEnvironmentResourcesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: type
+    pub type_rs: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/resourcefiles/{type}
 /// Lists all resource files, optionally filtering by type. For more information about resource files, see [Resource files](<https://cloud.google.`com/apigee/docs/api-platform/develop/resource-files`>).
 ///
@@ -30332,8 +32547,7 @@ pub fn apigee_organizations_environments_resourcefiles_list_environment_resource
 
 pub fn apigee_organizations_environments_resourcefiles_list_environment_resources(
     client: &SimpleHttpClient,
-    parent: &str,
-    type_rs: &str,
+    args: &ApigeeOrganizationsEnvironmentsResourcefilesListEnvironmentResourcesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListEnvironmentResourcesResponse>, ApiError>,
@@ -30344,7 +32558,9 @@ pub fn apigee_organizations_environments_resourcefiles_list_environment_resource
 > {
     let builder =
         apigee_organizations_environments_resourcefiles_list_environment_resources_builder(
-            client, parent, type_rs,
+            client,
+            &args.parent,
+            &args.type_rs,
         )?;
     apigee_organizations_environments_resourcefiles_list_environment_resources_execute(builder)
 }
@@ -30448,6 +32664,19 @@ pub fn apigee_organizations_environments_resourcefiles_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_resourcefiles_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsResourcefilesUpdateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Path parameter: type
+    pub type_rs: String,
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleApiHttpBody,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/resourcefiles/{type}/{name}
 /// Updates a resource file. Specify the Content-Type as `application/octet-stream` or `multipart/form-data`. For more information about resource files, see [Resource files](<https://cloud.google.`com/apigee/docs/api-platform/develop/resource-files`>).
 ///
@@ -30460,10 +32689,7 @@ pub fn apigee_organizations_environments_resourcefiles_update_execute(
 
 pub fn apigee_organizations_environments_resourcefiles_update(
     client: &SimpleHttpClient,
-    parent: &str,
-    type_rs: &str,
-    name: &str,
-    body: &GoogleApiHttpBody,
+    args: &ApigeeOrganizationsEnvironmentsResourcefilesUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ResourceFile>, ApiError>,
@@ -30473,7 +32699,11 @@ pub fn apigee_organizations_environments_resourcefiles_update(
     ApiError,
 > {
     let builder = apigee_organizations_environments_resourcefiles_update_builder(
-        client, parent, type_rs, name, body,
+        client,
+        &args.parent,
+        &args.type_rs,
+        &args.name,
+        &args.body,
     )?;
     apigee_organizations_environments_resourcefiles_update_execute(builder)
 }
@@ -30587,6 +32817,17 @@ pub fn apigee_organizations_environments_security_actions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_actions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityActionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: securityActionId
+    pub securityActionId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecurityAction,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityActions
 /// CreateSecurityAction creates a SecurityAction.
 ///
@@ -30599,9 +32840,7 @@ pub fn apigee_organizations_environments_security_actions_create_execute(
 
 pub fn apigee_organizations_environments_security_actions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    securityActionId: Option<&str>,
-    body: &GoogleCloudApigeeV1SecurityAction,
+    args: &ApigeeOrganizationsEnvironmentsSecurityActionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityAction>, ApiError>,
@@ -30612,9 +32851,9 @@ pub fn apigee_organizations_environments_security_actions_create(
 > {
     let builder = apigee_organizations_environments_security_actions_create_builder(
         client,
-        parent,
-        securityActionId,
-        body,
+        &args.parent,
+        args.securityActionId.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_environments_security_actions_create_execute(builder)
 }
@@ -30711,6 +32950,13 @@ pub fn apigee_organizations_environments_security_actions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_actions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityActionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityActions/{securityActionsId}
 /// Delete a SecurityAction.
 ///
@@ -30723,14 +32969,15 @@ pub fn apigee_organizations_environments_security_actions_delete_execute(
 
 pub fn apigee_organizations_environments_security_actions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsSecurityActionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_security_actions_delete_builder(client, name)?;
+    let builder =
+        apigee_organizations_environments_security_actions_delete_builder(client, &args.name)?;
     apigee_organizations_environments_security_actions_delete_execute(builder)
 }
 
@@ -30831,6 +33078,15 @@ pub fn apigee_organizations_environments_security_actions_disable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_actions_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityActionsDisableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1DisableSecurityActionRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityActions/{securityActionsId}:disable
 /// Disable a SecurityAction. The state of the SecurityAction after disabling is DISABLED. DisableSecurityAction can be called on SecurityActions in the state ENABLED; SecurityActions in a different state (including DISABLED) return an error.
 ///
@@ -30843,8 +33099,7 @@ pub fn apigee_organizations_environments_security_actions_disable_execute(
 
 pub fn apigee_organizations_environments_security_actions_disable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1DisableSecurityActionRequest,
+    args: &ApigeeOrganizationsEnvironmentsSecurityActionsDisableArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityAction>, ApiError>,
@@ -30853,8 +33108,9 @@ pub fn apigee_organizations_environments_security_actions_disable(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_security_actions_disable_builder(client, name, body)?;
+    let builder = apigee_organizations_environments_security_actions_disable_builder(
+        client, &args.name, &args.body,
+    )?;
     apigee_organizations_environments_security_actions_disable_execute(builder)
 }
 
@@ -30955,6 +33211,15 @@ pub fn apigee_organizations_environments_security_actions_enable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_actions_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityActionsEnableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1EnableSecurityActionRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityActions/{securityActionsId}:enable
 /// Enable a SecurityAction. The state of the SecurityAction after enabling is ENABLED. EnableSecurityAction can be called on SecurityActions in the state DISABLED; SecurityActions in a different state (including ENABLED) return an error.
 ///
@@ -30967,8 +33232,7 @@ pub fn apigee_organizations_environments_security_actions_enable_execute(
 
 pub fn apigee_organizations_environments_security_actions_enable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1EnableSecurityActionRequest,
+    args: &ApigeeOrganizationsEnvironmentsSecurityActionsEnableArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityAction>, ApiError>,
@@ -30977,8 +33241,9 @@ pub fn apigee_organizations_environments_security_actions_enable(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_security_actions_enable_builder(client, name, body)?;
+    let builder = apigee_organizations_environments_security_actions_enable_builder(
+        client, &args.name, &args.body,
+    )?;
     apigee_organizations_environments_security_actions_enable_execute(builder)
 }
 
@@ -31076,6 +33341,13 @@ pub fn apigee_organizations_environments_security_actions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_actions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityActionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityActions/{securityActionsId}
 /// Get a SecurityAction by name.
 ///
@@ -31088,7 +33360,7 @@ pub fn apigee_organizations_environments_security_actions_get_execute(
 
 pub fn apigee_organizations_environments_security_actions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsSecurityActionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityAction>, ApiError>,
@@ -31097,7 +33369,8 @@ pub fn apigee_organizations_environments_security_actions_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_security_actions_get_builder(client, name)?;
+    let builder =
+        apigee_organizations_environments_security_actions_get_builder(client, &args.name)?;
     apigee_organizations_environments_security_actions_get_execute(builder)
 }
 
@@ -31216,6 +33489,19 @@ pub fn apigee_organizations_environments_security_actions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_actions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityActionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityActions
 /// Returns a list of SecurityActions. This returns both enabled and disabled actions.
 ///
@@ -31228,10 +33514,7 @@ pub fn apigee_organizations_environments_security_actions_list_execute(
 
 pub fn apigee_organizations_environments_security_actions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsEnvironmentsSecurityActionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListSecurityActionsResponse>, ApiError>,
@@ -31241,7 +33524,11 @@ pub fn apigee_organizations_environments_security_actions_list(
     ApiError,
 > {
     let builder = apigee_organizations_environments_security_actions_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigee_organizations_environments_security_actions_list_execute(builder)
 }
@@ -31355,6 +33642,17 @@ pub fn apigee_organizations_environments_security_actions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_actions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityActionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecurityAction,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityActions/{securityActionsId}
 /// Update a SecurityAction.
 ///
@@ -31367,9 +33665,7 @@ pub fn apigee_organizations_environments_security_actions_patch_execute(
 
 pub fn apigee_organizations_environments_security_actions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1SecurityAction,
+    args: &ApigeeOrganizationsEnvironmentsSecurityActionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityAction>, ApiError>,
@@ -31379,7 +33675,10 @@ pub fn apigee_organizations_environments_security_actions_patch(
     ApiError,
 > {
     let builder = apigee_organizations_environments_security_actions_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_environments_security_actions_patch_execute(builder)
 }
@@ -31485,6 +33784,15 @@ pub fn apigee_organizations_environments_security_incidents_batch_update_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_incidents_batch_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityIncidentsBatchUpdateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1BatchUpdateSecurityIncidentsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityIncidents:batchUpdate
 /// BatchUpdateSecurityIncident updates multiple existing security incidents.
 ///
@@ -31497,8 +33805,7 @@ pub fn apigee_organizations_environments_security_incidents_batch_update_execute
 
 pub fn apigee_organizations_environments_security_incidents_batch_update(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1BatchUpdateSecurityIncidentsRequest,
+    args: &ApigeeOrganizationsEnvironmentsSecurityIncidentsBatchUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -31511,7 +33818,9 @@ pub fn apigee_organizations_environments_security_incidents_batch_update(
     ApiError,
 > {
     let builder = apigee_organizations_environments_security_incidents_batch_update_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     apigee_organizations_environments_security_incidents_batch_update_execute(builder)
 }
@@ -31610,6 +33919,13 @@ pub fn apigee_organizations_environments_security_incidents_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_incidents_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityIncidentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityIncidents/{securityIncidentsId}
 /// GetSecurityIncident gets the specified security incident. Returns NOT_FOUND if security incident is not present for the specified organization and environment.
 ///
@@ -31622,7 +33938,7 @@ pub fn apigee_organizations_environments_security_incidents_get_execute(
 
 pub fn apigee_organizations_environments_security_incidents_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsSecurityIncidentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityIncident>, ApiError>,
@@ -31631,7 +33947,8 @@ pub fn apigee_organizations_environments_security_incidents_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_security_incidents_get_builder(client, name)?;
+    let builder =
+        apigee_organizations_environments_security_incidents_get_builder(client, &args.name)?;
     apigee_organizations_environments_security_incidents_get_execute(builder)
 }
 
@@ -31750,6 +34067,19 @@ pub fn apigee_organizations_environments_security_incidents_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_incidents_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityIncidentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityIncidents
 /// ListSecurityIncidents lists all the security incident associated with the environment.
 ///
@@ -31762,10 +34092,7 @@ pub fn apigee_organizations_environments_security_incidents_list_execute(
 
 pub fn apigee_organizations_environments_security_incidents_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsEnvironmentsSecurityIncidentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListSecurityIncidentsResponse>, ApiError>,
@@ -31775,7 +34102,11 @@ pub fn apigee_organizations_environments_security_incidents_list(
     ApiError,
 > {
     let builder = apigee_organizations_environments_security_incidents_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigee_organizations_environments_security_incidents_list_execute(builder)
 }
@@ -31889,6 +34220,17 @@ pub fn apigee_organizations_environments_security_incidents_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_incidents_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityIncidentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecurityIncident,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityIncidents/{securityIncidentsId}
 /// UpdateSecurityIncidents updates an existing security incident.
 ///
@@ -31901,9 +34243,7 @@ pub fn apigee_organizations_environments_security_incidents_patch_execute(
 
 pub fn apigee_organizations_environments_security_incidents_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1SecurityIncident,
+    args: &ApigeeOrganizationsEnvironmentsSecurityIncidentsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityIncident>, ApiError>,
@@ -31913,7 +34253,10 @@ pub fn apigee_organizations_environments_security_incidents_patch(
     ApiError,
 > {
     let builder = apigee_organizations_environments_security_incidents_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_environments_security_incidents_patch_execute(builder)
 }
@@ -32015,6 +34358,15 @@ pub fn apigee_organizations_environments_security_reports_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_reports_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityReportsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecurityReportQuery,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityReports
 /// Submit a report request to be processed in the background. If the submission succeeds, the API returns a 200 status and an ID that refer to the report request. In addition to the HTTP status 200, the state of "enqueued" means that the request succeeded.
 ///
@@ -32027,8 +34379,7 @@ pub fn apigee_organizations_environments_security_reports_create_execute(
 
 pub fn apigee_organizations_environments_security_reports_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1SecurityReportQuery,
+    args: &ApigeeOrganizationsEnvironmentsSecurityReportsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityReport>, ApiError>,
@@ -32037,8 +34388,11 @@ pub fn apigee_organizations_environments_security_reports_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_security_reports_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_environments_security_reports_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_environments_security_reports_create_execute(builder)
 }
 
@@ -32136,6 +34490,13 @@ pub fn apigee_organizations_environments_security_reports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityReportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityReports/{securityReportsId}
 /// Get security report status If the query is still in progress, the state is set to "running" After the query has completed successfully, state is set to "completed"
 ///
@@ -32148,7 +34509,7 @@ pub fn apigee_organizations_environments_security_reports_get_execute(
 
 pub fn apigee_organizations_environments_security_reports_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsSecurityReportsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityReport>, ApiError>,
@@ -32157,7 +34518,8 @@ pub fn apigee_organizations_environments_security_reports_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_security_reports_get_builder(client, name)?;
+    let builder =
+        apigee_organizations_environments_security_reports_get_builder(client, &args.name)?;
     apigee_organizations_environments_security_reports_get_execute(builder)
 }
 
@@ -32253,6 +34615,13 @@ pub fn apigee_organizations_environments_security_reports_get_result_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_reports_get_result`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityReportsGetResultArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityReports/{securityReportsId}/result
 /// After the query is completed, use this API to retrieve the results as file. If the request succeeds, and there is a non-zero result set, the result is downloaded to the client as a zipped JSON file. The name of the downloaded file will be: OfflineQueryResult-.zip Example: OfflineQueryResult-9cfc0d85-0f30-46d6-ae6f-318d0cb961bd.zip
 ///
@@ -32265,7 +34634,7 @@ pub fn apigee_organizations_environments_security_reports_get_result_execute(
 
 pub fn apigee_organizations_environments_security_reports_get_result(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsSecurityReportsGetResultArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApiHttpBody>, ApiError>, P = ApiPending>
         + Send
@@ -32273,7 +34642,7 @@ pub fn apigee_organizations_environments_security_reports_get_result(
     ApiError,
 > {
     let builder =
-        apigee_organizations_environments_security_reports_get_result_builder(client, name)?;
+        apigee_organizations_environments_security_reports_get_result_builder(client, &args.name)?;
     apigee_organizations_environments_security_reports_get_result_execute(builder)
 }
 
@@ -32372,6 +34741,13 @@ pub fn apigee_organizations_environments_security_reports_get_result_view_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_reports_get_result_view`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityReportsGetResultViewArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityReports/{securityReportsId}/resultView
 /// After the query is completed, use this API to view the query result when result size is small.
 ///
@@ -32384,7 +34760,7 @@ pub fn apigee_organizations_environments_security_reports_get_result_view_execut
 
 pub fn apigee_organizations_environments_security_reports_get_result_view(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsSecurityReportsGetResultViewArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityReportResultView>, ApiError>,
@@ -32393,8 +34769,9 @@ pub fn apigee_organizations_environments_security_reports_get_result_view(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_security_reports_get_result_view_builder(client, name)?;
+    let builder = apigee_organizations_environments_security_reports_get_result_view_builder(
+        client, &args.name,
+    )?;
     apigee_organizations_environments_security_reports_get_result_view_execute(builder)
 }
 
@@ -32529,6 +34906,27 @@ pub fn apigee_organizations_environments_security_reports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_reports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityReportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataset
+    pub dataset: Option<String>,
+    /// Query parameter: from
+    pub from: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: status
+    pub status: Option<String>,
+    /// Query parameter: submittedBy
+    pub submittedBy: Option<String>,
+    /// Query parameter: to
+    pub to: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityReports
 /// Return a list of Security Reports
 ///
@@ -32541,14 +34939,7 @@ pub fn apigee_organizations_environments_security_reports_list_execute(
 
 pub fn apigee_organizations_environments_security_reports_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataset: Option<&str>,
-    from: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    status: Option<&str>,
-    submittedBy: Option<&str>,
-    to: Option<&str>,
+    args: &ApigeeOrganizationsEnvironmentsSecurityReportsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListSecurityReportsResponse>, ApiError>,
@@ -32559,14 +34950,14 @@ pub fn apigee_organizations_environments_security_reports_list(
 > {
     let builder = apigee_organizations_environments_security_reports_list_builder(
         client,
-        parent,
-        dataset,
-        from,
-        pageSize,
-        pageToken,
-        status,
-        submittedBy,
-        to,
+        &args.parent,
+        args.dataset.as_deref(),
+        args.from.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.status.as_deref(),
+        args.submittedBy.as_deref(),
+        args.to.as_deref(),
     )?;
     apigee_organizations_environments_security_reports_list_execute(builder)
 }
@@ -32669,6 +35060,15 @@ pub fn apigee_organizations_environments_security_stats_query_tabular_stats_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_stats_query_tabular_stats`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityStatsQueryTabularStatsArgs {
+    /// Path parameter: orgenv
+    pub orgenv: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1QueryTabularStatsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityStats:queryTabularStats
 /// Retrieve security statistics as tabular rows.
 ///
@@ -32681,8 +35081,7 @@ pub fn apigee_organizations_environments_security_stats_query_tabular_stats_exec
 
 pub fn apigee_organizations_environments_security_stats_query_tabular_stats(
     client: &SimpleHttpClient,
-    orgenv: &str,
-    body: &GoogleCloudApigeeV1QueryTabularStatsRequest,
+    args: &ApigeeOrganizationsEnvironmentsSecurityStatsQueryTabularStatsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1QueryTabularStatsResponse>, ApiError>,
@@ -32692,7 +35091,9 @@ pub fn apigee_organizations_environments_security_stats_query_tabular_stats(
     ApiError,
 > {
     let builder = apigee_organizations_environments_security_stats_query_tabular_stats_builder(
-        client, orgenv, body,
+        client,
+        &args.orgenv,
+        &args.body,
     )?;
     apigee_organizations_environments_security_stats_query_tabular_stats_execute(builder)
 }
@@ -32795,6 +35196,15 @@ pub fn apigee_organizations_environments_security_stats_query_time_series_stats_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_security_stats_query_time_series_stats`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSecurityStatsQueryTimeSeriesStatsArgs {
+    /// Path parameter: orgenv
+    pub orgenv: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1QueryTimeSeriesStatsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/securityStats:queryTimeSeriesStats
 /// Retrieve security statistics as a collection of time series.
 ///
@@ -32807,8 +35217,7 @@ pub fn apigee_organizations_environments_security_stats_query_time_series_stats_
 
 pub fn apigee_organizations_environments_security_stats_query_time_series_stats(
     client: &SimpleHttpClient,
-    orgenv: &str,
-    body: &GoogleCloudApigeeV1QueryTimeSeriesStatsRequest,
+    args: &ApigeeOrganizationsEnvironmentsSecurityStatsQueryTimeSeriesStatsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1QueryTimeSeriesStatsResponse>, ApiError>,
@@ -32818,7 +35227,9 @@ pub fn apigee_organizations_environments_security_stats_query_time_series_stats(
     ApiError,
 > {
     let builder = apigee_organizations_environments_security_stats_query_time_series_stats_builder(
-        client, orgenv, body,
+        client,
+        &args.orgenv,
+        &args.body,
     )?;
     apigee_organizations_environments_security_stats_query_time_series_stats_execute(builder)
 }
@@ -32918,6 +35329,13 @@ pub fn apigee_organizations_environments_sharedflows_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_sharedflows_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSharedflowsDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/sharedflows/{sharedflowsId}/deployments
 /// Lists all deployments of a shared flow in an environment.
 ///
@@ -32930,7 +35348,7 @@ pub fn apigee_organizations_environments_sharedflows_deployments_list_execute(
 
 pub fn apigee_organizations_environments_sharedflows_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ApigeeOrganizationsEnvironmentsSharedflowsDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListDeploymentsResponse>, ApiError>,
@@ -32939,8 +35357,10 @@ pub fn apigee_organizations_environments_sharedflows_deployments_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_sharedflows_deployments_list_builder(client, parent)?;
+    let builder = apigee_organizations_environments_sharedflows_deployments_list_builder(
+        client,
+        &args.parent,
+    )?;
     apigee_organizations_environments_sharedflows_deployments_list_execute(builder)
 }
 
@@ -33054,6 +35474,17 @@ pub fn apigee_organizations_environments_sharedflows_revisions_deploy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_sharedflows_revisions_deploy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSharedflowsRevisionsDeployArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: override
+    pub override_rs: Option<bool>,
+    /// Query parameter: serviceAccount
+    pub serviceAccount: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/sharedflows/{sharedflowsId}/revisions/{revisionsId}/deployments
 /// Deploys a revision of a shared flow. If another revision of the same shared flow is currently deployed, set the override parameter to `true` to have this revision replace the currently deployed revision. You cannot use a shared flow until it has been deployed to an environment. For a request path `organizations/{org}/environments/{env}/sharedflows/{sf}/revisions/{rev}/deployments`, two permissions are required: * apigee.deployments.create on the resource `organizations/{org}/environments/{env}` * apigee.sharedflowrevisions.deploy on the resource `organizations/{org}/sharedflows/{sf}/revisions/{rev}`
 ///
@@ -33066,9 +35497,7 @@ pub fn apigee_organizations_environments_sharedflows_revisions_deploy_execute(
 
 pub fn apigee_organizations_environments_sharedflows_revisions_deploy(
     client: &SimpleHttpClient,
-    name: &str,
-    override_rs: Option<bool>,
-    serviceAccount: Option<&str>,
+    args: &ApigeeOrganizationsEnvironmentsSharedflowsRevisionsDeployArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Deployment>, ApiError>,
@@ -33079,9 +35508,9 @@ pub fn apigee_organizations_environments_sharedflows_revisions_deploy(
 > {
     let builder = apigee_organizations_environments_sharedflows_revisions_deploy_builder(
         client,
-        name,
-        override_rs,
-        serviceAccount,
+        &args.name,
+        args.override_rs,
+        args.serviceAccount.as_deref(),
     )?;
     apigee_organizations_environments_sharedflows_revisions_deploy_execute(builder)
 }
@@ -33180,6 +35609,13 @@ pub fn apigee_organizations_environments_sharedflows_revisions_get_deployments_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_sharedflows_revisions_get_deployments`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSharedflowsRevisionsGetDeploymentsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/sharedflows/{sharedflowsId}/revisions/{revisionsId}/deployments
 /// Gets the deployment of a shared flow revision and actual state reported by runtime pods.
 ///
@@ -33192,7 +35628,7 @@ pub fn apigee_organizations_environments_sharedflows_revisions_get_deployments_e
 
 pub fn apigee_organizations_environments_sharedflows_revisions_get_deployments(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsSharedflowsRevisionsGetDeploymentsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Deployment>, ApiError>,
@@ -33202,7 +35638,7 @@ pub fn apigee_organizations_environments_sharedflows_revisions_get_deployments(
     ApiError,
 > {
     let builder = apigee_organizations_environments_sharedflows_revisions_get_deployments_builder(
-        client, name,
+        client, &args.name,
     )?;
     apigee_organizations_environments_sharedflows_revisions_get_deployments_execute(builder)
 }
@@ -33299,6 +35735,13 @@ pub fn apigee_organizations_environments_sharedflows_revisions_undeploy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_sharedflows_revisions_undeploy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsSharedflowsRevisionsUndeployArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/sharedflows/{sharedflowsId}/revisions/{revisionsId}/deployments
 /// Undeploys a shared flow revision from an environment. For a request path `organizations/{org}/environments/{env}/sharedflows/{sf}/revisions/{rev}/deployments`, two permissions are required: * apigee.deployments.delete on the resource `organizations/{org}/environments/{env}` * apigee.sharedflowrevisions.undeploy on the resource `organizations/{org}/sharedflows/{sf}/revisions/{rev}`
 ///
@@ -33311,15 +35754,16 @@ pub fn apigee_organizations_environments_sharedflows_revisions_undeploy_execute(
 
 pub fn apigee_organizations_environments_sharedflows_revisions_undeploy(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsSharedflowsRevisionsUndeployArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_sharedflows_revisions_undeploy_builder(client, name)?;
+    let builder = apigee_organizations_environments_sharedflows_revisions_undeploy_builder(
+        client, &args.name,
+    )?;
     apigee_organizations_environments_sharedflows_revisions_undeploy_execute(builder)
 }
 
@@ -33483,6 +35927,43 @@ pub fn apigee_organizations_environments_stats_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_stats_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsStatsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: accuracy
+    pub accuracy: Option<String>,
+    /// Query parameter: aggTable
+    pub aggTable: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<String>,
+    /// Query parameter: offset
+    pub offset: Option<String>,
+    /// Query parameter: realtime
+    pub realtime: Option<bool>,
+    /// Query parameter: select
+    pub select: Option<String>,
+    /// Query parameter: sonar
+    pub sonar: Option<bool>,
+    /// Query parameter: sort
+    pub sort: Option<String>,
+    /// Query parameter: sortby
+    pub sortby: Option<String>,
+    /// Query parameter: timeRange
+    pub timeRange: Option<String>,
+    /// Query parameter: timeUnit
+    pub timeUnit: Option<String>,
+    /// Query parameter: topk
+    pub topk: Option<String>,
+    /// Query parameter: tsAscending
+    pub tsAscending: Option<bool>,
+    /// Query parameter: tzo
+    pub tzo: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/stats/{statsId}
 /// Retrieve metrics grouped by dimensions. The types of metrics you can retrieve include traffic, message counts, API call latency, response size, and cache hits and counts. Dimensions let you view metrics in meaningful groups. You can optionally pass dimensions as path parameters to the stats API. If dimensions are not specified, the metrics are computed on the entire set of data for the given time range.
 ///
@@ -33495,22 +35976,7 @@ pub fn apigee_organizations_environments_stats_get_execute(
 
 pub fn apigee_organizations_environments_stats_get(
     client: &SimpleHttpClient,
-    name: &str,
-    accuracy: Option<&str>,
-    aggTable: Option<&str>,
-    filter: Option<&str>,
-    limit: Option<&str>,
-    offset: Option<&str>,
-    realtime: Option<bool>,
-    select: Option<&str>,
-    sonar: Option<bool>,
-    sort: Option<&str>,
-    sortby: Option<&str>,
-    timeRange: Option<&str>,
-    timeUnit: Option<&str>,
-    topk: Option<&str>,
-    tsAscending: Option<bool>,
-    tzo: Option<&str>,
+    args: &ApigeeOrganizationsEnvironmentsStatsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApigeeV1Stats>, ApiError>, P = ApiPending>
         + Send
@@ -33519,22 +35985,22 @@ pub fn apigee_organizations_environments_stats_get(
 > {
     let builder = apigee_organizations_environments_stats_get_builder(
         client,
-        name,
-        accuracy,
-        aggTable,
-        filter,
-        limit,
-        offset,
-        realtime,
-        select,
-        sonar,
-        sort,
-        sortby,
-        timeRange,
-        timeUnit,
-        topk,
-        tsAscending,
-        tzo,
+        &args.name,
+        args.accuracy.as_deref(),
+        args.aggTable.as_deref(),
+        args.filter.as_deref(),
+        args.limit.as_deref(),
+        args.offset.as_deref(),
+        args.realtime,
+        args.select.as_deref(),
+        args.sonar,
+        args.sort.as_deref(),
+        args.sortby.as_deref(),
+        args.timeRange.as_deref(),
+        args.timeUnit.as_deref(),
+        args.topk.as_deref(),
+        args.tsAscending,
+        args.tzo.as_deref(),
     )?;
     apigee_organizations_environments_stats_get_execute(builder)
 }
@@ -33648,6 +36114,17 @@ pub fn apigee_organizations_environments_targetservers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_targetservers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsTargetserversCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1TargetServer,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/targetservers
 /// Creates a TargetServer in the specified environment.
 ///
@@ -33660,9 +36137,7 @@ pub fn apigee_organizations_environments_targetservers_create_execute(
 
 pub fn apigee_organizations_environments_targetservers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    name: Option<&str>,
-    body: &GoogleCloudApigeeV1TargetServer,
+    args: &ApigeeOrganizationsEnvironmentsTargetserversCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1TargetServer>, ApiError>,
@@ -33671,8 +36146,12 @@ pub fn apigee_organizations_environments_targetservers_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_targetservers_create_builder(client, parent, name, body)?;
+    let builder = apigee_organizations_environments_targetservers_create_builder(
+        client,
+        &args.parent,
+        args.name.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_environments_targetservers_create_execute(builder)
 }
 
@@ -33770,6 +36249,13 @@ pub fn apigee_organizations_environments_targetservers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_targetservers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsTargetserversDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/targetservers/{targetserversId}
 /// Deletes a TargetServer from an environment. Returns the deleted TargetServer resource.
 ///
@@ -33782,7 +36268,7 @@ pub fn apigee_organizations_environments_targetservers_delete_execute(
 
 pub fn apigee_organizations_environments_targetservers_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsTargetserversDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1TargetServer>, ApiError>,
@@ -33791,7 +36277,8 @@ pub fn apigee_organizations_environments_targetservers_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_targetservers_delete_builder(client, name)?;
+    let builder =
+        apigee_organizations_environments_targetservers_delete_builder(client, &args.name)?;
     apigee_organizations_environments_targetservers_delete_execute(builder)
 }
 
@@ -33889,6 +36376,13 @@ pub fn apigee_organizations_environments_targetservers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_targetservers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsTargetserversGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/targetservers/{targetserversId}
 /// Gets a TargetServer resource.
 ///
@@ -33901,7 +36395,7 @@ pub fn apigee_organizations_environments_targetservers_get_execute(
 
 pub fn apigee_organizations_environments_targetservers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsTargetserversGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1TargetServer>, ApiError>,
@@ -33910,7 +36404,7 @@ pub fn apigee_organizations_environments_targetservers_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_environments_targetservers_get_builder(client, name)?;
+    let builder = apigee_organizations_environments_targetservers_get_builder(client, &args.name)?;
     apigee_organizations_environments_targetservers_get_execute(builder)
 }
 
@@ -34011,6 +36505,15 @@ pub fn apigee_organizations_environments_targetservers_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_targetservers_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsTargetserversUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1TargetServer,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/targetservers/{targetserversId}
 /// Updates an existing TargetServer. Note that this operation has PUT semantics; it will replace the entirety of the existing TargetServer with the resource in the request body.
 ///
@@ -34023,8 +36526,7 @@ pub fn apigee_organizations_environments_targetservers_update_execute(
 
 pub fn apigee_organizations_environments_targetservers_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1TargetServer,
+    args: &ApigeeOrganizationsEnvironmentsTargetserversUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1TargetServer>, ApiError>,
@@ -34033,8 +36535,9 @@ pub fn apigee_organizations_environments_targetservers_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_targetservers_update_builder(client, name, body)?;
+    let builder = apigee_organizations_environments_targetservers_update_builder(
+        client, &args.name, &args.body,
+    )?;
     apigee_organizations_environments_targetservers_update_execute(builder)
 }
 
@@ -34135,6 +36638,15 @@ pub fn apigee_organizations_environments_trace_config_overrides_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_trace_config_overrides_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsTraceConfigOverridesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1TraceConfigOverride,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/traceConfig/overrides
 /// Creates a trace configuration override. The response contains a system-generated UUID, that can be used to view, update, or delete the configuration override. Use the List API to view the existing trace configuration overrides.
 ///
@@ -34147,8 +36659,7 @@ pub fn apigee_organizations_environments_trace_config_overrides_create_execute(
 
 pub fn apigee_organizations_environments_trace_config_overrides_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1TraceConfigOverride,
+    args: &ApigeeOrganizationsEnvironmentsTraceConfigOverridesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1TraceConfigOverride>, ApiError>,
@@ -34158,7 +36669,9 @@ pub fn apigee_organizations_environments_trace_config_overrides_create(
     ApiError,
 > {
     let builder = apigee_organizations_environments_trace_config_overrides_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     apigee_organizations_environments_trace_config_overrides_create_execute(builder)
 }
@@ -34255,6 +36768,13 @@ pub fn apigee_organizations_environments_trace_config_overrides_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_trace_config_overrides_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsTraceConfigOverridesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/traceConfig/overrides/{overridesId}
 /// Deletes a distributed trace configuration override.
 ///
@@ -34267,15 +36787,16 @@ pub fn apigee_organizations_environments_trace_config_overrides_delete_execute(
 
 pub fn apigee_organizations_environments_trace_config_overrides_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsTraceConfigOverridesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_environments_trace_config_overrides_delete_builder(client, name)?;
+    let builder = apigee_organizations_environments_trace_config_overrides_delete_builder(
+        client, &args.name,
+    )?;
     apigee_organizations_environments_trace_config_overrides_delete_execute(builder)
 }
 
@@ -34373,6 +36894,13 @@ pub fn apigee_organizations_environments_trace_config_overrides_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_trace_config_overrides_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsTraceConfigOverridesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/traceConfig/overrides/{overridesId}
 /// Gets a trace configuration override.
 ///
@@ -34385,7 +36913,7 @@ pub fn apigee_organizations_environments_trace_config_overrides_get_execute(
 
 pub fn apigee_organizations_environments_trace_config_overrides_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsEnvironmentsTraceConfigOverridesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1TraceConfigOverride>, ApiError>,
@@ -34395,7 +36923,7 @@ pub fn apigee_organizations_environments_trace_config_overrides_get(
     ApiError,
 > {
     let builder =
-        apigee_organizations_environments_trace_config_overrides_get_builder(client, name)?;
+        apigee_organizations_environments_trace_config_overrides_get_builder(client, &args.name)?;
     apigee_organizations_environments_trace_config_overrides_get_execute(builder)
 }
 
@@ -34510,6 +37038,17 @@ pub fn apigee_organizations_environments_trace_config_overrides_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_trace_config_overrides_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsTraceConfigOverridesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/traceConfig/overrides
 /// Lists all of the distributed trace configuration overrides in an environment.
 ///
@@ -34522,9 +37061,7 @@ pub fn apigee_organizations_environments_trace_config_overrides_list_execute(
 
 pub fn apigee_organizations_environments_trace_config_overrides_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsEnvironmentsTraceConfigOverridesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListTraceConfigOverridesResponse>, ApiError>,
@@ -34534,7 +37071,10 @@ pub fn apigee_organizations_environments_trace_config_overrides_list(
     ApiError,
 > {
     let builder = apigee_organizations_environments_trace_config_overrides_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigee_organizations_environments_trace_config_overrides_list_execute(builder)
 }
@@ -34648,6 +37188,17 @@ pub fn apigee_organizations_environments_trace_config_overrides_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_environments_trace_config_overrides_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsEnvironmentsTraceConfigOverridesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1TraceConfigOverride,
+}
+
 /// GET v1/organizations/{organizationsId}/environments/{environmentsId}/traceConfig/overrides/{overridesId}
 /// Updates a distributed trace configuration override. Note that the repeated fields have replace semantics when included in the field mask and that they will be overwritten by the value of the fields in the request body.
 ///
@@ -34660,9 +37211,7 @@ pub fn apigee_organizations_environments_trace_config_overrides_patch_execute(
 
 pub fn apigee_organizations_environments_trace_config_overrides_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1TraceConfigOverride,
+    args: &ApigeeOrganizationsEnvironmentsTraceConfigOverridesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1TraceConfigOverride>, ApiError>,
@@ -34672,7 +37221,10 @@ pub fn apigee_organizations_environments_trace_config_overrides_patch(
     ApiError,
 > {
     let builder = apigee_organizations_environments_trace_config_overrides_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_environments_trace_config_overrides_patch_execute(builder)
 }
@@ -34774,6 +37326,15 @@ pub fn apigee_organizations_host_queries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_host_queries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsHostQueriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Query,
+}
+
 /// GET v1/organizations/{organizationsId}/hostQueries
 /// Submit a query at host level to be processed in the background. If the submission of the query succeeds, the API returns a 201 status and an ID that refer to the query. In addition to the HTTP status 201, the state of "enqueued" means that the request succeeded.
 ///
@@ -34786,8 +37347,7 @@ pub fn apigee_organizations_host_queries_create_execute(
 
 pub fn apigee_organizations_host_queries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1Query,
+    args: &ApigeeOrganizationsHostQueriesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AsyncQuery>, ApiError>,
@@ -34796,7 +37356,8 @@ pub fn apigee_organizations_host_queries_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_host_queries_create_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_host_queries_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_host_queries_create_execute(builder)
 }
 
@@ -34894,6 +37455,13 @@ pub fn apigee_organizations_host_queries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_host_queries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsHostQueriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/hostQueries/{hostQueriesId}
 /// Get status of a query submitted at host level. If the query is still in progress, the state is set to "running" After the query has completed successfully, state is set to "completed"
 ///
@@ -34906,7 +37474,7 @@ pub fn apigee_organizations_host_queries_get_execute(
 
 pub fn apigee_organizations_host_queries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsHostQueriesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AsyncQuery>, ApiError>,
@@ -34915,7 +37483,7 @@ pub fn apigee_organizations_host_queries_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_host_queries_get_builder(client, name)?;
+    let builder = apigee_organizations_host_queries_get_builder(client, &args.name)?;
     apigee_organizations_host_queries_get_execute(builder)
 }
 
@@ -35011,6 +37579,13 @@ pub fn apigee_organizations_host_queries_get_result_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_host_queries_get_result`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsHostQueriesGetResultArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/hostQueries/{hostQueriesId}/result
 /// After the query is completed, use this API to retrieve the results. If the request succeeds, and there is a non-zero result set, the result is downloaded to the client as a zipped JSON file. The name of the downloaded file will be: OfflineQueryResult-.zip Example: OfflineQueryResult-9cfc0d85-0f30-46d6-ae6f-318d0cb961bd.zip
 ///
@@ -35023,14 +37598,14 @@ pub fn apigee_organizations_host_queries_get_result_execute(
 
 pub fn apigee_organizations_host_queries_get_result(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsHostQueriesGetResultArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApiHttpBody>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_host_queries_get_result_builder(client, name)?;
+    let builder = apigee_organizations_host_queries_get_result_builder(client, &args.name)?;
     apigee_organizations_host_queries_get_result_execute(builder)
 }
 
@@ -35129,6 +37704,13 @@ pub fn apigee_organizations_host_queries_get_result_view_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_host_queries_get_result_view`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsHostQueriesGetResultViewArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/hostQueries/{hostQueriesId}/resultView
 ///
 ///
@@ -35141,7 +37723,7 @@ pub fn apigee_organizations_host_queries_get_result_view_execute(
 
 pub fn apigee_organizations_host_queries_get_result_view(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsHostQueriesGetResultViewArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1AsyncQueryResultView>, ApiError>,
@@ -35150,7 +37732,7 @@ pub fn apigee_organizations_host_queries_get_result_view(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_host_queries_get_result_view_builder(client, name)?;
+    let builder = apigee_organizations_host_queries_get_result_view_builder(client, &args.name)?;
     apigee_organizations_host_queries_get_result_view_execute(builder)
 }
 
@@ -35285,6 +37867,27 @@ pub fn apigee_organizations_host_queries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_host_queries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsHostQueriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataset
+    pub dataset: Option<String>,
+    /// Query parameter: envgroupHostname
+    pub envgroupHostname: Option<String>,
+    /// Query parameter: from
+    pub from: Option<String>,
+    /// Query parameter: inclQueriesWithoutReport
+    pub inclQueriesWithoutReport: Option<String>,
+    /// Query parameter: status
+    pub status: Option<String>,
+    /// Query parameter: submittedBy
+    pub submittedBy: Option<String>,
+    /// Query parameter: to
+    pub to: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/hostQueries
 /// Return a list of Asynchronous Queries at host level.
 ///
@@ -35297,14 +37900,7 @@ pub fn apigee_organizations_host_queries_list_execute(
 
 pub fn apigee_organizations_host_queries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataset: Option<&str>,
-    envgroupHostname: Option<&str>,
-    from: Option<&str>,
-    inclQueriesWithoutReport: Option<&str>,
-    status: Option<&str>,
-    submittedBy: Option<&str>,
-    to: Option<&str>,
+    args: &ApigeeOrganizationsHostQueriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListAsyncQueriesResponse>, ApiError>,
@@ -35315,14 +37911,14 @@ pub fn apigee_organizations_host_queries_list(
 > {
     let builder = apigee_organizations_host_queries_list_builder(
         client,
-        parent,
-        dataset,
-        envgroupHostname,
-        from,
-        inclQueriesWithoutReport,
-        status,
-        submittedBy,
-        to,
+        &args.parent,
+        args.dataset.as_deref(),
+        args.envgroupHostname.as_deref(),
+        args.from.as_deref(),
+        args.inclQueriesWithoutReport.as_deref(),
+        args.status.as_deref(),
+        args.submittedBy.as_deref(),
+        args.to.as_deref(),
     )?;
     apigee_organizations_host_queries_list_execute(builder)
 }
@@ -35424,6 +38020,15 @@ pub fn apigee_organizations_host_security_reports_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_host_security_reports_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsHostSecurityReportsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecurityReportQuery,
+}
+
 /// GET v1/organizations/{organizationsId}/hostSecurityReports
 /// Submit a query at host level to be processed in the background. If the submission of the query succeeds, the API returns a 201 status and an ID that refer to the query. In addition to the HTTP status 201, the state of "enqueued" means that the request succeeded.
 ///
@@ -35436,8 +38041,7 @@ pub fn apigee_organizations_host_security_reports_create_execute(
 
 pub fn apigee_organizations_host_security_reports_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1SecurityReportQuery,
+    args: &ApigeeOrganizationsHostSecurityReportsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityReport>, ApiError>,
@@ -35446,7 +38050,11 @@ pub fn apigee_organizations_host_security_reports_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_host_security_reports_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_host_security_reports_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_host_security_reports_create_execute(builder)
 }
 
@@ -35544,6 +38152,13 @@ pub fn apigee_organizations_host_security_reports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_host_security_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsHostSecurityReportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/hostSecurityReports/{hostSecurityReportsId}
 /// Get status of a query submitted at host level. If the query is still in progress, the state is set to "running" After the query has completed successfully, state is set to "completed"
 ///
@@ -35556,7 +38171,7 @@ pub fn apigee_organizations_host_security_reports_get_execute(
 
 pub fn apigee_organizations_host_security_reports_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsHostSecurityReportsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityReport>, ApiError>,
@@ -35565,7 +38180,7 @@ pub fn apigee_organizations_host_security_reports_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_host_security_reports_get_builder(client, name)?;
+    let builder = apigee_organizations_host_security_reports_get_builder(client, &args.name)?;
     apigee_organizations_host_security_reports_get_execute(builder)
 }
 
@@ -35661,6 +38276,13 @@ pub fn apigee_organizations_host_security_reports_get_result_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_host_security_reports_get_result`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsHostSecurityReportsGetResultArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/hostSecurityReports/{hostSecurityReportsId}/result
 /// After the query is completed, use this API to retrieve the results. If the request succeeds, and there is a non-zero result set, the result is downloaded to the client as a zipped JSON file. The name of the downloaded file will be: OfflineQueryResult-.zip Example: OfflineQueryResult-9cfc0d85-0f30-46d6-ae6f-318d0cb961bd.zip
 ///
@@ -35673,14 +38295,15 @@ pub fn apigee_organizations_host_security_reports_get_result_execute(
 
 pub fn apigee_organizations_host_security_reports_get_result(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsHostSecurityReportsGetResultArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApiHttpBody>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_host_security_reports_get_result_builder(client, name)?;
+    let builder =
+        apigee_organizations_host_security_reports_get_result_builder(client, &args.name)?;
     apigee_organizations_host_security_reports_get_result_execute(builder)
 }
 
@@ -35779,6 +38402,13 @@ pub fn apigee_organizations_host_security_reports_get_result_view_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_host_security_reports_get_result_view`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsHostSecurityReportsGetResultViewArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/hostSecurityReports/{hostSecurityReportsId}/resultView
 /// After the query is completed, use this API to view the query result when result size is small.
 ///
@@ -35791,7 +38421,7 @@ pub fn apigee_organizations_host_security_reports_get_result_view_execute(
 
 pub fn apigee_organizations_host_security_reports_get_result_view(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsHostSecurityReportsGetResultViewArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityReportResultView>, ApiError>,
@@ -35800,7 +38430,8 @@ pub fn apigee_organizations_host_security_reports_get_result_view(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_host_security_reports_get_result_view_builder(client, name)?;
+    let builder =
+        apigee_organizations_host_security_reports_get_result_view_builder(client, &args.name)?;
     apigee_organizations_host_security_reports_get_result_view_execute(builder)
 }
 
@@ -35939,6 +38570,29 @@ pub fn apigee_organizations_host_security_reports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_host_security_reports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsHostSecurityReportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataset
+    pub dataset: Option<String>,
+    /// Query parameter: envgroupHostname
+    pub envgroupHostname: Option<String>,
+    /// Query parameter: from
+    pub from: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: status
+    pub status: Option<String>,
+    /// Query parameter: submittedBy
+    pub submittedBy: Option<String>,
+    /// Query parameter: to
+    pub to: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/hostSecurityReports
 /// Return a list of Security Reports at host level.
 ///
@@ -35951,15 +38605,7 @@ pub fn apigee_organizations_host_security_reports_list_execute(
 
 pub fn apigee_organizations_host_security_reports_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataset: Option<&str>,
-    envgroupHostname: Option<&str>,
-    from: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    status: Option<&str>,
-    submittedBy: Option<&str>,
-    to: Option<&str>,
+    args: &ApigeeOrganizationsHostSecurityReportsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListSecurityReportsResponse>, ApiError>,
@@ -35970,15 +38616,15 @@ pub fn apigee_organizations_host_security_reports_list(
 > {
     let builder = apigee_organizations_host_security_reports_list_builder(
         client,
-        parent,
-        dataset,
-        envgroupHostname,
-        from,
-        pageSize,
-        pageToken,
-        status,
-        submittedBy,
-        to,
+        &args.parent,
+        args.dataset.as_deref(),
+        args.envgroupHostname.as_deref(),
+        args.from.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.status.as_deref(),
+        args.submittedBy.as_deref(),
+        args.to.as_deref(),
     )?;
     apigee_organizations_host_security_reports_list_execute(builder)
 }
@@ -36139,6 +38785,41 @@ pub fn apigee_organizations_host_stats_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_host_stats_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsHostStatsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: accuracy
+    pub accuracy: Option<String>,
+    /// Query parameter: envgroupHostname
+    pub envgroupHostname: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<String>,
+    /// Query parameter: offset
+    pub offset: Option<String>,
+    /// Query parameter: realtime
+    pub realtime: Option<bool>,
+    /// Query parameter: select
+    pub select: Option<String>,
+    /// Query parameter: sort
+    pub sort: Option<String>,
+    /// Query parameter: sortby
+    pub sortby: Option<String>,
+    /// Query parameter: timeRange
+    pub timeRange: Option<String>,
+    /// Query parameter: timeUnit
+    pub timeUnit: Option<String>,
+    /// Query parameter: topk
+    pub topk: Option<String>,
+    /// Query parameter: tsAscending
+    pub tsAscending: Option<bool>,
+    /// Query parameter: tzo
+    pub tzo: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/hostStats/{hostStatsId}
 /// Retrieve metrics grouped by dimensions in host level. The types of metrics you can retrieve include traffic, message counts, API call latency, response size, and cache hits and counts. Dimensions let you view metrics in meaningful groups. You can optionally pass dimensions as path parameters to the stats API. If dimensions are not specified, the metrics are computed on the entire set of data for the given time range.
 ///
@@ -36151,21 +38832,7 @@ pub fn apigee_organizations_host_stats_get_execute(
 
 pub fn apigee_organizations_host_stats_get(
     client: &SimpleHttpClient,
-    name: &str,
-    accuracy: Option<&str>,
-    envgroupHostname: Option<&str>,
-    filter: Option<&str>,
-    limit: Option<&str>,
-    offset: Option<&str>,
-    realtime: Option<bool>,
-    select: Option<&str>,
-    sort: Option<&str>,
-    sortby: Option<&str>,
-    timeRange: Option<&str>,
-    timeUnit: Option<&str>,
-    topk: Option<&str>,
-    tsAscending: Option<bool>,
-    tzo: Option<&str>,
+    args: &ApigeeOrganizationsHostStatsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApigeeV1Stats>, ApiError>, P = ApiPending>
         + Send
@@ -36174,21 +38841,21 @@ pub fn apigee_organizations_host_stats_get(
 > {
     let builder = apigee_organizations_host_stats_get_builder(
         client,
-        name,
-        accuracy,
-        envgroupHostname,
-        filter,
-        limit,
-        offset,
-        realtime,
-        select,
-        sort,
-        sortby,
-        timeRange,
-        timeUnit,
-        topk,
-        tsAscending,
-        tzo,
+        &args.name,
+        args.accuracy.as_deref(),
+        args.envgroupHostname.as_deref(),
+        args.filter.as_deref(),
+        args.limit.as_deref(),
+        args.offset.as_deref(),
+        args.realtime,
+        args.select.as_deref(),
+        args.sort.as_deref(),
+        args.sortby.as_deref(),
+        args.timeRange.as_deref(),
+        args.timeUnit.as_deref(),
+        args.topk.as_deref(),
+        args.tsAscending,
+        args.tzo.as_deref(),
     )?;
     apigee_organizations_host_stats_get_execute(builder)
 }
@@ -36290,6 +38957,15 @@ pub fn apigee_organizations_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Instance,
+}
+
 /// GET v1/organizations/{organizationsId}/instances
 /// Creates an Apigee runtime instance. The instance is accessible from the authorized network configured on the organization. **Note:** Not supported for Apigee hybrid.
 ///
@@ -36302,8 +38978,7 @@ pub fn apigee_organizations_instances_create_execute(
 
 pub fn apigee_organizations_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1Instance,
+    args: &ApigeeOrganizationsInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -36312,7 +38987,7 @@ pub fn apigee_organizations_instances_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_instances_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_instances_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_instances_create_execute(builder)
 }
 
@@ -36410,6 +39085,13 @@ pub fn apigee_organizations_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}
 /// Deletes an Apigee runtime instance. The instance stops serving requests and the runtime data is deleted. **Note:** Not supported for Apigee hybrid.
 ///
@@ -36422,7 +39104,7 @@ pub fn apigee_organizations_instances_delete_execute(
 
 pub fn apigee_organizations_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -36431,7 +39113,7 @@ pub fn apigee_organizations_instances_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_instances_delete_builder(client, name)?;
+    let builder = apigee_organizations_instances_delete_builder(client, &args.name)?;
     apigee_organizations_instances_delete_execute(builder)
 }
 
@@ -36529,6 +39211,13 @@ pub fn apigee_organizations_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}
 /// Gets the details for an Apigee runtime instance. **Note:** Not supported for Apigee hybrid.
 ///
@@ -36541,7 +39230,7 @@ pub fn apigee_organizations_instances_get_execute(
 
 pub fn apigee_organizations_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1Instance>, ApiError>,
@@ -36550,7 +39239,7 @@ pub fn apigee_organizations_instances_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_instances_get_builder(client, name)?;
+    let builder = apigee_organizations_instances_get_builder(client, &args.name)?;
     apigee_organizations_instances_get_execute(builder)
 }
 
@@ -36664,6 +39353,17 @@ pub fn apigee_organizations_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/instances
 /// Lists all Apigee runtime instances for the organization. **Note:** Not supported for Apigee hybrid.
 ///
@@ -36676,9 +39376,7 @@ pub fn apigee_organizations_instances_list_execute(
 
 pub fn apigee_organizations_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListInstancesResponse>, ApiError>,
@@ -36687,7 +39385,12 @@ pub fn apigee_organizations_instances_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_instances_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = apigee_organizations_instances_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apigee_organizations_instances_list_execute(builder)
 }
 
@@ -36800,6 +39503,17 @@ pub fn apigee_organizations_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Instance,
+}
+
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}
 /// Updates an Apigee runtime instance. You can update the fields described in NodeConfig. No other fields will be updated. **Note:** Not supported for Apigee hybrid.
 ///
@@ -36812,9 +39526,7 @@ pub fn apigee_organizations_instances_patch_execute(
 
 pub fn apigee_organizations_instances_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1Instance,
+    args: &ApigeeOrganizationsInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -36823,7 +39535,12 @@ pub fn apigee_organizations_instances_patch(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_instances_patch_builder(client, name, updateMask, body)?;
+    let builder = apigee_organizations_instances_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_instances_patch_execute(builder)
 }
 
@@ -36925,6 +39642,15 @@ pub fn apigee_organizations_instances_report_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_report_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesReportStatusArgs {
+    /// Path parameter: instance
+    pub instance: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ReportInstanceStatusRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}:reportStatus
 /// Reports the latest status for a runtime instance.
 ///
@@ -36937,8 +39663,7 @@ pub fn apigee_organizations_instances_report_status_execute(
 
 pub fn apigee_organizations_instances_report_status(
     client: &SimpleHttpClient,
-    instance: &str,
-    body: &GoogleCloudApigeeV1ReportInstanceStatusRequest,
+    args: &ApigeeOrganizationsInstancesReportStatusArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ReportInstanceStatusResponse>, ApiError>,
@@ -36947,7 +39672,8 @@ pub fn apigee_organizations_instances_report_status(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_instances_report_status_builder(client, instance, body)?;
+    let builder =
+        apigee_organizations_instances_report_status_builder(client, &args.instance, &args.body)?;
     apigee_organizations_instances_report_status_execute(builder)
 }
 
@@ -37048,6 +39774,15 @@ pub fn apigee_organizations_instances_attachments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_attachments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesAttachmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1InstanceAttachment,
+}
+
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}/attachments
 /// Creates a new attachment of an environment to an instance. **Note:** Not supported for Apigee hybrid.
 ///
@@ -37060,8 +39795,7 @@ pub fn apigee_organizations_instances_attachments_create_execute(
 
 pub fn apigee_organizations_instances_attachments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1InstanceAttachment,
+    args: &ApigeeOrganizationsInstancesAttachmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -37070,7 +39804,11 @@ pub fn apigee_organizations_instances_attachments_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_instances_attachments_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_instances_attachments_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_instances_attachments_create_execute(builder)
 }
 
@@ -37168,6 +39906,13 @@ pub fn apigee_organizations_instances_attachments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_attachments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesAttachmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}/attachments/{attachmentsId}
 /// Deletes an attachment. **Note:** Not supported for Apigee hybrid.
 ///
@@ -37180,7 +39925,7 @@ pub fn apigee_organizations_instances_attachments_delete_execute(
 
 pub fn apigee_organizations_instances_attachments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsInstancesAttachmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -37189,7 +39934,7 @@ pub fn apigee_organizations_instances_attachments_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_instances_attachments_delete_builder(client, name)?;
+    let builder = apigee_organizations_instances_attachments_delete_builder(client, &args.name)?;
     apigee_organizations_instances_attachments_delete_execute(builder)
 }
 
@@ -37287,6 +40032,13 @@ pub fn apigee_organizations_instances_attachments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_attachments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesAttachmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}/attachments/{attachmentsId}
 /// Gets an attachment. **Note:** Not supported for Apigee hybrid.
 ///
@@ -37299,7 +40051,7 @@ pub fn apigee_organizations_instances_attachments_get_execute(
 
 pub fn apigee_organizations_instances_attachments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsInstancesAttachmentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1InstanceAttachment>, ApiError>,
@@ -37308,7 +40060,7 @@ pub fn apigee_organizations_instances_attachments_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_instances_attachments_get_builder(client, name)?;
+    let builder = apigee_organizations_instances_attachments_get_builder(client, &args.name)?;
     apigee_organizations_instances_attachments_get_execute(builder)
 }
 
@@ -37423,6 +40175,17 @@ pub fn apigee_organizations_instances_attachments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_attachments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesAttachmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}/attachments
 /// Lists all attachments to an instance. **Note:** Not supported for Apigee hybrid.
 ///
@@ -37435,9 +40198,7 @@ pub fn apigee_organizations_instances_attachments_list_execute(
 
 pub fn apigee_organizations_instances_attachments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsInstancesAttachmentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListInstanceAttachmentsResponse>, ApiError>,
@@ -37447,7 +40208,10 @@ pub fn apigee_organizations_instances_attachments_list(
     ApiError,
 > {
     let builder = apigee_organizations_instances_attachments_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigee_organizations_instances_attachments_list_execute(builder)
 }
@@ -37549,6 +40313,15 @@ pub fn apigee_organizations_instances_canaryevaluations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_canaryevaluations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesCanaryevaluationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1CanaryEvaluation,
+}
+
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}/canaryevaluations
 /// Creates a new canary evaluation for an organization.
 ///
@@ -37561,8 +40334,7 @@ pub fn apigee_organizations_instances_canaryevaluations_create_execute(
 
 pub fn apigee_organizations_instances_canaryevaluations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1CanaryEvaluation,
+    args: &ApigeeOrganizationsInstancesCanaryevaluationsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -37571,8 +40343,11 @@ pub fn apigee_organizations_instances_canaryevaluations_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_instances_canaryevaluations_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_instances_canaryevaluations_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_instances_canaryevaluations_create_execute(builder)
 }
 
@@ -37670,6 +40445,13 @@ pub fn apigee_organizations_instances_canaryevaluations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_canaryevaluations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesCanaryevaluationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}/canaryevaluations/{canaryevaluationsId}
 /// Gets a CanaryEvaluation for an organization.
 ///
@@ -37682,7 +40464,7 @@ pub fn apigee_organizations_instances_canaryevaluations_get_execute(
 
 pub fn apigee_organizations_instances_canaryevaluations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsInstancesCanaryevaluationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1CanaryEvaluation>, ApiError>,
@@ -37691,7 +40473,7 @@ pub fn apigee_organizations_instances_canaryevaluations_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_instances_canaryevaluations_get_builder(client, name)?;
+    let builder = apigee_organizations_instances_canaryevaluations_get_builder(client, &args.name)?;
     apigee_organizations_instances_canaryevaluations_get_execute(builder)
 }
 
@@ -37792,6 +40574,15 @@ pub fn apigee_organizations_instances_nat_addresses_activate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_nat_addresses_activate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesNatAddressesActivateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ActivateNatAddressRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}/natAddresses/{natAddressesId}:activate
 /// Activates the NAT address. The Apigee instance can now use this for Internet egress traffic. **Note:** Not supported for Apigee hybrid.
 ///
@@ -37804,8 +40595,7 @@ pub fn apigee_organizations_instances_nat_addresses_activate_execute(
 
 pub fn apigee_organizations_instances_nat_addresses_activate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1ActivateNatAddressRequest,
+    args: &ApigeeOrganizationsInstancesNatAddressesActivateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -37814,8 +40604,9 @@ pub fn apigee_organizations_instances_nat_addresses_activate(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_instances_nat_addresses_activate_builder(client, name, body)?;
+    let builder = apigee_organizations_instances_nat_addresses_activate_builder(
+        client, &args.name, &args.body,
+    )?;
     apigee_organizations_instances_nat_addresses_activate_execute(builder)
 }
 
@@ -37916,6 +40707,15 @@ pub fn apigee_organizations_instances_nat_addresses_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_nat_addresses_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesNatAddressesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1NatAddress,
+}
+
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}/natAddresses
 /// Creates a NAT address. The address is created in the RESERVED state and a static external IP address will be provisioned. At this time, the instance will not use this IP address for Internet egress traffic. The address can be activated for use once any required firewall IP whitelisting has been completed. **Note:** Not supported for Apigee hybrid.
 ///
@@ -37928,8 +40728,7 @@ pub fn apigee_organizations_instances_nat_addresses_create_execute(
 
 pub fn apigee_organizations_instances_nat_addresses_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1NatAddress,
+    args: &ApigeeOrganizationsInstancesNatAddressesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -37938,8 +40737,11 @@ pub fn apigee_organizations_instances_nat_addresses_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_instances_nat_addresses_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_instances_nat_addresses_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_instances_nat_addresses_create_execute(builder)
 }
 
@@ -38037,6 +40839,13 @@ pub fn apigee_organizations_instances_nat_addresses_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_nat_addresses_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesNatAddressesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}/natAddresses/{natAddressesId}
 /// Deletes the NAT address. Connections that are actively using the address are drained before it is removed. **Note:** Not supported for Apigee hybrid.
 ///
@@ -38049,7 +40858,7 @@ pub fn apigee_organizations_instances_nat_addresses_delete_execute(
 
 pub fn apigee_organizations_instances_nat_addresses_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsInstancesNatAddressesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -38058,7 +40867,7 @@ pub fn apigee_organizations_instances_nat_addresses_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_instances_nat_addresses_delete_builder(client, name)?;
+    let builder = apigee_organizations_instances_nat_addresses_delete_builder(client, &args.name)?;
     apigee_organizations_instances_nat_addresses_delete_execute(builder)
 }
 
@@ -38156,6 +40965,13 @@ pub fn apigee_organizations_instances_nat_addresses_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_nat_addresses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesNatAddressesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}/natAddresses/{natAddressesId}
 /// Gets the details of a NAT address. **Note:** Not supported for Apigee hybrid.
 ///
@@ -38168,7 +40984,7 @@ pub fn apigee_organizations_instances_nat_addresses_get_execute(
 
 pub fn apigee_organizations_instances_nat_addresses_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsInstancesNatAddressesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1NatAddress>, ApiError>,
@@ -38177,7 +40993,7 @@ pub fn apigee_organizations_instances_nat_addresses_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_instances_nat_addresses_get_builder(client, name)?;
+    let builder = apigee_organizations_instances_nat_addresses_get_builder(client, &args.name)?;
     apigee_organizations_instances_nat_addresses_get_execute(builder)
 }
 
@@ -38292,6 +41108,17 @@ pub fn apigee_organizations_instances_nat_addresses_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_instances_nat_addresses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsInstancesNatAddressesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/instances/{instancesId}/natAddresses
 /// Lists the NAT addresses for an Apigee instance. **Note:** Not supported for Apigee hybrid.
 ///
@@ -38304,9 +41131,7 @@ pub fn apigee_organizations_instances_nat_addresses_list_execute(
 
 pub fn apigee_organizations_instances_nat_addresses_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsInstancesNatAddressesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListNatAddressesResponse>, ApiError>,
@@ -38316,7 +41141,10 @@ pub fn apigee_organizations_instances_nat_addresses_list(
     ApiError,
 > {
     let builder = apigee_organizations_instances_nat_addresses_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigee_organizations_instances_nat_addresses_list_execute(builder)
 }
@@ -38418,6 +41246,15 @@ pub fn apigee_organizations_keyvaluemaps_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_keyvaluemaps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsKeyvaluemapsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1KeyValueMap,
+}
+
 /// GET v1/organizations/{organizationsId}/keyvaluemaps
 /// Creates a key value map in an organization.
 ///
@@ -38430,8 +41267,7 @@ pub fn apigee_organizations_keyvaluemaps_create_execute(
 
 pub fn apigee_organizations_keyvaluemaps_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1KeyValueMap,
+    args: &ApigeeOrganizationsKeyvaluemapsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueMap>, ApiError>,
@@ -38440,7 +41276,8 @@ pub fn apigee_organizations_keyvaluemaps_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_keyvaluemaps_create_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_keyvaluemaps_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_keyvaluemaps_create_execute(builder)
 }
 
@@ -38538,6 +41375,13 @@ pub fn apigee_organizations_keyvaluemaps_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_keyvaluemaps_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsKeyvaluemapsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/keyvaluemaps/{keyvaluemapsId}
 /// Deletes a key value map from an organization.
 ///
@@ -38550,7 +41394,7 @@ pub fn apigee_organizations_keyvaluemaps_delete_execute(
 
 pub fn apigee_organizations_keyvaluemaps_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsKeyvaluemapsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueMap>, ApiError>,
@@ -38559,7 +41403,7 @@ pub fn apigee_organizations_keyvaluemaps_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_keyvaluemaps_delete_builder(client, name)?;
+    let builder = apigee_organizations_keyvaluemaps_delete_builder(client, &args.name)?;
     apigee_organizations_keyvaluemaps_delete_execute(builder)
 }
 
@@ -38657,6 +41501,13 @@ pub fn apigee_organizations_keyvaluemaps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_keyvaluemaps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsKeyvaluemapsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/keyvaluemaps/{keyvaluemapsId}
 /// Get the key value map scoped to an organization, environment, or API proxy.
 ///
@@ -38669,7 +41520,7 @@ pub fn apigee_organizations_keyvaluemaps_get_execute(
 
 pub fn apigee_organizations_keyvaluemaps_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsKeyvaluemapsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueMap>, ApiError>,
@@ -38678,7 +41529,7 @@ pub fn apigee_organizations_keyvaluemaps_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_keyvaluemaps_get_builder(client, name)?;
+    let builder = apigee_organizations_keyvaluemaps_get_builder(client, &args.name)?;
     apigee_organizations_keyvaluemaps_get_execute(builder)
 }
 
@@ -38779,6 +41630,15 @@ pub fn apigee_organizations_keyvaluemaps_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_keyvaluemaps_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsKeyvaluemapsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1KeyValueMap,
+}
+
 /// GET v1/organizations/{organizationsId}/keyvaluemaps/{keyvaluemapsId}
 /// Update the key value map scoped to an organization, environment, or API proxy.
 ///
@@ -38791,8 +41651,7 @@ pub fn apigee_organizations_keyvaluemaps_update_execute(
 
 pub fn apigee_organizations_keyvaluemaps_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1KeyValueMap,
+    args: &ApigeeOrganizationsKeyvaluemapsUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueMap>, ApiError>,
@@ -38801,7 +41660,7 @@ pub fn apigee_organizations_keyvaluemaps_update(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_keyvaluemaps_update_builder(client, name, body)?;
+    let builder = apigee_organizations_keyvaluemaps_update_builder(client, &args.name, &args.body)?;
     apigee_organizations_keyvaluemaps_update_execute(builder)
 }
 
@@ -38902,6 +41761,15 @@ pub fn apigee_organizations_keyvaluemaps_entries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_keyvaluemaps_entries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsKeyvaluemapsEntriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1KeyValueEntry,
+}
+
 /// GET v1/organizations/{organizationsId}/keyvaluemaps/{keyvaluemapsId}/entries
 /// Creates key value entries in a key value map scoped to an organization, environment, or API proxy. **Note**: Supported for Apigee hybrid 1.8.x and higher.
 ///
@@ -38914,8 +41782,7 @@ pub fn apigee_organizations_keyvaluemaps_entries_create_execute(
 
 pub fn apigee_organizations_keyvaluemaps_entries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1KeyValueEntry,
+    args: &ApigeeOrganizationsKeyvaluemapsEntriesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueEntry>, ApiError>,
@@ -38924,7 +41791,8 @@ pub fn apigee_organizations_keyvaluemaps_entries_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_keyvaluemaps_entries_create_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_keyvaluemaps_entries_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_keyvaluemaps_entries_create_execute(builder)
 }
 
@@ -39022,6 +41890,13 @@ pub fn apigee_organizations_keyvaluemaps_entries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_keyvaluemaps_entries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsKeyvaluemapsEntriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}
 /// Deletes a key value entry from a key value map scoped to an organization, environment, or API proxy. **Notes:** * After you delete the key value entry, the policy consuming the entry will continue to function with its cached values for a few minutes. This is expected behavior. * Supported for Apigee hybrid 1.8.x and higher.
 ///
@@ -39034,7 +41909,7 @@ pub fn apigee_organizations_keyvaluemaps_entries_delete_execute(
 
 pub fn apigee_organizations_keyvaluemaps_entries_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsKeyvaluemapsEntriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueEntry>, ApiError>,
@@ -39043,7 +41918,7 @@ pub fn apigee_organizations_keyvaluemaps_entries_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_keyvaluemaps_entries_delete_builder(client, name)?;
+    let builder = apigee_organizations_keyvaluemaps_entries_delete_builder(client, &args.name)?;
     apigee_organizations_keyvaluemaps_entries_delete_execute(builder)
 }
 
@@ -39141,6 +42016,13 @@ pub fn apigee_organizations_keyvaluemaps_entries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_keyvaluemaps_entries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsKeyvaluemapsEntriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}
 /// Get the key value entry value for a key value map scoped to an organization, environment, or API proxy. **Note**: Supported for Apigee hybrid 1.8.x and higher.
 ///
@@ -39153,7 +42035,7 @@ pub fn apigee_organizations_keyvaluemaps_entries_get_execute(
 
 pub fn apigee_organizations_keyvaluemaps_entries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsKeyvaluemapsEntriesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueEntry>, ApiError>,
@@ -39162,7 +42044,7 @@ pub fn apigee_organizations_keyvaluemaps_entries_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_keyvaluemaps_entries_get_builder(client, name)?;
+    let builder = apigee_organizations_keyvaluemaps_entries_get_builder(client, &args.name)?;
     apigee_organizations_keyvaluemaps_entries_get_execute(builder)
 }
 
@@ -39277,6 +42159,17 @@ pub fn apigee_organizations_keyvaluemaps_entries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_keyvaluemaps_entries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsKeyvaluemapsEntriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/keyvaluemaps/{keyvaluemapsId}/entries
 /// Lists key value entries for key values maps scoped to an organization, environment, or API proxy. **Note**: Supported for Apigee hybrid 1.8.x and higher.
 ///
@@ -39289,9 +42182,7 @@ pub fn apigee_organizations_keyvaluemaps_entries_list_execute(
 
 pub fn apigee_organizations_keyvaluemaps_entries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsKeyvaluemapsEntriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListKeyValueEntriesResponse>, ApiError>,
@@ -39301,7 +42192,10 @@ pub fn apigee_organizations_keyvaluemaps_entries_list(
     ApiError,
 > {
     let builder = apigee_organizations_keyvaluemaps_entries_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigee_organizations_keyvaluemaps_entries_list_execute(builder)
 }
@@ -39403,6 +42297,15 @@ pub fn apigee_organizations_keyvaluemaps_entries_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_keyvaluemaps_entries_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsKeyvaluemapsEntriesUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1KeyValueEntry,
+}
+
 /// GET v1/organizations/{organizationsId}/keyvaluemaps/{keyvaluemapsId}/entries/{entriesId}
 /// Update key value entry scoped to an organization, environment, or API proxy for an existing key.
 ///
@@ -39415,8 +42318,7 @@ pub fn apigee_organizations_keyvaluemaps_entries_update_execute(
 
 pub fn apigee_organizations_keyvaluemaps_entries_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1KeyValueEntry,
+    args: &ApigeeOrganizationsKeyvaluemapsEntriesUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1KeyValueEntry>, ApiError>,
@@ -39425,7 +42327,8 @@ pub fn apigee_organizations_keyvaluemaps_entries_update(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_keyvaluemaps_entries_update_builder(client, name, body)?;
+    let builder =
+        apigee_organizations_keyvaluemaps_entries_update_builder(client, &args.name, &args.body)?;
     apigee_organizations_keyvaluemaps_entries_update_execute(builder)
 }
 
@@ -39523,6 +42426,13 @@ pub fn apigee_organizations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -39535,7 +42445,7 @@ pub fn apigee_organizations_operations_get_execute(
 
 pub fn apigee_organizations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -39544,7 +42454,7 @@ pub fn apigee_organizations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_operations_get_builder(client, name)?;
+    let builder = apigee_organizations_operations_get_builder(client, &args.name)?;
     apigee_organizations_operations_get_execute(builder)
 }
 
@@ -39667,6 +42577,21 @@ pub fn apigee_organizations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -39679,11 +42604,7 @@ pub fn apigee_organizations_operations_list_execute(
 
 pub fn apigee_organizations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ApigeeOrganizationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -39694,11 +42615,11 @@ pub fn apigee_organizations_operations_list(
 > {
     let builder = apigee_organizations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     apigee_organizations_operations_list_execute(builder)
 }
@@ -39861,6 +42782,41 @@ pub fn apigee_organizations_optimized_host_stats_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_optimized_host_stats_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsOptimizedHostStatsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: accuracy
+    pub accuracy: Option<String>,
+    /// Query parameter: envgroupHostname
+    pub envgroupHostname: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<String>,
+    /// Query parameter: offset
+    pub offset: Option<String>,
+    /// Query parameter: realtime
+    pub realtime: Option<bool>,
+    /// Query parameter: select
+    pub select: Option<String>,
+    /// Query parameter: sort
+    pub sort: Option<String>,
+    /// Query parameter: sortby
+    pub sortby: Option<String>,
+    /// Query parameter: timeRange
+    pub timeRange: Option<String>,
+    /// Query parameter: timeUnit
+    pub timeUnit: Option<String>,
+    /// Query parameter: topk
+    pub topk: Option<String>,
+    /// Query parameter: tsAscending
+    pub tsAscending: Option<bool>,
+    /// Query parameter: tzo
+    pub tzo: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/optimizedHostStats/{optimizedHostStatsId}
 /// Similar to GetHostStats except that the response is less verbose.
 ///
@@ -39873,21 +42829,7 @@ pub fn apigee_organizations_optimized_host_stats_get_execute(
 
 pub fn apigee_organizations_optimized_host_stats_get(
     client: &SimpleHttpClient,
-    name: &str,
-    accuracy: Option<&str>,
-    envgroupHostname: Option<&str>,
-    filter: Option<&str>,
-    limit: Option<&str>,
-    offset: Option<&str>,
-    realtime: Option<bool>,
-    select: Option<&str>,
-    sort: Option<&str>,
-    sortby: Option<&str>,
-    timeRange: Option<&str>,
-    timeUnit: Option<&str>,
-    topk: Option<&str>,
-    tsAscending: Option<bool>,
-    tzo: Option<&str>,
+    args: &ApigeeOrganizationsOptimizedHostStatsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1OptimizedStats>, ApiError>,
@@ -39898,21 +42840,21 @@ pub fn apigee_organizations_optimized_host_stats_get(
 > {
     let builder = apigee_organizations_optimized_host_stats_get_builder(
         client,
-        name,
-        accuracy,
-        envgroupHostname,
-        filter,
-        limit,
-        offset,
-        realtime,
-        select,
-        sort,
-        sortby,
-        timeRange,
-        timeUnit,
-        topk,
-        tsAscending,
-        tzo,
+        &args.name,
+        args.accuracy.as_deref(),
+        args.envgroupHostname.as_deref(),
+        args.filter.as_deref(),
+        args.limit.as_deref(),
+        args.offset.as_deref(),
+        args.realtime,
+        args.select.as_deref(),
+        args.sort.as_deref(),
+        args.sortby.as_deref(),
+        args.timeRange.as_deref(),
+        args.timeUnit.as_deref(),
+        args.topk.as_deref(),
+        args.tsAscending,
+        args.tzo.as_deref(),
     )?;
     apigee_organizations_optimized_host_stats_get_execute(builder)
 }
@@ -40014,6 +42956,15 @@ pub fn apigee_organizations_reports_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_reports_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsReportsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1CustomReport,
+}
+
 /// GET v1/organizations/{organizationsId}/reports
 /// Creates a Custom Report for an Organization. A Custom Report provides Apigee Customers to create custom dashboards in addition to the standard dashboards which are provided. The Custom Report in its simplest form contains specifications about metrics, dimensions and filters. It is important to note that the custom report by itself does not provide an executable entity. The Edge UI converts the custom report definition into an analytics query and displays the result in a chart.
 ///
@@ -40026,8 +42977,7 @@ pub fn apigee_organizations_reports_create_execute(
 
 pub fn apigee_organizations_reports_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1CustomReport,
+    args: &ApigeeOrganizationsReportsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1CustomReport>, ApiError>,
@@ -40036,7 +42986,7 @@ pub fn apigee_organizations_reports_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_reports_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_reports_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_reports_create_execute(builder)
 }
 
@@ -40135,6 +43085,13 @@ pub fn apigee_organizations_reports_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_reports_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsReportsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/reports/{reportsId}
 /// Deletes an existing custom report definition
 ///
@@ -40147,7 +43104,7 @@ pub fn apigee_organizations_reports_delete_execute(
 
 pub fn apigee_organizations_reports_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsReportsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeleteCustomReportResponse>, ApiError>,
@@ -40156,7 +43113,7 @@ pub fn apigee_organizations_reports_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_reports_delete_builder(client, name)?;
+    let builder = apigee_organizations_reports_delete_builder(client, &args.name)?;
     apigee_organizations_reports_delete_execute(builder)
 }
 
@@ -40254,6 +43211,13 @@ pub fn apigee_organizations_reports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsReportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/reports/{reportsId}
 /// Retrieve a custom report definition.
 ///
@@ -40266,7 +43230,7 @@ pub fn apigee_organizations_reports_get_execute(
 
 pub fn apigee_organizations_reports_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsReportsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1CustomReport>, ApiError>,
@@ -40275,7 +43239,7 @@ pub fn apigee_organizations_reports_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_reports_get_builder(client, name)?;
+    let builder = apigee_organizations_reports_get_builder(client, &args.name)?;
     apigee_organizations_reports_get_execute(builder)
 }
 
@@ -40386,6 +43350,15 @@ pub fn apigee_organizations_reports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_reports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsReportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: expand
+    pub expand: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/reports
 /// Return a list of Custom Reports
 ///
@@ -40398,8 +43371,7 @@ pub fn apigee_organizations_reports_list_execute(
 
 pub fn apigee_organizations_reports_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    expand: Option<bool>,
+    args: &ApigeeOrganizationsReportsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListCustomReportsResponse>, ApiError>,
@@ -40408,7 +43380,7 @@ pub fn apigee_organizations_reports_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_reports_list_builder(client, parent, expand)?;
+    let builder = apigee_organizations_reports_list_builder(client, &args.parent, args.expand)?;
     apigee_organizations_reports_list_execute(builder)
 }
 
@@ -40509,6 +43481,15 @@ pub fn apigee_organizations_reports_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_reports_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsReportsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1CustomReport,
+}
+
 /// GET v1/organizations/{organizationsId}/reports/{reportsId}
 /// Update an existing custom report definition
 ///
@@ -40521,8 +43502,7 @@ pub fn apigee_organizations_reports_update_execute(
 
 pub fn apigee_organizations_reports_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1CustomReport,
+    args: &ApigeeOrganizationsReportsUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1CustomReport>, ApiError>,
@@ -40531,7 +43511,7 @@ pub fn apigee_organizations_reports_update(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_reports_update_builder(client, name, body)?;
+    let builder = apigee_organizations_reports_update_builder(client, &args.name, &args.body)?;
     apigee_organizations_reports_update_execute(builder)
 }
 
@@ -40636,6 +43616,15 @@ pub fn apigee_organizations_security_assessment_results_batch_compute_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_assessment_results_batch_compute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityAssessmentResultsBatchComputeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/securityAssessmentResults:batchCompute
 /// Compute RAV2 security scores for a set of resources.
 ///
@@ -40648,8 +43637,7 @@ pub fn apigee_organizations_security_assessment_results_batch_compute_execute(
 
 pub fn apigee_organizations_security_assessment_results_batch_compute(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequest,
+    args: &ApigeeOrganizationsSecurityAssessmentResultsBatchComputeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -40661,8 +43649,9 @@ pub fn apigee_organizations_security_assessment_results_batch_compute(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_security_assessment_results_batch_compute_builder(client, name, body)?;
+    let builder = apigee_organizations_security_assessment_results_batch_compute_builder(
+        client, &args.name, &args.body,
+    )?;
     apigee_organizations_security_assessment_results_batch_compute_execute(builder)
 }
 
@@ -40775,6 +43764,17 @@ pub fn apigee_organizations_security_feedback_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_feedback_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityFeedbackCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: securityFeedbackId
+    pub securityFeedbackId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecurityFeedback,
+}
+
 /// GET v1/organizations/{organizationsId}/securityFeedback
 /// Creates a new report containing customer feedback.
 ///
@@ -40787,9 +43787,7 @@ pub fn apigee_organizations_security_feedback_create_execute(
 
 pub fn apigee_organizations_security_feedback_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    securityFeedbackId: Option<&str>,
-    body: &GoogleCloudApigeeV1SecurityFeedback,
+    args: &ApigeeOrganizationsSecurityFeedbackCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityFeedback>, ApiError>,
@@ -40800,9 +43798,9 @@ pub fn apigee_organizations_security_feedback_create(
 > {
     let builder = apigee_organizations_security_feedback_create_builder(
         client,
-        parent,
-        securityFeedbackId,
-        body,
+        &args.parent,
+        args.securityFeedbackId.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_security_feedback_create_execute(builder)
 }
@@ -40899,6 +43897,13 @@ pub fn apigee_organizations_security_feedback_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_feedback_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityFeedbackDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/securityFeedback/{securityFeedbackId}
 /// Deletes a specific feedback report. Used for "undo" of a feedback submission.
 ///
@@ -40911,14 +43916,14 @@ pub fn apigee_organizations_security_feedback_delete_execute(
 
 pub fn apigee_organizations_security_feedback_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsSecurityFeedbackDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_security_feedback_delete_builder(client, name)?;
+    let builder = apigee_organizations_security_feedback_delete_builder(client, &args.name)?;
     apigee_organizations_security_feedback_delete_execute(builder)
 }
 
@@ -41016,6 +44021,13 @@ pub fn apigee_organizations_security_feedback_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_feedback_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityFeedbackGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/securityFeedback/{securityFeedbackId}
 /// Gets a specific customer feedback report.
 ///
@@ -41028,7 +44040,7 @@ pub fn apigee_organizations_security_feedback_get_execute(
 
 pub fn apigee_organizations_security_feedback_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsSecurityFeedbackGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityFeedback>, ApiError>,
@@ -41037,7 +44049,7 @@ pub fn apigee_organizations_security_feedback_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_security_feedback_get_builder(client, name)?;
+    let builder = apigee_organizations_security_feedback_get_builder(client, &args.name)?;
     apigee_organizations_security_feedback_get_execute(builder)
 }
 
@@ -41152,6 +44164,17 @@ pub fn apigee_organizations_security_feedback_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_feedback_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityFeedbackListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/securityFeedback
 /// Lists all feedback reports which have already been submitted.
 ///
@@ -41164,9 +44187,7 @@ pub fn apigee_organizations_security_feedback_list_execute(
 
 pub fn apigee_organizations_security_feedback_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsSecurityFeedbackListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListSecurityFeedbackResponse>, ApiError>,
@@ -41175,8 +44196,12 @@ pub fn apigee_organizations_security_feedback_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_security_feedback_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = apigee_organizations_security_feedback_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apigee_organizations_security_feedback_list_execute(builder)
 }
 
@@ -41289,6 +44314,17 @@ pub fn apigee_organizations_security_feedback_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_feedback_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityFeedbackPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecurityFeedback,
+}
+
 /// GET v1/organizations/{organizationsId}/securityFeedback/{securityFeedbackId}
 /// Updates a specific feedback report.
 ///
@@ -41301,9 +44337,7 @@ pub fn apigee_organizations_security_feedback_patch_execute(
 
 pub fn apigee_organizations_security_feedback_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1SecurityFeedback,
+    args: &ApigeeOrganizationsSecurityFeedbackPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityFeedback>, ApiError>,
@@ -41312,8 +44346,12 @@ pub fn apigee_organizations_security_feedback_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_security_feedback_patch_builder(client, name, updateMask, body)?;
+    let builder = apigee_organizations_security_feedback_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_security_feedback_patch_execute(builder)
 }
 
@@ -41427,6 +44465,17 @@ pub fn apigee_organizations_security_monitoring_conditions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_monitoring_conditions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityMonitoringConditionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: securityMonitoringConditionId
+    pub securityMonitoringConditionId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecurityMonitoringCondition,
+}
+
 /// GET v1/organizations/{organizationsId}/securityMonitoringConditions
 /// Create a security monitoring condition.
 ///
@@ -41439,9 +44488,7 @@ pub fn apigee_organizations_security_monitoring_conditions_create_execute(
 
 pub fn apigee_organizations_security_monitoring_conditions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    securityMonitoringConditionId: Option<&str>,
-    body: &GoogleCloudApigeeV1SecurityMonitoringCondition,
+    args: &ApigeeOrganizationsSecurityMonitoringConditionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityMonitoringCondition>, ApiError>,
@@ -41452,9 +44499,9 @@ pub fn apigee_organizations_security_monitoring_conditions_create(
 > {
     let builder = apigee_organizations_security_monitoring_conditions_create_builder(
         client,
-        parent,
-        securityMonitoringConditionId,
-        body,
+        &args.parent,
+        args.securityMonitoringConditionId.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_security_monitoring_conditions_create_execute(builder)
 }
@@ -41563,6 +44610,15 @@ pub fn apigee_organizations_security_monitoring_conditions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_monitoring_conditions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityMonitoringConditionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: riskAssessmentType
+    pub riskAssessmentType: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/securityMonitoringConditions/{securityMonitoringConditionsId}
 /// Delete a security monitoring condition.
 ///
@@ -41575,8 +44631,7 @@ pub fn apigee_organizations_security_monitoring_conditions_delete_execute(
 
 pub fn apigee_organizations_security_monitoring_conditions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    riskAssessmentType: Option<&str>,
+    args: &ApigeeOrganizationsSecurityMonitoringConditionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -41585,8 +44640,8 @@ pub fn apigee_organizations_security_monitoring_conditions_delete(
 > {
     let builder = apigee_organizations_security_monitoring_conditions_delete_builder(
         client,
-        name,
-        riskAssessmentType,
+        &args.name,
+        args.riskAssessmentType.as_deref(),
     )?;
     apigee_organizations_security_monitoring_conditions_delete_execute(builder)
 }
@@ -41698,6 +44753,15 @@ pub fn apigee_organizations_security_monitoring_conditions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_monitoring_conditions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityMonitoringConditionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: riskAssessmentType
+    pub riskAssessmentType: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/securityMonitoringConditions/{securityMonitoringConditionsId}
 /// Get a security monitoring condition.
 ///
@@ -41710,8 +44774,7 @@ pub fn apigee_organizations_security_monitoring_conditions_get_execute(
 
 pub fn apigee_organizations_security_monitoring_conditions_get(
     client: &SimpleHttpClient,
-    name: &str,
-    riskAssessmentType: Option<&str>,
+    args: &ApigeeOrganizationsSecurityMonitoringConditionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityMonitoringCondition>, ApiError>,
@@ -41722,8 +44785,8 @@ pub fn apigee_organizations_security_monitoring_conditions_get(
 > {
     let builder = apigee_organizations_security_monitoring_conditions_get_builder(
         client,
-        name,
-        riskAssessmentType,
+        &args.name,
+        args.riskAssessmentType.as_deref(),
     )?;
     apigee_organizations_security_monitoring_conditions_get_execute(builder)
 }
@@ -41850,6 +44913,21 @@ pub fn apigee_organizations_security_monitoring_conditions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_monitoring_conditions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityMonitoringConditionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: riskAssessmentType
+    pub riskAssessmentType: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/securityMonitoringConditions
 /// List security monitoring conditions.
 ///
@@ -41862,11 +44940,7 @@ pub fn apigee_organizations_security_monitoring_conditions_list_execute(
 
 pub fn apigee_organizations_security_monitoring_conditions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    riskAssessmentType: Option<&str>,
+    args: &ApigeeOrganizationsSecurityMonitoringConditionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -41880,11 +44954,11 @@ pub fn apigee_organizations_security_monitoring_conditions_list(
 > {
     let builder = apigee_organizations_security_monitoring_conditions_list_builder(
         client,
-        parent,
-        filter,
-        pageSize,
-        pageToken,
-        riskAssessmentType,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.riskAssessmentType.as_deref(),
     )?;
     apigee_organizations_security_monitoring_conditions_list_execute(builder)
 }
@@ -41999,6 +45073,17 @@ pub fn apigee_organizations_security_monitoring_conditions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_monitoring_conditions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityMonitoringConditionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecurityMonitoringCondition,
+}
+
 /// GET v1/organizations/{organizationsId}/securityMonitoringConditions/{securityMonitoringConditionsId}
 /// Update a security monitoring condition.
 ///
@@ -42011,9 +45096,7 @@ pub fn apigee_organizations_security_monitoring_conditions_patch_execute(
 
 pub fn apigee_organizations_security_monitoring_conditions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1SecurityMonitoringCondition,
+    args: &ApigeeOrganizationsSecurityMonitoringConditionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityMonitoringCondition>, ApiError>,
@@ -42023,7 +45106,10 @@ pub fn apigee_organizations_security_monitoring_conditions_patch(
     ApiError,
 > {
     let builder = apigee_organizations_security_monitoring_conditions_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_security_monitoring_conditions_patch_execute(builder)
 }
@@ -42137,6 +45223,17 @@ pub fn apigee_organizations_security_profiles_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_profiles_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityProfilesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: securityProfileId
+    pub securityProfileId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecurityProfile,
+}
+
 /// GET v1/organizations/{organizationsId}/securityProfiles
 /// CreateSecurityProfile create a new custom security profile.
 ///
@@ -42149,9 +45246,7 @@ pub fn apigee_organizations_security_profiles_create_execute(
 
 pub fn apigee_organizations_security_profiles_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    securityProfileId: Option<&str>,
-    body: &GoogleCloudApigeeV1SecurityProfile,
+    args: &ApigeeOrganizationsSecurityProfilesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityProfile>, ApiError>,
@@ -42162,9 +45257,9 @@ pub fn apigee_organizations_security_profiles_create(
 > {
     let builder = apigee_organizations_security_profiles_create_builder(
         client,
-        parent,
-        securityProfileId,
-        body,
+        &args.parent,
+        args.securityProfileId.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_security_profiles_create_execute(builder)
 }
@@ -42261,6 +45356,13 @@ pub fn apigee_organizations_security_profiles_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_profiles_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityProfilesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/securityProfiles/{securityProfilesId}
 /// DeleteSecurityProfile delete a profile with all its revisions.
 ///
@@ -42273,14 +45375,14 @@ pub fn apigee_organizations_security_profiles_delete_execute(
 
 pub fn apigee_organizations_security_profiles_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsSecurityProfilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_security_profiles_delete_builder(client, name)?;
+    let builder = apigee_organizations_security_profiles_delete_builder(client, &args.name)?;
     apigee_organizations_security_profiles_delete_execute(builder)
 }
 
@@ -42378,6 +45480,13 @@ pub fn apigee_organizations_security_profiles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/securityProfiles/{securityProfilesId}
 /// GetSecurityProfile gets the specified security profile. Returns NOT_FOUND if security profile is not present for the specified organization.
 ///
@@ -42390,7 +45499,7 @@ pub fn apigee_organizations_security_profiles_get_execute(
 
 pub fn apigee_organizations_security_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsSecurityProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityProfile>, ApiError>,
@@ -42399,7 +45508,7 @@ pub fn apigee_organizations_security_profiles_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_security_profiles_get_builder(client, name)?;
+    let builder = apigee_organizations_security_profiles_get_builder(client, &args.name)?;
     apigee_organizations_security_profiles_get_execute(builder)
 }
 
@@ -42514,6 +45623,17 @@ pub fn apigee_organizations_security_profiles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/securityProfiles
 /// ListSecurityProfiles lists all the security profiles associated with the org including attached and unattached profiles.
 ///
@@ -42526,9 +45646,7 @@ pub fn apigee_organizations_security_profiles_list_execute(
 
 pub fn apigee_organizations_security_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsSecurityProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListSecurityProfilesResponse>, ApiError>,
@@ -42537,8 +45655,12 @@ pub fn apigee_organizations_security_profiles_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_security_profiles_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = apigee_organizations_security_profiles_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apigee_organizations_security_profiles_list_execute(builder)
 }
 
@@ -42656,6 +45778,17 @@ pub fn apigee_organizations_security_profiles_list_revisions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_profiles_list_revisions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityProfilesListRevisionsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/securityProfiles/{securityProfilesId}:listRevisions
 /// ListSecurityProfileRevisions lists all the revisions of the security profile.
 ///
@@ -42668,9 +45801,7 @@ pub fn apigee_organizations_security_profiles_list_revisions_execute(
 
 pub fn apigee_organizations_security_profiles_list_revisions(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsSecurityProfilesListRevisionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -42683,7 +45814,10 @@ pub fn apigee_organizations_security_profiles_list_revisions(
     ApiError,
 > {
     let builder = apigee_organizations_security_profiles_list_revisions_builder(
-        client, name, pageSize, pageToken,
+        client,
+        &args.name,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigee_organizations_security_profiles_list_revisions_execute(builder)
 }
@@ -42797,6 +45931,17 @@ pub fn apigee_organizations_security_profiles_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_profiles_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityProfilesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecurityProfile,
+}
+
 /// GET v1/organizations/{organizationsId}/securityProfiles/{securityProfilesId}
 /// UpdateSecurityProfile update the metadata of security profile.
 ///
@@ -42809,9 +45954,7 @@ pub fn apigee_organizations_security_profiles_patch_execute(
 
 pub fn apigee_organizations_security_profiles_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1SecurityProfile,
+    args: &ApigeeOrganizationsSecurityProfilesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityProfile>, ApiError>,
@@ -42820,8 +45963,12 @@ pub fn apigee_organizations_security_profiles_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_security_profiles_patch_builder(client, name, updateMask, body)?;
+    let builder = apigee_organizations_security_profiles_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_security_profiles_patch_execute(builder)
 }
 
@@ -42923,6 +46070,15 @@ pub fn apigee_organizations_security_profiles_environments_compute_environment_s
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_profiles_environments_compute_environment_scores`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityProfilesEnvironmentsComputeEnvironmentScoresArgs {
+    /// Path parameter: profileEnvironment
+    pub profileEnvironment: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ComputeEnvironmentScoresRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/securityProfiles/{securityProfilesId}/environments/{environmentsId}:computeEnvironmentScores
 /// ComputeEnvironmentScores calculates scores for requested time range for the specified security profile and environment.
 ///
@@ -42935,8 +46091,7 @@ pub fn apigee_organizations_security_profiles_environments_compute_environment_s
 
 pub fn apigee_organizations_security_profiles_environments_compute_environment_scores(
     client: &SimpleHttpClient,
-    profileEnvironment: &str,
-    body: &GoogleCloudApigeeV1ComputeEnvironmentScoresRequest,
+    args: &ApigeeOrganizationsSecurityProfilesEnvironmentsComputeEnvironmentScoresArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ComputeEnvironmentScoresResponse>, ApiError>,
@@ -42948,8 +46103,8 @@ pub fn apigee_organizations_security_profiles_environments_compute_environment_s
     let builder =
         apigee_organizations_security_profiles_environments_compute_environment_scores_builder(
             client,
-            profileEnvironment,
-            body,
+            &args.profileEnvironment,
+            &args.body,
         )?;
     apigee_organizations_security_profiles_environments_compute_environment_scores_execute(builder)
 }
@@ -43055,6 +46210,15 @@ pub fn apigee_organizations_security_profiles_environments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_profiles_environments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityProfilesEnvironmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation,
+}
+
 /// GET v1/organizations/{organizationsId}/securityProfiles/{securityProfilesId}/environments
 /// CreateSecurityProfileEnvironmentAssociation creates profile environment association i.e. attaches environment to security profile.
 ///
@@ -43067,8 +46231,7 @@ pub fn apigee_organizations_security_profiles_environments_create_execute(
 
 pub fn apigee_organizations_security_profiles_environments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1SecurityProfileEnvironmentAssociation,
+    args: &ApigeeOrganizationsSecurityProfilesEnvironmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -43080,8 +46243,11 @@ pub fn apigee_organizations_security_profiles_environments_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_security_profiles_environments_create_builder(client, parent, body)?;
+    let builder = apigee_organizations_security_profiles_environments_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     apigee_organizations_security_profiles_environments_create_execute(builder)
 }
 
@@ -43177,6 +46343,13 @@ pub fn apigee_organizations_security_profiles_environments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_profiles_environments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityProfilesEnvironmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/securityProfiles/{securityProfilesId}/environments/{environmentsId}
 /// DeleteSecurityProfileEnvironmentAssociation removes profile environment association i.e. detaches environment from security profile.
 ///
@@ -43189,14 +46362,15 @@ pub fn apigee_organizations_security_profiles_environments_delete_execute(
 
 pub fn apigee_organizations_security_profiles_environments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsSecurityProfilesEnvironmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_security_profiles_environments_delete_builder(client, name)?;
+    let builder =
+        apigee_organizations_security_profiles_environments_delete_builder(client, &args.name)?;
     apigee_organizations_security_profiles_environments_delete_execute(builder)
 }
 
@@ -43309,6 +46483,17 @@ pub fn apigee_organizations_security_profiles_v2_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_profiles_v2_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityProfilesV2CreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: securityProfileV2Id
+    pub securityProfileV2Id: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecurityProfileV2,
+}
+
 /// GET v1/organizations/{organizationsId}/securityProfilesV2
 /// Create a security profile v2.
 ///
@@ -43321,9 +46506,7 @@ pub fn apigee_organizations_security_profiles_v2_create_execute(
 
 pub fn apigee_organizations_security_profiles_v2_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    securityProfileV2Id: Option<&str>,
-    body: &GoogleCloudApigeeV1SecurityProfileV2,
+    args: &ApigeeOrganizationsSecurityProfilesV2CreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityProfileV2>, ApiError>,
@@ -43334,9 +46517,9 @@ pub fn apigee_organizations_security_profiles_v2_create(
 > {
     let builder = apigee_organizations_security_profiles_v2_create_builder(
         client,
-        parent,
-        securityProfileV2Id,
-        body,
+        &args.parent,
+        args.securityProfileV2Id.as_deref(),
+        &args.body,
     )?;
     apigee_organizations_security_profiles_v2_create_execute(builder)
 }
@@ -43445,6 +46628,15 @@ pub fn apigee_organizations_security_profiles_v2_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_profiles_v2_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityProfilesV2DeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: riskAssessmentType
+    pub riskAssessmentType: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/securityProfilesV2/{securityProfilesV2Id}
 /// Delete a security profile v2.
 ///
@@ -43457,16 +46649,18 @@ pub fn apigee_organizations_security_profiles_v2_delete_execute(
 
 pub fn apigee_organizations_security_profiles_v2_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    riskAssessmentType: Option<&str>,
+    args: &ApigeeOrganizationsSecurityProfilesV2DeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_security_profiles_v2_delete_builder(client, name, riskAssessmentType)?;
+    let builder = apigee_organizations_security_profiles_v2_delete_builder(
+        client,
+        &args.name,
+        args.riskAssessmentType.as_deref(),
+    )?;
     apigee_organizations_security_profiles_v2_delete_execute(builder)
 }
 
@@ -43576,6 +46770,15 @@ pub fn apigee_organizations_security_profiles_v2_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_profiles_v2_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityProfilesV2GetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: riskAssessmentType
+    pub riskAssessmentType: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/securityProfilesV2/{securityProfilesV2Id}
 /// Get a security profile v2.
 ///
@@ -43588,8 +46791,7 @@ pub fn apigee_organizations_security_profiles_v2_get_execute(
 
 pub fn apigee_organizations_security_profiles_v2_get(
     client: &SimpleHttpClient,
-    name: &str,
-    riskAssessmentType: Option<&str>,
+    args: &ApigeeOrganizationsSecurityProfilesV2GetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityProfileV2>, ApiError>,
@@ -43598,8 +46800,11 @@ pub fn apigee_organizations_security_profiles_v2_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_security_profiles_v2_get_builder(client, name, riskAssessmentType)?;
+    let builder = apigee_organizations_security_profiles_v2_get_builder(
+        client,
+        &args.name,
+        args.riskAssessmentType.as_deref(),
+    )?;
     apigee_organizations_security_profiles_v2_get_execute(builder)
 }
 
@@ -43718,6 +46923,19 @@ pub fn apigee_organizations_security_profiles_v2_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_profiles_v2_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityProfilesV2ListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: riskAssessmentType
+    pub riskAssessmentType: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/securityProfilesV2
 /// List security profiles v2.
 ///
@@ -43730,10 +46948,7 @@ pub fn apigee_organizations_security_profiles_v2_list_execute(
 
 pub fn apigee_organizations_security_profiles_v2_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    riskAssessmentType: Option<&str>,
+    args: &ApigeeOrganizationsSecurityProfilesV2ListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListSecurityProfilesV2Response>, ApiError>,
@@ -43744,10 +46959,10 @@ pub fn apigee_organizations_security_profiles_v2_list(
 > {
     let builder = apigee_organizations_security_profiles_v2_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        riskAssessmentType,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.riskAssessmentType.as_deref(),
     )?;
     apigee_organizations_security_profiles_v2_list_execute(builder)
 }
@@ -43861,6 +47076,17 @@ pub fn apigee_organizations_security_profiles_v2_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_security_profiles_v2_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSecurityProfilesV2PatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1SecurityProfileV2,
+}
+
 /// GET v1/organizations/{organizationsId}/securityProfilesV2/{securityProfilesV2Id}
 /// Update a security profile V2.
 ///
@@ -43873,9 +47099,7 @@ pub fn apigee_organizations_security_profiles_v2_patch_execute(
 
 pub fn apigee_organizations_security_profiles_v2_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1SecurityProfileV2,
+    args: &ApigeeOrganizationsSecurityProfilesV2PatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SecurityProfileV2>, ApiError>,
@@ -43884,8 +47108,12 @@ pub fn apigee_organizations_security_profiles_v2_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_security_profiles_v2_patch_builder(client, name, updateMask, body)?;
+    let builder = apigee_organizations_security_profiles_v2_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_security_profiles_v2_patch_execute(builder)
 }
 
@@ -44006,6 +47234,21 @@ pub fn apigee_organizations_sharedflows_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sharedflows_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSharedflowsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: action
+    pub action: Option<String>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: space
+    pub space: Option<String>,
+    /// Request body.
+    pub body: GoogleApiHttpBody,
+}
+
 /// GET v1/organizations/{organizationsId}/sharedflows
 /// Uploads a ZIP-formatted shared flow configuration bundle to an organization. If the shared flow already exists, this creates a new revision of it. If the shared flow does not exist, this creates it. Once imported, the shared flow revision must be deployed before it can be accessed at runtime. The size limit of a shared flow bundle is 15 MB.
 ///
@@ -44018,11 +47261,7 @@ pub fn apigee_organizations_sharedflows_create_execute(
 
 pub fn apigee_organizations_sharedflows_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    action: Option<&str>,
-    name: Option<&str>,
-    space: Option<&str>,
-    body: &GoogleApiHttpBody,
+    args: &ApigeeOrganizationsSharedflowsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SharedFlowRevision>, ApiError>,
@@ -44031,8 +47270,14 @@ pub fn apigee_organizations_sharedflows_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_sharedflows_create_builder(client, parent, action, name, space, body)?;
+    let builder = apigee_organizations_sharedflows_create_builder(
+        client,
+        &args.parent,
+        args.action.as_deref(),
+        args.name.as_deref(),
+        args.space.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_sharedflows_create_execute(builder)
 }
 
@@ -44130,6 +47375,13 @@ pub fn apigee_organizations_sharedflows_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sharedflows_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSharedflowsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/sharedflows/{sharedflowsId}
 /// Deletes a shared flow and all it's revisions. The shared flow must be undeployed before you can delete it.
 ///
@@ -44142,7 +47394,7 @@ pub fn apigee_organizations_sharedflows_delete_execute(
 
 pub fn apigee_organizations_sharedflows_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsSharedflowsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SharedFlow>, ApiError>,
@@ -44151,7 +47403,7 @@ pub fn apigee_organizations_sharedflows_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sharedflows_delete_builder(client, name)?;
+    let builder = apigee_organizations_sharedflows_delete_builder(client, &args.name)?;
     apigee_organizations_sharedflows_delete_execute(builder)
 }
 
@@ -44249,6 +47501,13 @@ pub fn apigee_organizations_sharedflows_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sharedflows_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSharedflowsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/sharedflows/{sharedflowsId}
 /// Gets a shared flow by name, including a list of its revisions.
 ///
@@ -44261,7 +47520,7 @@ pub fn apigee_organizations_sharedflows_get_execute(
 
 pub fn apigee_organizations_sharedflows_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsSharedflowsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SharedFlow>, ApiError>,
@@ -44270,7 +47529,7 @@ pub fn apigee_organizations_sharedflows_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sharedflows_get_builder(client, name)?;
+    let builder = apigee_organizations_sharedflows_get_builder(client, &args.name)?;
     apigee_organizations_sharedflows_get_execute(builder)
 }
 
@@ -44389,6 +47648,19 @@ pub fn apigee_organizations_sharedflows_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sharedflows_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSharedflowsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: includeMetaData
+    pub includeMetaData: Option<bool>,
+    /// Query parameter: includeRevisions
+    pub includeRevisions: Option<bool>,
+    /// Query parameter: space
+    pub space: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/sharedflows
 /// Lists all shared flows in the organization. If the resource has the space attribute set, the response may not return all resources. To learn more, read the [Apigee Spaces Overview](<https://cloud.google.`com/apigee/docs/api-platform/system-administration/spaces/apigee-spaces-overview`>).
 ///
@@ -44401,10 +47673,7 @@ pub fn apigee_organizations_sharedflows_list_execute(
 
 pub fn apigee_organizations_sharedflows_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    includeMetaData: Option<bool>,
-    includeRevisions: Option<bool>,
-    space: Option<&str>,
+    args: &ApigeeOrganizationsSharedflowsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListSharedFlowsResponse>, ApiError>,
@@ -44415,10 +47684,10 @@ pub fn apigee_organizations_sharedflows_list(
 > {
     let builder = apigee_organizations_sharedflows_list_builder(
         client,
-        parent,
-        includeMetaData,
-        includeRevisions,
-        space,
+        &args.parent,
+        args.includeMetaData,
+        args.includeRevisions,
+        args.space.as_deref(),
     )?;
     apigee_organizations_sharedflows_list_execute(builder)
 }
@@ -44520,6 +47789,15 @@ pub fn apigee_organizations_sharedflows_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sharedflows_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSharedflowsMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1MoveSharedFlowRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/sharedflows/{sharedflowsId}:move
 /// Moves an shared flow to a different space.
 ///
@@ -44532,8 +47810,7 @@ pub fn apigee_organizations_sharedflows_move_execute(
 
 pub fn apigee_organizations_sharedflows_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1MoveSharedFlowRequest,
+    args: &ApigeeOrganizationsSharedflowsMoveArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SharedFlow>, ApiError>,
@@ -44542,7 +47819,7 @@ pub fn apigee_organizations_sharedflows_move(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sharedflows_move_builder(client, name, body)?;
+    let builder = apigee_organizations_sharedflows_move_builder(client, &args.name, &args.body)?;
     apigee_organizations_sharedflows_move_execute(builder)
 }
 
@@ -44641,6 +47918,13 @@ pub fn apigee_organizations_sharedflows_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sharedflows_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSharedflowsDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/organizations/{organizationsId}/sharedflows/{sharedflowsId}/deployments
 /// Lists all deployments of a shared flow.
 ///
@@ -44653,7 +47937,7 @@ pub fn apigee_organizations_sharedflows_deployments_list_execute(
 
 pub fn apigee_organizations_sharedflows_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ApigeeOrganizationsSharedflowsDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListDeploymentsResponse>, ApiError>,
@@ -44662,7 +47946,7 @@ pub fn apigee_organizations_sharedflows_deployments_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sharedflows_deployments_list_builder(client, parent)?;
+    let builder = apigee_organizations_sharedflows_deployments_list_builder(client, &args.parent)?;
     apigee_organizations_sharedflows_deployments_list_execute(builder)
 }
 
@@ -44760,6 +48044,13 @@ pub fn apigee_organizations_sharedflows_revisions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sharedflows_revisions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSharedflowsRevisionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/sharedflows/{sharedflowsId}/revisions/{revisionsId}
 /// Deletes a shared flow and all associated policies, resources, and revisions. You must undeploy the shared flow before deleting it.
 ///
@@ -44772,7 +48063,7 @@ pub fn apigee_organizations_sharedflows_revisions_delete_execute(
 
 pub fn apigee_organizations_sharedflows_revisions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsSharedflowsRevisionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SharedFlowRevision>, ApiError>,
@@ -44781,7 +48072,7 @@ pub fn apigee_organizations_sharedflows_revisions_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sharedflows_revisions_delete_builder(client, name)?;
+    let builder = apigee_organizations_sharedflows_revisions_delete_builder(client, &args.name)?;
     apigee_organizations_sharedflows_revisions_delete_execute(builder)
 }
 
@@ -44889,6 +48180,15 @@ pub fn apigee_organizations_sharedflows_revisions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sharedflows_revisions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSharedflowsRevisionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: format
+    pub format: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/sharedflows/{sharedflowsId}/revisions/{revisionsId}
 /// Gets a revision of a shared flow. To download the shared flow configuration bundle for the specified revision as a zip file, set the format query parameter to bundle. If you are using curl, specify -o filename.zip to save the output to a file; otherwise, it displays to stdout. Then, develop the shared flow configuration locally and upload the updated `sharedFlow` configuration revision, as described in [`updateSharedFlowRevision`](`updateSharedFlowRevision`).
 ///
@@ -44901,15 +48201,18 @@ pub fn apigee_organizations_sharedflows_revisions_get_execute(
 
 pub fn apigee_organizations_sharedflows_revisions_get(
     client: &SimpleHttpClient,
-    name: &str,
-    format: Option<&str>,
+    args: &ApigeeOrganizationsSharedflowsRevisionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleApiHttpBody>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sharedflows_revisions_get_builder(client, name, format)?;
+    let builder = apigee_organizations_sharedflows_revisions_get_builder(
+        client,
+        &args.name,
+        args.format.as_deref(),
+    )?;
     apigee_organizations_sharedflows_revisions_get_execute(builder)
 }
 
@@ -45022,6 +48325,17 @@ pub fn apigee_organizations_sharedflows_revisions_update_shared_flow_revision_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sharedflows_revisions_update_shared_flow_revision`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSharedflowsRevisionsUpdateSharedFlowRevisionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: validate
+    pub validate: Option<bool>,
+    /// Request body.
+    pub body: GoogleApiHttpBody,
+}
+
 /// GET v1/organizations/{organizationsId}/sharedflows/{sharedflowsId}/revisions/{revisionsId}
 /// Updates a shared flow revision. This operation is only allowed on revisions which have never been deployed. After deployment a revision becomes immutable, even if it becomes undeployed. The payload is a ZIP-formatted shared flow. Content type must be either `multipart/form-data` or `application/octet-stream`.
 ///
@@ -45034,9 +48348,7 @@ pub fn apigee_organizations_sharedflows_revisions_update_shared_flow_revision_ex
 
 pub fn apigee_organizations_sharedflows_revisions_update_shared_flow_revision(
     client: &SimpleHttpClient,
-    name: &str,
-    validate: Option<bool>,
-    body: &GoogleApiHttpBody,
+    args: &ApigeeOrganizationsSharedflowsRevisionsUpdateSharedFlowRevisionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1SharedFlowRevision>, ApiError>,
@@ -45046,7 +48358,10 @@ pub fn apigee_organizations_sharedflows_revisions_update_shared_flow_revision(
     ApiError,
 > {
     let builder = apigee_organizations_sharedflows_revisions_update_shared_flow_revision_builder(
-        client, name, validate, body,
+        client,
+        &args.name,
+        args.validate,
+        &args.body,
     )?;
     apigee_organizations_sharedflows_revisions_update_shared_flow_revision_execute(builder)
 }
@@ -45146,6 +48461,13 @@ pub fn apigee_organizations_sharedflows_revisions_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sharedflows_revisions_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSharedflowsRevisionsDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/organizations/{organizationsId}/sharedflows/{sharedflowsId}/revisions/{revisionsId}/deployments
 /// Lists all deployments of a shared flow revision.
 ///
@@ -45158,7 +48480,7 @@ pub fn apigee_organizations_sharedflows_revisions_deployments_list_execute(
 
 pub fn apigee_organizations_sharedflows_revisions_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ApigeeOrganizationsSharedflowsRevisionsDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListDeploymentsResponse>, ApiError>,
@@ -45168,7 +48490,7 @@ pub fn apigee_organizations_sharedflows_revisions_deployments_list(
     ApiError,
 > {
     let builder =
-        apigee_organizations_sharedflows_revisions_deployments_list_builder(client, parent)?;
+        apigee_organizations_sharedflows_revisions_deployments_list_builder(client, &args.parent)?;
     apigee_organizations_sharedflows_revisions_deployments_list_execute(builder)
 }
 
@@ -45269,6 +48591,15 @@ pub fn apigee_organizations_sites_apicategories_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sites_apicategories_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSitesApicategoriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ApiCategory,
+}
+
 /// GET v1/organizations/{organizationsId}/sites/{sitesId}/apicategories
 /// Creates a new API category.
 ///
@@ -45281,8 +48612,7 @@ pub fn apigee_organizations_sites_apicategories_create_execute(
 
 pub fn apigee_organizations_sites_apicategories_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1ApiCategory,
+    args: &ApigeeOrganizationsSitesApicategoriesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiCategoryResponse>, ApiError>,
@@ -45291,7 +48621,8 @@ pub fn apigee_organizations_sites_apicategories_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sites_apicategories_create_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_sites_apicategories_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_sites_apicategories_create_execute(builder)
 }
 
@@ -45389,6 +48720,13 @@ pub fn apigee_organizations_sites_apicategories_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sites_apicategories_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSitesApicategoriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/sites/{sitesId}/apicategories/{apicategoriesId}
 /// Deletes an API category.
 ///
@@ -45401,7 +48739,7 @@ pub fn apigee_organizations_sites_apicategories_delete_execute(
 
 pub fn apigee_organizations_sites_apicategories_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsSitesApicategoriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeleteResponse>, ApiError>,
@@ -45410,7 +48748,7 @@ pub fn apigee_organizations_sites_apicategories_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sites_apicategories_delete_builder(client, name)?;
+    let builder = apigee_organizations_sites_apicategories_delete_builder(client, &args.name)?;
     apigee_organizations_sites_apicategories_delete_execute(builder)
 }
 
@@ -45508,6 +48846,13 @@ pub fn apigee_organizations_sites_apicategories_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sites_apicategories_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSitesApicategoriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/sites/{sitesId}/apicategories/{apicategoriesId}
 /// Gets an API category.
 ///
@@ -45520,7 +48865,7 @@ pub fn apigee_organizations_sites_apicategories_get_execute(
 
 pub fn apigee_organizations_sites_apicategories_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsSitesApicategoriesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiCategoryResponse>, ApiError>,
@@ -45529,7 +48874,7 @@ pub fn apigee_organizations_sites_apicategories_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sites_apicategories_get_builder(client, name)?;
+    let builder = apigee_organizations_sites_apicategories_get_builder(client, &args.name)?;
     apigee_organizations_sites_apicategories_get_execute(builder)
 }
 
@@ -45628,6 +48973,13 @@ pub fn apigee_organizations_sites_apicategories_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sites_apicategories_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSitesApicategoriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/organizations/{organizationsId}/sites/{sitesId}/apicategories
 /// Returns the API categories associated with a portal.
 ///
@@ -45640,7 +48992,7 @@ pub fn apigee_organizations_sites_apicategories_list_execute(
 
 pub fn apigee_organizations_sites_apicategories_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ApigeeOrganizationsSitesApicategoriesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListApiCategoriesResponse>, ApiError>,
@@ -45649,7 +49001,7 @@ pub fn apigee_organizations_sites_apicategories_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sites_apicategories_list_builder(client, parent)?;
+    let builder = apigee_organizations_sites_apicategories_list_builder(client, &args.parent)?;
     apigee_organizations_sites_apicategories_list_execute(builder)
 }
 
@@ -45750,6 +49102,15 @@ pub fn apigee_organizations_sites_apicategories_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sites_apicategories_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSitesApicategoriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ApiCategory,
+}
+
 /// GET v1/organizations/{organizationsId}/sites/{sitesId}/apicategories/{apicategoriesId}
 /// Updates an API category.
 ///
@@ -45762,8 +49123,7 @@ pub fn apigee_organizations_sites_apicategories_patch_execute(
 
 pub fn apigee_organizations_sites_apicategories_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1ApiCategory,
+    args: &ApigeeOrganizationsSitesApicategoriesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiCategoryResponse>, ApiError>,
@@ -45772,7 +49132,8 @@ pub fn apigee_organizations_sites_apicategories_patch(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sites_apicategories_patch_builder(client, name, body)?;
+    let builder =
+        apigee_organizations_sites_apicategories_patch_builder(client, &args.name, &args.body)?;
     apigee_organizations_sites_apicategories_patch_execute(builder)
 }
 
@@ -45873,6 +49234,15 @@ pub fn apigee_organizations_sites_apidocs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sites_apidocs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSitesApidocsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ApiDoc,
+}
+
 /// GET v1/organizations/{organizationsId}/sites/{sitesId}/apidocs
 /// Creates a new catalog item.
 ///
@@ -45885,8 +49255,7 @@ pub fn apigee_organizations_sites_apidocs_create_execute(
 
 pub fn apigee_organizations_sites_apidocs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudApigeeV1ApiDoc,
+    args: &ApigeeOrganizationsSitesApidocsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiDocResponse>, ApiError>,
@@ -45895,7 +49264,8 @@ pub fn apigee_organizations_sites_apidocs_create(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sites_apidocs_create_builder(client, parent, body)?;
+    let builder =
+        apigee_organizations_sites_apidocs_create_builder(client, &args.parent, &args.body)?;
     apigee_organizations_sites_apidocs_create_execute(builder)
 }
 
@@ -45993,6 +49363,13 @@ pub fn apigee_organizations_sites_apidocs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sites_apidocs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSitesApidocsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/sites/{sitesId}/apidocs/{apidocsId}
 /// Deletes a catalog item.
 ///
@@ -46005,7 +49382,7 @@ pub fn apigee_organizations_sites_apidocs_delete_execute(
 
 pub fn apigee_organizations_sites_apidocs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsSitesApidocsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1DeleteResponse>, ApiError>,
@@ -46014,7 +49391,7 @@ pub fn apigee_organizations_sites_apidocs_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sites_apidocs_delete_builder(client, name)?;
+    let builder = apigee_organizations_sites_apidocs_delete_builder(client, &args.name)?;
     apigee_organizations_sites_apidocs_delete_execute(builder)
 }
 
@@ -46112,6 +49489,13 @@ pub fn apigee_organizations_sites_apidocs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sites_apidocs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSitesApidocsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/sites/{sitesId}/apidocs/{apidocsId}
 /// Gets a catalog item.
 ///
@@ -46124,7 +49508,7 @@ pub fn apigee_organizations_sites_apidocs_get_execute(
 
 pub fn apigee_organizations_sites_apidocs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsSitesApidocsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiDocResponse>, ApiError>,
@@ -46133,7 +49517,7 @@ pub fn apigee_organizations_sites_apidocs_get(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sites_apidocs_get_builder(client, name)?;
+    let builder = apigee_organizations_sites_apidocs_get_builder(client, &args.name)?;
     apigee_organizations_sites_apidocs_get_execute(builder)
 }
 
@@ -46232,6 +49616,13 @@ pub fn apigee_organizations_sites_apidocs_get_documentation_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sites_apidocs_get_documentation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSitesApidocsGetDocumentationArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/sites/{sitesId}/apidocs/{apidocsId}/documentation
 /// Gets the documentation for the specified catalog item.
 ///
@@ -46244,7 +49635,7 @@ pub fn apigee_organizations_sites_apidocs_get_documentation_execute(
 
 pub fn apigee_organizations_sites_apidocs_get_documentation(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsSitesApidocsGetDocumentationArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiDocDocumentationResponse>, ApiError>,
@@ -46253,7 +49644,7 @@ pub fn apigee_organizations_sites_apidocs_get_documentation(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sites_apidocs_get_documentation_builder(client, name)?;
+    let builder = apigee_organizations_sites_apidocs_get_documentation_builder(client, &args.name)?;
     apigee_organizations_sites_apidocs_get_documentation_execute(builder)
 }
 
@@ -46367,6 +49758,17 @@ pub fn apigee_organizations_sites_apidocs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sites_apidocs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSitesApidocsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/sites/{sitesId}/apidocs
 /// Returns the catalog items associated with a portal.
 ///
@@ -46379,9 +49781,7 @@ pub fn apigee_organizations_sites_apidocs_list_execute(
 
 pub fn apigee_organizations_sites_apidocs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsSitesApidocsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListApiDocsResponse>, ApiError>,
@@ -46390,8 +49790,12 @@ pub fn apigee_organizations_sites_apidocs_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_sites_apidocs_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = apigee_organizations_sites_apidocs_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apigee_organizations_sites_apidocs_list_execute(builder)
 }
 
@@ -46492,6 +49896,15 @@ pub fn apigee_organizations_sites_apidocs_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sites_apidocs_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSitesApidocsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ApiDoc,
+}
+
 /// GET v1/organizations/{organizationsId}/sites/{sitesId}/apidocs/{apidocsId}
 /// Updates a catalog item.
 ///
@@ -46504,8 +49917,7 @@ pub fn apigee_organizations_sites_apidocs_update_execute(
 
 pub fn apigee_organizations_sites_apidocs_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1ApiDoc,
+    args: &ApigeeOrganizationsSitesApidocsUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiDocResponse>, ApiError>,
@@ -46514,7 +49926,8 @@ pub fn apigee_organizations_sites_apidocs_update(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_sites_apidocs_update_builder(client, name, body)?;
+    let builder =
+        apigee_organizations_sites_apidocs_update_builder(client, &args.name, &args.body)?;
     apigee_organizations_sites_apidocs_update_execute(builder)
 }
 
@@ -46616,6 +50029,15 @@ pub fn apigee_organizations_sites_apidocs_update_documentation_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_sites_apidocs_update_documentation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSitesApidocsUpdateDocumentationArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ApiDocDocumentation,
+}
+
 /// GET v1/organizations/{organizationsId}/sites/{sitesId}/apidocs/{apidocsId}/documentation
 /// Updates the documentation for the specified catalog item. Note that the documentation file contents will not be populated in the return message.
 ///
@@ -46628,8 +50050,7 @@ pub fn apigee_organizations_sites_apidocs_update_documentation_execute(
 
 pub fn apigee_organizations_sites_apidocs_update_documentation(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApigeeV1ApiDocDocumentation,
+    args: &ApigeeOrganizationsSitesApidocsUpdateDocumentationArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ApiDocDocumentationResponse>, ApiError>,
@@ -46638,8 +50059,9 @@ pub fn apigee_organizations_sites_apidocs_update_documentation(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigee_organizations_sites_apidocs_update_documentation_builder(client, name, body)?;
+    let builder = apigee_organizations_sites_apidocs_update_documentation_builder(
+        client, &args.name, &args.body,
+    )?;
     apigee_organizations_sites_apidocs_update_documentation_execute(builder)
 }
 
@@ -46750,6 +50172,17 @@ pub fn apigee_organizations_spaces_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_spaces_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSpacesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: spaceId
+    pub spaceId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Space,
+}
+
 /// GET v1/organizations/{organizationsId}/spaces
 /// Create a space under an organization.
 ///
@@ -46762,16 +50195,19 @@ pub fn apigee_organizations_spaces_create_execute(
 
 pub fn apigee_organizations_spaces_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    spaceId: Option<&str>,
-    body: &GoogleCloudApigeeV1Space,
+    args: &ApigeeOrganizationsSpacesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApigeeV1Space>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_spaces_create_builder(client, parent, spaceId, body)?;
+    let builder = apigee_organizations_spaces_create_builder(
+        client,
+        &args.parent,
+        args.spaceId.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_spaces_create_execute(builder)
 }
 
@@ -46867,6 +50303,13 @@ pub fn apigee_organizations_spaces_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_spaces_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSpacesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/spaces/{spacesId}
 /// Deletes an organization space.
 ///
@@ -46879,14 +50322,14 @@ pub fn apigee_organizations_spaces_delete_execute(
 
 pub fn apigee_organizations_spaces_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsSpacesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_spaces_delete_builder(client, name)?;
+    let builder = apigee_organizations_spaces_delete_builder(client, &args.name)?;
     apigee_organizations_spaces_delete_execute(builder)
 }
 
@@ -46982,6 +50425,13 @@ pub fn apigee_organizations_spaces_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_spaces_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSpacesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/spaces/{spacesId}
 /// Get a space under an Organization.
 ///
@@ -46994,14 +50444,14 @@ pub fn apigee_organizations_spaces_get_execute(
 
 pub fn apigee_organizations_spaces_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeOrganizationsSpacesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApigeeV1Space>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_spaces_get_builder(client, name)?;
+    let builder = apigee_organizations_spaces_get_builder(client, &args.name)?;
     apigee_organizations_spaces_get_execute(builder)
 }
 
@@ -47109,6 +50559,15 @@ pub fn apigee_organizations_spaces_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_spaces_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSpacesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/organizations/{organizationsId}/spaces/{spacesId}:getIamPolicy
 /// Callers must have apigee.spaces.`getIamPolicy`.
 ///
@@ -47121,8 +50580,7 @@ pub fn apigee_organizations_spaces_get_iam_policy_execute(
 
 pub fn apigee_organizations_spaces_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigeeOrganizationsSpacesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -47131,8 +50589,8 @@ pub fn apigee_organizations_spaces_get_iam_policy(
 > {
     let builder = apigee_organizations_spaces_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigee_organizations_spaces_get_iam_policy_execute(builder)
 }
@@ -47247,6 +50705,17 @@ pub fn apigee_organizations_spaces_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_spaces_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSpacesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/spaces
 /// Lists spaces under an organization.
 ///
@@ -47259,9 +50728,7 @@ pub fn apigee_organizations_spaces_list_execute(
 
 pub fn apigee_organizations_spaces_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeOrganizationsSpacesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApigeeV1ListSpacesResponse>, ApiError>,
@@ -47270,7 +50737,12 @@ pub fn apigee_organizations_spaces_list(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_spaces_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = apigee_organizations_spaces_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apigee_organizations_spaces_list_execute(builder)
 }
 
@@ -47381,6 +50853,17 @@ pub fn apigee_organizations_spaces_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_spaces_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSpacesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1Space,
+}
+
 /// GET v1/organizations/{organizationsId}/spaces/{spacesId}
 /// Updates a space.
 ///
@@ -47393,16 +50876,19 @@ pub fn apigee_organizations_spaces_patch_execute(
 
 pub fn apigee_organizations_spaces_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApigeeV1Space,
+    args: &ApigeeOrganizationsSpacesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApigeeV1Space>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_spaces_patch_builder(client, name, updateMask, body)?;
+    let builder = apigee_organizations_spaces_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apigee_organizations_spaces_patch_execute(builder)
 }
 
@@ -47501,6 +50987,15 @@ pub fn apigee_organizations_spaces_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_spaces_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSpacesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/spaces/{spacesId}:setIamPolicy
 /// IAM META APIs Callers must have apigee.spaces.`setIamPolicy`.
 ///
@@ -47513,15 +51008,15 @@ pub fn apigee_organizations_spaces_set_iam_policy_execute(
 
 pub fn apigee_organizations_spaces_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &ApigeeOrganizationsSpacesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_spaces_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        apigee_organizations_spaces_set_iam_policy_builder(client, &args.resource, &args.body)?;
     apigee_organizations_spaces_set_iam_policy_execute(builder)
 }
 
@@ -47622,6 +51117,15 @@ pub fn apigee_organizations_spaces_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_organizations_spaces_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeOrganizationsSpacesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/spaces/{spacesId}:testIamPermissions
 /// Callers don't need any permissions.
 ///
@@ -47634,8 +51138,7 @@ pub fn apigee_organizations_spaces_test_iam_permissions_execute(
 
 pub fn apigee_organizations_spaces_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &ApigeeOrganizationsSpacesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -47644,7 +51147,11 @@ pub fn apigee_organizations_spaces_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_organizations_spaces_test_iam_permissions_builder(client, resource, body)?;
+    let builder = apigee_organizations_spaces_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     apigee_organizations_spaces_test_iam_permissions_execute(builder)
 }
 
@@ -47745,6 +51252,15 @@ pub fn apigee_projects_provision_organization_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigee_projects_provision_organization`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeProjectsProvisionOrganizationArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Request body.
+    pub body: GoogleCloudApigeeV1ProvisionOrganizationRequest,
+}
+
 /// GET v1/projects/{projectsId}:provisionOrganization
 /// Provisions a new Apigee organization with a functioning runtime. This is the standard way to create trial organizations for a free Apigee trial.
 ///
@@ -47757,8 +51273,7 @@ pub fn apigee_projects_provision_organization_execute(
 
 pub fn apigee_projects_provision_organization(
     client: &SimpleHttpClient,
-    project: &str,
-    body: &GoogleCloudApigeeV1ProvisionOrganizationRequest,
+    args: &ApigeeProjectsProvisionOrganizationArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -47767,6 +51282,7 @@ pub fn apigee_projects_provision_organization(
         + 'static,
     ApiError,
 > {
-    let builder = apigee_projects_provision_organization_builder(client, project, body)?;
+    let builder =
+        apigee_projects_provision_organization_builder(client, &args.project, &args.body)?;
     apigee_projects_provision_organization_execute(builder)
 }

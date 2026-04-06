@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}:enrollDataSources
 /// Enroll data sources in a user project. This allows users to create transfer configurations for these data sources. They will also appear in the ListDataSources RPC and as such, will appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>), and the documents can be found in the public guide for [BigQuery Web UI](<https://cloud.google.`com/bigquery/bigquery-web-ui`>) and [Data Transfer Service](<https://cloud.google.`com/bigquery/docs/working-with-transfers`>).
@@ -109,6 +111,15 @@ pub fn bigquerydatatransfer_projects_enroll_data_sources_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_enroll_data_sources`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsEnrollDataSourcesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EnrollDataSourcesRequest,
+}
+
 /// GET v1/projects/{projectsId}:enrollDataSources
 /// Enroll data sources in a user project. This allows users to create transfer configurations for these data sources. They will also appear in the ListDataSources RPC and as such, will appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>), and the documents can be found in the public guide for [BigQuery Web UI](<https://cloud.google.`com/bigquery/bigquery-web-ui`>) and [Data Transfer Service](<https://cloud.google.`com/bigquery/docs/working-with-transfers`>).
 ///
@@ -121,13 +132,13 @@ pub fn bigquerydatatransfer_projects_enroll_data_sources_execute(
 
 pub fn bigquerydatatransfer_projects_enroll_data_sources(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EnrollDataSourcesRequest,
+    args: &BigquerydatatransferProjectsEnrollDataSourcesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquerydatatransfer_projects_enroll_data_sources_builder(client, name, body)?;
+    let builder =
+        bigquerydatatransfer_projects_enroll_data_sources_builder(client, &args.name, &args.body)?;
     bigquerydatatransfer_projects_enroll_data_sources_execute(builder)
 }
 
@@ -226,6 +237,15 @@ pub fn bigquerydatatransfer_projects_data_sources_check_valid_creds_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_data_sources_check_valid_creds`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsDataSourcesCheckValidCredsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CheckValidCredsRequest,
+}
+
 /// GET v1/projects/{projectsId}/dataSources/{dataSourcesId}:checkValidCreds
 /// Returns `true` if valid credentials exist for the given data source and requesting user.
 ///
@@ -238,16 +258,16 @@ pub fn bigquerydatatransfer_projects_data_sources_check_valid_creds_execute(
 
 pub fn bigquerydatatransfer_projects_data_sources_check_valid_creds(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CheckValidCredsRequest,
+    args: &BigquerydatatransferProjectsDataSourcesCheckValidCredsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CheckValidCredsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        bigquerydatatransfer_projects_data_sources_check_valid_creds_builder(client, name, body)?;
+    let builder = bigquerydatatransfer_projects_data_sources_check_valid_creds_builder(
+        client, &args.name, &args.body,
+    )?;
     bigquerydatatransfer_projects_data_sources_check_valid_creds_execute(builder)
 }
 
@@ -341,6 +361,13 @@ pub fn bigquerydatatransfer_projects_data_sources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_data_sources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsDataSourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/dataSources/{dataSourcesId}
 /// Retrieves a supported data source and returns its settings.
 ///
@@ -353,12 +380,12 @@ pub fn bigquerydatatransfer_projects_data_sources_get_execute(
 
 pub fn bigquerydatatransfer_projects_data_sources_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigquerydatatransferProjectsDataSourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquerydatatransfer_projects_data_sources_get_builder(client, name)?;
+    let builder = bigquerydatatransfer_projects_data_sources_get_builder(client, &args.name)?;
     bigquerydatatransfer_projects_data_sources_get_execute(builder)
 }
 
@@ -470,6 +497,17 @@ pub fn bigquerydatatransfer_projects_data_sources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_data_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsDataSourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/dataSources
 /// Lists supported data sources and returns their settings.
 ///
@@ -482,9 +520,7 @@ pub fn bigquerydatatransfer_projects_data_sources_list_execute(
 
 pub fn bigquerydatatransfer_projects_data_sources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigquerydatatransferProjectsDataSourcesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDataSourcesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -492,7 +528,10 @@ pub fn bigquerydatatransfer_projects_data_sources_list(
     ApiError,
 > {
     let builder = bigquerydatatransfer_projects_data_sources_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigquerydatatransfer_projects_data_sources_list_execute(builder)
 }
@@ -590,6 +629,15 @@ pub fn bigquerydatatransfer_projects_locations_enroll_data_sources_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_enroll_data_sources`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsEnrollDataSourcesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EnrollDataSourcesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:enrollDataSources
 /// Enroll data sources in a user project. This allows users to create transfer configurations for these data sources. They will also appear in the ListDataSources RPC and as such, will appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>), and the documents can be found in the public guide for [BigQuery Web UI](<https://cloud.google.`com/bigquery/bigquery-web-ui`>) and [Data Transfer Service](<https://cloud.google.`com/bigquery/docs/working-with-transfers`>).
 ///
@@ -602,14 +650,14 @@ pub fn bigquerydatatransfer_projects_locations_enroll_data_sources_execute(
 
 pub fn bigquerydatatransfer_projects_locations_enroll_data_sources(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EnrollDataSourcesRequest,
+    args: &BigquerydatatransferProjectsLocationsEnrollDataSourcesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquerydatatransfer_projects_locations_enroll_data_sources_builder(client, name, body)?;
+    let builder = bigquerydatatransfer_projects_locations_enroll_data_sources_builder(
+        client, &args.name, &args.body,
+    )?;
     bigquerydatatransfer_projects_locations_enroll_data_sources_execute(builder)
 }
 
@@ -703,6 +751,13 @@ pub fn bigquerydatatransfer_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -715,12 +770,12 @@ pub fn bigquerydatatransfer_projects_locations_get_execute(
 
 pub fn bigquerydatatransfer_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigquerydatatransferProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquerydatatransfer_projects_locations_get_builder(client, name)?;
+    let builder = bigquerydatatransfer_projects_locations_get_builder(client, &args.name)?;
     bigquerydatatransfer_projects_locations_get_execute(builder)
 }
 
@@ -840,6 +895,21 @@ pub fn bigquerydatatransfer_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -852,11 +922,7 @@ pub fn bigquerydatatransfer_projects_locations_list_execute(
 
 pub fn bigquerydatatransfer_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigquerydatatransferProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -865,11 +931,11 @@ pub fn bigquerydatatransfer_projects_locations_list(
 > {
     let builder = bigquerydatatransfer_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigquerydatatransfer_projects_locations_list_execute(builder)
 }
@@ -967,6 +1033,15 @@ pub fn bigquerydatatransfer_projects_locations_unenroll_data_sources_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_unenroll_data_sources`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsUnenrollDataSourcesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UnenrollDataSourcesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:unenrollDataSources
 /// Unenroll data sources in a user project. This allows users to remove transfer configurations for these data sources. They will no longer appear in the ListDataSources RPC and will also no longer appear in the [BigQuery UI](<https://console.cloud.google.`com/bigquery`>). Data transfers configurations of unenrolled data sources will not be scheduled.
 ///
@@ -979,14 +1054,14 @@ pub fn bigquerydatatransfer_projects_locations_unenroll_data_sources_execute(
 
 pub fn bigquerydatatransfer_projects_locations_unenroll_data_sources(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UnenrollDataSourcesRequest,
+    args: &BigquerydatatransferProjectsLocationsUnenrollDataSourcesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquerydatatransfer_projects_locations_unenroll_data_sources_builder(client, name, body)?;
+    let builder = bigquerydatatransfer_projects_locations_unenroll_data_sources_builder(
+        client, &args.name, &args.body,
+    )?;
     bigquerydatatransfer_projects_locations_unenroll_data_sources_execute(builder)
 }
 
@@ -1085,6 +1160,15 @@ pub fn bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_data_sources_check_valid_creds`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsDataSourcesCheckValidCredsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CheckValidCredsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataSources/{dataSourcesId}:checkValidCreds
 /// Returns `true` if valid credentials exist for the given data source and requesting user.
 ///
@@ -1097,8 +1181,7 @@ pub fn bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_ex
 
 pub fn bigquerydatatransfer_projects_locations_data_sources_check_valid_creds(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CheckValidCredsRequest,
+    args: &BigquerydatatransferProjectsLocationsDataSourcesCheckValidCredsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CheckValidCredsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1106,7 +1189,7 @@ pub fn bigquerydatatransfer_projects_locations_data_sources_check_valid_creds(
     ApiError,
 > {
     let builder = bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     bigquerydatatransfer_projects_locations_data_sources_check_valid_creds_execute(builder)
 }
@@ -1201,6 +1284,13 @@ pub fn bigquerydatatransfer_projects_locations_data_sources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_data_sources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsDataSourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataSources/{dataSourcesId}
 /// Retrieves a supported data source and returns its settings.
 ///
@@ -1213,12 +1303,13 @@ pub fn bigquerydatatransfer_projects_locations_data_sources_get_execute(
 
 pub fn bigquerydatatransfer_projects_locations_data_sources_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigquerydatatransferProjectsLocationsDataSourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DataSource>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquerydatatransfer_projects_locations_data_sources_get_builder(client, name)?;
+    let builder =
+        bigquerydatatransfer_projects_locations_data_sources_get_builder(client, &args.name)?;
     bigquerydatatransfer_projects_locations_data_sources_get_execute(builder)
 }
 
@@ -1330,6 +1421,17 @@ pub fn bigquerydatatransfer_projects_locations_data_sources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_data_sources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsDataSourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dataSources
 /// Lists supported data sources and returns their settings.
 ///
@@ -1342,9 +1444,7 @@ pub fn bigquerydatatransfer_projects_locations_data_sources_list_execute(
 
 pub fn bigquerydatatransfer_projects_locations_data_sources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigquerydatatransferProjectsLocationsDataSourcesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDataSourcesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1352,7 +1452,10 @@ pub fn bigquerydatatransfer_projects_locations_data_sources_list(
     ApiError,
 > {
     let builder = bigquerydatatransfer_projects_locations_data_sources_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigquerydatatransfer_projects_locations_data_sources_list_execute(builder)
 }
@@ -1472,6 +1575,21 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: authorizationCode
+    pub authorizationCode: Option<String>,
+    /// Query parameter: serviceAccountName
+    pub serviceAccountName: Option<String>,
+    /// Query parameter: versionInfo
+    pub versionInfo: Option<String>,
+    /// Request body.
+    pub body: TransferConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs
 /// Creates a new data transfer configuration.
 ///
@@ -1484,11 +1602,7 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_create_execute(
 
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    authorizationCode: Option<&str>,
-    serviceAccountName: Option<&str>,
-    versionInfo: Option<&str>,
-    body: &TransferConfig,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
         + Send
@@ -1497,11 +1611,11 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_create(
 > {
     let builder = bigquerydatatransfer_projects_locations_transfer_configs_create_builder(
         client,
-        parent,
-        authorizationCode,
-        serviceAccountName,
-        versionInfo,
-        body,
+        &args.parent,
+        args.authorizationCode.as_deref(),
+        args.serviceAccountName.as_deref(),
+        args.versionInfo.as_deref(),
+        &args.body,
     )?;
     bigquerydatatransfer_projects_locations_transfer_configs_create_execute(builder)
 }
@@ -1596,6 +1710,13 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
 /// Deletes a data transfer configuration, including any associated transfer runs and logs.
 ///
@@ -1608,13 +1729,14 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_delete_execute(
 
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquerydatatransfer_projects_locations_transfer_configs_delete_builder(client, name)?;
+    let builder = bigquerydatatransfer_projects_locations_transfer_configs_delete_builder(
+        client, &args.name,
+    )?;
     bigquerydatatransfer_projects_locations_transfer_configs_delete_execute(builder)
 }
 
@@ -1710,6 +1832,13 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
 /// Returns information about a data transfer config.
 ///
@@ -1722,7 +1851,7 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_get_execute(
 
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
         + Send
@@ -1730,7 +1859,7 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_get(
     ApiError,
 > {
     let builder =
-        bigquerydatatransfer_projects_locations_transfer_configs_get_builder(client, name)?;
+        bigquerydatatransfer_projects_locations_transfer_configs_get_builder(client, &args.name)?;
     bigquerydatatransfer_projects_locations_transfer_configs_get_execute(builder)
 }
 
@@ -1848,6 +1977,19 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataSourceIds
+    pub dataSourceIds: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs
 /// Returns information about all transfer configs owned by a project in the specified location.
 ///
@@ -1860,10 +2002,7 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_list_execute(
 
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataSourceIds: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTransferConfigsResponse>, ApiError>,
@@ -1874,10 +2013,10 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_list(
 > {
     let builder = bigquerydatatransfer_projects_locations_transfer_configs_list_builder(
         client,
-        parent,
-        dataSourceIds,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.dataSourceIds.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigquerydatatransfer_projects_locations_transfer_configs_list_execute(builder)
 }
@@ -2001,6 +2140,23 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: authorizationCode
+    pub authorizationCode: Option<String>,
+    /// Query parameter: serviceAccountName
+    pub serviceAccountName: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: versionInfo
+    pub versionInfo: Option<String>,
+    /// Request body.
+    pub body: TransferConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}
 /// Updates a data transfer configuration. All fields must be set, even if they are not updated.
 ///
@@ -2013,12 +2169,7 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_patch_execute(
 
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    authorizationCode: Option<&str>,
-    serviceAccountName: Option<&str>,
-    updateMask: Option<&str>,
-    versionInfo: Option<&str>,
-    body: &TransferConfig,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
         + Send
@@ -2027,12 +2178,12 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_patch(
 > {
     let builder = bigquerydatatransfer_projects_locations_transfer_configs_patch_builder(
         client,
-        name,
-        authorizationCode,
-        serviceAccountName,
-        updateMask,
-        versionInfo,
-        body,
+        &args.name,
+        args.authorizationCode.as_deref(),
+        args.serviceAccountName.as_deref(),
+        args.updateMask.as_deref(),
+        args.versionInfo.as_deref(),
+        &args.body,
     )?;
     bigquerydatatransfer_projects_locations_transfer_configs_patch_execute(builder)
 }
@@ -2134,6 +2285,15 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsScheduleRunsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ScheduleTransferRunsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}:scheduleRuns
 /// Creates transfer runs for a time range [start_time, end_time]. For each date - or whatever granularity the data source supports - in the range, one transfer run is created. Note that runs are created per UTC time in the time range. DEPRECATED: use StartManualTransferRuns instead.
 ///
@@ -2146,8 +2306,7 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_ex
 
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ScheduleTransferRunsRequest,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsScheduleRunsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ScheduleTransferRunsResponse>, ApiError>,
@@ -2157,7 +2316,9 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs(
     ApiError,
 > {
     let builder = bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     bigquerydatatransfer_projects_locations_transfer_configs_schedule_runs_execute(builder)
 }
@@ -2259,6 +2420,15 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_start_manual_run
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsStartManualRunsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: StartManualTransferRunsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}:startManualRuns
 /// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
 ///
@@ -2271,8 +2441,7 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_start_manual_run
 
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &StartManualTransferRunsRequest,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsStartManualRunsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<StartManualTransferRunsResponse>, ApiError>,
@@ -2283,7 +2452,9 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_start_manual_run
 > {
     let builder =
         bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     bigquerydatatransfer_projects_locations_transfer_configs_start_manual_runs_execute(builder)
 }
@@ -2378,6 +2549,13 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_runs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsRunsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
 /// Deletes the specified transfer run.
 ///
@@ -2390,13 +2568,14 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_exec
 
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsRunsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_builder(client, name)?;
+    let builder = bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_builder(
+        client, &args.name,
+    )?;
     bigquerydatatransfer_projects_locations_transfer_configs_runs_delete_execute(builder)
 }
 
@@ -2490,6 +2669,13 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_runs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsRunsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
 /// Returns information about the particular transfer run.
 ///
@@ -2502,13 +2688,14 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_get_execute
 
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsRunsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransferRun>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquerydatatransfer_projects_locations_transfer_configs_runs_get_builder(client, name)?;
+    let builder = bigquerydatatransfer_projects_locations_transfer_configs_runs_get_builder(
+        client, &args.name,
+    )?;
     bigquerydatatransfer_projects_locations_transfer_configs_runs_get_execute(builder)
 }
 
@@ -2628,6 +2815,21 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_runs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsRunsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: runAttempt
+    pub runAttempt: Option<String>,
+    /// Query parameter: states
+    pub states: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs
 /// Returns information about running and completed transfer runs.
 ///
@@ -2640,11 +2842,7 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_list_execut
 
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    runAttempt: Option<&str>,
-    states: Option<&str>,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsRunsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTransferRunsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2652,7 +2850,12 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_list(
     ApiError,
 > {
     let builder = bigquerydatatransfer_projects_locations_transfer_configs_runs_list_builder(
-        client, parent, pageSize, pageToken, runAttempt, states,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.runAttempt.as_deref(),
+        args.states.as_deref(),
     )?;
     bigquerydatatransfer_projects_locations_transfer_configs_runs_list_execute(builder)
 }
@@ -2769,6 +2972,19 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_lo
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsRunsTransferLogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: messageTypes
+    pub messageTypes: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs
 /// Returns log messages for the transfer run.
 ///
@@ -2781,10 +2997,7 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_lo
 
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    messageTypes: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsRunsTransferLogsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTransferLogsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2794,10 +3007,10 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_lo
     let builder =
         bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_builder(
             client,
-            parent,
-            messageTypes,
-            pageSize,
-            pageToken,
+            &args.parent,
+            args.messageTypes.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     bigquerydatatransfer_projects_locations_transfer_configs_runs_transfer_logs_list_execute(
         builder,
@@ -2896,6 +3109,13 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resourc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/transferResources/{transferResourcesId}
 /// Returns a transfer resource.
 ///
@@ -2908,7 +3128,7 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resourc
 
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransferResource>, ApiError>, P = ApiPending>
         + Send
@@ -2917,7 +3137,7 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resourc
 > {
     let builder =
         bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_get_execute(builder)
 }
@@ -3036,6 +3256,19 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resourc
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transferConfigs/{transferConfigsId}/transferResources
 /// Returns information about transfer resources.
 ///
@@ -3048,10 +3281,7 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resourc
 
 pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTransferResourcesResponse>, ApiError>,
@@ -3062,7 +3292,11 @@ pub fn bigquerydatatransfer_projects_locations_transfer_configs_transfer_resourc
 > {
     let builder =
         bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_builder(
-            client, parent, filter, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     bigquerydatatransfer_projects_locations_transfer_configs_transfer_resources_list_execute(
         builder,
@@ -3184,6 +3418,21 @@ pub fn bigquerydatatransfer_projects_transfer_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: authorizationCode
+    pub authorizationCode: Option<String>,
+    /// Query parameter: serviceAccountName
+    pub serviceAccountName: Option<String>,
+    /// Query parameter: versionInfo
+    pub versionInfo: Option<String>,
+    /// Request body.
+    pub body: TransferConfig,
+}
+
 /// GET v1/projects/{projectsId}/transferConfigs
 /// Creates a new data transfer configuration.
 ///
@@ -3196,11 +3445,7 @@ pub fn bigquerydatatransfer_projects_transfer_configs_create_execute(
 
 pub fn bigquerydatatransfer_projects_transfer_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    authorizationCode: Option<&str>,
-    serviceAccountName: Option<&str>,
-    versionInfo: Option<&str>,
-    body: &TransferConfig,
+    args: &BigquerydatatransferProjectsTransferConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
         + Send
@@ -3209,11 +3454,11 @@ pub fn bigquerydatatransfer_projects_transfer_configs_create(
 > {
     let builder = bigquerydatatransfer_projects_transfer_configs_create_builder(
         client,
-        parent,
-        authorizationCode,
-        serviceAccountName,
-        versionInfo,
-        body,
+        &args.parent,
+        args.authorizationCode.as_deref(),
+        args.serviceAccountName.as_deref(),
+        args.versionInfo.as_deref(),
+        &args.body,
     )?;
     bigquerydatatransfer_projects_transfer_configs_create_execute(builder)
 }
@@ -3308,6 +3553,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
 /// Deletes a data transfer configuration, including any associated transfer runs and logs.
 ///
@@ -3320,12 +3572,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_delete_execute(
 
 pub fn bigquerydatatransfer_projects_transfer_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigquerydatatransferProjectsTransferConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquerydatatransfer_projects_transfer_configs_delete_builder(client, name)?;
+    let builder =
+        bigquerydatatransfer_projects_transfer_configs_delete_builder(client, &args.name)?;
     bigquerydatatransfer_projects_transfer_configs_delete_execute(builder)
 }
 
@@ -3421,6 +3674,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
 /// Returns information about a data transfer config.
 ///
@@ -3433,14 +3693,14 @@ pub fn bigquerydatatransfer_projects_transfer_configs_get_execute(
 
 pub fn bigquerydatatransfer_projects_transfer_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigquerydatatransferProjectsTransferConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = bigquerydatatransfer_projects_transfer_configs_get_builder(client, name)?;
+    let builder = bigquerydatatransfer_projects_transfer_configs_get_builder(client, &args.name)?;
     bigquerydatatransfer_projects_transfer_configs_get_execute(builder)
 }
 
@@ -3558,6 +3818,19 @@ pub fn bigquerydatatransfer_projects_transfer_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataSourceIds
+    pub dataSourceIds: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/transferConfigs
 /// Returns information about all transfer configs owned by a project in the specified location.
 ///
@@ -3570,10 +3843,7 @@ pub fn bigquerydatatransfer_projects_transfer_configs_list_execute(
 
 pub fn bigquerydatatransfer_projects_transfer_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataSourceIds: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigquerydatatransferProjectsTransferConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTransferConfigsResponse>, ApiError>,
@@ -3584,10 +3854,10 @@ pub fn bigquerydatatransfer_projects_transfer_configs_list(
 > {
     let builder = bigquerydatatransfer_projects_transfer_configs_list_builder(
         client,
-        parent,
-        dataSourceIds,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.dataSourceIds.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigquerydatatransfer_projects_transfer_configs_list_execute(builder)
 }
@@ -3711,6 +3981,23 @@ pub fn bigquerydatatransfer_projects_transfer_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: authorizationCode
+    pub authorizationCode: Option<String>,
+    /// Query parameter: serviceAccountName
+    pub serviceAccountName: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: versionInfo
+    pub versionInfo: Option<String>,
+    /// Request body.
+    pub body: TransferConfig,
+}
+
 /// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}
 /// Updates a data transfer configuration. All fields must be set, even if they are not updated.
 ///
@@ -3723,12 +4010,7 @@ pub fn bigquerydatatransfer_projects_transfer_configs_patch_execute(
 
 pub fn bigquerydatatransfer_projects_transfer_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    authorizationCode: Option<&str>,
-    serviceAccountName: Option<&str>,
-    updateMask: Option<&str>,
-    versionInfo: Option<&str>,
-    body: &TransferConfig,
+    args: &BigquerydatatransferProjectsTransferConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransferConfig>, ApiError>, P = ApiPending>
         + Send
@@ -3737,12 +4019,12 @@ pub fn bigquerydatatransfer_projects_transfer_configs_patch(
 > {
     let builder = bigquerydatatransfer_projects_transfer_configs_patch_builder(
         client,
-        name,
-        authorizationCode,
-        serviceAccountName,
-        updateMask,
-        versionInfo,
-        body,
+        &args.name,
+        args.authorizationCode.as_deref(),
+        args.serviceAccountName.as_deref(),
+        args.updateMask.as_deref(),
+        args.versionInfo.as_deref(),
+        &args.body,
     )?;
     bigquerydatatransfer_projects_transfer_configs_patch_execute(builder)
 }
@@ -3844,6 +4126,15 @@ pub fn bigquerydatatransfer_projects_transfer_configs_schedule_runs_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_schedule_runs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsScheduleRunsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ScheduleTransferRunsRequest,
+}
+
 /// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}:scheduleRuns
 /// Creates transfer runs for a time range [start_time, end_time]. For each date - or whatever granularity the data source supports - in the range, one transfer run is created. Note that runs are created per UTC time in the time range. DEPRECATED: use StartManualTransferRuns instead.
 ///
@@ -3856,8 +4147,7 @@ pub fn bigquerydatatransfer_projects_transfer_configs_schedule_runs_execute(
 
 pub fn bigquerydatatransfer_projects_transfer_configs_schedule_runs(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ScheduleTransferRunsRequest,
+    args: &BigquerydatatransferProjectsTransferConfigsScheduleRunsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ScheduleTransferRunsResponse>, ApiError>,
@@ -3866,8 +4156,11 @@ pub fn bigquerydatatransfer_projects_transfer_configs_schedule_runs(
         + 'static,
     ApiError,
 > {
-    let builder =
-        bigquerydatatransfer_projects_transfer_configs_schedule_runs_builder(client, parent, body)?;
+    let builder = bigquerydatatransfer_projects_transfer_configs_schedule_runs_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     bigquerydatatransfer_projects_transfer_configs_schedule_runs_execute(builder)
 }
 
@@ -3968,6 +4261,15 @@ pub fn bigquerydatatransfer_projects_transfer_configs_start_manual_runs_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_start_manual_runs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsStartManualRunsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: StartManualTransferRunsRequest,
+}
+
 /// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}:startManualRuns
 /// Manually initiates transfer runs. You can schedule these runs in two ways: 1. For a specific point in time using the 'requested_run_time' parameter. 2. For a period between 'start_time' (inclusive) and 'end_time' (exclusive). If scheduling a single run, it is set to execute immediately (schedule_time equals the current time). When scheduling multiple runs within a time range, the first run starts now, and subsequent runs are delayed by 15 seconds each.
 ///
@@ -3980,8 +4282,7 @@ pub fn bigquerydatatransfer_projects_transfer_configs_start_manual_runs_execute(
 
 pub fn bigquerydatatransfer_projects_transfer_configs_start_manual_runs(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &StartManualTransferRunsRequest,
+    args: &BigquerydatatransferProjectsTransferConfigsStartManualRunsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<StartManualTransferRunsResponse>, ApiError>,
@@ -3991,7 +4292,9 @@ pub fn bigquerydatatransfer_projects_transfer_configs_start_manual_runs(
     ApiError,
 > {
     let builder = bigquerydatatransfer_projects_transfer_configs_start_manual_runs_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     bigquerydatatransfer_projects_transfer_configs_start_manual_runs_execute(builder)
 }
@@ -4086,6 +4389,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_runs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsRunsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
 /// Deletes the specified transfer run.
 ///
@@ -4098,12 +4408,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_delete_execute(
 
 pub fn bigquerydatatransfer_projects_transfer_configs_runs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigquerydatatransferProjectsTransferConfigsRunsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquerydatatransfer_projects_transfer_configs_runs_delete_builder(client, name)?;
+    let builder =
+        bigquerydatatransfer_projects_transfer_configs_runs_delete_builder(client, &args.name)?;
     bigquerydatatransfer_projects_transfer_configs_runs_delete_execute(builder)
 }
 
@@ -4197,6 +4508,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_runs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsRunsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}
 /// Returns information about the particular transfer run.
 ///
@@ -4209,12 +4527,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_get_execute(
 
 pub fn bigquerydatatransfer_projects_transfer_configs_runs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigquerydatatransferProjectsTransferConfigsRunsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransferRun>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquerydatatransfer_projects_transfer_configs_runs_get_builder(client, name)?;
+    let builder =
+        bigquerydatatransfer_projects_transfer_configs_runs_get_builder(client, &args.name)?;
     bigquerydatatransfer_projects_transfer_configs_runs_get_execute(builder)
 }
 
@@ -4334,6 +4653,21 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_runs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsRunsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: runAttempt
+    pub runAttempt: Option<String>,
+    /// Query parameter: states
+    pub states: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs
 /// Returns information about running and completed transfer runs.
 ///
@@ -4346,11 +4680,7 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_list_execute(
 
 pub fn bigquerydatatransfer_projects_transfer_configs_runs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    runAttempt: Option<&str>,
-    states: Option<&str>,
+    args: &BigquerydatatransferProjectsTransferConfigsRunsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTransferRunsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4358,7 +4688,12 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_list(
     ApiError,
 > {
     let builder = bigquerydatatransfer_projects_transfer_configs_runs_list_builder(
-        client, parent, pageSize, pageToken, runAttempt, states,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.runAttempt.as_deref(),
+        args.states.as_deref(),
     )?;
     bigquerydatatransfer_projects_transfer_configs_runs_list_execute(builder)
 }
@@ -4475,6 +4810,19 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsRunsTransferLogsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: messageTypes
+    pub messageTypes: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/runs/{runsId}/transferLogs
 /// Returns log messages for the transfer run.
 ///
@@ -4487,10 +4835,7 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_ex
 
 pub fn bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    messageTypes: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigquerydatatransferProjectsTransferConfigsRunsTransferLogsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTransferLogsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4499,10 +4844,10 @@ pub fn bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list(
 > {
     let builder = bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_builder(
         client,
-        parent,
-        messageTypes,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.messageTypes.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigquerydatatransfer_projects_transfer_configs_runs_transfer_logs_list_execute(builder)
 }
@@ -4599,6 +4944,13 @@ pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_transfer_resources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsTransferResourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/transferResources/{transferResourcesId}
 /// Returns a transfer resource.
 ///
@@ -4611,7 +4963,7 @@ pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_exe
 
 pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigquerydatatransferProjectsTransferConfigsTransferResourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TransferResource>, ApiError>, P = ApiPending>
         + Send
@@ -4619,7 +4971,7 @@ pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_get(
     ApiError,
 > {
     let builder = bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     bigquerydatatransfer_projects_transfer_configs_transfer_resources_get_execute(builder)
 }
@@ -4738,6 +5090,19 @@ pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigquerydatatransfer_projects_transfer_configs_transfer_resources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigquerydatatransferProjectsTransferConfigsTransferResourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/transferConfigs/{transferConfigsId}/transferResources
 /// Returns information about transfer resources.
 ///
@@ -4750,10 +5115,7 @@ pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_ex
 
 pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigquerydatatransferProjectsTransferConfigsTransferResourcesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTransferResourcesResponse>, ApiError>,
@@ -4763,7 +5125,11 @@ pub fn bigquerydatatransfer_projects_transfer_configs_transfer_resources_list(
     ApiError,
 > {
     let builder = bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigquerydatatransfer_projects_transfer_configs_transfer_resources_list_execute(builder)
 }

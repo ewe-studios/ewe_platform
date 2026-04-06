@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET games/v1management/achievements/{achievementId}/reset
 /// Resets the achievement with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
@@ -108,6 +110,13 @@ pub fn games_management_achievements_reset_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_management_achievements_reset`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesManagementAchievementsResetArgs {
+    /// Path parameter: achievementId
+    pub achievementId: String,
+}
+
 /// GET games/v1management/achievements/{achievementId}/reset
 /// Resets the achievement with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
@@ -120,14 +129,14 @@ pub fn games_management_achievements_reset_execute(
 
 pub fn games_management_achievements_reset(
     client: &SimpleHttpClient,
-    achievementId: &str,
+    args: &GamesManagementAchievementsResetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AchievementResetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_management_achievements_reset_builder(client, achievementId)?;
+    let builder = games_management_achievements_reset_builder(client, &args.achievementId)?;
     games_management_achievements_reset_execute(builder)
 }
 
@@ -438,6 +447,13 @@ pub fn games_management_achievements_reset_for_all_players_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_management_achievements_reset_for_all_players`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesManagementAchievementsResetForAllPlayersArgs {
+    /// Path parameter: achievementId
+    pub achievementId: String,
+}
+
 /// GET games/v1management/achievements/{achievementId}/resetForAllPlayers
 /// Resets the achievement with the given ID for all players. This method is only available to user accounts for your developer console. Only draft achievements can be reset.
 ///
@@ -450,13 +466,13 @@ pub fn games_management_achievements_reset_for_all_players_execute(
 
 pub fn games_management_achievements_reset_for_all_players(
     client: &SimpleHttpClient,
-    achievementId: &str,
+    args: &GamesManagementAchievementsResetForAllPlayersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        games_management_achievements_reset_for_all_players_builder(client, achievementId)?;
+        games_management_achievements_reset_for_all_players_builder(client, &args.achievementId)?;
     games_management_achievements_reset_for_all_players_execute(builder)
 }
 
@@ -548,6 +564,13 @@ pub fn games_management_achievements_reset_multiple_for_all_players_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_management_achievements_reset_multiple_for_all_players`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesManagementAchievementsResetMultipleForAllPlayersArgs {
+    /// Request body.
+    pub body: AchievementResetMultipleForAllRequest,
+}
+
 /// GET games/v1management/achievements/resetMultipleForAllPlayers
 /// Resets achievements with the given IDs for all players. This method is only available to user accounts for your developer console. Only draft achievements may be reset.
 ///
@@ -560,13 +583,13 @@ pub fn games_management_achievements_reset_multiple_for_all_players_execute(
 
 pub fn games_management_achievements_reset_multiple_for_all_players(
     client: &SimpleHttpClient,
-    body: &AchievementResetMultipleForAllRequest,
+    args: &GamesManagementAchievementsResetMultipleForAllPlayersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        games_management_achievements_reset_multiple_for_all_players_builder(client, body)?;
+        games_management_achievements_reset_multiple_for_all_players_builder(client, &args.body)?;
     games_management_achievements_reset_multiple_for_all_players_execute(builder)
 }
 
@@ -678,6 +701,17 @@ pub fn games_management_applications_list_hidden_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_management_applications_list_hidden`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesManagementApplicationsListHiddenArgs {
+    /// Path parameter: applicationId
+    pub applicationId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET games/v1management/applications/{applicationId}/players/hidden
 /// Get the list of players hidden from the given application. This method is only available to user accounts for your developer console.
 ///
@@ -690,9 +724,7 @@ pub fn games_management_applications_list_hidden_execute(
 
 pub fn games_management_applications_list_hidden(
     client: &SimpleHttpClient,
-    applicationId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GamesManagementApplicationsListHiddenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HiddenPlayerList>, ApiError>, P = ApiPending>
         + Send
@@ -701,9 +733,9 @@ pub fn games_management_applications_list_hidden(
 > {
     let builder = games_management_applications_list_hidden_builder(
         client,
-        applicationId,
-        maxResults,
-        pageToken,
+        &args.applicationId,
+        args.maxResults,
+        args.pageToken.as_deref(),
     )?;
     games_management_applications_list_hidden_execute(builder)
 }
@@ -795,6 +827,13 @@ pub fn games_management_events_reset_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_management_events_reset`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesManagementEventsResetArgs {
+    /// Path parameter: eventId
+    pub eventId: String,
+}
+
 /// GET games/v1management/events/{eventId}/reset
 /// Resets all player progress on the event with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
@@ -807,12 +846,12 @@ pub fn games_management_events_reset_execute(
 
 pub fn games_management_events_reset(
     client: &SimpleHttpClient,
-    eventId: &str,
+    args: &GamesManagementEventsResetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_management_events_reset_builder(client, eventId)?;
+    let builder = games_management_events_reset_builder(client, &args.eventId)?;
     games_management_events_reset_execute(builder)
 }
 
@@ -1111,6 +1150,13 @@ pub fn games_management_events_reset_for_all_players_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_management_events_reset_for_all_players`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesManagementEventsResetForAllPlayersArgs {
+    /// Path parameter: eventId
+    pub eventId: String,
+}
+
 /// GET games/v1management/events/{eventId}/resetForAllPlayers
 /// Resets the event with the given ID for all players. This method is only available to user accounts for your developer console. Only draft events can be reset.
 ///
@@ -1123,12 +1169,12 @@ pub fn games_management_events_reset_for_all_players_execute(
 
 pub fn games_management_events_reset_for_all_players(
     client: &SimpleHttpClient,
-    eventId: &str,
+    args: &GamesManagementEventsResetForAllPlayersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_management_events_reset_for_all_players_builder(client, eventId)?;
+    let builder = games_management_events_reset_for_all_players_builder(client, &args.eventId)?;
     games_management_events_reset_for_all_players_execute(builder)
 }
 
@@ -1220,6 +1266,13 @@ pub fn games_management_events_reset_multiple_for_all_players_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_management_events_reset_multiple_for_all_players`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesManagementEventsResetMultipleForAllPlayersArgs {
+    /// Request body.
+    pub body: EventsResetMultipleForAllRequest,
+}
+
 /// GET games/v1management/events/resetMultipleForAllPlayers
 /// Resets events with the given IDs for all players. This method is only available to user accounts for your developer console. Only draft events may be reset.
 ///
@@ -1232,12 +1285,13 @@ pub fn games_management_events_reset_multiple_for_all_players_execute(
 
 pub fn games_management_events_reset_multiple_for_all_players(
     client: &SimpleHttpClient,
-    body: &EventsResetMultipleForAllRequest,
+    args: &GamesManagementEventsResetMultipleForAllPlayersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_management_events_reset_multiple_for_all_players_builder(client, body)?;
+    let builder =
+        games_management_events_reset_multiple_for_all_players_builder(client, &args.body)?;
     games_management_events_reset_multiple_for_all_players_execute(builder)
 }
 
@@ -1330,6 +1384,15 @@ pub fn games_management_players_hide_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_management_players_hide`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesManagementPlayersHideArgs {
+    /// Path parameter: applicationId
+    pub applicationId: String,
+    /// Path parameter: playerId
+    pub playerId: String,
+}
+
 /// GET games/v1management/applications/{applicationId}/players/hidden/{playerId}
 /// Hide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
 ///
@@ -1342,13 +1405,13 @@ pub fn games_management_players_hide_execute(
 
 pub fn games_management_players_hide(
     client: &SimpleHttpClient,
-    applicationId: &str,
-    playerId: &str,
+    args: &GamesManagementPlayersHideArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_management_players_hide_builder(client, applicationId, playerId)?;
+    let builder =
+        games_management_players_hide_builder(client, &args.applicationId, &args.playerId)?;
     games_management_players_hide_execute(builder)
 }
 
@@ -1441,6 +1504,15 @@ pub fn games_management_players_unhide_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_management_players_unhide`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesManagementPlayersUnhideArgs {
+    /// Path parameter: applicationId
+    pub applicationId: String,
+    /// Path parameter: playerId
+    pub playerId: String,
+}
+
 /// GET games/v1management/applications/{applicationId}/players/hidden/{playerId}
 /// Unhide the given player's leaderboard scores from the given application. This method is only available to user accounts for your developer console.
 ///
@@ -1453,13 +1525,13 @@ pub fn games_management_players_unhide_execute(
 
 pub fn games_management_players_unhide(
     client: &SimpleHttpClient,
-    applicationId: &str,
-    playerId: &str,
+    args: &GamesManagementPlayersUnhideArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_management_players_unhide_builder(client, applicationId, playerId)?;
+    let builder =
+        games_management_players_unhide_builder(client, &args.applicationId, &args.playerId)?;
     games_management_players_unhide_execute(builder)
 }
 
@@ -1555,6 +1627,13 @@ pub fn games_management_scores_reset_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_management_scores_reset`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesManagementScoresResetArgs {
+    /// Path parameter: leaderboardId
+    pub leaderboardId: String,
+}
+
 /// GET games/v1management/leaderboards/{leaderboardId}/scores/reset
 /// Resets scores for the leaderboard with the given ID for the currently authenticated player. This method is only accessible to whitelisted tester accounts for your application.
 ///
@@ -1567,14 +1646,14 @@ pub fn games_management_scores_reset_execute(
 
 pub fn games_management_scores_reset(
     client: &SimpleHttpClient,
-    leaderboardId: &str,
+    args: &GamesManagementScoresResetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlayerScoreResetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = games_management_scores_reset_builder(client, leaderboardId)?;
+    let builder = games_management_scores_reset_builder(client, &args.leaderboardId)?;
     games_management_scores_reset_execute(builder)
 }
 
@@ -1884,6 +1963,13 @@ pub fn games_management_scores_reset_for_all_players_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_management_scores_reset_for_all_players`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesManagementScoresResetForAllPlayersArgs {
+    /// Path parameter: leaderboardId
+    pub leaderboardId: String,
+}
+
 /// GET games/v1management/leaderboards/{leaderboardId}/scores/resetForAllPlayers
 /// Resets scores for the leaderboard with the given ID for all players. This method is only available to user accounts for your developer console. Only draft leaderboards can be reset.
 ///
@@ -1896,12 +1982,13 @@ pub fn games_management_scores_reset_for_all_players_execute(
 
 pub fn games_management_scores_reset_for_all_players(
     client: &SimpleHttpClient,
-    leaderboardId: &str,
+    args: &GamesManagementScoresResetForAllPlayersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_management_scores_reset_for_all_players_builder(client, leaderboardId)?;
+    let builder =
+        games_management_scores_reset_for_all_players_builder(client, &args.leaderboardId)?;
     games_management_scores_reset_for_all_players_execute(builder)
 }
 
@@ -1993,6 +2080,13 @@ pub fn games_management_scores_reset_multiple_for_all_players_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_management_scores_reset_multiple_for_all_players`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesManagementScoresResetMultipleForAllPlayersArgs {
+    /// Request body.
+    pub body: ScoresResetMultipleForAllRequest,
+}
+
 /// GET games/v1management/scores/resetMultipleForAllPlayers
 /// Resets scores for the leaderboards with the given IDs for all players. This method is only available to user accounts for your developer console. Only draft leaderboards may be reset.
 ///
@@ -2005,11 +2099,12 @@ pub fn games_management_scores_reset_multiple_for_all_players_execute(
 
 pub fn games_management_scores_reset_multiple_for_all_players(
     client: &SimpleHttpClient,
-    body: &ScoresResetMultipleForAllRequest,
+    args: &GamesManagementScoresResetMultipleForAllPlayersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = games_management_scores_reset_multiple_for_all_players_builder(client, body)?;
+    let builder =
+        games_management_scores_reset_multiple_for_all_players_builder(client, &args.body)?;
     games_management_scores_reset_multiple_for_all_players_execute(builder)
 }

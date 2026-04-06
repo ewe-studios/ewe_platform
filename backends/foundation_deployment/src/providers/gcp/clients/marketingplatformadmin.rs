@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1alpha/organizations/{organizationsId}:findSalesPartnerManagedClients
 /// Returns a list of clients managed by the sales partner organization. User needs to be an OrgA`dmin/BillingAdmin` on the sales partner organization in order to view the end clients.
@@ -113,6 +115,15 @@ pub fn marketingplatformadmin_organizations_find_sales_partner_managed_clients_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`marketingplatformadmin_organizations_find_sales_partner_managed_clients`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MarketingplatformadminOrganizationsFindSalesPartnerManagedClientsArgs {
+    /// Path parameter: organization
+    pub organization: String,
+    /// Request body.
+    pub body: FindSalesPartnerManagedClientsRequest,
+}
+
 /// GET v1alpha/organizations/{organizationsId}:findSalesPartnerManagedClients
 /// Returns a list of clients managed by the sales partner organization. User needs to be an OrgA`dmin/BillingAdmin` on the sales partner organization in order to view the end clients.
 ///
@@ -125,8 +136,7 @@ pub fn marketingplatformadmin_organizations_find_sales_partner_managed_clients_e
 
 pub fn marketingplatformadmin_organizations_find_sales_partner_managed_clients(
     client: &SimpleHttpClient,
-    organization: &str,
-    body: &FindSalesPartnerManagedClientsRequest,
+    args: &MarketingplatformadminOrganizationsFindSalesPartnerManagedClientsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FindSalesPartnerManagedClientsResponse>, ApiError>,
@@ -137,8 +147,8 @@ pub fn marketingplatformadmin_organizations_find_sales_partner_managed_clients(
 > {
     let builder = marketingplatformadmin_organizations_find_sales_partner_managed_clients_builder(
         client,
-        organization,
-        body,
+        &args.organization,
+        &args.body,
     )?;
     marketingplatformadmin_organizations_find_sales_partner_managed_clients_execute(builder)
 }
@@ -235,6 +245,13 @@ pub fn marketingplatformadmin_organizations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`marketingplatformadmin_organizations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MarketingplatformadminOrganizationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/organizations/{organizationsId}
 /// Looks up a single organization.
 ///
@@ -247,14 +264,14 @@ pub fn marketingplatformadmin_organizations_get_execute(
 
 pub fn marketingplatformadmin_organizations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MarketingplatformadminOrganizationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Organization>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = marketingplatformadmin_organizations_get_builder(client, name)?;
+    let builder = marketingplatformadmin_organizations_get_builder(client, &args.name)?;
     marketingplatformadmin_organizations_get_execute(builder)
 }
 
@@ -362,6 +379,15 @@ pub fn marketingplatformadmin_organizations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`marketingplatformadmin_organizations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MarketingplatformadminOrganizationsListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha/organizations
 /// Returns a list of organizations that the user has access to.
 ///
@@ -374,15 +400,18 @@ pub fn marketingplatformadmin_organizations_list_execute(
 
 pub fn marketingplatformadmin_organizations_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MarketingplatformadminOrganizationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOrganizationsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = marketingplatformadmin_organizations_list_builder(client, pageSize, pageToken)?;
+    let builder = marketingplatformadmin_organizations_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     marketingplatformadmin_organizations_list_execute(builder)
 }
 
@@ -483,6 +512,15 @@ pub fn marketingplatformadmin_organizations_report_property_usage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`marketingplatformadmin_organizations_report_property_usage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MarketingplatformadminOrganizationsReportPropertyUsageArgs {
+    /// Path parameter: organization
+    pub organization: String,
+    /// Request body.
+    pub body: ReportPropertyUsageRequest,
+}
+
 /// GET v1alpha/organizations/{organizationsId}:reportPropertyUsage
 /// Gets the usage and billing data for properties within the organization for the specified month. Per direct client org, user needs to be OrgA`dmin/BillingAdmin` on the organization in order to view the billing and usage data. Per sales partner client org, user needs to be OrgA`dmin/BillingAdmin` on the sales partner org in order to view the billing and usage data, or OrgA`dmin/BillingAdmin` on the sales partner client org in order to view the usage data only.
 ///
@@ -495,8 +533,7 @@ pub fn marketingplatformadmin_organizations_report_property_usage_execute(
 
 pub fn marketingplatformadmin_organizations_report_property_usage(
     client: &SimpleHttpClient,
-    organization: &str,
-    body: &ReportPropertyUsageRequest,
+    args: &MarketingplatformadminOrganizationsReportPropertyUsageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ReportPropertyUsageResponse>, ApiError>,
@@ -507,8 +544,8 @@ pub fn marketingplatformadmin_organizations_report_property_usage(
 > {
     let builder = marketingplatformadmin_organizations_report_property_usage_builder(
         client,
-        organization,
-        body,
+        &args.organization,
+        &args.body,
     )?;
     marketingplatformadmin_organizations_report_property_usage_execute(builder)
 }
@@ -608,6 +645,15 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`marketingplatformadmin_organizations_analytics_account_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MarketingplatformadminOrganizationsAnalyticsAccountLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AnalyticsAccountLink,
+}
+
 /// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks
 /// Creates the link between the Analytics account and the Google Marketing Platform organization. User needs to be an org user, and admin on the Analytics account to create the link. If the account is already linked to an organization, user needs to unlink the account from the current organization, then try link again.
 ///
@@ -620,8 +666,7 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_create_execu
 
 pub fn marketingplatformadmin_organizations_analytics_account_links_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AnalyticsAccountLink,
+    args: &MarketingplatformadminOrganizationsAnalyticsAccountLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnalyticsAccountLink>, ApiError>, P = ApiPending>
         + Send
@@ -629,7 +674,9 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_create(
     ApiError,
 > {
     let builder = marketingplatformadmin_organizations_analytics_account_links_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     marketingplatformadmin_organizations_analytics_account_links_create_execute(builder)
 }
@@ -724,6 +771,13 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`marketingplatformadmin_organizations_analytics_account_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MarketingplatformadminOrganizationsAnalyticsAccountLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks/{analyticsAccountLinksId}
 /// Deletes the AnalyticsAccountLink, which detaches the Analytics account from the Google Marketing Platform organization. User needs to be an org user, and admin on the Analytics account in order to delete the link.
 ///
@@ -736,13 +790,14 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_delete_execu
 
 pub fn marketingplatformadmin_organizations_analytics_account_links_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MarketingplatformadminOrganizationsAnalyticsAccountLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        marketingplatformadmin_organizations_analytics_account_links_delete_builder(client, name)?;
+    let builder = marketingplatformadmin_organizations_analytics_account_links_delete_builder(
+        client, &args.name,
+    )?;
     marketingplatformadmin_organizations_analytics_account_links_delete_execute(builder)
 }
 
@@ -856,6 +911,17 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`marketingplatformadmin_organizations_analytics_account_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MarketingplatformadminOrganizationsAnalyticsAccountLinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks
 /// Lists the Google Analytics accounts link to the specified Google Marketing Platform organization.
 ///
@@ -868,9 +934,7 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_list_execute
 
 pub fn marketingplatformadmin_organizations_analytics_account_links_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MarketingplatformadminOrganizationsAnalyticsAccountLinksListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAnalyticsAccountLinksResponse>, ApiError>,
@@ -880,7 +944,10 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_list(
     ApiError,
 > {
     let builder = marketingplatformadmin_organizations_analytics_account_links_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     marketingplatformadmin_organizations_analytics_account_links_list_execute(builder)
 }
@@ -982,6 +1049,15 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_set_property
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`marketingplatformadmin_organizations_analytics_account_links_set_property_service_level`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MarketingplatformadminOrganizationsAnalyticsAccountLinksSetPropertyServiceLevelArgs {
+    /// Path parameter: analyticsAccountLink
+    pub analyticsAccountLink: String,
+    /// Request body.
+    pub body: SetPropertyServiceLevelRequest,
+}
+
 /// GET v1alpha/organizations/{organizationsId}/analyticsAccountLinks/{analyticsAccountLinksId}:setPropertyServiceLevel
 /// Updates the service level for an Analytics property.
 ///
@@ -994,8 +1070,7 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_set_property
 
 pub fn marketingplatformadmin_organizations_analytics_account_links_set_property_service_level(
     client: &SimpleHttpClient,
-    analyticsAccountLink: &str,
-    body: &SetPropertyServiceLevelRequest,
+    args: &MarketingplatformadminOrganizationsAnalyticsAccountLinksSetPropertyServiceLevelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SetPropertyServiceLevelResponse>, ApiError>,
@@ -1004,7 +1079,7 @@ pub fn marketingplatformadmin_organizations_analytics_account_links_set_property
         + 'static,
     ApiError,
 > {
-    let builder = marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_builder(client, analyticsAccountLink, body)?;
+    let builder = marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_builder(client, &args.analyticsAccountLink, &args.body)?;
     marketingplatformadmin_organizations_analytics_account_links_set_property_service_level_execute(
         builder,
     )

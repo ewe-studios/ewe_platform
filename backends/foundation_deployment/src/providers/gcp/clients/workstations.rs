@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn workstations_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn workstations_projects_locations_get_execute(
 
 pub fn workstations_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkstationsProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_get_builder(client, name)?;
+    let builder = workstations_projects_locations_get_builder(client, &args.name)?;
     workstations_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn workstations_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn workstations_projects_locations_list_execute(
 
 pub fn workstations_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkstationsProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn workstations_projects_locations_list(
 > {
     let builder = workstations_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     workstations_projects_locations_list_execute(builder)
 }
@@ -372,6 +392,15 @@ pub fn workstations_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -384,15 +413,15 @@ pub fn workstations_projects_locations_operations_cancel_execute(
 
 pub fn workstations_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &WorkstationsProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        workstations_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     workstations_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -488,6 +517,13 @@ pub fn workstations_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -500,14 +536,14 @@ pub fn workstations_projects_locations_operations_delete_execute(
 
 pub fn workstations_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkstationsProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_operations_delete_builder(client, name)?;
+    let builder = workstations_projects_locations_operations_delete_builder(client, &args.name)?;
     workstations_projects_locations_operations_delete_execute(builder)
 }
 
@@ -601,6 +637,13 @@ pub fn workstations_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -613,12 +656,12 @@ pub fn workstations_projects_locations_operations_get_execute(
 
 pub fn workstations_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkstationsProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_operations_get_builder(client, name)?;
+    let builder = workstations_projects_locations_operations_get_builder(client, &args.name)?;
     workstations_projects_locations_operations_get_execute(builder)
 }
 
@@ -738,6 +781,21 @@ pub fn workstations_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -750,11 +808,7 @@ pub fn workstations_projects_locations_operations_list_execute(
 
 pub fn workstations_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &WorkstationsProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -763,11 +817,11 @@ pub fn workstations_projects_locations_operations_list(
 > {
     let builder = workstations_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     workstations_projects_locations_operations_list_execute(builder)
 }
@@ -881,6 +935,19 @@ pub fn workstations_projects_locations_workstation_clusters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Query parameter: workstationClusterId
+    pub workstationClusterId: Option<String>,
+    /// Request body.
+    pub body: WorkstationCluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters
 /// Creates a new workstation cluster.
 ///
@@ -893,20 +960,17 @@ pub fn workstations_projects_locations_workstation_clusters_create_execute(
 
 pub fn workstations_projects_locations_workstation_clusters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    validateOnly: Option<bool>,
-    workstationClusterId: Option<&str>,
-    body: &WorkstationCluster,
+    args: &WorkstationsProjectsLocationsWorkstationClustersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = workstations_projects_locations_workstation_clusters_create_builder(
         client,
-        parent,
-        validateOnly,
-        workstationClusterId,
-        body,
+        &args.parent,
+        args.validateOnly,
+        args.workstationClusterId.as_deref(),
+        &args.body,
     )?;
     workstations_projects_locations_workstation_clusters_create_execute(builder)
 }
@@ -1021,6 +1085,19 @@ pub fn workstations_projects_locations_workstation_clusters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}
 /// Deletes the specified workstation cluster.
 ///
@@ -1033,20 +1110,17 @@ pub fn workstations_projects_locations_workstation_clusters_delete_execute(
 
 pub fn workstations_projects_locations_workstation_clusters_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    force: Option<bool>,
-    validateOnly: Option<bool>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = workstations_projects_locations_workstation_clusters_delete_builder(
         client,
-        name,
-        etag,
-        force,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.force,
+        args.validateOnly,
     )?;
     workstations_projects_locations_workstation_clusters_delete_execute(builder)
 }
@@ -1143,6 +1217,13 @@ pub fn workstations_projects_locations_workstation_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}
 /// Returns the requested workstation cluster.
 ///
@@ -1155,14 +1236,15 @@ pub fn workstations_projects_locations_workstation_clusters_get_execute(
 
 pub fn workstations_projects_locations_workstation_clusters_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkstationsProjectsLocationsWorkstationClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkstationCluster>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_get_builder(client, name)?;
+    let builder =
+        workstations_projects_locations_workstation_clusters_get_builder(client, &args.name)?;
     workstations_projects_locations_workstation_clusters_get_execute(builder)
 }
 
@@ -1280,6 +1362,19 @@ pub fn workstations_projects_locations_workstation_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters
 /// Returns all workstation clusters in the specified location.
 ///
@@ -1292,10 +1387,7 @@ pub fn workstations_projects_locations_workstation_clusters_list_execute(
 
 pub fn workstations_projects_locations_workstation_clusters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListWorkstationClustersResponse>, ApiError>,
@@ -1305,7 +1397,11 @@ pub fn workstations_projects_locations_workstation_clusters_list(
     ApiError,
 > {
     let builder = workstations_projects_locations_workstation_clusters_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     workstations_projects_locations_workstation_clusters_list_execute(builder)
 }
@@ -1423,6 +1519,21 @@ pub fn workstations_projects_locations_workstation_clusters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: WorkstationCluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}
 /// Updates an existing workstation cluster.
 ///
@@ -1435,22 +1546,18 @@ pub fn workstations_projects_locations_workstation_clusters_patch_execute(
 
 pub fn workstations_projects_locations_workstation_clusters_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &WorkstationCluster,
+    args: &WorkstationsProjectsLocationsWorkstationClustersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = workstations_projects_locations_workstation_clusters_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     workstations_projects_locations_workstation_clusters_patch_execute(builder)
 }
@@ -1564,6 +1671,19 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Query parameter: workstationConfigId
+    pub workstationConfigId: Option<String>,
+    /// Request body.
+    pub body: WorkstationConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs
 /// Creates a new workstation configuration.
 ///
@@ -1576,10 +1696,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    validateOnly: Option<bool>,
-    workstationConfigId: Option<&str>,
-    body: &WorkstationConfig,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -1587,10 +1704,10 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     let builder =
         workstations_projects_locations_workstation_clusters_workstation_configs_create_builder(
             client,
-            parent,
-            validateOnly,
-            workstationConfigId,
-            body,
+            &args.parent,
+            args.validateOnly,
+            args.workstationConfigId.as_deref(),
+            &args.body,
         )?;
     workstations_projects_locations_workstation_clusters_workstation_configs_create_execute(builder)
 }
@@ -1705,6 +1822,19 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}
 /// Deletes the specified workstation configuration.
 ///
@@ -1717,10 +1847,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    force: Option<bool>,
-    validateOnly: Option<bool>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -1728,10 +1855,10 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     let builder =
         workstations_projects_locations_workstation_clusters_workstation_configs_delete_builder(
             client,
-            name,
-            etag,
-            force,
-            validateOnly,
+            &args.name,
+            args.etag.as_deref(),
+            args.force,
+            args.validateOnly,
         )?;
     workstations_projects_locations_workstation_clusters_workstation_configs_delete_execute(builder)
 }
@@ -1828,6 +1955,13 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}
 /// Returns the requested workstation configuration.
 ///
@@ -1840,7 +1974,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkstationConfig>, ApiError>, P = ApiPending>
         + Send
@@ -1849,7 +1983,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 > {
     let builder =
         workstations_projects_locations_workstation_clusters_workstation_configs_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     workstations_projects_locations_workstation_clusters_workstation_configs_get_execute(builder)
 }
@@ -1956,6 +2090,15 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1968,13 +2111,12 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_get_iam_policy_builder(client, resource, options_requestedPolicyVersion)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_get_iam_policy_builder(client, &args.resource, args.options_requestedPolicyVersion)?;
     workstations_projects_locations_workstation_clusters_workstation_configs_get_iam_policy_execute(
         builder,
     )
@@ -2094,6 +2236,19 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs
 /// Returns all workstation configurations in the specified cluster.
 ///
@@ -2106,10 +2261,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListWorkstationConfigsResponse>, ApiError>,
@@ -2120,7 +2272,11 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 > {
     let builder =
         workstations_projects_locations_workstation_clusters_workstation_configs_list_builder(
-            client, parent, filter, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     workstations_projects_locations_workstation_clusters_workstation_configs_list_execute(builder)
 }
@@ -2235,6 +2391,17 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_list_usable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsListUsableArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs:listUsable
 /// Returns all workstation configurations in the specified cluster on which the caller has the "workstations.workstation.create" permission.
 ///
@@ -2247,9 +2414,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_list_usable(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsListUsableArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListUsableWorkstationConfigsResponse>, ApiError>,
@@ -2258,7 +2423,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
         + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_list_usable_builder(client, parent, pageSize, pageToken)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_list_usable_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     workstations_projects_locations_workstation_clusters_workstation_configs_list_usable_execute(
         builder,
     )
@@ -2377,6 +2542,21 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: WorkstationConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}
 /// Updates an existing workstation configuration.
 ///
@@ -2389,11 +2569,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &WorkstationConfig,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -2401,11 +2577,11 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     let builder =
         workstations_projects_locations_workstation_clusters_workstation_configs_patch_builder(
             client,
-            name,
-            allowMissing,
-            updateMask,
-            validateOnly,
-            body,
+            &args.name,
+            args.allowMissing,
+            args.updateMask.as_deref(),
+            args.validateOnly,
+            &args.body,
         )?;
     workstations_projects_locations_workstation_clusters_workstation_configs_patch_execute(builder)
 }
@@ -2503,6 +2679,15 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -2515,13 +2700,12 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_set_iam_policy_builder(client, resource, body)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_set_iam_policy_builder(client, &args.resource, &args.body)?;
     workstations_projects_locations_workstation_clusters_workstation_configs_set_iam_policy_execute(
         builder,
     )
@@ -2624,6 +2808,16 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsTestIamPermissionsArgs
+{
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2636,8 +2830,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2646,7 +2839,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
         + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_test_iam_permissions_builder(client, resource, body)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     workstations_projects_locations_workstation_clusters_workstation_configs_test_iam_permissions_execute(builder)
 }
 
@@ -2759,6 +2952,20 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_workstations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsCreateArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Query parameter: workstationId
+    pub workstationId: Option<String>,
+    /// Request body.
+    pub body: Workstation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations
 /// Creates a new workstation.
 ///
@@ -2771,15 +2978,12 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    validateOnly: Option<bool>,
-    workstationId: Option<&str>,
-    body: &Workstation,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_create_builder(client, parent, validateOnly, workstationId, body)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_create_builder(client, &args.parent, args.validateOnly, args.workstationId.as_deref(), &args.body)?;
     workstations_projects_locations_workstation_clusters_workstation_configs_workstations_create_execute(builder)
 }
 
@@ -2889,6 +3093,18 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_workstations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsDeleteArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}
 /// Deletes the specified workstation.
 ///
@@ -2901,14 +3117,12 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_delete_builder(client, name, etag, validateOnly)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_delete_builder(client, &args.name, args.etag.as_deref(), args.validateOnly)?;
     workstations_projects_locations_workstation_clusters_workstation_configs_workstations_delete_execute(builder)
 }
 
@@ -3009,6 +3223,16 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_workstations_generate_access_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsGenerateAccessTokenArgs
+{
+    /// Path parameter: workstation
+    pub workstation: String,
+    /// Request body.
+    pub body: GenerateAccessTokenRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:generateAccessToken
 /// Returns a short-lived credential that can be used to send authenticated and authorized traffic to a workstation. Once generated this token cannot be revoked and is good for the lifetime of the token.
 ///
@@ -3021,8 +3245,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_generate_access_token(
     client: &SimpleHttpClient,
-    workstation: &str,
-    body: &GenerateAccessTokenRequest,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsGenerateAccessTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateAccessTokenResponse>, ApiError>,
@@ -3031,7 +3254,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
         + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_generate_access_token_builder(client, workstation, body)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_generate_access_token_builder(client, &args.workstation, &args.body)?;
     workstations_projects_locations_workstation_clusters_workstation_configs_workstations_generate_access_token_execute(builder)
 }
 
@@ -3125,6 +3348,13 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}
 /// Returns the requested workstation.
 ///
@@ -3137,12 +3367,12 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Workstation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get_builder(client, name)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get_builder(client, &args.name)?;
     workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get_execute(builder)
 }
 
@@ -3248,6 +3478,16 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsGetIamPolicyArgs
+{
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -3260,13 +3500,12 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get_iam_policy_builder(client, resource, options_requestedPolicyVersion)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get_iam_policy_builder(client, &args.resource, args.options_requestedPolicyVersion)?;
     workstations_projects_locations_workstation_clusters_workstation_configs_workstations_get_iam_policy_execute(builder)
 }
 
@@ -3382,6 +3621,19 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations
 /// Returns all Workstations using the specified workstation configuration.
 ///
@@ -3394,17 +3646,14 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListWorkstationsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_builder(client, &args.parent, args.filter.as_deref(), args.pageSize, args.pageToken.as_deref())?;
     workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_execute(builder)
 }
 
@@ -3518,6 +3767,18 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_usable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsListUsableArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations:listUsable
 /// Returns all workstations using the specified workstation configuration on which the caller has the "workstations.workstations.use" permission.
 ///
@@ -3530,9 +3791,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_usable(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsListUsableArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListUsableWorkstationsResponse>, ApiError>,
@@ -3541,7 +3800,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
         + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_usable_builder(client, parent, pageSize, pageToken)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_usable_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     workstations_projects_locations_workstation_clusters_workstation_configs_workstations_list_usable_execute(builder)
 }
 
@@ -3658,6 +3917,21 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_workstations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Workstation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}
 /// Updates an existing workstation.
 ///
@@ -3670,16 +3944,12 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Workstation,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_patch_builder(client, name, allowMissing, updateMask, validateOnly, body)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_patch_builder(client, &args.name, args.allowMissing, args.updateMask.as_deref(), args.validateOnly, &args.body)?;
     workstations_projects_locations_workstation_clusters_workstation_configs_workstations_patch_execute(builder)
 }
 
@@ -3776,6 +4046,16 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_workstations_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsSetIamPolicyArgs
+{
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3788,13 +4068,12 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_set_iam_policy_builder(client, resource, body)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_set_iam_policy_builder(client, &args.resource, &args.body)?;
     workstations_projects_locations_workstation_clusters_workstation_configs_workstations_set_iam_policy_execute(builder)
 }
 
@@ -3891,6 +4170,15 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_workstations_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsStartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StartWorkstationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:start
 /// Starts running a workstation so that users can connect to it.
 ///
@@ -3903,13 +4191,12 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_start(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StartWorkstationRequest,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsStartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_start_builder(client, name, body)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_start_builder(client, &args.name, &args.body)?;
     workstations_projects_locations_workstation_clusters_workstation_configs_workstations_start_execute(builder)
 }
 
@@ -4006,6 +4293,15 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_workstations_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsStopArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StopWorkstationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:stop
 /// Stops running a workstation, reducing costs.
 ///
@@ -4018,13 +4314,12 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_stop(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StopWorkstationRequest,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_stop_builder(client, name, body)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_stop_builder(client, &args.name, &args.body)?;
     workstations_projects_locations_workstation_clusters_workstation_configs_workstations_stop_execute(builder)
 }
 
@@ -4125,6 +4420,16 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workstations_projects_locations_workstation_clusters_workstation_configs_workstations_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsTestIamPermissionsArgs
+{
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workstationClusters/{workstationClustersId}/workstationConfigs/{workstationConfigsId}/workstations/{workstationsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -4137,8 +4442,7 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
 
 pub fn workstations_projects_locations_workstation_clusters_workstation_configs_workstations_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &WorkstationsProjectsLocationsWorkstationClustersWorkstationConfigsWorkstationsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -4147,6 +4451,6 @@ pub fn workstations_projects_locations_workstation_clusters_workstation_configs_
         + 'static,
     ApiError,
 > {
-    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_test_iam_permissions_builder(client, resource, body)?;
+    let builder = workstations_projects_locations_workstation_clusters_workstation_configs_workstations_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     workstations_projects_locations_workstation_clusters_workstation_configs_workstations_test_iam_permissions_execute(builder)
 }

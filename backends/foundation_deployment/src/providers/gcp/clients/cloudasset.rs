@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/{v1Id}/{v1Id1}/assets
 /// Lists assets with time and resource types and returns paged results in response.
@@ -137,6 +139,25 @@ pub fn cloudasset_assets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_assets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetAssetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: assetTypes
+    pub assetTypes: Option<String>,
+    /// Query parameter: contentType
+    pub contentType: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: readTime
+    pub readTime: Option<String>,
+    /// Query parameter: relationshipTypes
+    pub relationshipTypes: Option<String>,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/assets
 /// Lists assets with time and resource types and returns paged results in response.
 ///
@@ -149,13 +170,7 @@ pub fn cloudasset_assets_list_execute(
 
 pub fn cloudasset_assets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    assetTypes: Option<&str>,
-    contentType: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    readTime: Option<&str>,
-    relationshipTypes: Option<&str>,
+    args: &CloudassetAssetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAssetsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -164,13 +179,13 @@ pub fn cloudasset_assets_list(
 > {
     let builder = cloudasset_assets_list_builder(
         client,
-        parent,
-        assetTypes,
-        contentType,
-        pageSize,
-        pageToken,
-        readTime,
-        relationshipTypes,
+        &args.parent,
+        args.assetTypes.as_deref(),
+        args.contentType.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.readTime.as_deref(),
+        args.relationshipTypes.as_deref(),
     )?;
     cloudasset_assets_list_execute(builder)
 }
@@ -281,6 +296,15 @@ pub fn cloudasset_effective_iam_policies_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_effective_iam_policies_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetEffectiveIamPoliciesBatchGetArgs {
+    /// Path parameter: scope
+    pub scope: String,
+    /// Query parameter: names
+    pub names: Option<String>,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/effectiveIamPolicies:batchGet
 /// Gets effective IAM policies for a batch of resources.
 ///
@@ -293,8 +317,7 @@ pub fn cloudasset_effective_iam_policies_batch_get_execute(
 
 pub fn cloudasset_effective_iam_policies_batch_get(
     client: &SimpleHttpClient,
-    scope: &str,
-    names: Option<&str>,
+    args: &CloudassetEffectiveIamPoliciesBatchGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchGetEffectiveIamPoliciesResponse>, ApiError>,
@@ -303,7 +326,11 @@ pub fn cloudasset_effective_iam_policies_batch_get(
         + 'static,
     ApiError,
 > {
-    let builder = cloudasset_effective_iam_policies_batch_get_builder(client, scope, names)?;
+    let builder = cloudasset_effective_iam_policies_batch_get_builder(
+        client,
+        &args.scope,
+        args.names.as_deref(),
+    )?;
     cloudasset_effective_iam_policies_batch_get_execute(builder)
 }
 
@@ -397,6 +424,15 @@ pub fn cloudasset_feeds_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_feeds_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetFeedsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateFeedRequest,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/feeds
 /// Creates a feed in a parent `project/folder/organization` to listen to its asset updates.
 ///
@@ -409,13 +445,12 @@ pub fn cloudasset_feeds_create_execute(
 
 pub fn cloudasset_feeds_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateFeedRequest,
+    args: &CloudassetFeedsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Feed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudasset_feeds_create_builder(client, parent, body)?;
+    let builder = cloudasset_feeds_create_builder(client, &args.parent, &args.body)?;
     cloudasset_feeds_create_execute(builder)
 }
 
@@ -506,6 +541,13 @@ pub fn cloudasset_feeds_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_feeds_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetFeedsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/feeds/{feedsId}
 /// Deletes an asset feed.
 ///
@@ -518,12 +560,12 @@ pub fn cloudasset_feeds_delete_execute(
 
 pub fn cloudasset_feeds_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudassetFeedsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudasset_feeds_delete_builder(client, name)?;
+    let builder = cloudasset_feeds_delete_builder(client, &args.name)?;
     cloudasset_feeds_delete_execute(builder)
 }
 
@@ -614,6 +656,13 @@ pub fn cloudasset_feeds_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_feeds_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetFeedsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/feeds/{feedsId}
 /// Gets details about an asset feed.
 ///
@@ -626,12 +675,12 @@ pub fn cloudasset_feeds_get_execute(
 
 pub fn cloudasset_feeds_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudassetFeedsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Feed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudasset_feeds_get_builder(client, name)?;
+    let builder = cloudasset_feeds_get_builder(client, &args.name)?;
     cloudasset_feeds_get_execute(builder)
 }
 
@@ -724,6 +773,13 @@ pub fn cloudasset_feeds_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_feeds_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetFeedsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/feeds
 /// Lists all asset feeds in a parent `project/folder/organization`.
 ///
@@ -736,14 +792,14 @@ pub fn cloudasset_feeds_list_execute(
 
 pub fn cloudasset_feeds_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &CloudassetFeedsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFeedsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudasset_feeds_list_builder(client, parent)?;
+    let builder = cloudasset_feeds_list_builder(client, &args.parent)?;
     cloudasset_feeds_list_execute(builder)
 }
 
@@ -837,6 +893,15 @@ pub fn cloudasset_feeds_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_feeds_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetFeedsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpdateFeedRequest,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/feeds/{feedsId}
 /// Updates an asset feed configuration.
 ///
@@ -849,13 +914,12 @@ pub fn cloudasset_feeds_patch_execute(
 
 pub fn cloudasset_feeds_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateFeedRequest,
+    args: &CloudassetFeedsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Feed>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudasset_feeds_patch_builder(client, name, body)?;
+    let builder = cloudasset_feeds_patch_builder(client, &args.name, &args.body)?;
     cloudasset_feeds_patch_execute(builder)
 }
 
@@ -949,6 +1013,13 @@ pub fn cloudasset_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/operations/{operationsId}/{operationsId1}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -961,12 +1032,12 @@ pub fn cloudasset_operations_get_execute(
 
 pub fn cloudasset_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudassetOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudasset_operations_get_builder(client, name)?;
+    let builder = cloudasset_operations_get_builder(client, &args.name)?;
     cloudasset_operations_get_execute(builder)
 }
 
@@ -1075,6 +1146,17 @@ pub fn cloudasset_saved_queries_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_saved_queries_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetSavedQueriesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: savedQueryId
+    pub savedQueryId: Option<String>,
+    /// Request body.
+    pub body: SavedQuery,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/savedQueries
 /// Creates a saved query in a parent `project/folder/organization`.
 ///
@@ -1087,14 +1169,17 @@ pub fn cloudasset_saved_queries_create_execute(
 
 pub fn cloudasset_saved_queries_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    savedQueryId: Option<&str>,
-    body: &SavedQuery,
+    args: &CloudassetSavedQueriesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudasset_saved_queries_create_builder(client, parent, savedQueryId, body)?;
+    let builder = cloudasset_saved_queries_create_builder(
+        client,
+        &args.parent,
+        args.savedQueryId.as_deref(),
+        &args.body,
+    )?;
     cloudasset_saved_queries_create_execute(builder)
 }
 
@@ -1188,6 +1273,13 @@ pub fn cloudasset_saved_queries_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_saved_queries_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetSavedQueriesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/savedQueries/{savedQueriesId}
 /// Deletes a saved query.
 ///
@@ -1200,12 +1292,12 @@ pub fn cloudasset_saved_queries_delete_execute(
 
 pub fn cloudasset_saved_queries_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudassetSavedQueriesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudasset_saved_queries_delete_builder(client, name)?;
+    let builder = cloudasset_saved_queries_delete_builder(client, &args.name)?;
     cloudasset_saved_queries_delete_execute(builder)
 }
 
@@ -1299,6 +1391,13 @@ pub fn cloudasset_saved_queries_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_saved_queries_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetSavedQueriesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/savedQueries/{savedQueriesId}
 /// Gets details about a saved query.
 ///
@@ -1311,12 +1410,12 @@ pub fn cloudasset_saved_queries_get_execute(
 
 pub fn cloudasset_saved_queries_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudassetSavedQueriesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudasset_saved_queries_get_builder(client, name)?;
+    let builder = cloudasset_saved_queries_get_builder(client, &args.name)?;
     cloudasset_saved_queries_get_execute(builder)
 }
 
@@ -1432,6 +1531,19 @@ pub fn cloudasset_saved_queries_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_saved_queries_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetSavedQueriesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/savedQueries
 /// Lists all saved queries in a parent `project/folder/organization`.
 ///
@@ -1444,18 +1556,20 @@ pub fn cloudasset_saved_queries_list_execute(
 
 pub fn cloudasset_saved_queries_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudassetSavedQueriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSavedQueriesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudasset_saved_queries_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = cloudasset_saved_queries_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     cloudasset_saved_queries_list_execute(builder)
 }
 
@@ -1564,6 +1678,17 @@ pub fn cloudasset_saved_queries_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_saved_queries_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetSavedQueriesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: SavedQuery,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/savedQueries/{savedQueriesId}
 /// Updates a saved query.
 ///
@@ -1576,14 +1701,17 @@ pub fn cloudasset_saved_queries_patch_execute(
 
 pub fn cloudasset_saved_queries_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SavedQuery,
+    args: &CloudassetSavedQueriesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedQuery>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudasset_saved_queries_patch_builder(client, name, updateMask, body)?;
+    let builder = cloudasset_saved_queries_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudasset_saved_queries_patch_execute(builder)
 }
 
@@ -1745,6 +1873,39 @@ pub fn cloudasset_analyze_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_analyze_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetAnalyzeIamPolicyArgs {
+    /// Path parameter: scope
+    pub scope: String,
+    /// Query parameter: analysisQuery_accessSelector_permissions
+    pub analysisQuery_accessSelector_permissions: Option<String>,
+    /// Query parameter: analysisQuery_accessSelector_roles
+    pub analysisQuery_accessSelector_roles: Option<String>,
+    /// Query parameter: analysisQuery_conditionContext_accessTime
+    pub analysisQuery_conditionContext_accessTime: Option<String>,
+    /// Query parameter: analysisQuery_identitySelector_identity
+    pub analysisQuery_identitySelector_identity: Option<String>,
+    /// Query parameter: analysisQuery_options_analyzeServiceAccountImpersonation
+    pub analysisQuery_options_analyzeServiceAccountImpersonation: Option<bool>,
+    /// Query parameter: analysisQuery_options_expandGroups
+    pub analysisQuery_options_expandGroups: Option<bool>,
+    /// Query parameter: analysisQuery_options_expandResources
+    pub analysisQuery_options_expandResources: Option<bool>,
+    /// Query parameter: analysisQuery_options_expandRoles
+    pub analysisQuery_options_expandRoles: Option<bool>,
+    /// Query parameter: analysisQuery_options_outputGroupEdges
+    pub analysisQuery_options_outputGroupEdges: Option<bool>,
+    /// Query parameter: analysisQuery_options_outputResourceEdges
+    pub analysisQuery_options_outputResourceEdges: Option<bool>,
+    /// Query parameter: analysisQuery_resourceSelector_fullResourceName
+    pub analysisQuery_resourceSelector_fullResourceName: Option<String>,
+    /// Query parameter: executionTimeout
+    pub executionTimeout: Option<String>,
+    /// Query parameter: savedAnalysisQuery
+    pub savedAnalysisQuery: Option<String>,
+}
+
 /// GET v1/{v1Id}/{v1Id1}:analyzeIamPolicy
 /// Analyzes IAM policies to answer which identities have what accesses on which resources.
 ///
@@ -1757,20 +1918,7 @@ pub fn cloudasset_analyze_iam_policy_execute(
 
 pub fn cloudasset_analyze_iam_policy(
     client: &SimpleHttpClient,
-    scope: &str,
-    analysisQuery_accessSelector_permissions: Option<&str>,
-    analysisQuery_accessSelector_roles: Option<&str>,
-    analysisQuery_conditionContext_accessTime: Option<&str>,
-    analysisQuery_identitySelector_identity: Option<&str>,
-    analysisQuery_options_analyzeServiceAccountImpersonation: Option<bool>,
-    analysisQuery_options_expandGroups: Option<bool>,
-    analysisQuery_options_expandResources: Option<bool>,
-    analysisQuery_options_expandRoles: Option<bool>,
-    analysisQuery_options_outputGroupEdges: Option<bool>,
-    analysisQuery_options_outputResourceEdges: Option<bool>,
-    analysisQuery_resourceSelector_fullResourceName: Option<&str>,
-    executionTimeout: Option<&str>,
-    savedAnalysisQuery: Option<&str>,
+    args: &CloudassetAnalyzeIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnalyzeIamPolicyResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1779,20 +1927,21 @@ pub fn cloudasset_analyze_iam_policy(
 > {
     let builder = cloudasset_analyze_iam_policy_builder(
         client,
-        scope,
-        analysisQuery_accessSelector_permissions,
-        analysisQuery_accessSelector_roles,
-        analysisQuery_conditionContext_accessTime,
-        analysisQuery_identitySelector_identity,
-        analysisQuery_options_analyzeServiceAccountImpersonation,
-        analysisQuery_options_expandGroups,
-        analysisQuery_options_expandResources,
-        analysisQuery_options_expandRoles,
-        analysisQuery_options_outputGroupEdges,
-        analysisQuery_options_outputResourceEdges,
-        analysisQuery_resourceSelector_fullResourceName,
-        executionTimeout,
-        savedAnalysisQuery,
+        &args.scope,
+        args.analysisQuery_accessSelector_permissions.as_deref(),
+        args.analysisQuery_accessSelector_roles.as_deref(),
+        args.analysisQuery_conditionContext_accessTime.as_deref(),
+        args.analysisQuery_identitySelector_identity.as_deref(),
+        args.analysisQuery_options_analyzeServiceAccountImpersonation,
+        args.analysisQuery_options_expandGroups,
+        args.analysisQuery_options_expandResources,
+        args.analysisQuery_options_expandRoles,
+        args.analysisQuery_options_outputGroupEdges,
+        args.analysisQuery_options_outputResourceEdges,
+        args.analysisQuery_resourceSelector_fullResourceName
+            .as_deref(),
+        args.executionTimeout.as_deref(),
+        args.savedAnalysisQuery.as_deref(),
     )?;
     cloudasset_analyze_iam_policy_execute(builder)
 }
@@ -1890,6 +2039,15 @@ pub fn cloudasset_analyze_iam_policy_longrunning_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_analyze_iam_policy_longrunning`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetAnalyzeIamPolicyLongrunningArgs {
+    /// Path parameter: scope
+    pub scope: String,
+    /// Request body.
+    pub body: AnalyzeIamPolicyLongrunningRequest,
+}
+
 /// GET v1/{v1Id}/{v1Id1}:analyzeIamPolicyLongrunning
 /// Analyzes IAM policies asynchronously to answer which identities have what accesses on which resources, and writes the analysis results to a Google Cloud Storage or a BigQuery destination. For Cloud Storage destination, the output format is the JSON format that represents a AnalyzeIamPolicyResponse. This method implements the google.longrunning.Operation, which allows you to track the operation status. We recommend intervals of at least 2 seconds with exponential backoff retry to poll the operation result. The metadata contains the metadata for the long-running operation.
 ///
@@ -1902,13 +2060,13 @@ pub fn cloudasset_analyze_iam_policy_longrunning_execute(
 
 pub fn cloudasset_analyze_iam_policy_longrunning(
     client: &SimpleHttpClient,
-    scope: &str,
-    body: &AnalyzeIamPolicyLongrunningRequest,
+    args: &CloudassetAnalyzeIamPolicyLongrunningArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudasset_analyze_iam_policy_longrunning_builder(client, scope, body)?;
+    let builder =
+        cloudasset_analyze_iam_policy_longrunning_builder(client, &args.scope, &args.body)?;
     cloudasset_analyze_iam_policy_longrunning_execute(builder)
 }
 
@@ -2020,6 +2178,17 @@ pub fn cloudasset_analyze_move_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_analyze_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetAnalyzeMoveArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: destinationParent
+    pub destinationParent: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/{v1Id}/{v1Id1}:analyzeMove
 /// Analyze moving a resource to a specified destination without kicking off the actual move. The analysis is best effort depending on the user's permissions of viewing different hierarchical policies and configurations. The policies and configuration are subject to change before the actual resource migration takes place.
 ///
@@ -2032,16 +2201,19 @@ pub fn cloudasset_analyze_move_execute(
 
 pub fn cloudasset_analyze_move(
     client: &SimpleHttpClient,
-    resource: &str,
-    destinationParent: Option<&str>,
-    view: Option<&str>,
+    args: &CloudassetAnalyzeMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnalyzeMoveResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudasset_analyze_move_builder(client, resource, destinationParent, view)?;
+    let builder = cloudasset_analyze_move_builder(
+        client,
+        &args.resource,
+        args.destinationParent.as_deref(),
+        args.view.as_deref(),
+    )?;
     cloudasset_analyze_move_execute(builder)
 }
 
@@ -2163,6 +2335,21 @@ pub fn cloudasset_analyze_org_policies_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_analyze_org_policies`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetAnalyzeOrgPoliciesArgs {
+    /// Path parameter: scope
+    pub scope: String,
+    /// Query parameter: constraint
+    pub constraint: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/{v1Id}/{v1Id1}:analyzeOrgPolicies
 /// Analyzes organization policies under a scope.
 ///
@@ -2175,11 +2362,7 @@ pub fn cloudasset_analyze_org_policies_execute(
 
 pub fn cloudasset_analyze_org_policies(
     client: &SimpleHttpClient,
-    scope: &str,
-    constraint: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudassetAnalyzeOrgPoliciesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AnalyzeOrgPoliciesResponse>, ApiError>,
@@ -2189,7 +2372,12 @@ pub fn cloudasset_analyze_org_policies(
     ApiError,
 > {
     let builder = cloudasset_analyze_org_policies_builder(
-        client, scope, constraint, filter, pageSize, pageToken,
+        client,
+        &args.scope,
+        args.constraint.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudasset_analyze_org_policies_execute(builder)
 }
@@ -2312,6 +2500,21 @@ pub fn cloudasset_analyze_org_policy_governed_assets_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_analyze_org_policy_governed_assets`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetAnalyzeOrgPolicyGovernedAssetsArgs {
+    /// Path parameter: scope
+    pub scope: String,
+    /// Query parameter: constraint
+    pub constraint: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/{v1Id}/{v1Id1}:analyzeOrgPolicyGovernedAssets
 /// Analyzes organization policies governed assets (Google Cloud resources or policies) under a scope. This RPC supports custom constraints and the following canned constraints: * `constraints/ainotebooks`.`accessMode` * `constraints/ainotebooks`.`disableFileDownloads` * `constraints/ainotebooks`.`disableRootAccess` * `constraints/ainotebooks`.`disableTerminal` * `constraints/ainotebooks`.`environmentOptions` * `constraints/ainotebooks`.`requireAutoUpgradeSchedule` * `constraints/ainotebooks`.`restrictVpcNetworks` * `constraints/compute`.`disableGuestAttributesAccess` * `constraints/compute`.`disableInstanceDataAccessApis` * `constraints/compute`.`disableNestedVirtualization` * `constraints/compute`.`disableSerialPortAccess` * `constraints/compute`.`disableSerialPortLogging` * `constraints/compute`.`disableVpcExternalIpv6` * `constraints/compute`.`requireOsLogin` * `constraints/compute`.`requireShieldedVm` * `constraints/compute`.`restrictLoadBalancerCreationForTypes` * `constraints/compute`.`restrictProtocolForwardingCreationForTypes` * `constraints/compute`.`restrictXpnProjectLienRemoval` * `constraints/compute`.`setNewProjectDefaultToZonalDNSOnly` * `constraints/compute`.`skipDefaultNetworkCreation` * `constraints/compute`.`trustedImageProjects` * `constraints/compute`.`vmCanIpForward` * `constraints/compute`.`vmExternalIpAccess` * `constraints/gcp`.`detailedAuditLoggingMode` * `constraints/gcp`.`resourceLocations` * `constraints/iam`.`allowedPolicyMemberDomains` * `constraints/iam`.`automaticIamGrantsForDefaultServiceAccounts` * `constraints/iam`.`disableServiceAccountCreation` * `constraints/iam`.`disableServiceAccountKeyCreation` * `constraints/iam`.`disableServiceAccountKeyUpload` * `constraints/iam`.`restrictCrossProjectServiceAccountLienRemoval` * `constraints/iam`.`serviceAccountKeyExpiryHours` * `constraints/resourcemanager`.`accessBoundaries` * `constraints/resourcemanager`.`allowedExportDestinations` * `constraints/sql`.`restrictAuthorizedNetworks` * `constraints/sql`.`restrictNoncompliantDiagnosticDataAccess` * `constraints/sql`.`restrictNoncompliantResourceCreation` * `constraints/sql`.`restrictPublicIp` * `constraints/storage`.`publicAccessPrevention` * `constraints/storage`.`restrictAuthTypes` * `constraints/storage`.`uniformBucketLevelAccess` This RPC only returns either resources of types [supported by search APIs](<https://cloud.google.`com/asset-inventory/docs/supported-asset-types`>) or IAM policies.
 ///
@@ -2324,11 +2527,7 @@ pub fn cloudasset_analyze_org_policy_governed_assets_execute(
 
 pub fn cloudasset_analyze_org_policy_governed_assets(
     client: &SimpleHttpClient,
-    scope: &str,
-    constraint: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudassetAnalyzeOrgPolicyGovernedAssetsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AnalyzeOrgPolicyGovernedAssetsResponse>, ApiError>,
@@ -2338,7 +2537,12 @@ pub fn cloudasset_analyze_org_policy_governed_assets(
     ApiError,
 > {
     let builder = cloudasset_analyze_org_policy_governed_assets_builder(
-        client, scope, constraint, filter, pageSize, pageToken,
+        client,
+        &args.scope,
+        args.constraint.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudasset_analyze_org_policy_governed_assets_execute(builder)
 }
@@ -2462,6 +2666,21 @@ pub fn cloudasset_analyze_org_policy_governed_containers_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_analyze_org_policy_governed_containers`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetAnalyzeOrgPolicyGovernedContainersArgs {
+    /// Path parameter: scope
+    pub scope: String,
+    /// Query parameter: constraint
+    pub constraint: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/{v1Id}/{v1Id1}:analyzeOrgPolicyGovernedContainers
 /// Analyzes organization policies governed containers (projects, folders or organization) under a scope.
 ///
@@ -2474,11 +2693,7 @@ pub fn cloudasset_analyze_org_policy_governed_containers_execute(
 
 pub fn cloudasset_analyze_org_policy_governed_containers(
     client: &SimpleHttpClient,
-    scope: &str,
-    constraint: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudassetAnalyzeOrgPolicyGovernedContainersArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AnalyzeOrgPolicyGovernedContainersResponse>, ApiError>,
@@ -2488,7 +2703,12 @@ pub fn cloudasset_analyze_org_policy_governed_containers(
     ApiError,
 > {
     let builder = cloudasset_analyze_org_policy_governed_containers_builder(
-        client, scope, constraint, filter, pageSize, pageToken,
+        client,
+        &args.scope,
+        args.constraint.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudasset_analyze_org_policy_governed_containers_execute(builder)
 }
@@ -2615,6 +2835,23 @@ pub fn cloudasset_batch_get_assets_history_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_batch_get_assets_history`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetBatchGetAssetsHistoryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: assetNames
+    pub assetNames: Option<String>,
+    /// Query parameter: contentType
+    pub contentType: Option<String>,
+    /// Query parameter: readTimeWindow_endTime
+    pub readTimeWindow_endTime: Option<String>,
+    /// Query parameter: readTimeWindow_startTime
+    pub readTimeWindow_startTime: Option<String>,
+    /// Query parameter: relationshipTypes
+    pub relationshipTypes: Option<String>,
+}
+
 /// GET v1/{v1Id}/{v1Id1}:batchGetAssetsHistory
 /// Batch gets the update history of assets that overlap a time window. For IAM_POLICY content, this API outputs history when the asset and its attached IAM POLICY both exist. This can create gaps in the output history. Otherwise, this API outputs history with asset in both non-delete or deleted status. If a specified asset does not exist, this API returns an INVALID_ARGUMENT error.
 ///
@@ -2627,12 +2864,7 @@ pub fn cloudasset_batch_get_assets_history_execute(
 
 pub fn cloudasset_batch_get_assets_history(
     client: &SimpleHttpClient,
-    parent: &str,
-    assetNames: Option<&str>,
-    contentType: Option<&str>,
-    readTimeWindow_endTime: Option<&str>,
-    readTimeWindow_startTime: Option<&str>,
-    relationshipTypes: Option<&str>,
+    args: &CloudassetBatchGetAssetsHistoryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchGetAssetsHistoryResponse>, ApiError>,
@@ -2643,12 +2875,12 @@ pub fn cloudasset_batch_get_assets_history(
 > {
     let builder = cloudasset_batch_get_assets_history_builder(
         client,
-        parent,
-        assetNames,
-        contentType,
-        readTimeWindow_endTime,
-        readTimeWindow_startTime,
-        relationshipTypes,
+        &args.parent,
+        args.assetNames.as_deref(),
+        args.contentType.as_deref(),
+        args.readTimeWindow_endTime.as_deref(),
+        args.readTimeWindow_startTime.as_deref(),
+        args.relationshipTypes.as_deref(),
     )?;
     cloudasset_batch_get_assets_history_execute(builder)
 }
@@ -2746,6 +2978,15 @@ pub fn cloudasset_export_assets_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_export_assets`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetExportAssetsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ExportAssetsRequest,
+}
+
 /// GET v1/{v1Id}/{v1Id1}:exportAssets
 /// Exports assets with time and resource types to a given Cloud Storage `location/BigQuery` table. For Cloud Storage location destinations, the output format is newline-delimited JSON. Each line represents a google.cloud.asset.v1.Asset in the JSON format; for BigQuery table destinations, the output table stores the fields in asset Protobuf as columns. This API implements the google.longrunning.Operation API, which allows you to keep track of the export. We recommend intervals of at least 2 seconds with exponential retry to poll the export operation result. For regular-size resource parent, the export operation usually finishes within 5 minutes.
 ///
@@ -2758,13 +2999,12 @@ pub fn cloudasset_export_assets_execute(
 
 pub fn cloudasset_export_assets(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ExportAssetsRequest,
+    args: &CloudassetExportAssetsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudasset_export_assets_builder(client, parent, body)?;
+    let builder = cloudasset_export_assets_builder(client, &args.parent, &args.body)?;
     cloudasset_export_assets_execute(builder)
 }
 
@@ -2863,6 +3103,15 @@ pub fn cloudasset_query_assets_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_query_assets`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetQueryAssetsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: QueryAssetsRequest,
+}
+
 /// GET v1/{v1Id}/{v1Id1}:queryAssets
 /// Issue a job that queries assets using a SQL statement compatible with [BigQuery SQL](<https://cloud.google.`com/bigquery/docs/introduction-sql`>). If the query execution finishes within timeout and there's no pagination, the full query results will be returned in the QueryAssetsResponse. Otherwise, full query results can be obtained by issuing extra requests with the job_reference from the a previous QueryAssets call. Note, the query result has approximately 10 GB limitation enforced by [BigQuery](<https://cloud.google.`com/bigquery/docs/best-practices-performance-output`>). Queries return larger results will result in errors.
 ///
@@ -2875,15 +3124,14 @@ pub fn cloudasset_query_assets_execute(
 
 pub fn cloudasset_query_assets(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &QueryAssetsRequest,
+    args: &CloudassetQueryAssetsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryAssetsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudasset_query_assets_builder(client, parent, body)?;
+    let builder = cloudasset_query_assets_builder(client, &args.parent, &args.body)?;
     cloudasset_query_assets_execute(builder)
 }
 
@@ -3009,6 +3257,23 @@ pub fn cloudasset_search_all_iam_policies_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_search_all_iam_policies`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetSearchAllIamPoliciesArgs {
+    /// Path parameter: scope
+    pub scope: String,
+    /// Query parameter: assetTypes
+    pub assetTypes: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v1/{v1Id}/{v1Id1}:searchAllIamPolicies
 /// Searches all IAM policies within the specified scope, such as a project, folder, or organization. The caller must be granted the cloudasset.assets.`searchAllIamPolicies` permission on the desired scope, otherwise the request will be rejected.
 ///
@@ -3021,12 +3286,7 @@ pub fn cloudasset_search_all_iam_policies_execute(
 
 pub fn cloudasset_search_all_iam_policies(
     client: &SimpleHttpClient,
-    scope: &str,
-    assetTypes: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &CloudassetSearchAllIamPoliciesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchAllIamPoliciesResponse>, ApiError>,
@@ -3036,7 +3296,13 @@ pub fn cloudasset_search_all_iam_policies(
     ApiError,
 > {
     let builder = cloudasset_search_all_iam_policies_builder(
-        client, scope, assetTypes, orderBy, pageSize, pageToken, query,
+        client,
+        &args.scope,
+        args.assetTypes.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
     )?;
     cloudasset_search_all_iam_policies_execute(builder)
 }
@@ -3167,6 +3433,25 @@ pub fn cloudasset_search_all_resources_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudasset_search_all_resources`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudassetSearchAllResourcesArgs {
+    /// Path parameter: scope
+    pub scope: String,
+    /// Query parameter: assetTypes
+    pub assetTypes: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: readMask
+    pub readMask: Option<String>,
+}
+
 /// GET v1/{v1Id}/{v1Id1}:searchAllResources
 /// Searches all Google Cloud resources within the specified scope, such as a project, folder, or organization. The caller must be granted the cloudasset.assets.`searchAllResources` permission on the desired scope, otherwise the request will be rejected.
 ///
@@ -3179,13 +3464,7 @@ pub fn cloudasset_search_all_resources_execute(
 
 pub fn cloudasset_search_all_resources(
     client: &SimpleHttpClient,
-    scope: &str,
-    assetTypes: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
-    readMask: Option<&str>,
+    args: &CloudassetSearchAllResourcesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchAllResourcesResponse>, ApiError>,
@@ -3195,7 +3474,14 @@ pub fn cloudasset_search_all_resources(
     ApiError,
 > {
     let builder = cloudasset_search_all_resources_builder(
-        client, scope, assetTypes, orderBy, pageSize, pageToken, query, readMask,
+        client,
+        &args.scope,
+        args.assetTypes.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
+        args.readMask.as_deref(),
     )?;
     cloudasset_search_all_resources_execute(builder)
 }

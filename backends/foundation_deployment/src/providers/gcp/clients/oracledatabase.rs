@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn oracledatabase_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn oracledatabase_projects_locations_get_execute(
 
 pub fn oracledatabase_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OracledatabaseProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = oracledatabase_projects_locations_get_builder(client, name)?;
+    let builder = oracledatabase_projects_locations_get_builder(client, &args.name)?;
     oracledatabase_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn oracledatabase_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn oracledatabase_projects_locations_list_execute(
 
 pub fn oracledatabase_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn oracledatabase_projects_locations_list(
 > {
     let builder = oracledatabase_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_list_execute(builder)
 }
@@ -391,6 +411,19 @@ pub fn oracledatabase_projects_locations_autonomous_database_backups_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_autonomous_database_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabaseBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabaseBackups
 /// Lists the long-term and automatic backups of an Autonomous Database.
 ///
@@ -403,10 +436,7 @@ pub fn oracledatabase_projects_locations_autonomous_database_backups_list_execut
 
 pub fn oracledatabase_projects_locations_autonomous_database_backups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabaseBackupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAutonomousDatabaseBackupsResponse>, ApiError>,
@@ -416,7 +446,11 @@ pub fn oracledatabase_projects_locations_autonomous_database_backups_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_autonomous_database_backups_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_autonomous_database_backups_list_execute(builder)
 }
@@ -536,6 +570,19 @@ pub fn oracledatabase_projects_locations_autonomous_database_character_sets_list
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_autonomous_database_character_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabaseCharacterSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabaseCharacterSets
 /// Lists Autonomous Database Character Sets in a given project and location.
 ///
@@ -548,10 +595,7 @@ pub fn oracledatabase_projects_locations_autonomous_database_character_sets_list
 
 pub fn oracledatabase_projects_locations_autonomous_database_character_sets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabaseCharacterSetsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAutonomousDatabaseCharacterSetsResponse>, ApiError>,
@@ -562,7 +606,11 @@ pub fn oracledatabase_projects_locations_autonomous_database_character_sets_list
 > {
     let builder =
         oracledatabase_projects_locations_autonomous_database_character_sets_list_builder(
-            client, parent, filter, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     oracledatabase_projects_locations_autonomous_database_character_sets_list_execute(builder)
 }
@@ -676,6 +724,19 @@ pub fn oracledatabase_projects_locations_autonomous_databases_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: autonomousDatabaseId
+    pub autonomousDatabaseId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: AutonomousDatabase,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases
 /// Creates a new Autonomous Database in a given project and location.
 ///
@@ -688,20 +749,17 @@ pub fn oracledatabase_projects_locations_autonomous_databases_create_execute(
 
 pub fn oracledatabase_projects_locations_autonomous_databases_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    autonomousDatabaseId: Option<&str>,
-    requestId: Option<&str>,
-    body: &AutonomousDatabase,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_autonomous_databases_create_builder(
         client,
-        parent,
-        autonomousDatabaseId,
-        requestId,
-        body,
+        &args.parent,
+        args.autonomousDatabaseId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     oracledatabase_projects_locations_autonomous_databases_create_execute(builder)
 }
@@ -808,6 +866,15 @@ pub fn oracledatabase_projects_locations_autonomous_databases_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
 /// Deletes a single Autonomous Database.
 ///
@@ -820,14 +887,15 @@ pub fn oracledatabase_projects_locations_autonomous_databases_delete_execute(
 
 pub fn oracledatabase_projects_locations_autonomous_databases_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_autonomous_databases_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     oracledatabase_projects_locations_autonomous_databases_delete_execute(builder)
 }
@@ -925,6 +993,15 @@ pub fn oracledatabase_projects_locations_autonomous_databases_failover_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_failover`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesFailoverArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: FailoverAutonomousDatabaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:failover
 /// Initiates a failover to target autonomous database from the associated primary database.
 ///
@@ -937,14 +1014,13 @@ pub fn oracledatabase_projects_locations_autonomous_databases_failover_execute(
 
 pub fn oracledatabase_projects_locations_autonomous_databases_failover(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &FailoverAutonomousDatabaseRequest,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesFailoverArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_autonomous_databases_failover_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     oracledatabase_projects_locations_autonomous_databases_failover_execute(builder)
 }
@@ -1046,6 +1122,15 @@ pub fn oracledatabase_projects_locations_autonomous_databases_generate_wallet_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_generate_wallet`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesGenerateWalletArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GenerateAutonomousDatabaseWalletRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:generateWallet
 /// Generates a wallet for an Autonomous Database.
 ///
@@ -1058,8 +1143,7 @@ pub fn oracledatabase_projects_locations_autonomous_databases_generate_wallet_ex
 
 pub fn oracledatabase_projects_locations_autonomous_databases_generate_wallet(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GenerateAutonomousDatabaseWalletRequest,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesGenerateWalletArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateAutonomousDatabaseWalletResponse>, ApiError>,
@@ -1069,7 +1153,7 @@ pub fn oracledatabase_projects_locations_autonomous_databases_generate_wallet(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_autonomous_databases_generate_wallet_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     oracledatabase_projects_locations_autonomous_databases_generate_wallet_execute(builder)
 }
@@ -1166,6 +1250,13 @@ pub fn oracledatabase_projects_locations_autonomous_databases_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
 /// Gets the details of a single Autonomous Database.
 ///
@@ -1178,14 +1269,15 @@ pub fn oracledatabase_projects_locations_autonomous_databases_get_execute(
 
 pub fn oracledatabase_projects_locations_autonomous_databases_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutonomousDatabase>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = oracledatabase_projects_locations_autonomous_databases_get_builder(client, name)?;
+    let builder =
+        oracledatabase_projects_locations_autonomous_databases_get_builder(client, &args.name)?;
     oracledatabase_projects_locations_autonomous_databases_get_execute(builder)
 }
 
@@ -1307,6 +1399,21 @@ pub fn oracledatabase_projects_locations_autonomous_databases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases
 /// Lists the Autonomous Databases in a given project and location.
 ///
@@ -1319,11 +1426,7 @@ pub fn oracledatabase_projects_locations_autonomous_databases_list_execute(
 
 pub fn oracledatabase_projects_locations_autonomous_databases_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAutonomousDatabasesResponse>, ApiError>,
@@ -1333,7 +1436,12 @@ pub fn oracledatabase_projects_locations_autonomous_databases_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_autonomous_databases_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_autonomous_databases_list_execute(builder)
 }
@@ -1447,6 +1555,19 @@ pub fn oracledatabase_projects_locations_autonomous_databases_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AutonomousDatabase,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}
 /// Updates the parameters of a single Autonomous Database.
 ///
@@ -1459,16 +1580,17 @@ pub fn oracledatabase_projects_locations_autonomous_databases_patch_execute(
 
 pub fn oracledatabase_projects_locations_autonomous_databases_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &AutonomousDatabase,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_autonomous_databases_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     oracledatabase_projects_locations_autonomous_databases_patch_execute(builder)
 }
@@ -1566,6 +1688,15 @@ pub fn oracledatabase_projects_locations_autonomous_databases_restart_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_restart`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesRestartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestartAutonomousDatabaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:restart
 /// Restarts an Autonomous Database.
 ///
@@ -1578,14 +1709,14 @@ pub fn oracledatabase_projects_locations_autonomous_databases_restart_execute(
 
 pub fn oracledatabase_projects_locations_autonomous_databases_restart(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestartAutonomousDatabaseRequest,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesRestartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        oracledatabase_projects_locations_autonomous_databases_restart_builder(client, name, body)?;
+    let builder = oracledatabase_projects_locations_autonomous_databases_restart_builder(
+        client, &args.name, &args.body,
+    )?;
     oracledatabase_projects_locations_autonomous_databases_restart_execute(builder)
 }
 
@@ -1682,6 +1813,15 @@ pub fn oracledatabase_projects_locations_autonomous_databases_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestoreAutonomousDatabaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:restore
 /// Restores a single Autonomous Database.
 ///
@@ -1694,14 +1834,14 @@ pub fn oracledatabase_projects_locations_autonomous_databases_restore_execute(
 
 pub fn oracledatabase_projects_locations_autonomous_databases_restore(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestoreAutonomousDatabaseRequest,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        oracledatabase_projects_locations_autonomous_databases_restore_builder(client, name, body)?;
+    let builder = oracledatabase_projects_locations_autonomous_databases_restore_builder(
+        client, &args.name, &args.body,
+    )?;
     oracledatabase_projects_locations_autonomous_databases_restore_execute(builder)
 }
 
@@ -1798,6 +1938,15 @@ pub fn oracledatabase_projects_locations_autonomous_databases_start_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesStartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StartAutonomousDatabaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:start
 /// Starts an Autonomous Database.
 ///
@@ -1810,14 +1959,14 @@ pub fn oracledatabase_projects_locations_autonomous_databases_start_execute(
 
 pub fn oracledatabase_projects_locations_autonomous_databases_start(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StartAutonomousDatabaseRequest,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesStartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        oracledatabase_projects_locations_autonomous_databases_start_builder(client, name, body)?;
+    let builder = oracledatabase_projects_locations_autonomous_databases_start_builder(
+        client, &args.name, &args.body,
+    )?;
     oracledatabase_projects_locations_autonomous_databases_start_execute(builder)
 }
 
@@ -1914,6 +2063,15 @@ pub fn oracledatabase_projects_locations_autonomous_databases_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesStopArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StopAutonomousDatabaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:stop
 /// Stops an Autonomous Database.
 ///
@@ -1926,14 +2084,14 @@ pub fn oracledatabase_projects_locations_autonomous_databases_stop_execute(
 
 pub fn oracledatabase_projects_locations_autonomous_databases_stop(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StopAutonomousDatabaseRequest,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        oracledatabase_projects_locations_autonomous_databases_stop_builder(client, name, body)?;
+    let builder = oracledatabase_projects_locations_autonomous_databases_stop_builder(
+        client, &args.name, &args.body,
+    )?;
     oracledatabase_projects_locations_autonomous_databases_stop_execute(builder)
 }
 
@@ -2030,6 +2188,15 @@ pub fn oracledatabase_projects_locations_autonomous_databases_switchover_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_autonomous_databases_switchover`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDatabasesSwitchoverArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SwitchoverAutonomousDatabaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDatabases/{autonomousDatabasesId}:switchover
 /// Initiates a switchover of specified autonomous database to the associated peer database.
 ///
@@ -2042,14 +2209,13 @@ pub fn oracledatabase_projects_locations_autonomous_databases_switchover_execute
 
 pub fn oracledatabase_projects_locations_autonomous_databases_switchover(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SwitchoverAutonomousDatabaseRequest,
+    args: &OracledatabaseProjectsLocationsAutonomousDatabasesSwitchoverArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_autonomous_databases_switchover_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     oracledatabase_projects_locations_autonomous_databases_switchover_execute(builder)
 }
@@ -2164,6 +2330,17 @@ pub fn oracledatabase_projects_locations_autonomous_db_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_autonomous_db_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsAutonomousDbVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autonomousDbVersions
 /// Lists all the available Autonomous Database versions for a project and location.
 ///
@@ -2176,9 +2353,7 @@ pub fn oracledatabase_projects_locations_autonomous_db_versions_list_execute(
 
 pub fn oracledatabase_projects_locations_autonomous_db_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsAutonomousDbVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAutonomousDbVersionsResponse>, ApiError>,
@@ -2188,7 +2363,10 @@ pub fn oracledatabase_projects_locations_autonomous_db_versions_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_autonomous_db_versions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_autonomous_db_versions_list_execute(builder)
 }
@@ -2302,6 +2480,19 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_create_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_cloud_exadata_infrastructures_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudExadataInfrastructuresCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: cloudExadataInfrastructureId
+    pub cloudExadataInfrastructureId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: CloudExadataInfrastructure,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures
 /// Creates a new Exadata Infrastructure in a given project and location.
 ///
@@ -2314,20 +2505,17 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_create_ex
 
 pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    cloudExadataInfrastructureId: Option<&str>,
-    requestId: Option<&str>,
-    body: &CloudExadataInfrastructure,
+    args: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_cloud_exadata_infrastructures_create_builder(
         client,
-        parent,
-        cloudExadataInfrastructureId,
-        requestId,
-        body,
+        &args.parent,
+        args.cloudExadataInfrastructureId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     oracledatabase_projects_locations_cloud_exadata_infrastructures_create_execute(builder)
 }
@@ -2438,6 +2626,17 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_cloud_exadata_infrastructures_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudExadataInfrastructuresDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}
 /// Deletes a single Exadata Infrastructure.
 ///
@@ -2450,15 +2649,16 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_ex
 
 pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    requestId: Option<&str>,
+    args: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_builder(
-        client, name, force, requestId,
+        client,
+        &args.name,
+        args.force,
+        args.requestId.as_deref(),
     )?;
     oracledatabase_projects_locations_cloud_exadata_infrastructures_delete_execute(builder)
 }
@@ -2557,6 +2757,13 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_get_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_cloud_exadata_infrastructures_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudExadataInfrastructuresGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}
 /// Gets details of a single Exadata Infrastructure.
 ///
@@ -2569,7 +2776,7 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_get_execu
 
 pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CloudExadataInfrastructure>, ApiError>,
@@ -2578,8 +2785,9 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        oracledatabase_projects_locations_cloud_exadata_infrastructures_get_builder(client, name)?;
+    let builder = oracledatabase_projects_locations_cloud_exadata_infrastructures_get_builder(
+        client, &args.name,
+    )?;
     oracledatabase_projects_locations_cloud_exadata_infrastructures_get_execute(builder)
 }
 
@@ -2702,6 +2910,21 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_cloud_exadata_infrastructures_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudExadataInfrastructuresListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures
 /// Lists Exadata Infrastructures in a given project and location.
 ///
@@ -2714,11 +2937,7 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_list_exec
 
 pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCloudExadataInfrastructuresResponse>, ApiError>,
@@ -2728,7 +2947,12 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_cloud_exadata_infrastructures_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_cloud_exadata_infrastructures_list_execute(builder)
 }
@@ -2841,6 +3065,17 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_db_server
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudExadataInfrastructuresDbServersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudExadataInfrastructures/{cloudExadataInfrastructuresId}/dbServers
 /// Lists the database servers of an Exadata Infrastructure instance.
 ///
@@ -2853,9 +3088,7 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_db_server
 
 pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsCloudExadataInfrastructuresDbServersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDbServersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2864,7 +3097,10 @@ pub fn oracledatabase_projects_locations_cloud_exadata_infrastructures_db_server
 > {
     let builder =
         oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     oracledatabase_projects_locations_cloud_exadata_infrastructures_db_servers_list_execute(builder)
 }
@@ -2978,6 +3214,19 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_cloud_vm_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudVmClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: cloudVmClusterId
+    pub cloudVmClusterId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: CloudVmCluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters
 /// Creates a new VM Cluster in a given project and location.
 ///
@@ -2990,20 +3239,17 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_create_execute(
 
 pub fn oracledatabase_projects_locations_cloud_vm_clusters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    cloudVmClusterId: Option<&str>,
-    requestId: Option<&str>,
-    body: &CloudVmCluster,
+    args: &OracledatabaseProjectsLocationsCloudVmClustersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_cloud_vm_clusters_create_builder(
         client,
-        parent,
-        cloudVmClusterId,
-        requestId,
-        body,
+        &args.parent,
+        args.cloudVmClusterId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     oracledatabase_projects_locations_cloud_vm_clusters_create_execute(builder)
 }
@@ -3114,6 +3360,17 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_cloud_vm_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudVmClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}
 /// Deletes a single VM Cluster.
 ///
@@ -3126,15 +3383,16 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_delete_execute(
 
 pub fn oracledatabase_projects_locations_cloud_vm_clusters_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    requestId: Option<&str>,
+    args: &OracledatabaseProjectsLocationsCloudVmClustersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_cloud_vm_clusters_delete_builder(
-        client, name, force, requestId,
+        client,
+        &args.name,
+        args.force,
+        args.requestId.as_deref(),
     )?;
     oracledatabase_projects_locations_cloud_vm_clusters_delete_execute(builder)
 }
@@ -3231,6 +3489,13 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_cloud_vm_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudVmClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}
 /// Gets details of a single VM Cluster.
 ///
@@ -3243,14 +3508,15 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_get_execute(
 
 pub fn oracledatabase_projects_locations_cloud_vm_clusters_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OracledatabaseProjectsLocationsCloudVmClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CloudVmCluster>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = oracledatabase_projects_locations_cloud_vm_clusters_get_builder(client, name)?;
+    let builder =
+        oracledatabase_projects_locations_cloud_vm_clusters_get_builder(client, &args.name)?;
     oracledatabase_projects_locations_cloud_vm_clusters_get_execute(builder)
 }
 
@@ -3368,6 +3634,19 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_cloud_vm_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudVmClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters
 /// Lists the VM Clusters in a given project and location.
 ///
@@ -3380,10 +3659,7 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_list_execute(
 
 pub fn oracledatabase_projects_locations_cloud_vm_clusters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsCloudVmClustersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCloudVmClustersResponse>, ApiError>,
@@ -3393,7 +3669,11 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_cloud_vm_clusters_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_cloud_vm_clusters_list_execute(builder)
 }
@@ -3506,6 +3786,17 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsCloudVmClustersDbNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/cloudVmClusters/{cloudVmClustersId}/dbNodes
 /// Lists the database nodes of a VM Cluster.
 ///
@@ -3518,9 +3809,7 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_execute
 
 pub fn oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsCloudVmClustersDbNodesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDbNodesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3528,7 +3817,10 @@ pub fn oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_cloud_vm_clusters_db_nodes_list_execute(builder)
 }
@@ -3647,6 +3939,19 @@ pub fn oracledatabase_projects_locations_database_character_sets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_database_character_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDatabaseCharacterSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/databaseCharacterSets
 /// List DatabaseCharacterSets for the given project and location.
 ///
@@ -3659,10 +3964,7 @@ pub fn oracledatabase_projects_locations_database_character_sets_list_execute(
 
 pub fn oracledatabase_projects_locations_database_character_sets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsDatabaseCharacterSetsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDatabaseCharacterSetsResponse>, ApiError>,
@@ -3672,7 +3974,11 @@ pub fn oracledatabase_projects_locations_database_character_sets_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_database_character_sets_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_database_character_sets_list_execute(builder)
 }
@@ -3767,6 +4073,13 @@ pub fn oracledatabase_projects_locations_databases_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_databases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDatabasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/databases/{databasesId}
 /// Gets details of a single Database.
 ///
@@ -3779,12 +4092,12 @@ pub fn oracledatabase_projects_locations_databases_get_execute(
 
 pub fn oracledatabase_projects_locations_databases_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OracledatabaseProjectsLocationsDatabasesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Database>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = oracledatabase_projects_locations_databases_get_builder(client, name)?;
+    let builder = oracledatabase_projects_locations_databases_get_builder(client, &args.name)?;
     oracledatabase_projects_locations_databases_get_execute(builder)
 }
 
@@ -3900,6 +4213,19 @@ pub fn oracledatabase_projects_locations_databases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_databases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDatabasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/databases
 /// Lists all the Databases for the given project, location and DbSystem.
 ///
@@ -3912,10 +4238,7 @@ pub fn oracledatabase_projects_locations_databases_list_execute(
 
 pub fn oracledatabase_projects_locations_databases_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsDatabasesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDatabasesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3923,7 +4246,11 @@ pub fn oracledatabase_projects_locations_databases_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_databases_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_databases_list_execute(builder)
 }
@@ -4039,6 +4366,17 @@ pub fn oracledatabase_projects_locations_db_system_initial_storage_sizes_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_db_system_initial_storage_sizes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDbSystemInitialStorageSizesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystemInitialStorageSizes
 /// Lists all the DbSystemInitialStorageSizes for the given project and location.
 ///
@@ -4051,9 +4389,7 @@ pub fn oracledatabase_projects_locations_db_system_initial_storage_sizes_list_ex
 
 pub fn oracledatabase_projects_locations_db_system_initial_storage_sizes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsDbSystemInitialStorageSizesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDbSystemInitialStorageSizesResponse>, ApiError>,
@@ -4063,7 +4399,10 @@ pub fn oracledatabase_projects_locations_db_system_initial_storage_sizes_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_db_system_initial_storage_sizes_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_db_system_initial_storage_sizes_list_execute(builder)
 }
@@ -4182,6 +4521,19 @@ pub fn oracledatabase_projects_locations_db_system_shapes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_db_system_shapes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDbSystemShapesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystemShapes
 /// Lists the database system shapes available for the project and location.
 ///
@@ -4194,10 +4546,7 @@ pub fn oracledatabase_projects_locations_db_system_shapes_list_execute(
 
 pub fn oracledatabase_projects_locations_db_system_shapes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsDbSystemShapesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDbSystemShapesResponse>, ApiError>,
@@ -4207,7 +4556,11 @@ pub fn oracledatabase_projects_locations_db_system_shapes_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_db_system_shapes_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_db_system_shapes_list_execute(builder)
 }
@@ -4321,6 +4674,19 @@ pub fn oracledatabase_projects_locations_db_systems_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_db_systems_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDbSystemsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dbSystemId
+    pub dbSystemId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: DbSystem,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystems
 /// Creates a new DbSystem in a given project and location.
 ///
@@ -4333,16 +4699,17 @@ pub fn oracledatabase_projects_locations_db_systems_create_execute(
 
 pub fn oracledatabase_projects_locations_db_systems_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dbSystemId: Option<&str>,
-    requestId: Option<&str>,
-    body: &DbSystem,
+    args: &OracledatabaseProjectsLocationsDbSystemsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_db_systems_create_builder(
-        client, parent, dbSystemId, requestId, body,
+        client,
+        &args.parent,
+        args.dbSystemId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     oracledatabase_projects_locations_db_systems_create_execute(builder)
 }
@@ -4449,6 +4816,15 @@ pub fn oracledatabase_projects_locations_db_systems_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_db_systems_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDbSystemsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystems/{dbSystemsId}
 /// Deletes a single DbSystem.
 ///
@@ -4461,14 +4837,16 @@ pub fn oracledatabase_projects_locations_db_systems_delete_execute(
 
 pub fn oracledatabase_projects_locations_db_systems_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &OracledatabaseProjectsLocationsDbSystemsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        oracledatabase_projects_locations_db_systems_delete_builder(client, name, requestId)?;
+    let builder = oracledatabase_projects_locations_db_systems_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     oracledatabase_projects_locations_db_systems_delete_execute(builder)
 }
 
@@ -4562,6 +4940,13 @@ pub fn oracledatabase_projects_locations_db_systems_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_db_systems_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDbSystemsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystems/{dbSystemsId}
 /// Gets details of a single DbSystem.
 ///
@@ -4574,12 +4959,12 @@ pub fn oracledatabase_projects_locations_db_systems_get_execute(
 
 pub fn oracledatabase_projects_locations_db_systems_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OracledatabaseProjectsLocationsDbSystemsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DbSystem>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = oracledatabase_projects_locations_db_systems_get_builder(client, name)?;
+    let builder = oracledatabase_projects_locations_db_systems_get_builder(client, &args.name)?;
     oracledatabase_projects_locations_db_systems_get_execute(builder)
 }
 
@@ -4699,6 +5084,21 @@ pub fn oracledatabase_projects_locations_db_systems_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_db_systems_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDbSystemsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dbSystems
 /// Lists all the DbSystems for the given project and location.
 ///
@@ -4711,11 +5111,7 @@ pub fn oracledatabase_projects_locations_db_systems_list_execute(
 
 pub fn oracledatabase_projects_locations_db_systems_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsDbSystemsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDbSystemsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4723,7 +5119,12 @@ pub fn oracledatabase_projects_locations_db_systems_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_db_systems_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_db_systems_list_execute(builder)
 }
@@ -4840,6 +5241,19 @@ pub fn oracledatabase_projects_locations_db_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_db_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsDbVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dbVersions
 /// List DbVersions for the given project and location.
 ///
@@ -4852,10 +5266,7 @@ pub fn oracledatabase_projects_locations_db_versions_list_execute(
 
 pub fn oracledatabase_projects_locations_db_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsDbVersionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDbVersionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4863,7 +5274,11 @@ pub fn oracledatabase_projects_locations_db_versions_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_db_versions_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_db_versions_list_execute(builder)
 }
@@ -4976,6 +5391,17 @@ pub fn oracledatabase_projects_locations_entitlements_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_entitlements_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsEntitlementsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/entitlements
 /// Lists the entitlements in a given project.
 ///
@@ -4988,9 +5414,7 @@ pub fn oracledatabase_projects_locations_entitlements_list_execute(
 
 pub fn oracledatabase_projects_locations_entitlements_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsEntitlementsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListEntitlementsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4998,7 +5422,10 @@ pub fn oracledatabase_projects_locations_entitlements_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_entitlements_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_entitlements_list_execute(builder)
 }
@@ -5112,6 +5539,19 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_exadb_vm_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExadbVmClustersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: exadbVmClusterId
+    pub exadbVmClusterId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: ExadbVmCluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters
 /// Creates a new Exadb (Exascale) VM Cluster resource.
 ///
@@ -5124,20 +5564,17 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_create_execute(
 
 pub fn oracledatabase_projects_locations_exadb_vm_clusters_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    exadbVmClusterId: Option<&str>,
-    requestId: Option<&str>,
-    body: &ExadbVmCluster,
+    args: &OracledatabaseProjectsLocationsExadbVmClustersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_exadb_vm_clusters_create_builder(
         client,
-        parent,
-        exadbVmClusterId,
-        requestId,
-        body,
+        &args.parent,
+        args.exadbVmClusterId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     oracledatabase_projects_locations_exadb_vm_clusters_create_execute(builder)
 }
@@ -5244,6 +5681,15 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_exadb_vm_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExadbVmClustersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
 /// Deletes a single Exadb (Exascale) VM Cluster.
 ///
@@ -5256,14 +5702,15 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_delete_execute(
 
 pub fn oracledatabase_projects_locations_exadb_vm_clusters_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &OracledatabaseProjectsLocationsExadbVmClustersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_exadb_vm_clusters_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     oracledatabase_projects_locations_exadb_vm_clusters_delete_execute(builder)
 }
@@ -5360,6 +5807,13 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_exadb_vm_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExadbVmClustersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
 /// Gets details of a single Exadb (Exascale) VM Cluster.
 ///
@@ -5372,14 +5826,15 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_get_execute(
 
 pub fn oracledatabase_projects_locations_exadb_vm_clusters_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OracledatabaseProjectsLocationsExadbVmClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExadbVmCluster>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = oracledatabase_projects_locations_exadb_vm_clusters_get_builder(client, name)?;
+    let builder =
+        oracledatabase_projects_locations_exadb_vm_clusters_get_builder(client, &args.name)?;
     oracledatabase_projects_locations_exadb_vm_clusters_get_execute(builder)
 }
 
@@ -5501,6 +5956,21 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_exadb_vm_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExadbVmClustersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters
 /// Lists all the Exadb (Exascale) VM Clusters for the given project and location.
 ///
@@ -5513,11 +5983,7 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_list_execute(
 
 pub fn oracledatabase_projects_locations_exadb_vm_clusters_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsExadbVmClustersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListExadbVmClustersResponse>, ApiError>,
@@ -5527,7 +5993,12 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_exadb_vm_clusters_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_exadb_vm_clusters_list_execute(builder)
 }
@@ -5641,6 +6112,19 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_exadb_vm_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExadbVmClustersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ExadbVmCluster,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}
 /// Updates a single Exadb (Exascale) VM Cluster. To add virtual machines to existing exadb vm cluster, only pass the node count.
 ///
@@ -5653,16 +6137,17 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_patch_execute(
 
 pub fn oracledatabase_projects_locations_exadb_vm_clusters_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &ExadbVmCluster,
+    args: &OracledatabaseProjectsLocationsExadbVmClustersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_exadb_vm_clusters_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     oracledatabase_projects_locations_exadb_vm_clusters_patch_execute(builder)
 }
@@ -5760,6 +6245,15 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machin
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExadbVmClustersRemoveVirtualMachineArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RemoveVirtualMachineExadbVmClusterRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}:removeVirtualMachine
 /// Removes virtual machines from an existing exadb vm cluster.
 ///
@@ -5772,15 +6266,14 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machin
 
 pub fn oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RemoveVirtualMachineExadbVmClusterRequest,
+    args: &OracledatabaseProjectsLocationsExadbVmClustersRemoveVirtualMachineArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     oracledatabase_projects_locations_exadb_vm_clusters_remove_virtual_machine_execute(builder)
 }
@@ -5893,6 +6386,17 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExadbVmClustersDbNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/exadbVmClusters/{exadbVmClustersId}/dbNodes
 /// Lists the database nodes of a VM Cluster.
 ///
@@ -5905,9 +6409,7 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_execute
 
 pub fn oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsExadbVmClustersDbNodesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDbNodesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5915,7 +6417,10 @@ pub fn oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_exadb_vm_clusters_db_nodes_list_execute(builder)
 }
@@ -6029,6 +6534,19 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_exascale_db_storage_vaults_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExascaleDbStorageVaultsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: exascaleDbStorageVaultId
+    pub exascaleDbStorageVaultId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: ExascaleDbStorageVault,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults
 /// Creates a new ExascaleDB Storage Vault resource.
 ///
@@ -6041,20 +6559,17 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_create_execu
 
 pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    exascaleDbStorageVaultId: Option<&str>,
-    requestId: Option<&str>,
-    body: &ExascaleDbStorageVault,
+    args: &OracledatabaseProjectsLocationsExascaleDbStorageVaultsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_exascale_db_storage_vaults_create_builder(
         client,
-        parent,
-        exascaleDbStorageVaultId,
-        requestId,
-        body,
+        &args.parent,
+        args.exascaleDbStorageVaultId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     oracledatabase_projects_locations_exascale_db_storage_vaults_create_execute(builder)
 }
@@ -6161,6 +6676,15 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_exascale_db_storage_vaults_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExascaleDbStorageVaultsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults/{exascaleDbStorageVaultsId}
 /// Deletes a single ExascaleDB Storage Vault.
 ///
@@ -6173,14 +6697,15 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_delete_execu
 
 pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &OracledatabaseProjectsLocationsExascaleDbStorageVaultsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_exascale_db_storage_vaults_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     oracledatabase_projects_locations_exascale_db_storage_vaults_delete_execute(builder)
 }
@@ -6277,6 +6802,13 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_exascale_db_storage_vaults_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExascaleDbStorageVaultsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults/{exascaleDbStorageVaultsId}
 /// Gets details of a single ExascaleDB Storage Vault.
 ///
@@ -6289,15 +6821,16 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_get_execute(
 
 pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OracledatabaseProjectsLocationsExascaleDbStorageVaultsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ExascaleDbStorageVault>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        oracledatabase_projects_locations_exascale_db_storage_vaults_get_builder(client, name)?;
+    let builder = oracledatabase_projects_locations_exascale_db_storage_vaults_get_builder(
+        client, &args.name,
+    )?;
     oracledatabase_projects_locations_exascale_db_storage_vaults_get_execute(builder)
 }
 
@@ -6419,6 +6952,21 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_exascale_db_storage_vaults_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsExascaleDbStorageVaultsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/exascaleDbStorageVaults
 /// Lists all the ExascaleDB Storage Vaults for the given project and location.
 ///
@@ -6431,11 +6979,7 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_list_execute
 
 pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsExascaleDbStorageVaultsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListExascaleDbStorageVaultsResponse>, ApiError>,
@@ -6445,7 +6989,12 @@ pub fn oracledatabase_projects_locations_exascale_db_storage_vaults_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_exascale_db_storage_vaults_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_exascale_db_storage_vaults_list_execute(builder)
 }
@@ -6562,6 +7111,19 @@ pub fn oracledatabase_projects_locations_gi_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_gi_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsGiVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/giVersions
 /// Lists all the valid Oracle Grid Infrastructure (GI) versions for the given project and location.
 ///
@@ -6574,10 +7136,7 @@ pub fn oracledatabase_projects_locations_gi_versions_list_execute(
 
 pub fn oracledatabase_projects_locations_gi_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsGiVersionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGiVersionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6585,7 +7144,11 @@ pub fn oracledatabase_projects_locations_gi_versions_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_gi_versions_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_gi_versions_list_execute(builder)
 }
@@ -6702,6 +7265,19 @@ pub fn oracledatabase_projects_locations_gi_versions_minor_versions_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_gi_versions_minor_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsGiVersionsMinorVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/giVersions/{giVersionsId}/minorVersions
 /// Lists all the valid minor versions for the given project, location, gi version and shape family.
 ///
@@ -6714,10 +7290,7 @@ pub fn oracledatabase_projects_locations_gi_versions_minor_versions_list_execute
 
 pub fn oracledatabase_projects_locations_gi_versions_minor_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsGiVersionsMinorVersionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListMinorVersionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6725,7 +7298,11 @@ pub fn oracledatabase_projects_locations_gi_versions_minor_versions_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_gi_versions_minor_versions_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_gi_versions_minor_versions_list_execute(builder)
 }
@@ -6839,6 +7416,19 @@ pub fn oracledatabase_projects_locations_odb_networks_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: odbNetworkId
+    pub odbNetworkId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: OdbNetwork,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks
 /// Creates a new ODB Network in a given project and location.
 ///
@@ -6851,20 +7441,17 @@ pub fn oracledatabase_projects_locations_odb_networks_create_execute(
 
 pub fn oracledatabase_projects_locations_odb_networks_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    odbNetworkId: Option<&str>,
-    requestId: Option<&str>,
-    body: &OdbNetwork,
+    args: &OracledatabaseProjectsLocationsOdbNetworksCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_odb_networks_create_builder(
         client,
-        parent,
-        odbNetworkId,
-        requestId,
-        body,
+        &args.parent,
+        args.odbNetworkId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     oracledatabase_projects_locations_odb_networks_create_execute(builder)
 }
@@ -6971,6 +7558,15 @@ pub fn oracledatabase_projects_locations_odb_networks_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}
 /// Deletes a single ODB Network.
 ///
@@ -6983,14 +7579,16 @@ pub fn oracledatabase_projects_locations_odb_networks_delete_execute(
 
 pub fn oracledatabase_projects_locations_odb_networks_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &OracledatabaseProjectsLocationsOdbNetworksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        oracledatabase_projects_locations_odb_networks_delete_builder(client, name, requestId)?;
+    let builder = oracledatabase_projects_locations_odb_networks_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     oracledatabase_projects_locations_odb_networks_delete_execute(builder)
 }
 
@@ -7084,6 +7682,13 @@ pub fn oracledatabase_projects_locations_odb_networks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}
 /// Gets details of a single ODB Network.
 ///
@@ -7096,12 +7701,12 @@ pub fn oracledatabase_projects_locations_odb_networks_get_execute(
 
 pub fn oracledatabase_projects_locations_odb_networks_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OracledatabaseProjectsLocationsOdbNetworksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OdbNetwork>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = oracledatabase_projects_locations_odb_networks_get_builder(client, name)?;
+    let builder = oracledatabase_projects_locations_odb_networks_get_builder(client, &args.name)?;
     oracledatabase_projects_locations_odb_networks_get_execute(builder)
 }
 
@@ -7221,6 +7826,21 @@ pub fn oracledatabase_projects_locations_odb_networks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks
 /// Lists the ODB Networks in a given project and location.
 ///
@@ -7233,11 +7853,7 @@ pub fn oracledatabase_projects_locations_odb_networks_list_execute(
 
 pub fn oracledatabase_projects_locations_odb_networks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsOdbNetworksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOdbNetworksResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7245,7 +7861,12 @@ pub fn oracledatabase_projects_locations_odb_networks_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_odb_networks_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_odb_networks_list_execute(builder)
 }
@@ -7359,6 +7980,19 @@ pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_odb_subnets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: odbSubnetId
+    pub odbSubnetId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: OdbSubnet,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets
 /// Creates a new ODB Subnet in a given ODB Network.
 ///
@@ -7371,20 +8005,17 @@ pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_create_execute
 
 pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    odbSubnetId: Option<&str>,
-    requestId: Option<&str>,
-    body: &OdbSubnet,
+    args: &OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_odb_networks_odb_subnets_create_builder(
         client,
-        parent,
-        odbSubnetId,
-        requestId,
-        body,
+        &args.parent,
+        args.odbSubnetId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     oracledatabase_projects_locations_odb_networks_odb_subnets_create_execute(builder)
 }
@@ -7491,6 +8122,15 @@ pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_odb_subnets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets/{odbSubnetsId}
 /// Deletes a single ODB Subnet.
 ///
@@ -7503,14 +8143,15 @@ pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_delete_execute
 
 pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_odb_networks_odb_subnets_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     oracledatabase_projects_locations_odb_networks_odb_subnets_delete_execute(builder)
 }
@@ -7605,6 +8246,13 @@ pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_odb_subnets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets/{odbSubnetsId}
 /// Gets details of a single ODB Subnet.
 ///
@@ -7617,13 +8265,13 @@ pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_get_execute(
 
 pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OdbSubnet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        oracledatabase_projects_locations_odb_networks_odb_subnets_get_builder(client, name)?;
+        oracledatabase_projects_locations_odb_networks_odb_subnets_get_builder(client, &args.name)?;
     oracledatabase_projects_locations_odb_networks_odb_subnets_get_execute(builder)
 }
 
@@ -7743,6 +8391,21 @@ pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_odb_networks_odb_subnets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/odbNetworks/{odbNetworksId}/odbSubnets
 /// Lists all the ODB Subnets in a given ODB Network.
 ///
@@ -7755,11 +8418,7 @@ pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_list_execute(
 
 pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsOdbNetworksOdbSubnetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOdbSubnetsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7767,7 +8426,12 @@ pub fn oracledatabase_projects_locations_odb_networks_odb_subnets_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_odb_networks_odb_subnets_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_odb_networks_odb_subnets_list_execute(builder)
 }
@@ -7865,6 +8529,15 @@ pub fn oracledatabase_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -7877,13 +8550,14 @@ pub fn oracledatabase_projects_locations_operations_cancel_execute(
 
 pub fn oracledatabase_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &OracledatabaseProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = oracledatabase_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = oracledatabase_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     oracledatabase_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -7977,6 +8651,13 @@ pub fn oracledatabase_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -7989,12 +8670,12 @@ pub fn oracledatabase_projects_locations_operations_delete_execute(
 
 pub fn oracledatabase_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OracledatabaseProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = oracledatabase_projects_locations_operations_delete_builder(client, name)?;
+    let builder = oracledatabase_projects_locations_operations_delete_builder(client, &args.name)?;
     oracledatabase_projects_locations_operations_delete_execute(builder)
 }
 
@@ -8088,6 +8769,13 @@ pub fn oracledatabase_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -8100,12 +8788,12 @@ pub fn oracledatabase_projects_locations_operations_get_execute(
 
 pub fn oracledatabase_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OracledatabaseProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = oracledatabase_projects_locations_operations_get_builder(client, name)?;
+    let builder = oracledatabase_projects_locations_operations_get_builder(client, &args.name)?;
     oracledatabase_projects_locations_operations_get_execute(builder)
 }
 
@@ -8225,6 +8913,21 @@ pub fn oracledatabase_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -8237,11 +8940,7 @@ pub fn oracledatabase_projects_locations_operations_list_execute(
 
 pub fn oracledatabase_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &OracledatabaseProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8250,11 +8949,11 @@ pub fn oracledatabase_projects_locations_operations_list(
 > {
     let builder = oracledatabase_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     oracledatabase_projects_locations_operations_list_execute(builder)
 }
@@ -8351,6 +9050,13 @@ pub fn oracledatabase_projects_locations_pluggable_databases_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_pluggable_databases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsPluggableDatabasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pluggableDatabases/{pluggableDatabasesId}
 /// Gets details of a single PluggableDatabase.
 ///
@@ -8363,14 +9069,15 @@ pub fn oracledatabase_projects_locations_pluggable_databases_get_execute(
 
 pub fn oracledatabase_projects_locations_pluggable_databases_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OracledatabaseProjectsLocationsPluggableDatabasesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PluggableDatabase>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = oracledatabase_projects_locations_pluggable_databases_get_builder(client, name)?;
+    let builder =
+        oracledatabase_projects_locations_pluggable_databases_get_builder(client, &args.name)?;
     oracledatabase_projects_locations_pluggable_databases_get_execute(builder)
 }
 
@@ -8488,6 +9195,19 @@ pub fn oracledatabase_projects_locations_pluggable_databases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`oracledatabase_projects_locations_pluggable_databases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OracledatabaseProjectsLocationsPluggableDatabasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/pluggableDatabases
 /// Lists all the PluggableDatabases for the given project, location and Container Database.
 ///
@@ -8500,10 +9220,7 @@ pub fn oracledatabase_projects_locations_pluggable_databases_list_execute(
 
 pub fn oracledatabase_projects_locations_pluggable_databases_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OracledatabaseProjectsLocationsPluggableDatabasesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPluggableDatabasesResponse>, ApiError>,
@@ -8513,7 +9230,11 @@ pub fn oracledatabase_projects_locations_pluggable_databases_list(
     ApiError,
 > {
     let builder = oracledatabase_projects_locations_pluggable_databases_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     oracledatabase_projects_locations_pluggable_databases_list_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1alpha1/claims:imageSearch
 /// Search through fact-checked claims using an image as the query.
@@ -134,6 +136,21 @@ pub fn factchecktools_claims_image_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`factchecktools_claims_image_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FactchecktoolsClaimsImageSearchArgs {
+    /// Query parameter: imageUri
+    pub imageUri: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: offset
+    pub offset: Option<i32>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/claims:imageSearch
 /// Search through fact-checked claims using an image as the query.
 ///
@@ -146,11 +163,7 @@ pub fn factchecktools_claims_image_search_execute(
 
 pub fn factchecktools_claims_image_search(
     client: &SimpleHttpClient,
-    imageUri: Option<&str>,
-    languageCode: Option<&str>,
-    offset: Option<i32>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FactchecktoolsClaimsImageSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -166,11 +179,11 @@ pub fn factchecktools_claims_image_search(
 > {
     let builder = factchecktools_claims_image_search_builder(
         client,
-        imageUri,
-        languageCode,
-        offset,
-        pageSize,
-        pageToken,
+        args.imageUri.as_deref(),
+        args.languageCode.as_deref(),
+        args.offset,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     factchecktools_claims_image_search_execute(builder)
 }
@@ -304,6 +317,25 @@ pub fn factchecktools_claims_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`factchecktools_claims_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FactchecktoolsClaimsSearchArgs {
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: maxAgeDays
+    pub maxAgeDays: Option<i32>,
+    /// Query parameter: offset
+    pub offset: Option<i32>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: reviewPublisherSiteFilter
+    pub reviewPublisherSiteFilter: Option<String>,
+}
+
 /// GET v1alpha1/claims:search
 /// Search through fact-checked claims.
 ///
@@ -316,13 +348,7 @@ pub fn factchecktools_claims_search_execute(
 
 pub fn factchecktools_claims_search(
     client: &SimpleHttpClient,
-    languageCode: Option<&str>,
-    maxAgeDays: Option<i32>,
-    offset: Option<i32>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
-    reviewPublisherSiteFilter: Option<&str>,
+    args: &FactchecktoolsClaimsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -336,13 +362,13 @@ pub fn factchecktools_claims_search(
 > {
     let builder = factchecktools_claims_search_builder(
         client,
-        languageCode,
-        maxAgeDays,
-        offset,
-        pageSize,
-        pageToken,
-        query,
-        reviewPublisherSiteFilter,
+        args.languageCode.as_deref(),
+        args.maxAgeDays,
+        args.offset,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
+        args.reviewPublisherSiteFilter.as_deref(),
     )?;
     factchecktools_claims_search_execute(builder)
 }
@@ -444,6 +470,13 @@ pub fn factchecktools_pages_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`factchecktools_pages_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FactchecktoolsPagesCreateArgs {
+    /// Request body.
+    pub body: GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage,
+}
+
 /// GET v1alpha1/pages
 /// Create ClaimReview markup on a page.
 ///
@@ -456,7 +489,7 @@ pub fn factchecktools_pages_create_execute(
 
 pub fn factchecktools_pages_create(
     client: &SimpleHttpClient,
-    body: &GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage,
+    args: &FactchecktoolsPagesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -468,7 +501,7 @@ pub fn factchecktools_pages_create(
         + 'static,
     ApiError,
 > {
-    let builder = factchecktools_pages_create_builder(client, body)?;
+    let builder = factchecktools_pages_create_builder(client, &args.body)?;
     factchecktools_pages_create_execute(builder)
 }
 
@@ -564,6 +597,13 @@ pub fn factchecktools_pages_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`factchecktools_pages_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FactchecktoolsPagesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/pages/{pagesId}
 /// Delete all ClaimReview markup on a page.
 ///
@@ -576,14 +616,14 @@ pub fn factchecktools_pages_delete_execute(
 
 pub fn factchecktools_pages_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FactchecktoolsPagesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = factchecktools_pages_delete_builder(client, name)?;
+    let builder = factchecktools_pages_delete_builder(client, &args.name)?;
     factchecktools_pages_delete_execute(builder)
 }
 
@@ -685,6 +725,13 @@ pub fn factchecktools_pages_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`factchecktools_pages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FactchecktoolsPagesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/pages/{pagesId}
 /// Get all ClaimReview markup on a page.
 ///
@@ -697,7 +744,7 @@ pub fn factchecktools_pages_get_execute(
 
 pub fn factchecktools_pages_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FactchecktoolsPagesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -709,7 +756,7 @@ pub fn factchecktools_pages_get(
         + 'static,
     ApiError,
 > {
-    let builder = factchecktools_pages_get_builder(client, name)?;
+    let builder = factchecktools_pages_get_builder(client, &args.name)?;
     factchecktools_pages_get_execute(builder)
 }
 
@@ -831,6 +878,21 @@ pub fn factchecktools_pages_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`factchecktools_pages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FactchecktoolsPagesListArgs {
+    /// Query parameter: offset
+    pub offset: Option<i32>,
+    /// Query parameter: organization
+    pub organization: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: url
+    pub url: Option<String>,
+}
+
 /// GET v1alpha1/pages
 /// List the ClaimReview markup pages for a specific URL or for an organization.
 ///
@@ -843,11 +905,7 @@ pub fn factchecktools_pages_list_execute(
 
 pub fn factchecktools_pages_list(
     client: &SimpleHttpClient,
-    offset: Option<i32>,
-    organization: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    url: Option<&str>,
+    args: &FactchecktoolsPagesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -861,8 +919,14 @@ pub fn factchecktools_pages_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        factchecktools_pages_list_builder(client, offset, organization, pageSize, pageToken, url)?;
+    let builder = factchecktools_pages_list_builder(
+        client,
+        args.offset,
+        args.organization.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.url.as_deref(),
+    )?;
     factchecktools_pages_list_execute(builder)
 }
 
@@ -967,6 +1031,15 @@ pub fn factchecktools_pages_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`factchecktools_pages_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FactchecktoolsPagesUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage,
+}
+
 /// GET v1alpha1/pages/{pagesId}
 /// Update for all ClaimReview markup on a page Note that this is a full update. To retain the existing ClaimReview markup on a page, first perform a Get operation, then modify the returned markup, and finally call Update with the entire ClaimReview markup as the body.
 ///
@@ -979,8 +1052,7 @@ pub fn factchecktools_pages_update_execute(
 
 pub fn factchecktools_pages_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage,
+    args: &FactchecktoolsPagesUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -992,6 +1064,6 @@ pub fn factchecktools_pages_update(
         + 'static,
     ApiError,
 > {
-    let builder = factchecktools_pages_update_builder(client, name, body)?;
+    let builder = factchecktools_pages_update_builder(client, &args.name, &args.body)?;
     factchecktools_pages_update_execute(builder)
 }

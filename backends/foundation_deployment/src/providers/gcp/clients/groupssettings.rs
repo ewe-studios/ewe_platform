@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET {groupUniqueId}
 /// Gets one resource by id.
@@ -106,6 +108,13 @@ pub fn groups_settings_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`groups_settings_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GroupsSettingsGroupsGetArgs {
+    /// Path parameter: groupUniqueId
+    pub groupUniqueId: String,
+}
+
 /// GET {groupUniqueId}
 /// Gets one resource by id.
 ///
@@ -118,12 +127,12 @@ pub fn groups_settings_groups_get_execute(
 
 pub fn groups_settings_groups_get(
     client: &SimpleHttpClient,
-    groupUniqueId: &str,
+    args: &GroupsSettingsGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Groups>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = groups_settings_groups_get_builder(client, groupUniqueId)?;
+    let builder = groups_settings_groups_get_builder(client, &args.groupUniqueId)?;
     groups_settings_groups_get_execute(builder)
 }
 
@@ -220,6 +229,15 @@ pub fn groups_settings_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`groups_settings_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GroupsSettingsGroupsPatchArgs {
+    /// Path parameter: groupUniqueId
+    pub groupUniqueId: String,
+    /// Request body.
+    pub body: Groups,
+}
+
 /// GET {groupUniqueId}
 /// Updates an existing resource. This method supports patch semantics.
 ///
@@ -232,13 +250,12 @@ pub fn groups_settings_groups_patch_execute(
 
 pub fn groups_settings_groups_patch(
     client: &SimpleHttpClient,
-    groupUniqueId: &str,
-    body: &Groups,
+    args: &GroupsSettingsGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Groups>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = groups_settings_groups_patch_builder(client, groupUniqueId, body)?;
+    let builder = groups_settings_groups_patch_builder(client, &args.groupUniqueId, &args.body)?;
     groups_settings_groups_patch_execute(builder)
 }
 
@@ -335,6 +352,15 @@ pub fn groups_settings_groups_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`groups_settings_groups_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GroupsSettingsGroupsUpdateArgs {
+    /// Path parameter: groupUniqueId
+    pub groupUniqueId: String,
+    /// Request body.
+    pub body: Groups,
+}
+
 /// GET {groupUniqueId}
 /// Updates an existing resource.
 ///
@@ -347,12 +373,11 @@ pub fn groups_settings_groups_update_execute(
 
 pub fn groups_settings_groups_update(
     client: &SimpleHttpClient,
-    groupUniqueId: &str,
-    body: &Groups,
+    args: &GroupsSettingsGroupsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Groups>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = groups_settings_groups_update_builder(client, groupUniqueId, body)?;
+    let builder = groups_settings_groups_update_builder(client, &args.groupUniqueId, &args.body)?;
     groups_settings_groups_update_execute(builder)
 }

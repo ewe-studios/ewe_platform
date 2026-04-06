@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn batch_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`batch_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BatchProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn batch_projects_locations_get_execute(
 
 pub fn batch_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BatchProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = batch_projects_locations_get_builder(client, name)?;
+    let builder = batch_projects_locations_get_builder(client, &args.name)?;
     batch_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn batch_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`batch_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BatchProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn batch_projects_locations_list_execute(
 
 pub fn batch_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BatchProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn batch_projects_locations_list(
 > {
     let builder = batch_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     batch_projects_locations_list_execute(builder)
 }
@@ -370,6 +390,15 @@ pub fn batch_projects_locations_jobs_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`batch_projects_locations_jobs_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BatchProjectsLocationsJobsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelJobRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}:cancel
 /// Cancel a Job.
 ///
@@ -382,13 +411,12 @@ pub fn batch_projects_locations_jobs_cancel_execute(
 
 pub fn batch_projects_locations_jobs_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelJobRequest,
+    args: &BatchProjectsLocationsJobsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = batch_projects_locations_jobs_cancel_builder(client, name, body)?;
+    let builder = batch_projects_locations_jobs_cancel_builder(client, &args.name, &args.body)?;
     batch_projects_locations_jobs_cancel_execute(builder)
 }
 
@@ -501,6 +529,19 @@ pub fn batch_projects_locations_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`batch_projects_locations_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BatchProjectsLocationsJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: jobId
+    pub jobId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Job,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobs
 /// Create a Job.
 ///
@@ -513,16 +554,18 @@ pub fn batch_projects_locations_jobs_create_execute(
 
 pub fn batch_projects_locations_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    jobId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Job,
+    args: &BatchProjectsLocationsJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        batch_projects_locations_jobs_create_builder(client, parent, jobId, requestId, body)?;
+    let builder = batch_projects_locations_jobs_create_builder(
+        client,
+        &args.parent,
+        args.jobId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
+    )?;
     batch_projects_locations_jobs_create_execute(builder)
 }
 
@@ -632,6 +675,17 @@ pub fn batch_projects_locations_jobs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`batch_projects_locations_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BatchProjectsLocationsJobsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: reason
+    pub reason: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
 /// Delete a Job.
 ///
@@ -644,14 +698,17 @@ pub fn batch_projects_locations_jobs_delete_execute(
 
 pub fn batch_projects_locations_jobs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    reason: Option<&str>,
-    requestId: Option<&str>,
+    args: &BatchProjectsLocationsJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = batch_projects_locations_jobs_delete_builder(client, name, reason, requestId)?;
+    let builder = batch_projects_locations_jobs_delete_builder(
+        client,
+        &args.name,
+        args.reason.as_deref(),
+        args.requestId.as_deref(),
+    )?;
     batch_projects_locations_jobs_delete_execute(builder)
 }
 
@@ -745,6 +802,13 @@ pub fn batch_projects_locations_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`batch_projects_locations_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BatchProjectsLocationsJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
 /// Get a Job specified by its resource name.
 ///
@@ -757,12 +821,12 @@ pub fn batch_projects_locations_jobs_get_execute(
 
 pub fn batch_projects_locations_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BatchProjectsLocationsJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = batch_projects_locations_jobs_get_builder(client, name)?;
+    let builder = batch_projects_locations_jobs_get_builder(client, &args.name)?;
     batch_projects_locations_jobs_get_execute(builder)
 }
 
@@ -882,6 +946,21 @@ pub fn batch_projects_locations_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`batch_projects_locations_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BatchProjectsLocationsJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobs
 /// List all Jobs for a project within a region.
 ///
@@ -894,11 +973,7 @@ pub fn batch_projects_locations_jobs_list_execute(
 
 pub fn batch_projects_locations_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BatchProjectsLocationsJobsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -906,7 +981,12 @@ pub fn batch_projects_locations_jobs_list(
     ApiError,
 > {
     let builder = batch_projects_locations_jobs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     batch_projects_locations_jobs_list_execute(builder)
 }
@@ -1001,6 +1081,13 @@ pub fn batch_projects_locations_jobs_task_groups_tasks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`batch_projects_locations_jobs_task_groups_tasks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BatchProjectsLocationsJobsTaskGroupsTasksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/taskGroups/{taskGroupsId}/tasks/{tasksId}
 /// Return a single Task.
 ///
@@ -1013,12 +1100,12 @@ pub fn batch_projects_locations_jobs_task_groups_tasks_get_execute(
 
 pub fn batch_projects_locations_jobs_task_groups_tasks_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BatchProjectsLocationsJobsTaskGroupsTasksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = batch_projects_locations_jobs_task_groups_tasks_get_builder(client, name)?;
+    let builder = batch_projects_locations_jobs_task_groups_tasks_get_builder(client, &args.name)?;
     batch_projects_locations_jobs_task_groups_tasks_get_execute(builder)
 }
 
@@ -1134,6 +1221,19 @@ pub fn batch_projects_locations_jobs_task_groups_tasks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`batch_projects_locations_jobs_task_groups_tasks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BatchProjectsLocationsJobsTaskGroupsTasksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/taskGroups/{taskGroupsId}/tasks
 /// List Tasks associated with a job.
 ///
@@ -1146,10 +1246,7 @@ pub fn batch_projects_locations_jobs_task_groups_tasks_list_execute(
 
 pub fn batch_projects_locations_jobs_task_groups_tasks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BatchProjectsLocationsJobsTaskGroupsTasksListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTasksResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1157,7 +1254,11 @@ pub fn batch_projects_locations_jobs_task_groups_tasks_list(
     ApiError,
 > {
     let builder = batch_projects_locations_jobs_task_groups_tasks_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     batch_projects_locations_jobs_task_groups_tasks_list_execute(builder)
 }
@@ -1255,6 +1356,15 @@ pub fn batch_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`batch_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BatchProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1267,13 +1377,13 @@ pub fn batch_projects_locations_operations_cancel_execute(
 
 pub fn batch_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &BatchProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = batch_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        batch_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     batch_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1367,6 +1477,13 @@ pub fn batch_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`batch_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BatchProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1379,12 +1496,12 @@ pub fn batch_projects_locations_operations_delete_execute(
 
 pub fn batch_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BatchProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = batch_projects_locations_operations_delete_builder(client, name)?;
+    let builder = batch_projects_locations_operations_delete_builder(client, &args.name)?;
     batch_projects_locations_operations_delete_execute(builder)
 }
 
@@ -1478,6 +1595,13 @@ pub fn batch_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`batch_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BatchProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1490,12 +1614,12 @@ pub fn batch_projects_locations_operations_get_execute(
 
 pub fn batch_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BatchProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = batch_projects_locations_operations_get_builder(client, name)?;
+    let builder = batch_projects_locations_operations_get_builder(client, &args.name)?;
     batch_projects_locations_operations_get_execute(builder)
 }
 
@@ -1615,6 +1739,21 @@ pub fn batch_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`batch_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BatchProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1627,11 +1766,7 @@ pub fn batch_projects_locations_operations_list_execute(
 
 pub fn batch_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &BatchProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1640,11 +1775,11 @@ pub fn batch_projects_locations_operations_list(
 > {
     let builder = batch_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     batch_projects_locations_operations_list_execute(builder)
 }
@@ -1744,6 +1879,15 @@ pub fn batch_projects_locations_state_report_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`batch_projects_locations_state_report`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BatchProjectsLocationsStateReportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ReportAgentStateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/state:report
 /// Report agent's state, e.g. agent status and tasks information
 ///
@@ -1756,14 +1900,13 @@ pub fn batch_projects_locations_state_report_execute(
 
 pub fn batch_projects_locations_state_report(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ReportAgentStateRequest,
+    args: &BatchProjectsLocationsStateReportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReportAgentStateResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = batch_projects_locations_state_report_builder(client, parent, body)?;
+    let builder = batch_projects_locations_state_report_builder(client, &args.parent, &args.body)?;
     batch_projects_locations_state_report_execute(builder)
 }

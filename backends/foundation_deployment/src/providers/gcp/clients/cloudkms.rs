@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/folders/{foldersId}/autokeyConfig
 /// Returns the AutokeyConfig for a folder or project.
@@ -108,6 +110,13 @@ pub fn cloudkms_folders_get_autokey_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_folders_get_autokey_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsFoldersGetAutokeyConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/autokeyConfig
 /// Returns the AutokeyConfig for a folder or project.
 ///
@@ -120,14 +129,14 @@ pub fn cloudkms_folders_get_autokey_config_execute(
 
 pub fn cloudkms_folders_get_autokey_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsFoldersGetAutokeyConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutokeyConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_folders_get_autokey_config_builder(client, name)?;
+    let builder = cloudkms_folders_get_autokey_config_builder(client, &args.name)?;
     cloudkms_folders_get_autokey_config_execute(builder)
 }
 
@@ -225,6 +234,13 @@ pub fn cloudkms_folders_get_kaj_policy_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_folders_get_kaj_policy_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsFoldersGetKajPolicyConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/kajPolicyConfig
 /// Gets the KeyAccessJustificationsPolicyConfig for a given organization, folder, or project.
 ///
@@ -237,7 +253,7 @@ pub fn cloudkms_folders_get_kaj_policy_config_execute(
 
 pub fn cloudkms_folders_get_kaj_policy_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsFoldersGetKajPolicyConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<KeyAccessJustificationsPolicyConfig>, ApiError>,
@@ -246,7 +262,7 @@ pub fn cloudkms_folders_get_kaj_policy_config(
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_folders_get_kaj_policy_config_builder(client, name)?;
+    let builder = cloudkms_folders_get_kaj_policy_config_builder(client, &args.name)?;
     cloudkms_folders_get_kaj_policy_config_execute(builder)
 }
 
@@ -357,6 +373,17 @@ pub fn cloudkms_folders_update_autokey_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_folders_update_autokey_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsFoldersUpdateAutokeyConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AutokeyConfig,
+}
+
 /// GET v1/folders/{foldersId}/autokeyConfig
 /// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder's descendant projects will use this configuration to determine where to create the resulting CryptoKey.
 ///
@@ -369,16 +396,19 @@ pub fn cloudkms_folders_update_autokey_config_execute(
 
 pub fn cloudkms_folders_update_autokey_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AutokeyConfig,
+    args: &CloudkmsFoldersUpdateAutokeyConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutokeyConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_folders_update_autokey_config_builder(client, name, updateMask, body)?;
+    let builder = cloudkms_folders_update_autokey_config_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudkms_folders_update_autokey_config_execute(builder)
 }
 
@@ -491,6 +521,17 @@ pub fn cloudkms_folders_update_kaj_policy_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_folders_update_kaj_policy_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsFoldersUpdateKajPolicyConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: KeyAccessJustificationsPolicyConfig,
+}
+
 /// GET v1/folders/{foldersId}/kajPolicyConfig
 /// Updates the KeyAccessJustificationsPolicyConfig for a given organization, folder, or project.
 ///
@@ -503,9 +544,7 @@ pub fn cloudkms_folders_update_kaj_policy_config_execute(
 
 pub fn cloudkms_folders_update_kaj_policy_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &KeyAccessJustificationsPolicyConfig,
+    args: &CloudkmsFoldersUpdateKajPolicyConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<KeyAccessJustificationsPolicyConfig>, ApiError>,
@@ -514,8 +553,12 @@ pub fn cloudkms_folders_update_kaj_policy_config(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_folders_update_kaj_policy_config_builder(client, name, updateMask, body)?;
+    let builder = cloudkms_folders_update_kaj_policy_config_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudkms_folders_update_kaj_policy_config_execute(builder)
 }
 
@@ -613,6 +656,13 @@ pub fn cloudkms_organizations_get_kaj_policy_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_organizations_get_kaj_policy_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsOrganizationsGetKajPolicyConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/kajPolicyConfig
 /// Gets the KeyAccessJustificationsPolicyConfig for a given organization, folder, or project.
 ///
@@ -625,7 +675,7 @@ pub fn cloudkms_organizations_get_kaj_policy_config_execute(
 
 pub fn cloudkms_organizations_get_kaj_policy_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsOrganizationsGetKajPolicyConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<KeyAccessJustificationsPolicyConfig>, ApiError>,
@@ -634,7 +684,7 @@ pub fn cloudkms_organizations_get_kaj_policy_config(
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_organizations_get_kaj_policy_config_builder(client, name)?;
+    let builder = cloudkms_organizations_get_kaj_policy_config_builder(client, &args.name)?;
     cloudkms_organizations_get_kaj_policy_config_execute(builder)
 }
 
@@ -747,6 +797,17 @@ pub fn cloudkms_organizations_update_kaj_policy_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_organizations_update_kaj_policy_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsOrganizationsUpdateKajPolicyConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: KeyAccessJustificationsPolicyConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/kajPolicyConfig
 /// Updates the KeyAccessJustificationsPolicyConfig for a given organization, folder, or project.
 ///
@@ -759,9 +820,7 @@ pub fn cloudkms_organizations_update_kaj_policy_config_execute(
 
 pub fn cloudkms_organizations_update_kaj_policy_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &KeyAccessJustificationsPolicyConfig,
+    args: &CloudkmsOrganizationsUpdateKajPolicyConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<KeyAccessJustificationsPolicyConfig>, ApiError>,
@@ -770,8 +829,12 @@ pub fn cloudkms_organizations_update_kaj_policy_config(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_organizations_update_kaj_policy_config_builder(client, name, updateMask, body)?;
+    let builder = cloudkms_organizations_update_kaj_policy_config_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudkms_organizations_update_kaj_policy_config_execute(builder)
 }
 
@@ -867,6 +930,13 @@ pub fn cloudkms_projects_get_autokey_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_get_autokey_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsGetAutokeyConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/autokeyConfig
 /// Returns the AutokeyConfig for a folder or project.
 ///
@@ -879,14 +949,14 @@ pub fn cloudkms_projects_get_autokey_config_execute(
 
 pub fn cloudkms_projects_get_autokey_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsGetAutokeyConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutokeyConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_get_autokey_config_builder(client, name)?;
+    let builder = cloudkms_projects_get_autokey_config_builder(client, &args.name)?;
     cloudkms_projects_get_autokey_config_execute(builder)
 }
 
@@ -984,6 +1054,13 @@ pub fn cloudkms_projects_get_kaj_policy_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_get_kaj_policy_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsGetKajPolicyConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/kajPolicyConfig
 /// Gets the KeyAccessJustificationsPolicyConfig for a given organization, folder, or project.
 ///
@@ -996,7 +1073,7 @@ pub fn cloudkms_projects_get_kaj_policy_config_execute(
 
 pub fn cloudkms_projects_get_kaj_policy_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsGetKajPolicyConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<KeyAccessJustificationsPolicyConfig>, ApiError>,
@@ -1005,7 +1082,7 @@ pub fn cloudkms_projects_get_kaj_policy_config(
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_get_kaj_policy_config_builder(client, name)?;
+    let builder = cloudkms_projects_get_kaj_policy_config_builder(client, &args.name)?;
     cloudkms_projects_get_kaj_policy_config_execute(builder)
 }
 
@@ -1103,6 +1180,13 @@ pub fn cloudkms_projects_show_effective_autokey_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_show_effective_autokey_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsShowEffectiveAutokeyConfigArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}:showEffectiveAutokeyConfig
 /// Returns the effective Cloud KMS Autokey configuration for a given project.
 ///
@@ -1115,7 +1199,7 @@ pub fn cloudkms_projects_show_effective_autokey_config_execute(
 
 pub fn cloudkms_projects_show_effective_autokey_config(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &CloudkmsProjectsShowEffectiveAutokeyConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ShowEffectiveAutokeyConfigResponse>, ApiError>,
@@ -1124,7 +1208,7 @@ pub fn cloudkms_projects_show_effective_autokey_config(
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_show_effective_autokey_config_builder(client, parent)?;
+    let builder = cloudkms_projects_show_effective_autokey_config_builder(client, &args.parent)?;
     cloudkms_projects_show_effective_autokey_config_execute(builder)
 }
 
@@ -1226,6 +1310,13 @@ pub fn cloudkms_projects_show_effective_key_access_justifications_enrollment_con
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_show_effective_key_access_justifications_enrollment_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsShowEffectiveKeyAccessJustificationsEnrollmentConfigArgs {
+    /// Path parameter: project
+    pub project: String,
+}
+
 /// GET v1/projects/{projectsId}:showEffectiveKeyAccessJustificationsEnrollmentConfig
 /// Returns the KeyAccessJustificationsEnrollmentConfig of the resource closest to the given project in hierarchy.
 ///
@@ -1238,7 +1329,7 @@ pub fn cloudkms_projects_show_effective_key_access_justifications_enrollment_con
 
 pub fn cloudkms_projects_show_effective_key_access_justifications_enrollment_config(
     client: &SimpleHttpClient,
-    project: &str,
+    args: &CloudkmsProjectsShowEffectiveKeyAccessJustificationsEnrollmentConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1252,7 +1343,8 @@ pub fn cloudkms_projects_show_effective_key_access_justifications_enrollment_con
 > {
     let builder =
         cloudkms_projects_show_effective_key_access_justifications_enrollment_config_builder(
-            client, project,
+            client,
+            &args.project,
         )?;
     cloudkms_projects_show_effective_key_access_justifications_enrollment_config_execute(builder)
 }
@@ -1355,6 +1447,13 @@ pub fn cloudkms_projects_show_effective_key_access_justifications_policy_config_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_show_effective_key_access_justifications_policy_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsShowEffectiveKeyAccessJustificationsPolicyConfigArgs {
+    /// Path parameter: project
+    pub project: String,
+}
+
 /// GET v1/projects/{projectsId}:showEffectiveKeyAccessJustificationsPolicyConfig
 /// Returns the KeyAccessJustificationsPolicyConfig of the resource closest to the given project in hierarchy.
 ///
@@ -1367,7 +1466,7 @@ pub fn cloudkms_projects_show_effective_key_access_justifications_policy_config_
 
 pub fn cloudkms_projects_show_effective_key_access_justifications_policy_config(
     client: &SimpleHttpClient,
-    project: &str,
+    args: &CloudkmsProjectsShowEffectiveKeyAccessJustificationsPolicyConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1380,7 +1479,8 @@ pub fn cloudkms_projects_show_effective_key_access_justifications_policy_config(
     ApiError,
 > {
     let builder = cloudkms_projects_show_effective_key_access_justifications_policy_config_builder(
-        client, project,
+        client,
+        &args.project,
     )?;
     cloudkms_projects_show_effective_key_access_justifications_policy_config_execute(builder)
 }
@@ -1492,6 +1592,17 @@ pub fn cloudkms_projects_update_autokey_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_update_autokey_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsUpdateAutokeyConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: AutokeyConfig,
+}
+
 /// GET v1/projects/{projectsId}/autokeyConfig
 /// Updates the AutokeyConfig for a folder or a project. The caller must have both cloudkms.`autokeyConfigs`.update permission on the parent folder and cloudkms.`cryptoKeys`.`setIamPolicy` permission on the provided key project. A KeyHandle creation in the folder's descendant projects will use this configuration to determine where to create the resulting CryptoKey.
 ///
@@ -1504,16 +1615,19 @@ pub fn cloudkms_projects_update_autokey_config_execute(
 
 pub fn cloudkms_projects_update_autokey_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AutokeyConfig,
+    args: &CloudkmsProjectsUpdateAutokeyConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutokeyConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_update_autokey_config_builder(client, name, updateMask, body)?;
+    let builder = cloudkms_projects_update_autokey_config_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudkms_projects_update_autokey_config_execute(builder)
 }
 
@@ -1626,6 +1740,17 @@ pub fn cloudkms_projects_update_kaj_policy_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_update_kaj_policy_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsUpdateKajPolicyConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: KeyAccessJustificationsPolicyConfig,
+}
+
 /// GET v1/projects/{projectsId}/kajPolicyConfig
 /// Updates the KeyAccessJustificationsPolicyConfig for a given organization, folder, or project.
 ///
@@ -1638,9 +1763,7 @@ pub fn cloudkms_projects_update_kaj_policy_config_execute(
 
 pub fn cloudkms_projects_update_kaj_policy_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &KeyAccessJustificationsPolicyConfig,
+    args: &CloudkmsProjectsUpdateKajPolicyConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<KeyAccessJustificationsPolicyConfig>, ApiError>,
@@ -1649,8 +1772,12 @@ pub fn cloudkms_projects_update_kaj_policy_config(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_projects_update_kaj_policy_config_builder(client, name, updateMask, body)?;
+    let builder = cloudkms_projects_update_kaj_policy_config_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudkms_projects_update_kaj_policy_config_execute(builder)
 }
 
@@ -1751,6 +1878,15 @@ pub fn cloudkms_projects_locations_generate_random_bytes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_generate_random_bytes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsGenerateRandomBytesArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Request body.
+    pub body: GenerateRandomBytesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:generateRandomBytes
 /// Generate random bytes using the Cloud KMS randomness source in the provided location.
 ///
@@ -1763,8 +1899,7 @@ pub fn cloudkms_projects_locations_generate_random_bytes_execute(
 
 pub fn cloudkms_projects_locations_generate_random_bytes(
     client: &SimpleHttpClient,
-    location: &str,
-    body: &GenerateRandomBytesRequest,
+    args: &CloudkmsProjectsLocationsGenerateRandomBytesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateRandomBytesResponse>, ApiError>,
@@ -1773,8 +1908,11 @@ pub fn cloudkms_projects_locations_generate_random_bytes(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_projects_locations_generate_random_bytes_builder(client, location, body)?;
+    let builder = cloudkms_projects_locations_generate_random_bytes_builder(
+        client,
+        &args.location,
+        &args.body,
+    )?;
     cloudkms_projects_locations_generate_random_bytes_execute(builder)
 }
 
@@ -1868,6 +2006,13 @@ pub fn cloudkms_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -1880,12 +2025,12 @@ pub fn cloudkms_projects_locations_get_execute(
 
 pub fn cloudkms_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_locations_get_builder(client, name)?;
+    let builder = cloudkms_projects_locations_get_builder(client, &args.name)?;
     cloudkms_projects_locations_get_execute(builder)
 }
 
@@ -1979,6 +2124,13 @@ pub fn cloudkms_projects_locations_get_ekm_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_get_ekm_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsGetEkmConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConfig
 /// Returns the EkmConfig singleton resource for a given project and location.
 ///
@@ -1991,12 +2143,12 @@ pub fn cloudkms_projects_locations_get_ekm_config_execute(
 
 pub fn cloudkms_projects_locations_get_ekm_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsGetEkmConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EkmConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_locations_get_ekm_config_builder(client, name)?;
+    let builder = cloudkms_projects_locations_get_ekm_config_builder(client, &args.name)?;
     cloudkms_projects_locations_get_ekm_config_execute(builder)
 }
 
@@ -2116,6 +2268,21 @@ pub fn cloudkms_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -2128,11 +2295,7 @@ pub fn cloudkms_projects_locations_list_execute(
 
 pub fn cloudkms_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudkmsProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2141,11 +2304,11 @@ pub fn cloudkms_projects_locations_list(
 > {
     let builder = cloudkms_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudkms_projects_locations_list_execute(builder)
 }
@@ -2255,6 +2418,17 @@ pub fn cloudkms_projects_locations_update_ekm_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_update_ekm_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsUpdateEkmConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: EkmConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConfig
 /// Updates the EkmConfig singleton resource for a given project and location.
 ///
@@ -2267,15 +2441,17 @@ pub fn cloudkms_projects_locations_update_ekm_config_execute(
 
 pub fn cloudkms_projects_locations_update_ekm_config(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &EkmConfig,
+    args: &CloudkmsProjectsLocationsUpdateEkmConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EkmConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_projects_locations_update_ekm_config_builder(client, name, updateMask, body)?;
+    let builder = cloudkms_projects_locations_update_ekm_config_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudkms_projects_locations_update_ekm_config_execute(builder)
 }
 
@@ -2381,6 +2557,15 @@ pub fn cloudkms_projects_locations_ekm_config_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_ekm_config_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsEkmConfigGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConfig:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2393,16 +2578,15 @@ pub fn cloudkms_projects_locations_ekm_config_get_iam_policy_execute(
 
 pub fn cloudkms_projects_locations_ekm_config_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &CloudkmsProjectsLocationsEkmConfigGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudkms_projects_locations_ekm_config_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     cloudkms_projects_locations_ekm_config_get_iam_policy_execute(builder)
 }
@@ -2500,6 +2684,15 @@ pub fn cloudkms_projects_locations_ekm_config_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_ekm_config_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsEkmConfigSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConfig:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -2512,14 +2705,16 @@ pub fn cloudkms_projects_locations_ekm_config_set_iam_policy_execute(
 
 pub fn cloudkms_projects_locations_ekm_config_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &CloudkmsProjectsLocationsEkmConfigSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_projects_locations_ekm_config_set_iam_policy_builder(client, resource, body)?;
+    let builder = cloudkms_projects_locations_ekm_config_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudkms_projects_locations_ekm_config_set_iam_policy_execute(builder)
 }
 
@@ -2620,6 +2815,15 @@ pub fn cloudkms_projects_locations_ekm_config_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_ekm_config_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsEkmConfigTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConfig:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2632,8 +2836,7 @@ pub fn cloudkms_projects_locations_ekm_config_test_iam_permissions_execute(
 
 pub fn cloudkms_projects_locations_ekm_config_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &CloudkmsProjectsLocationsEkmConfigTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2643,7 +2846,9 @@ pub fn cloudkms_projects_locations_ekm_config_test_iam_permissions(
     ApiError,
 > {
     let builder = cloudkms_projects_locations_ekm_config_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     cloudkms_projects_locations_ekm_config_test_iam_permissions_execute(builder)
 }
@@ -2755,6 +2960,17 @@ pub fn cloudkms_projects_locations_ekm_connections_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_ekm_connections_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsEkmConnectionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: ekmConnectionId
+    pub ekmConnectionId: Option<String>,
+    /// Request body.
+    pub body: EkmConnection,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConnections
 /// Creates a new EkmConnection in a given Project and Location.
 ///
@@ -2767,9 +2983,7 @@ pub fn cloudkms_projects_locations_ekm_connections_create_execute(
 
 pub fn cloudkms_projects_locations_ekm_connections_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    ekmConnectionId: Option<&str>,
-    body: &EkmConnection,
+    args: &CloudkmsProjectsLocationsEkmConnectionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EkmConnection>, ApiError>, P = ApiPending>
         + Send
@@ -2778,9 +2992,9 @@ pub fn cloudkms_projects_locations_ekm_connections_create(
 > {
     let builder = cloudkms_projects_locations_ekm_connections_create_builder(
         client,
-        parent,
-        ekmConnectionId,
-        body,
+        &args.parent,
+        args.ekmConnectionId.as_deref(),
+        &args.body,
     )?;
     cloudkms_projects_locations_ekm_connections_create_execute(builder)
 }
@@ -2877,6 +3091,13 @@ pub fn cloudkms_projects_locations_ekm_connections_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_ekm_connections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsEkmConnectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}
 /// Returns metadata for a given EkmConnection.
 ///
@@ -2889,14 +3110,14 @@ pub fn cloudkms_projects_locations_ekm_connections_get_execute(
 
 pub fn cloudkms_projects_locations_ekm_connections_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsEkmConnectionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EkmConnection>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_locations_ekm_connections_get_builder(client, name)?;
+    let builder = cloudkms_projects_locations_ekm_connections_get_builder(client, &args.name)?;
     cloudkms_projects_locations_ekm_connections_get_execute(builder)
 }
 
@@ -3002,6 +3223,15 @@ pub fn cloudkms_projects_locations_ekm_connections_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_ekm_connections_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsEkmConnectionsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -3014,16 +3244,15 @@ pub fn cloudkms_projects_locations_ekm_connections_get_iam_policy_execute(
 
 pub fn cloudkms_projects_locations_ekm_connections_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &CloudkmsProjectsLocationsEkmConnectionsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudkms_projects_locations_ekm_connections_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     cloudkms_projects_locations_ekm_connections_get_iam_policy_execute(builder)
 }
@@ -3146,6 +3375,21 @@ pub fn cloudkms_projects_locations_ekm_connections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_ekm_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsEkmConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConnections
 /// Lists EkmConnections.
 ///
@@ -3158,11 +3402,7 @@ pub fn cloudkms_projects_locations_ekm_connections_list_execute(
 
 pub fn cloudkms_projects_locations_ekm_connections_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudkmsProjectsLocationsEkmConnectionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListEkmConnectionsResponse>, ApiError>,
@@ -3172,7 +3412,12 @@ pub fn cloudkms_projects_locations_ekm_connections_list(
     ApiError,
 > {
     let builder = cloudkms_projects_locations_ekm_connections_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudkms_projects_locations_ekm_connections_list_execute(builder)
 }
@@ -3284,6 +3529,17 @@ pub fn cloudkms_projects_locations_ekm_connections_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_ekm_connections_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsEkmConnectionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: EkmConnection,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}
 /// Updates an EkmConnection's metadata.
 ///
@@ -3296,17 +3552,19 @@ pub fn cloudkms_projects_locations_ekm_connections_patch_execute(
 
 pub fn cloudkms_projects_locations_ekm_connections_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &EkmConnection,
+    args: &CloudkmsProjectsLocationsEkmConnectionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EkmConnection>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_projects_locations_ekm_connections_patch_builder(client, name, updateMask, body)?;
+    let builder = cloudkms_projects_locations_ekm_connections_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudkms_projects_locations_ekm_connections_patch_execute(builder)
 }
 
@@ -3403,6 +3661,15 @@ pub fn cloudkms_projects_locations_ekm_connections_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_ekm_connections_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsEkmConnectionsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3415,14 +3682,16 @@ pub fn cloudkms_projects_locations_ekm_connections_set_iam_policy_execute(
 
 pub fn cloudkms_projects_locations_ekm_connections_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &CloudkmsProjectsLocationsEkmConnectionsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_projects_locations_ekm_connections_set_iam_policy_builder(client, resource, body)?;
+    let builder = cloudkms_projects_locations_ekm_connections_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudkms_projects_locations_ekm_connections_set_iam_policy_execute(builder)
 }
 
@@ -3523,6 +3792,15 @@ pub fn cloudkms_projects_locations_ekm_connections_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_ekm_connections_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsEkmConnectionsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3535,8 +3813,7 @@ pub fn cloudkms_projects_locations_ekm_connections_test_iam_permissions_execute(
 
 pub fn cloudkms_projects_locations_ekm_connections_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &CloudkmsProjectsLocationsEkmConnectionsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3546,7 +3823,9 @@ pub fn cloudkms_projects_locations_ekm_connections_test_iam_permissions(
     ApiError,
 > {
     let builder = cloudkms_projects_locations_ekm_connections_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     cloudkms_projects_locations_ekm_connections_test_iam_permissions_execute(builder)
 }
@@ -3645,6 +3924,13 @@ pub fn cloudkms_projects_locations_ekm_connections_verify_connectivity_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_ekm_connections_verify_connectivity`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsEkmConnectionsVerifyConnectivityArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ekmConnections/{ekmConnectionsId}:verifyConnectivity
 /// Verifies that Cloud KMS can successfully connect to the external key manager specified by an EkmConnection. If there is an error connecting to the EKM, this method returns a FAILED_PRECONDITION status containing structured information as described at <https://cloud.google.`com/kms/docs/reference/ekm_errors`.>
 ///
@@ -3657,7 +3943,7 @@ pub fn cloudkms_projects_locations_ekm_connections_verify_connectivity_execute(
 
 pub fn cloudkms_projects_locations_ekm_connections_verify_connectivity(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsEkmConnectionsVerifyConnectivityArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<VerifyConnectivityResponse>, ApiError>,
@@ -3666,8 +3952,9 @@ pub fn cloudkms_projects_locations_ekm_connections_verify_connectivity(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_projects_locations_ekm_connections_verify_connectivity_builder(client, name)?;
+    let builder = cloudkms_projects_locations_ekm_connections_verify_connectivity_builder(
+        client, &args.name,
+    )?;
     cloudkms_projects_locations_ekm_connections_verify_connectivity_execute(builder)
 }
 
@@ -3776,6 +4063,17 @@ pub fn cloudkms_projects_locations_key_handles_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_handles_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyHandlesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: keyHandleId
+    pub keyHandleId: Option<String>,
+    /// Request body.
+    pub body: KeyHandle,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyHandles
 /// Creates a new KeyHandle, triggering the provisioning of a new CryptoKey for CMEK use with the given resource type in the configured key project and the same location. GetOperation should be used to resolve the resulting long-running operation and get the resulting KeyHandle and CryptoKey.
 ///
@@ -3788,15 +4086,17 @@ pub fn cloudkms_projects_locations_key_handles_create_execute(
 
 pub fn cloudkms_projects_locations_key_handles_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    keyHandleId: Option<&str>,
-    body: &KeyHandle,
+    args: &CloudkmsProjectsLocationsKeyHandlesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_projects_locations_key_handles_create_builder(client, parent, keyHandleId, body)?;
+    let builder = cloudkms_projects_locations_key_handles_create_builder(
+        client,
+        &args.parent,
+        args.keyHandleId.as_deref(),
+        &args.body,
+    )?;
     cloudkms_projects_locations_key_handles_create_execute(builder)
 }
 
@@ -3890,6 +4190,13 @@ pub fn cloudkms_projects_locations_key_handles_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_handles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyHandlesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyHandles/{keyHandlesId}
 /// Returns the KeyHandle.
 ///
@@ -3902,12 +4209,12 @@ pub fn cloudkms_projects_locations_key_handles_get_execute(
 
 pub fn cloudkms_projects_locations_key_handles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsKeyHandlesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<KeyHandle>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_locations_key_handles_get_builder(client, name)?;
+    let builder = cloudkms_projects_locations_key_handles_get_builder(client, &args.name)?;
     cloudkms_projects_locations_key_handles_get_execute(builder)
 }
 
@@ -4023,6 +4330,19 @@ pub fn cloudkms_projects_locations_key_handles_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_handles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyHandlesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyHandles
 /// Lists KeyHandles.
 ///
@@ -4035,10 +4355,7 @@ pub fn cloudkms_projects_locations_key_handles_list_execute(
 
 pub fn cloudkms_projects_locations_key_handles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudkmsProjectsLocationsKeyHandlesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListKeyHandlesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4046,7 +4363,11 @@ pub fn cloudkms_projects_locations_key_handles_list(
     ApiError,
 > {
     let builder = cloudkms_projects_locations_key_handles_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudkms_projects_locations_key_handles_list_execute(builder)
 }
@@ -4156,6 +4477,17 @@ pub fn cloudkms_projects_locations_key_rings_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: keyRingId
+    pub keyRingId: Option<String>,
+    /// Request body.
+    pub body: KeyRing,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings
 /// Create a new KeyRing in a given Project and Location.
 ///
@@ -4168,15 +4500,17 @@ pub fn cloudkms_projects_locations_key_rings_create_execute(
 
 pub fn cloudkms_projects_locations_key_rings_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    keyRingId: Option<&str>,
-    body: &KeyRing,
+    args: &CloudkmsProjectsLocationsKeyRingsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<KeyRing>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_projects_locations_key_rings_create_builder(client, parent, keyRingId, body)?;
+    let builder = cloudkms_projects_locations_key_rings_create_builder(
+        client,
+        &args.parent,
+        args.keyRingId.as_deref(),
+        &args.body,
+    )?;
     cloudkms_projects_locations_key_rings_create_execute(builder)
 }
 
@@ -4270,6 +4604,13 @@ pub fn cloudkms_projects_locations_key_rings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}
 /// Returns metadata for a given KeyRing.
 ///
@@ -4282,12 +4623,12 @@ pub fn cloudkms_projects_locations_key_rings_get_execute(
 
 pub fn cloudkms_projects_locations_key_rings_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsKeyRingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<KeyRing>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_locations_key_rings_get_builder(client, name)?;
+    let builder = cloudkms_projects_locations_key_rings_get_builder(client, &args.name)?;
     cloudkms_projects_locations_key_rings_get_execute(builder)
 }
 
@@ -4393,6 +4734,15 @@ pub fn cloudkms_projects_locations_key_rings_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -4405,16 +4755,15 @@ pub fn cloudkms_projects_locations_key_rings_get_iam_policy_execute(
 
 pub fn cloudkms_projects_locations_key_rings_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &CloudkmsProjectsLocationsKeyRingsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudkms_projects_locations_key_rings_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     cloudkms_projects_locations_key_rings_get_iam_policy_execute(builder)
 }
@@ -4535,6 +4884,21 @@ pub fn cloudkms_projects_locations_key_rings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings
 /// Lists KeyRings.
 ///
@@ -4547,11 +4911,7 @@ pub fn cloudkms_projects_locations_key_rings_list_execute(
 
 pub fn cloudkms_projects_locations_key_rings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudkmsProjectsLocationsKeyRingsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListKeyRingsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4559,7 +4919,12 @@ pub fn cloudkms_projects_locations_key_rings_list(
     ApiError,
 > {
     let builder = cloudkms_projects_locations_key_rings_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudkms_projects_locations_key_rings_list_execute(builder)
 }
@@ -4657,6 +5022,15 @@ pub fn cloudkms_projects_locations_key_rings_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -4669,14 +5043,16 @@ pub fn cloudkms_projects_locations_key_rings_set_iam_policy_execute(
 
 pub fn cloudkms_projects_locations_key_rings_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_projects_locations_key_rings_set_iam_policy_builder(client, resource, body)?;
+    let builder = cloudkms_projects_locations_key_rings_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudkms_projects_locations_key_rings_set_iam_policy_execute(builder)
 }
 
@@ -4777,6 +5153,15 @@ pub fn cloudkms_projects_locations_key_rings_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -4789,8 +5174,7 @@ pub fn cloudkms_projects_locations_key_rings_test_iam_permissions_execute(
 
 pub fn cloudkms_projects_locations_key_rings_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -4799,8 +5183,11 @@ pub fn cloudkms_projects_locations_key_rings_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_projects_locations_key_rings_test_iam_permissions_builder(client, resource, body)?;
+    let builder = cloudkms_projects_locations_key_rings_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudkms_projects_locations_key_rings_test_iam_permissions_execute(builder)
 }
 
@@ -4913,6 +5300,19 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: cryptoKeyId
+    pub cryptoKeyId: Option<String>,
+    /// Query parameter: skipInitialVersionCreation
+    pub skipInitialVersionCreation: Option<bool>,
+    /// Request body.
+    pub body: CryptoKey,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys
 /// Create a new CryptoKey within a KeyRing. CryptoKey.purpose and CryptoKey.version_template.algorithm are required.
 ///
@@ -4925,20 +5325,17 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_create_execute(
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    cryptoKeyId: Option<&str>,
-    skipInitialVersionCreation: Option<bool>,
-    body: &CryptoKey,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CryptoKey>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudkms_projects_locations_key_rings_crypto_keys_create_builder(
         client,
-        parent,
-        cryptoKeyId,
-        skipInitialVersionCreation,
-        body,
+        &args.parent,
+        args.cryptoKeyId.as_deref(),
+        args.skipInitialVersionCreation,
+        &args.body,
     )?;
     cloudkms_projects_locations_key_rings_crypto_keys_create_execute(builder)
 }
@@ -5038,6 +5435,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_decrypt_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_decrypt`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysDecryptArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DecryptRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}:decrypt
 /// Decrypts data that was protected by Encrypt. The CryptoKey.purpose must be ENCRYPT_DECRYPT.
 ///
@@ -5050,16 +5456,16 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_decrypt_execute(
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_decrypt(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DecryptRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysDecryptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DecryptResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_projects_locations_key_rings_crypto_keys_decrypt_builder(client, name, body)?;
+    let builder = cloudkms_projects_locations_key_rings_crypto_keys_decrypt_builder(
+        client, &args.name, &args.body,
+    )?;
     cloudkms_projects_locations_key_rings_crypto_keys_decrypt_execute(builder)
 }
 
@@ -5153,6 +5559,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}
 /// Permanently deletes the given CryptoKey. All child CryptoKeyVersions must have been previously deleted using KeyManagementService.DeleteCryptoKeyVersion. The specified crypto key will be immediately and permanently deleted upon calling this method. This action cannot be undone.
 ///
@@ -5165,12 +5578,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_delete_execute(
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_locations_key_rings_crypto_keys_delete_builder(client, name)?;
+    let builder =
+        cloudkms_projects_locations_key_rings_crypto_keys_delete_builder(client, &args.name)?;
     cloudkms_projects_locations_key_rings_crypto_keys_delete_execute(builder)
 }
 
@@ -5269,6 +5683,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_encrypt_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_encrypt`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysEncryptArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EncryptRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}:encrypt
 /// Encrypts data, so that it can only be recovered by a call to Decrypt. The CryptoKey.purpose must be ENCRYPT_DECRYPT.
 ///
@@ -5281,16 +5704,16 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_encrypt_execute(
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_encrypt(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EncryptRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysEncryptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EncryptResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudkms_projects_locations_key_rings_crypto_keys_encrypt_builder(client, name, body)?;
+    let builder = cloudkms_projects_locations_key_rings_crypto_keys_encrypt_builder(
+        client, &args.name, &args.body,
+    )?;
     cloudkms_projects_locations_key_rings_crypto_keys_encrypt_execute(builder)
 }
 
@@ -5384,6 +5807,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}
 /// Returns metadata for a given CryptoKey, as well as its primary CryptoKeyVersion.
 ///
@@ -5396,12 +5826,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_get_execute(
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CryptoKey>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_locations_key_rings_crypto_keys_get_builder(client, name)?;
+    let builder =
+        cloudkms_projects_locations_key_rings_crypto_keys_get_builder(client, &args.name)?;
     cloudkms_projects_locations_key_rings_crypto_keys_get_execute(builder)
 }
 
@@ -5507,6 +5938,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -5519,16 +5959,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_get_iam_policy_execute(
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudkms_projects_locations_key_rings_crypto_keys_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     cloudkms_projects_locations_key_rings_crypto_keys_get_iam_policy_execute(builder)
 }
@@ -5653,6 +6092,23 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: versionView
+    pub versionView: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys
 /// Lists CryptoKeys.
 ///
@@ -5665,12 +6121,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_list_execute(
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    versionView: Option<&str>,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCryptoKeysResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5679,12 +6130,12 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_list(
 > {
     let builder = cloudkms_projects_locations_key_rings_crypto_keys_list_builder(
         client,
-        parent,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        versionView,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.versionView.as_deref(),
     )?;
     cloudkms_projects_locations_key_rings_crypto_keys_list_execute(builder)
 }
@@ -5794,6 +6245,17 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CryptoKey,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}
 /// Update a CryptoKey.
 ///
@@ -5806,15 +6268,16 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_patch_execute(
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &CryptoKey,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CryptoKey>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudkms_projects_locations_key_rings_crypto_keys_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     cloudkms_projects_locations_key_rings_crypto_keys_patch_execute(builder)
 }
@@ -5912,6 +6375,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -5924,14 +6396,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_set_iam_policy_execute(
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudkms_projects_locations_key_rings_crypto_keys_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     cloudkms_projects_locations_key_rings_crypto_keys_set_iam_policy_execute(builder)
 }
@@ -6033,6 +6506,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_test_iam_permissions_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -6045,8 +6527,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_test_iam_permissions_ex
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -6056,7 +6537,9 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_test_iam_permissions(
     ApiError,
 > {
     let builder = cloudkms_projects_locations_key_rings_crypto_keys_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     cloudkms_projects_locations_key_rings_crypto_keys_test_iam_permissions_execute(builder)
 }
@@ -6154,6 +6637,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_update_primary_version_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_update_primary_version`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysUpdatePrimaryVersionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpdateCryptoKeyPrimaryVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}:updatePrimaryVersion
 /// Update the version of a CryptoKey that will be used in Encrypt. Returns an error if called on a key whose purpose is not ENCRYPT_DECRYPT.
 ///
@@ -6166,14 +6658,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_update_primary_version_
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_update_primary_version(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateCryptoKeyPrimaryVersionRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysUpdatePrimaryVersionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CryptoKey>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudkms_projects_locations_key_rings_crypto_keys_update_primary_version_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     cloudkms_projects_locations_key_rings_crypto_keys_update_primary_version_execute(builder)
 }
@@ -6273,6 +6764,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asy
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_decrypt`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsAsymmetricDecryptArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AsymmetricDecryptRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:asymmetricDecrypt
 /// Decrypts data that was encrypted with a public key retrieved from GetPublicKey corresponding to a CryptoKeyVersion with CryptoKey.purpose ASYMMETRIC_DECRYPT.
 ///
@@ -6285,15 +6785,14 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asy
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_decrypt(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AsymmetricDecryptRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsAsymmetricDecryptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AsymmetricDecryptResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_decrypt_builder(client, name, body)?;
+    let builder = cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_decrypt_builder(client, &args.name, &args.body)?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_decrypt_execute(
         builder,
     )
@@ -6394,6 +6893,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asy
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_sign`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsAsymmetricSignArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AsymmetricSignRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:asymmetricSign
 /// Signs data using a CryptoKeyVersion with CryptoKey.purpose ASYMMETRIC_SIGN, producing a signature that can be verified with the public key retrieved from GetPublicKey.
 ///
@@ -6406,15 +6914,14 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asy
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_sign(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AsymmetricSignRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsAsymmetricSignArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AsymmetricSignResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_sign_builder(client, name, body)?;
+    let builder = cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_sign_builder(client, &args.name, &args.body)?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_asymmetric_sign_execute(
         builder,
     )
@@ -6515,6 +7022,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_cre
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CryptoKeyVersion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions
 /// Create a new CryptoKeyVersion in a CryptoKey. The server will assign the next sequential id. If unset, state will be set to ENABLED.
 ///
@@ -6527,8 +7043,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_cre
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CryptoKeyVersion,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CryptoKeyVersion>, ApiError>, P = ApiPending>
         + Send
@@ -6537,7 +7052,9 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_cre
 > {
     let builder =
         cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_create_execute(builder)
 }
@@ -6637,6 +7154,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_dec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_decapsulate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsDecapsulateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DecapsulateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:decapsulate
 /// Decapsulates data that was encapsulated with a public key retrieved from GetPublicKey corresponding to a CryptoKeyVersion with CryptoKey.purpose KEY_ENCAPSULATION.
 ///
@@ -6649,8 +7175,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_dec
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_decapsulate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DecapsulateRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsDecapsulateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DecapsulateResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6659,7 +7184,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_dec
 > {
     let builder =
         cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_decapsulate_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_decapsulate_execute(
         builder,
@@ -6756,6 +7281,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_del
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}
 /// Permanently deletes the given CryptoKeyVersion. Only possible if the version has not been previously imported and if its state is one of DESTROYED, IMPORT_FAILED, or GENERATION_FAILED. Successfully imported CryptoKeyVersions cannot be deleted at this time. The specified version will be immediately and permanently deleted upon calling this method. This action cannot be undone.
 ///
@@ -6768,14 +7300,14 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_del
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_delete_execute(builder)
 }
@@ -6875,6 +7407,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_des
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_destroy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsDestroyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DestroyCryptoKeyVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:destroy
 /// Schedule a CryptoKeyVersion for destruction. Upon calling this method, CryptoKeyVersion.state will be set to DESTROY_SCHEDULED, and destroy_time will be set to the time destroy_scheduled_duration in the future. At that time, the state will automatically change to DESTROYED, and the key material will be irrevocably destroyed. Before the destroy_time is reached, RestoreCryptoKeyVersion may be called to reverse the process.
 ///
@@ -6887,8 +7428,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_des
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_destroy(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DestroyCryptoKeyVersionRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsDestroyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CryptoKeyVersion>, ApiError>, P = ApiPending>
         + Send
@@ -6897,7 +7437,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_des
 > {
     let builder =
         cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_destroy_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_destroy_execute(builder)
 }
@@ -6994,6 +7534,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}
 /// Returns metadata for a given CryptoKeyVersion.
 ///
@@ -7006,7 +7553,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CryptoKeyVersion>, ApiError>, P = ApiPending>
         + Send
@@ -7015,7 +7562,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get
 > {
     let builder =
         cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get_execute(builder)
 }
@@ -7122,6 +7669,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get_public_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsGetPublicKeyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: publicKeyFormat
+    pub publicKeyFormat: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}/publicKey
 /// Returns the public key for the given CryptoKeyVersion. The CryptoKey.purpose must be ASYMMETRIC_SIGN or ASYMMETRIC_DECRYPT.
 ///
@@ -7134,13 +7690,12 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get_public_key(
     client: &SimpleHttpClient,
-    name: &str,
-    publicKeyFormat: Option<&str>,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsGetPublicKeyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PublicKey>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get_public_key_builder(client, name, publicKeyFormat)?;
+    let builder = cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get_public_key_builder(client, &args.name, args.publicKeyFormat.as_deref())?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_get_public_key_execute(
         builder,
     )
@@ -7241,6 +7796,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_imp
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ImportCryptoKeyVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions:import
 /// Import wrapped key material into a CryptoKeyVersion. All requests must specify a CryptoKey. If a CryptoKeyVersion is additionally specified in the request, key material will be reimported into that version. Otherwise, a new version will be created, and will be assigned the next sequential id within the CryptoKey.
 ///
@@ -7253,8 +7817,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_imp
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ImportCryptoKeyVersionRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CryptoKeyVersion>, ApiError>, P = ApiPending>
         + Send
@@ -7263,7 +7826,9 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_imp
 > {
     let builder =
         cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_import_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_import_execute(builder)
 }
@@ -7390,6 +7955,23 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_lis
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions
 /// Lists CryptoKeyVersions.
 ///
@@ -7402,12 +7984,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_lis
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCryptoKeyVersionsResponse>, ApiError>,
@@ -7418,7 +7995,13 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_lis
 > {
     let builder =
         cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_list_builder(
-            client, parent, filter, orderBy, pageSize, pageToken, view,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.view.as_deref(),
         )?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_list_execute(builder)
 }
@@ -7518,6 +8101,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_sign`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsMacSignArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MacSignRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:macSign
 /// Signs data using a CryptoKeyVersion with CryptoKey.purpose MAC, producing a tag that can be verified by another source with the same key.
 ///
@@ -7530,8 +8122,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_sign(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MacSignRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsMacSignArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MacSignResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7540,7 +8131,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac
 > {
     let builder =
         cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_sign_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_sign_execute(builder)
 }
@@ -7640,6 +8231,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_verify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsMacVerifyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MacVerifyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:macVerify
 /// Verifies MAC tag using a CryptoKeyVersion with CryptoKey.purpose MAC, and returns a response that indicates whether or not the verification was successful.
 ///
@@ -7652,8 +8252,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_verify(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MacVerifyRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsMacVerifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MacVerifyResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7662,7 +8261,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac
 > {
     let builder =
         cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_verify_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_mac_verify_execute(
         builder,
@@ -7776,6 +8375,17 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_pat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CryptoKeyVersion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}
 /// Update a CryptoKeyVersion's metadata. state may be changed between ENABLED and DISABLED using this method. See DestroyCryptoKeyVersion and RestoreCryptoKeyVersion to move between other states.
 ///
@@ -7788,9 +8398,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_pat
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &CryptoKeyVersion,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CryptoKeyVersion>, ApiError>, P = ApiPending>
         + Send
@@ -7799,7 +8407,10 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_pat
 > {
     let builder =
         cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_patch_builder(
-            client, name, updateMask, body,
+            client,
+            &args.name,
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_patch_execute(builder)
 }
@@ -7899,6 +8510,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_decrypt`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsRawDecryptArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RawDecryptRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:rawDecrypt
 /// Decrypts data that was originally encrypted using a raw cryptographic mechanism. The CryptoKey.purpose must be RAW_ENCRYPT_DECRYPT.
 ///
@@ -7911,8 +8531,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_decrypt(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RawDecryptRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsRawDecryptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RawDecryptResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7921,7 +8540,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw
 > {
     let builder =
         cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_decrypt_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_decrypt_execute(
         builder,
@@ -8023,6 +8642,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_encrypt`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsRawEncryptArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RawEncryptRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:rawEncrypt
 /// Encrypts data using portable cryptographic primitives. Most users should choose Encrypt and Decrypt rather than their raw counterparts. The CryptoKey.purpose must be RAW_ENCRYPT_DECRYPT.
 ///
@@ -8035,8 +8663,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_encrypt(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RawEncryptRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsRawEncryptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RawEncryptResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8045,7 +8672,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw
 > {
     let builder =
         cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_encrypt_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_raw_encrypt_execute(
         builder,
@@ -8147,6 +8774,15 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_res
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestoreCryptoKeyVersionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/cryptoKeys/{cryptoKeysId}/cryptoKeyVersions/{cryptoKeyVersionsId}:restore
 /// Restore a CryptoKeyVersion in the DESTROY_SCHEDULED state. Upon restoration of the CryptoKeyVersion, state will be set to DISABLED, and destroy_time will be cleared.
 ///
@@ -8159,8 +8795,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_res
 
 pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_restore(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestoreCryptoKeyVersionRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsCryptoKeysCryptoKeyVersionsRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CryptoKeyVersion>, ApiError>, P = ApiPending>
         + Send
@@ -8169,7 +8804,7 @@ pub fn cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_res
 > {
     let builder =
         cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_restore_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     cloudkms_projects_locations_key_rings_crypto_keys_crypto_key_versions_restore_execute(builder)
 }
@@ -8279,6 +8914,17 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_import_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsImportJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: importJobId
+    pub importJobId: Option<String>,
+    /// Request body.
+    pub body: ImportJob,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/importJobs
 /// Create a new ImportJob within a KeyRing. ImportJob.import_method is required.
 ///
@@ -8291,18 +8937,16 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_create_execute(
 
 pub fn cloudkms_projects_locations_key_rings_import_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    importJobId: Option<&str>,
-    body: &ImportJob,
+    args: &CloudkmsProjectsLocationsKeyRingsImportJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ImportJob>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudkms_projects_locations_key_rings_import_jobs_create_builder(
         client,
-        parent,
-        importJobId,
-        body,
+        &args.parent,
+        args.importJobId.as_deref(),
+        &args.body,
     )?;
     cloudkms_projects_locations_key_rings_import_jobs_create_execute(builder)
 }
@@ -8397,6 +9041,13 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_import_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsImportJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/importJobs/{importJobsId}
 /// Returns metadata for a given ImportJob.
 ///
@@ -8409,12 +9060,13 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_get_execute(
 
 pub fn cloudkms_projects_locations_key_rings_import_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsKeyRingsImportJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ImportJob>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_locations_key_rings_import_jobs_get_builder(client, name)?;
+    let builder =
+        cloudkms_projects_locations_key_rings_import_jobs_get_builder(client, &args.name)?;
     cloudkms_projects_locations_key_rings_import_jobs_get_execute(builder)
 }
 
@@ -8520,6 +9172,15 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_import_jobs_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsImportJobsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/importJobs/{importJobsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -8532,16 +9193,15 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_get_iam_policy_execute(
 
 pub fn cloudkms_projects_locations_key_rings_import_jobs_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &CloudkmsProjectsLocationsKeyRingsImportJobsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudkms_projects_locations_key_rings_import_jobs_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     cloudkms_projects_locations_key_rings_import_jobs_get_iam_policy_execute(builder)
 }
@@ -8662,6 +9322,21 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_import_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsImportJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/importJobs
 /// Lists ImportJobs.
 ///
@@ -8674,11 +9349,7 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_list_execute(
 
 pub fn cloudkms_projects_locations_key_rings_import_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudkmsProjectsLocationsKeyRingsImportJobsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListImportJobsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8686,7 +9357,12 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_list(
     ApiError,
 > {
     let builder = cloudkms_projects_locations_key_rings_import_jobs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudkms_projects_locations_key_rings_import_jobs_list_execute(builder)
 }
@@ -8784,6 +9460,15 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_import_jobs_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsImportJobsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/importJobs/{importJobsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -8796,14 +9481,15 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_set_iam_policy_execute(
 
 pub fn cloudkms_projects_locations_key_rings_import_jobs_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsImportJobsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudkms_projects_locations_key_rings_import_jobs_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     cloudkms_projects_locations_key_rings_import_jobs_set_iam_policy_execute(builder)
 }
@@ -8905,6 +9591,15 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_test_iam_permissions_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_key_rings_import_jobs_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsKeyRingsImportJobsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/keyRings/{keyRingsId}/importJobs/{importJobsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -8917,8 +9612,7 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_test_iam_permissions_ex
 
 pub fn cloudkms_projects_locations_key_rings_import_jobs_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &CloudkmsProjectsLocationsKeyRingsImportJobsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -8928,7 +9622,9 @@ pub fn cloudkms_projects_locations_key_rings_import_jobs_test_iam_permissions(
     ApiError,
 > {
     let builder = cloudkms_projects_locations_key_rings_import_jobs_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     cloudkms_projects_locations_key_rings_import_jobs_test_iam_permissions_execute(builder)
 }
@@ -9023,6 +9719,13 @@ pub fn cloudkms_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -9035,12 +9738,12 @@ pub fn cloudkms_projects_locations_operations_get_execute(
 
 pub fn cloudkms_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_locations_operations_get_builder(client, name)?;
+    let builder = cloudkms_projects_locations_operations_get_builder(client, &args.name)?;
     cloudkms_projects_locations_operations_get_execute(builder)
 }
 
@@ -9136,6 +9839,13 @@ pub fn cloudkms_projects_locations_retired_resources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_retired_resources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsRetiredResourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/retiredResources/{retiredResourcesId}
 /// Retrieves a specific RetiredResource resource, which represents the record of a deleted CryptoKey.
 ///
@@ -9148,14 +9858,14 @@ pub fn cloudkms_projects_locations_retired_resources_get_execute(
 
 pub fn cloudkms_projects_locations_retired_resources_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsRetiredResourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RetiredResource>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudkms_projects_locations_retired_resources_get_builder(client, name)?;
+    let builder = cloudkms_projects_locations_retired_resources_get_builder(client, &args.name)?;
     cloudkms_projects_locations_retired_resources_get_execute(builder)
 }
 
@@ -9269,6 +9979,17 @@ pub fn cloudkms_projects_locations_retired_resources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_retired_resources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsRetiredResourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/retiredResources
 /// Lists the RetiredResources which are the records of deleted CryptoKeys. RetiredResources prevent the reuse of these resource names after deletion.
 ///
@@ -9281,9 +10002,7 @@ pub fn cloudkms_projects_locations_retired_resources_list_execute(
 
 pub fn cloudkms_projects_locations_retired_resources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudkmsProjectsLocationsRetiredResourcesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListRetiredResourcesResponse>, ApiError>,
@@ -9293,7 +10012,10 @@ pub fn cloudkms_projects_locations_retired_resources_list(
     ApiError,
 > {
     let builder = cloudkms_projects_locations_retired_resources_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudkms_projects_locations_retired_resources_list_execute(builder)
 }
@@ -9403,6 +10125,17 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_single_tenant_hsm_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsSingleTenantHsmInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: singleTenantHsmInstanceId
+    pub singleTenantHsmInstanceId: Option<String>,
+    /// Request body.
+    pub body: SingleTenantHsmInstance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/singleTenantHsmInstances
 /// Creates a new SingleTenantHsmInstance in a given Project and Location. User must create a RegisterTwoFactorAuthKeys proposal with this single-tenant HSM instance to finish setup of the instance.
 ///
@@ -9415,18 +10148,16 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_create_execute(
 
 pub fn cloudkms_projects_locations_single_tenant_hsm_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    singleTenantHsmInstanceId: Option<&str>,
-    body: &SingleTenantHsmInstance,
+    args: &CloudkmsProjectsLocationsSingleTenantHsmInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudkms_projects_locations_single_tenant_hsm_instances_create_builder(
         client,
-        parent,
-        singleTenantHsmInstanceId,
-        body,
+        &args.parent,
+        args.singleTenantHsmInstanceId.as_deref(),
+        &args.body,
     )?;
     cloudkms_projects_locations_single_tenant_hsm_instances_create_execute(builder)
 }
@@ -9523,6 +10254,13 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_single_tenant_hsm_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsSingleTenantHsmInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}
 /// Returns metadata for a given SingleTenantHsmInstance.
 ///
@@ -9535,7 +10273,7 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_get_execute(
 
 pub fn cloudkms_projects_locations_single_tenant_hsm_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsSingleTenantHsmInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SingleTenantHsmInstance>, ApiError>, P = ApiPending>
         + Send
@@ -9543,7 +10281,7 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_get(
     ApiError,
 > {
     let builder =
-        cloudkms_projects_locations_single_tenant_hsm_instances_get_builder(client, name)?;
+        cloudkms_projects_locations_single_tenant_hsm_instances_get_builder(client, &args.name)?;
     cloudkms_projects_locations_single_tenant_hsm_instances_get_execute(builder)
 }
 
@@ -9669,6 +10407,23 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_single_tenant_hsm_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsSingleTenantHsmInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/singleTenantHsmInstances
 /// Lists SingleTenantHsmInstances.
 ///
@@ -9681,12 +10436,7 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_list_execute(
 
 pub fn cloudkms_projects_locations_single_tenant_hsm_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &CloudkmsProjectsLocationsSingleTenantHsmInstancesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSingleTenantHsmInstancesResponse>, ApiError>,
@@ -9697,12 +10447,12 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_list(
 > {
     let builder = cloudkms_projects_locations_single_tenant_hsm_instances_list_builder(
         client,
-        parent,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     cloudkms_projects_locations_single_tenant_hsm_instances_list_execute(builder)
 }
@@ -9805,6 +10555,15 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_approve
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_single_tenant_hsm_instances_proposals_approve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsApproveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ApproveSingleTenantHsmInstanceProposalRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}/proposals/{proposalsId}:approve
 /// Approves a SingleTenantHsmInstanceProposal for a given SingleTenantHsmInstance. The proposal must be in the `PENDING` state.
 ///
@@ -9817,8 +10576,7 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_approve
 
 pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_approve(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ApproveSingleTenantHsmInstanceProposalRequest,
+    args: &CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsApproveArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ApproveSingleTenantHsmInstanceProposalResponse>, ApiError>,
@@ -9829,7 +10587,7 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_approve
 > {
     let builder =
         cloudkms_projects_locations_single_tenant_hsm_instances_proposals_approve_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     cloudkms_projects_locations_single_tenant_hsm_instances_proposals_approve_execute(builder)
 }
@@ -9939,6 +10697,17 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_create_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_single_tenant_hsm_instances_proposals_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: singleTenantHsmInstanceProposalId
+    pub singleTenantHsmInstanceProposalId: Option<String>,
+    /// Request body.
+    pub body: SingleTenantHsmInstanceProposal,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}/proposals
 /// Creates a new SingleTenantHsmInstanceProposal for a given SingleTenantHsmInstance.
 ///
@@ -9951,18 +10720,16 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_create_
 
 pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    singleTenantHsmInstanceProposalId: Option<&str>,
-    body: &SingleTenantHsmInstanceProposal,
+    args: &CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudkms_projects_locations_single_tenant_hsm_instances_proposals_create_builder(
         client,
-        parent,
-        singleTenantHsmInstanceProposalId,
-        body,
+        &args.parent,
+        args.singleTenantHsmInstanceProposalId.as_deref(),
+        &args.body,
     )?;
     cloudkms_projects_locations_single_tenant_hsm_instances_proposals_create_execute(builder)
 }
@@ -10057,6 +10824,13 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_delete_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_single_tenant_hsm_instances_proposals_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}/proposals/{proposalsId}
 /// Deletes a SingleTenantHsmInstanceProposal.
 ///
@@ -10069,13 +10843,13 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_delete_
 
 pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudkms_projects_locations_single_tenant_hsm_instances_proposals_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     cloudkms_projects_locations_single_tenant_hsm_instances_proposals_delete_execute(builder)
 }
@@ -10173,6 +10947,15 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_single_tenant_hsm_instances_proposals_execute`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsExecuteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExecuteSingleTenantHsmInstanceProposalRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}/proposals/{proposalsId}:execute
 /// Executes a SingleTenantHsmInstanceProposal for a given SingleTenantHsmInstance. The proposal must be in the APPROVED state.
 ///
@@ -10185,15 +10968,14 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_execute
 
 pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_execute(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExecuteSingleTenantHsmInstanceProposalRequest,
+    args: &CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsExecuteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         cloudkms_projects_locations_single_tenant_hsm_instances_proposals_execute_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     cloudkms_projects_locations_single_tenant_hsm_instances_proposals_execute_execute(builder)
 }
@@ -10292,6 +11074,13 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_single_tenant_hsm_instances_proposals_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}/proposals/{proposalsId}
 /// Returns metadata for a given SingleTenantHsmInstanceProposal.
 ///
@@ -10304,7 +11093,7 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_get_exe
 
 pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SingleTenantHsmInstanceProposal>, ApiError>,
@@ -10314,7 +11103,7 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_get(
     ApiError,
 > {
     let builder = cloudkms_projects_locations_single_tenant_hsm_instances_proposals_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     cloudkms_projects_locations_single_tenant_hsm_instances_proposals_get_execute(builder)
 }
@@ -10442,6 +11231,23 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudkms_projects_locations_single_tenant_hsm_instances_proposals_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/singleTenantHsmInstances/{singleTenantHsmInstancesId}/proposals
 /// Lists SingleTenantHsmInstanceProposals.
 ///
@@ -10454,12 +11260,7 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_list_ex
 
 pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &CloudkmsProjectsLocationsSingleTenantHsmInstancesProposalsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSingleTenantHsmInstanceProposalsResponse>, ApiError>,
@@ -10470,12 +11271,12 @@ pub fn cloudkms_projects_locations_single_tenant_hsm_instances_proposals_list(
 > {
     let builder = cloudkms_projects_locations_single_tenant_hsm_instances_proposals_list_builder(
         client,
-        parent,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     cloudkms_projects_locations_single_tenant_hsm_instances_proposals_list_execute(builder)
 }

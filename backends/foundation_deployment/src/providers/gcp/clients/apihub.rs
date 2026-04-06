@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:collectApiData
 /// Collect API data from a source and push it to Hub's collect layer.
@@ -113,6 +115,15 @@ pub fn apihub_projects_locations_collect_api_data_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_collect_api_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsCollectApiDataArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Request body.
+    pub body: GoogleCloudApihubV1CollectApiDataRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:collectApiData
 /// Collect API data from a source and push it to Hub's collect layer.
 ///
@@ -125,8 +136,7 @@ pub fn apihub_projects_locations_collect_api_data_execute(
 
 pub fn apihub_projects_locations_collect_api_data(
     client: &SimpleHttpClient,
-    location: &str,
-    body: &GoogleCloudApihubV1CollectApiDataRequest,
+    args: &ApihubProjectsLocationsCollectApiDataArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -135,7 +145,8 @@ pub fn apihub_projects_locations_collect_api_data(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_collect_api_data_builder(client, location, body)?;
+    let builder =
+        apihub_projects_locations_collect_api_data_builder(client, &args.location, &args.body)?;
     apihub_projects_locations_collect_api_data_execute(builder)
 }
 
@@ -233,6 +244,13 @@ pub fn apihub_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -245,7 +263,7 @@ pub fn apihub_projects_locations_get_execute(
 
 pub fn apihub_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudLocationLocation>, ApiError>,
@@ -254,7 +272,7 @@ pub fn apihub_projects_locations_get(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_get_builder(client, name)?;
+    let builder = apihub_projects_locations_get_builder(client, &args.name)?;
     apihub_projects_locations_get_execute(builder)
 }
 
@@ -376,6 +394,21 @@ pub fn apihub_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -388,11 +421,7 @@ pub fn apihub_projects_locations_list_execute(
 
 pub fn apihub_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudLocationListLocationsResponse>, ApiError>,
@@ -403,11 +432,11 @@ pub fn apihub_projects_locations_list(
 > {
     let builder = apihub_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apihub_projects_locations_list_execute(builder)
 }
@@ -510,6 +539,13 @@ pub fn apihub_projects_locations_lookup_runtime_project_attachment_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_lookup_runtime_project_attachment`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsLookupRuntimeProjectAttachmentArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:lookupRuntimeProjectAttachment
 /// Look up a runtime project attachment. This API can be called in the context of any project.
 ///
@@ -522,7 +558,7 @@ pub fn apihub_projects_locations_lookup_runtime_project_attachment_execute(
 
 pub fn apihub_projects_locations_lookup_runtime_project_attachment(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsLookupRuntimeProjectAttachmentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -535,7 +571,7 @@ pub fn apihub_projects_locations_lookup_runtime_project_attachment(
     ApiError,
 > {
     let builder =
-        apihub_projects_locations_lookup_runtime_project_attachment_builder(client, name)?;
+        apihub_projects_locations_lookup_runtime_project_attachment_builder(client, &args.name)?;
     apihub_projects_locations_lookup_runtime_project_attachment_execute(builder)
 }
 
@@ -658,6 +694,21 @@ pub fn apihub_projects_locations_retrieve_api_views_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_retrieve_api_views`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsRetrieveApiViewsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:retrieveApiViews
 /// Retrieve API views.
 ///
@@ -670,11 +721,7 @@ pub fn apihub_projects_locations_retrieve_api_views_execute(
 
 pub fn apihub_projects_locations_retrieve_api_views(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &ApihubProjectsLocationsRetrieveApiViewsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1RetrieveApiViewsResponse>, ApiError>,
@@ -684,7 +731,12 @@ pub fn apihub_projects_locations_retrieve_api_views(
     ApiError,
 > {
     let builder = apihub_projects_locations_retrieve_api_views_builder(
-        client, parent, filter, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     apihub_projects_locations_retrieve_api_views_execute(builder)
 }
@@ -787,6 +839,15 @@ pub fn apihub_projects_locations_search_resources_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_search_resources`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsSearchResourcesArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Request body.
+    pub body: GoogleCloudApihubV1SearchResourcesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:searchResources
 /// Search across API-Hub resources.
 ///
@@ -799,8 +860,7 @@ pub fn apihub_projects_locations_search_resources_execute(
 
 pub fn apihub_projects_locations_search_resources(
     client: &SimpleHttpClient,
-    location: &str,
-    body: &GoogleCloudApihubV1SearchResourcesRequest,
+    args: &ApihubProjectsLocationsSearchResourcesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1SearchResourcesResponse>, ApiError>,
@@ -809,7 +869,8 @@ pub fn apihub_projects_locations_search_resources(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_search_resources_builder(client, location, body)?;
+    let builder =
+        apihub_projects_locations_search_resources_builder(client, &args.location, &args.body)?;
     apihub_projects_locations_search_resources_execute(builder)
 }
 
@@ -905,6 +966,13 @@ pub fn apihub_projects_locations_addons_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_addons_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAddonsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addons/{addonsId}
 /// Get an addon.
 ///
@@ -917,14 +985,14 @@ pub fn apihub_projects_locations_addons_get_execute(
 
 pub fn apihub_projects_locations_addons_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsAddonsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Addon>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_addons_get_builder(client, name)?;
+    let builder = apihub_projects_locations_addons_get_builder(client, &args.name)?;
     apihub_projects_locations_addons_get_execute(builder)
 }
 
@@ -1042,6 +1110,19 @@ pub fn apihub_projects_locations_addons_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_addons_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAddonsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addons
 /// List addons.
 ///
@@ -1054,10 +1135,7 @@ pub fn apihub_projects_locations_addons_list_execute(
 
 pub fn apihub_projects_locations_addons_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsAddonsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ListAddonsResponse>, ApiError>,
@@ -1066,8 +1144,13 @@ pub fn apihub_projects_locations_addons_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_addons_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = apihub_projects_locations_addons_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apihub_projects_locations_addons_list_execute(builder)
 }
 
@@ -1168,6 +1251,15 @@ pub fn apihub_projects_locations_addons_manage_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_addons_manage_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAddonsManageConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApihubV1ManageAddonConfigRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/addons/{addonsId}:manageConfig
 /// Manage addon config. This RPC is used for managing the config of the addon. Calling this RPC moves the addon into an updating state until the long-running operation succeeds.
 ///
@@ -1180,8 +1272,7 @@ pub fn apihub_projects_locations_addons_manage_config_execute(
 
 pub fn apihub_projects_locations_addons_manage_config(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApihubV1ManageAddonConfigRequest,
+    args: &ApihubProjectsLocationsAddonsManageConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1190,7 +1281,8 @@ pub fn apihub_projects_locations_addons_manage_config(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_addons_manage_config_builder(client, name, body)?;
+    let builder =
+        apihub_projects_locations_addons_manage_config_builder(client, &args.name, &args.body)?;
     apihub_projects_locations_addons_manage_config_execute(builder)
 }
 
@@ -1303,6 +1395,17 @@ pub fn apihub_projects_locations_api_hub_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_api_hub_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApiHubInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: apiHubInstanceId
+    pub apiHubInstanceId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1ApiHubInstance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances
 /// Provisions instance resources for the API Hub.
 ///
@@ -1315,9 +1418,7 @@ pub fn apihub_projects_locations_api_hub_instances_create_execute(
 
 pub fn apihub_projects_locations_api_hub_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    apiHubInstanceId: Option<&str>,
-    body: &GoogleCloudApihubV1ApiHubInstance,
+    args: &ApihubProjectsLocationsApiHubInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1328,9 +1429,9 @@ pub fn apihub_projects_locations_api_hub_instances_create(
 > {
     let builder = apihub_projects_locations_api_hub_instances_create_builder(
         client,
-        parent,
-        apiHubInstanceId,
-        body,
+        &args.parent,
+        args.apiHubInstanceId.as_deref(),
+        &args.body,
     )?;
     apihub_projects_locations_api_hub_instances_create_execute(builder)
 }
@@ -1429,6 +1530,13 @@ pub fn apihub_projects_locations_api_hub_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_api_hub_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApiHubInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
 /// Deletes the API hub instance. Deleting the API hub instance will also result in the removal of all associated runtime project attachments and the host project registration.
 ///
@@ -1441,7 +1549,7 @@ pub fn apihub_projects_locations_api_hub_instances_delete_execute(
 
 pub fn apihub_projects_locations_api_hub_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsApiHubInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1450,7 +1558,7 @@ pub fn apihub_projects_locations_api_hub_instances_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_api_hub_instances_delete_builder(client, name)?;
+    let builder = apihub_projects_locations_api_hub_instances_delete_builder(client, &args.name)?;
     apihub_projects_locations_api_hub_instances_delete_execute(builder)
 }
 
@@ -1548,6 +1656,13 @@ pub fn apihub_projects_locations_api_hub_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_api_hub_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApiHubInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
 /// Gets details of a single API Hub instance.
 ///
@@ -1560,7 +1675,7 @@ pub fn apihub_projects_locations_api_hub_instances_get_execute(
 
 pub fn apihub_projects_locations_api_hub_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsApiHubInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ApiHubInstance>, ApiError>,
@@ -1569,7 +1684,7 @@ pub fn apihub_projects_locations_api_hub_instances_get(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_api_hub_instances_get_builder(client, name)?;
+    let builder = apihub_projects_locations_api_hub_instances_get_builder(client, &args.name)?;
     apihub_projects_locations_api_hub_instances_get_execute(builder)
 }
 
@@ -1668,6 +1783,13 @@ pub fn apihub_projects_locations_api_hub_instances_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_api_hub_instances_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApiHubInstancesLookupArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances:lookup
 /// Looks up an Api Hub instance in a given Google Cloud project. There will always be only one Api Hub instance for a Google Cloud project across all locations.
 ///
@@ -1680,7 +1802,7 @@ pub fn apihub_projects_locations_api_hub_instances_lookup_execute(
 
 pub fn apihub_projects_locations_api_hub_instances_lookup(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ApihubProjectsLocationsApiHubInstancesLookupArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1LookupApiHubInstanceResponse>, ApiError>,
@@ -1689,7 +1811,7 @@ pub fn apihub_projects_locations_api_hub_instances_lookup(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_api_hub_instances_lookup_builder(client, parent)?;
+    let builder = apihub_projects_locations_api_hub_instances_lookup_builder(client, &args.parent)?;
     apihub_projects_locations_api_hub_instances_lookup_execute(builder)
 }
 
@@ -1802,6 +1924,17 @@ pub fn apihub_projects_locations_api_hub_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_api_hub_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApiHubInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1ApiHubInstance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apiHubInstances/{apiHubInstancesId}
 /// Update an Api Hub instance. The following fields in the ApiHubInstance can be updated: * disable_search * vertex_location * agent_registry_sync_config The update_mask should be used to specify the fields being updated.
 ///
@@ -1814,9 +1947,7 @@ pub fn apihub_projects_locations_api_hub_instances_patch_execute(
 
 pub fn apihub_projects_locations_api_hub_instances_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApihubV1ApiHubInstance,
+    args: &ApihubProjectsLocationsApiHubInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1825,8 +1956,12 @@ pub fn apihub_projects_locations_api_hub_instances_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_api_hub_instances_patch_builder(client, name, updateMask, body)?;
+    let builder = apihub_projects_locations_api_hub_instances_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_api_hub_instances_patch_execute(builder)
 }
 
@@ -1937,6 +2072,17 @@ pub fn apihub_projects_locations_apis_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: apiId
+    pub apiId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1Api,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis
 /// Create an API resource in the API hub. Once an API resource is created, versions can be added to it.
 ///
@@ -1949,16 +2095,19 @@ pub fn apihub_projects_locations_apis_create_execute(
 
 pub fn apihub_projects_locations_apis_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    apiId: Option<&str>,
-    body: &GoogleCloudApihubV1Api,
+    args: &ApihubProjectsLocationsApisCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Api>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_apis_create_builder(client, parent, apiId, body)?;
+    let builder = apihub_projects_locations_apis_create_builder(
+        client,
+        &args.parent,
+        args.apiId.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_apis_create_execute(builder)
 }
 
@@ -2064,6 +2213,15 @@ pub fn apihub_projects_locations_apis_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
 /// Delete an API resource in the API hub. API can only be deleted if all underlying versions are deleted.
 ///
@@ -2076,13 +2234,12 @@ pub fn apihub_projects_locations_apis_delete_execute(
 
 pub fn apihub_projects_locations_apis_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ApihubProjectsLocationsApisDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_apis_delete_builder(client, name, force)?;
+    let builder = apihub_projects_locations_apis_delete_builder(client, &args.name, args.force)?;
     apihub_projects_locations_apis_delete_execute(builder)
 }
 
@@ -2178,6 +2335,13 @@ pub fn apihub_projects_locations_apis_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
 /// Get API resource details including the API versions contained in it.
 ///
@@ -2190,14 +2354,14 @@ pub fn apihub_projects_locations_apis_get_execute(
 
 pub fn apihub_projects_locations_apis_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsApisGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Api>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_apis_get_builder(client, name)?;
+    let builder = apihub_projects_locations_apis_get_builder(client, &args.name)?;
     apihub_projects_locations_apis_get_execute(builder)
 }
 
@@ -2315,6 +2479,19 @@ pub fn apihub_projects_locations_apis_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis
 /// List API resources in the API hub.
 ///
@@ -2327,10 +2504,7 @@ pub fn apihub_projects_locations_apis_list_execute(
 
 pub fn apihub_projects_locations_apis_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsApisListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ListApisResponse>, ApiError>,
@@ -2339,8 +2513,13 @@ pub fn apihub_projects_locations_apis_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_apis_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = apihub_projects_locations_apis_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apihub_projects_locations_apis_list_execute(builder)
 }
 
@@ -2451,6 +2630,17 @@ pub fn apihub_projects_locations_apis_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1Api,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
 /// Update an API resource in the API hub. The following fields in the API can be updated: * display_name * description * owner * documentation * target_user * team * business_unit * maturity_level * api_style * attributes * fingerprint The update_mask should be used to specify the fields being updated. Updating the owner field requires complete owner message and updates both owner and email fields.
 ///
@@ -2463,16 +2653,19 @@ pub fn apihub_projects_locations_apis_patch_execute(
 
 pub fn apihub_projects_locations_apis_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApihubV1Api,
+    args: &ApihubProjectsLocationsApisPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Api>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_apis_patch_builder(client, name, updateMask, body)?;
+    let builder = apihub_projects_locations_apis_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_apis_patch_execute(builder)
 }
 
@@ -2585,6 +2778,17 @@ pub fn apihub_projects_locations_apis_versions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: versionId
+    pub versionId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1Version,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
 /// Create an API version for an API resource in the API hub.
 ///
@@ -2597,9 +2801,7 @@ pub fn apihub_projects_locations_apis_versions_create_execute(
 
 pub fn apihub_projects_locations_apis_versions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    versionId: Option<&str>,
-    body: &GoogleCloudApihubV1Version,
+    args: &ApihubProjectsLocationsApisVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Version>, ApiError>,
@@ -2608,8 +2810,12 @@ pub fn apihub_projects_locations_apis_versions_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_apis_versions_create_builder(client, parent, versionId, body)?;
+    let builder = apihub_projects_locations_apis_versions_create_builder(
+        client,
+        &args.parent,
+        args.versionId.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_apis_versions_create_execute(builder)
 }
 
@@ -2715,6 +2921,15 @@ pub fn apihub_projects_locations_apis_versions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
 /// Delete an API version. Version can only be deleted if all underlying specs, operations, definitions and linked deployments are deleted.
 ///
@@ -2727,13 +2942,13 @@ pub fn apihub_projects_locations_apis_versions_delete_execute(
 
 pub fn apihub_projects_locations_apis_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ApihubProjectsLocationsApisVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_apis_versions_delete_builder(client, name, force)?;
+    let builder =
+        apihub_projects_locations_apis_versions_delete_builder(client, &args.name, args.force)?;
     apihub_projects_locations_apis_versions_delete_execute(builder)
 }
 
@@ -2831,6 +3046,13 @@ pub fn apihub_projects_locations_apis_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
 /// Get details about the API version of an API resource. This will include information about the specs and operations present in the API version as well as the deployments linked to it.
 ///
@@ -2843,7 +3065,7 @@ pub fn apihub_projects_locations_apis_versions_get_execute(
 
 pub fn apihub_projects_locations_apis_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsApisVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Version>, ApiError>,
@@ -2852,7 +3074,7 @@ pub fn apihub_projects_locations_apis_versions_get(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_apis_versions_get_builder(client, name)?;
+    let builder = apihub_projects_locations_apis_versions_get_builder(client, &args.name)?;
     apihub_projects_locations_apis_versions_get_execute(builder)
 }
 
@@ -2971,6 +3193,19 @@ pub fn apihub_projects_locations_apis_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
 /// List API versions of an API resource in the API hub.
 ///
@@ -2983,10 +3218,7 @@ pub fn apihub_projects_locations_apis_versions_list_execute(
 
 pub fn apihub_projects_locations_apis_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsApisVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ListVersionsResponse>, ApiError>,
@@ -2996,7 +3228,11 @@ pub fn apihub_projects_locations_apis_versions_list(
     ApiError,
 > {
     let builder = apihub_projects_locations_apis_versions_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apihub_projects_locations_apis_versions_list_execute(builder)
 }
@@ -3110,6 +3346,17 @@ pub fn apihub_projects_locations_apis_versions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1Version,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
 /// Update API version. The following fields in the version can be updated currently: * display_name * description * documentation * deployments * lifecycle * compliance * accreditation * attributes The update_mask should be used to specify the fields being updated.
 ///
@@ -3122,9 +3369,7 @@ pub fn apihub_projects_locations_apis_versions_patch_execute(
 
 pub fn apihub_projects_locations_apis_versions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApihubV1Version,
+    args: &ApihubProjectsLocationsApisVersionsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Version>, ApiError>,
@@ -3133,8 +3378,12 @@ pub fn apihub_projects_locations_apis_versions_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_apis_versions_patch_builder(client, name, updateMask, body)?;
+    let builder = apihub_projects_locations_apis_versions_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_apis_versions_patch_execute(builder)
 }
 
@@ -3232,6 +3481,13 @@ pub fn apihub_projects_locations_apis_versions_definitions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_definitions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsDefinitionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/definitions/{definitionsId}
 /// Get details about a definition in an API version.
 ///
@@ -3244,7 +3500,7 @@ pub fn apihub_projects_locations_apis_versions_definitions_get_execute(
 
 pub fn apihub_projects_locations_apis_versions_definitions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsApisVersionsDefinitionsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Definition>, ApiError>,
@@ -3253,7 +3509,8 @@ pub fn apihub_projects_locations_apis_versions_definitions_get(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_apis_versions_definitions_get_builder(client, name)?;
+    let builder =
+        apihub_projects_locations_apis_versions_definitions_get_builder(client, &args.name)?;
     apihub_projects_locations_apis_versions_definitions_get_execute(builder)
 }
 
@@ -3366,6 +3623,17 @@ pub fn apihub_projects_locations_apis_versions_operations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_operations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsOperationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: apiOperationId
+    pub apiOperationId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1ApiOperation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations
 /// Create an `apiOperation` in an API version. An `apiOperation` can be created only if the version has no `apiOperations` which were created by parsing a spec.
 ///
@@ -3378,9 +3646,7 @@ pub fn apihub_projects_locations_apis_versions_operations_create_execute(
 
 pub fn apihub_projects_locations_apis_versions_operations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    apiOperationId: Option<&str>,
-    body: &GoogleCloudApihubV1ApiOperation,
+    args: &ApihubProjectsLocationsApisVersionsOperationsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ApiOperation>, ApiError>,
@@ -3391,9 +3657,9 @@ pub fn apihub_projects_locations_apis_versions_operations_create(
 > {
     let builder = apihub_projects_locations_apis_versions_operations_create_builder(
         client,
-        parent,
-        apiOperationId,
-        body,
+        &args.parent,
+        args.apiOperationId.as_deref(),
+        &args.body,
     )?;
     apihub_projects_locations_apis_versions_operations_create_execute(builder)
 }
@@ -3488,6 +3754,13 @@ pub fn apihub_projects_locations_apis_versions_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
 /// Delete an operation in an API version and we can delete only the operations created via create API. If the operation was created by parsing the spec, then it can be deleted by editing or deleting the spec.
 ///
@@ -3500,12 +3773,13 @@ pub fn apihub_projects_locations_apis_versions_operations_delete_execute(
 
 pub fn apihub_projects_locations_apis_versions_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsApisVersionsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_apis_versions_operations_delete_builder(client, name)?;
+    let builder =
+        apihub_projects_locations_apis_versions_operations_delete_builder(client, &args.name)?;
     apihub_projects_locations_apis_versions_operations_delete_execute(builder)
 }
 
@@ -3603,6 +3877,13 @@ pub fn apihub_projects_locations_apis_versions_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
 /// Get details about a particular operation in API version.
 ///
@@ -3615,7 +3896,7 @@ pub fn apihub_projects_locations_apis_versions_operations_get_execute(
 
 pub fn apihub_projects_locations_apis_versions_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsApisVersionsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ApiOperation>, ApiError>,
@@ -3624,7 +3905,8 @@ pub fn apihub_projects_locations_apis_versions_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_apis_versions_operations_get_builder(client, name)?;
+    let builder =
+        apihub_projects_locations_apis_versions_operations_get_builder(client, &args.name)?;
     apihub_projects_locations_apis_versions_operations_get_execute(builder)
 }
 
@@ -3743,6 +4025,19 @@ pub fn apihub_projects_locations_apis_versions_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsOperationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations
 /// List operations in an API version.
 ///
@@ -3755,10 +4050,7 @@ pub fn apihub_projects_locations_apis_versions_operations_list_execute(
 
 pub fn apihub_projects_locations_apis_versions_operations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsApisVersionsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ListApiOperationsResponse>, ApiError>,
@@ -3768,7 +4060,11 @@ pub fn apihub_projects_locations_apis_versions_operations_list(
     ApiError,
 > {
     let builder = apihub_projects_locations_apis_versions_operations_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apihub_projects_locations_apis_versions_operations_list_execute(builder)
 }
@@ -3882,6 +4178,17 @@ pub fn apihub_projects_locations_apis_versions_operations_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_operations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsOperationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1ApiOperation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/operations/{operationsId}
 /// Update an operation in an API version. The following fields in the ApiOperation resource can be updated: * details.description * details.documentation * details.http_operation.path * details.http_operation.method * details.deprecated * attributes * details.mcp_tool.title * details.mcp_tool.description * details.mcp_tool.input_schema * details.mcp_tool.output_schema * details.input_schema * details.output_schema * details.mcp_tool.annotations.title * details.mcp_tool.annotations.read_only_hint * details.mcp_tool.annotations.destructive_hint * details.mcp_tool.annotations.idempotent_hint * details.mcp_tool.annotations.open_world_hint * details.mcp_tool.annotations.additional_hints The update_mask should be used to specify the fields being updated. An operation can be updated only if the operation was created via CreateApiOperation API. If the operation was created by parsing the spec, then it can be edited by updating the spec.
 ///
@@ -3894,9 +4201,7 @@ pub fn apihub_projects_locations_apis_versions_operations_patch_execute(
 
 pub fn apihub_projects_locations_apis_versions_operations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApihubV1ApiOperation,
+    args: &ApihubProjectsLocationsApisVersionsOperationsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ApiOperation>, ApiError>,
@@ -3906,7 +4211,10 @@ pub fn apihub_projects_locations_apis_versions_operations_patch(
     ApiError,
 > {
     let builder = apihub_projects_locations_apis_versions_operations_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apihub_projects_locations_apis_versions_operations_patch_execute(builder)
 }
@@ -4018,6 +4326,17 @@ pub fn apihub_projects_locations_apis_versions_specs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: specId
+    pub specId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1Spec,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
 /// Add a spec to an API version in the API hub. Multiple specs can be added to an API version. Note, while adding a spec, at least one of contents or source_uri must be provided. If contents is provided, then spec_type must also be provided. On adding a spec with contents to the version, the operations present in it will be added to the version.Note that the file contents in the spec should be of the same type as defined in the `projects/{project}/locations/{location}/attributes/system-spec-type` attribute associated with spec resource. Note that specs of various types can be uploaded, however parsing of details is supported for OpenAPI spec currently. In order to access the information parsed from the spec, use the GetSpec method. In order to access the raw contents for a particular spec, use the GetSpecContents method. In order to access the operations parsed from the spec, use the ListAPIOperations method.
 ///
@@ -4030,17 +4349,19 @@ pub fn apihub_projects_locations_apis_versions_specs_create_execute(
 
 pub fn apihub_projects_locations_apis_versions_specs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    specId: Option<&str>,
-    body: &GoogleCloudApihubV1Spec,
+    args: &ApihubProjectsLocationsApisVersionsSpecsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Spec>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_apis_versions_specs_create_builder(client, parent, specId, body)?;
+    let builder = apihub_projects_locations_apis_versions_specs_create_builder(
+        client,
+        &args.parent,
+        args.specId.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_apis_versions_specs_create_execute(builder)
 }
 
@@ -4134,6 +4455,13 @@ pub fn apihub_projects_locations_apis_versions_specs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
 /// Delete a spec. Deleting a spec will also delete the associated operations from the version.
 ///
@@ -4146,12 +4474,12 @@ pub fn apihub_projects_locations_apis_versions_specs_delete_execute(
 
 pub fn apihub_projects_locations_apis_versions_specs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsApisVersionsSpecsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_apis_versions_specs_delete_builder(client, name)?;
+    let builder = apihub_projects_locations_apis_versions_specs_delete_builder(client, &args.name)?;
     apihub_projects_locations_apis_versions_specs_delete_execute(builder)
 }
 
@@ -4265,6 +4593,15 @@ pub fn apihub_projects_locations_apis_versions_specs_fetch_additional_spec_conte
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsFetchAdditionalSpecContentArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: specContentType
+    pub specContentType: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:fetchAdditionalSpecContent
 /// Fetch additional spec content.
 ///
@@ -4277,8 +4614,7 @@ pub fn apihub_projects_locations_apis_versions_specs_fetch_additional_spec_conte
 
 pub fn apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content(
     client: &SimpleHttpClient,
-    name: &str,
-    specContentType: Option<&str>,
+    args: &ApihubProjectsLocationsApisVersionsSpecsFetchAdditionalSpecContentArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4293,8 +4629,8 @@ pub fn apihub_projects_locations_apis_versions_specs_fetch_additional_spec_conte
     let builder =
         apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_builder(
             client,
-            name,
-            specContentType,
+            &args.name,
+            args.specContentType.as_deref(),
         )?;
     apihub_projects_locations_apis_versions_specs_fetch_additional_spec_content_execute(builder)
 }
@@ -4391,6 +4727,13 @@ pub fn apihub_projects_locations_apis_versions_specs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
 /// Get details about the information parsed from a spec. Note that this method does not return the raw spec contents. Use GetSpecContents method to retrieve the same.
 ///
@@ -4403,14 +4746,14 @@ pub fn apihub_projects_locations_apis_versions_specs_get_execute(
 
 pub fn apihub_projects_locations_apis_versions_specs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsApisVersionsSpecsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Spec>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_apis_versions_specs_get_builder(client, name)?;
+    let builder = apihub_projects_locations_apis_versions_specs_get_builder(client, &args.name)?;
     apihub_projects_locations_apis_versions_specs_get_execute(builder)
 }
 
@@ -4508,6 +4851,13 @@ pub fn apihub_projects_locations_apis_versions_specs_get_contents_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_get_contents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsGetContentsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:contents
 /// Get spec contents.
 ///
@@ -4520,7 +4870,7 @@ pub fn apihub_projects_locations_apis_versions_specs_get_contents_execute(
 
 pub fn apihub_projects_locations_apis_versions_specs_get_contents(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsApisVersionsSpecsGetContentsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1SpecContents>, ApiError>,
@@ -4529,7 +4879,8 @@ pub fn apihub_projects_locations_apis_versions_specs_get_contents(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_apis_versions_specs_get_contents_builder(client, name)?;
+    let builder =
+        apihub_projects_locations_apis_versions_specs_get_contents_builder(client, &args.name)?;
     apihub_projects_locations_apis_versions_specs_get_contents_execute(builder)
 }
 
@@ -4626,6 +4977,15 @@ pub fn apihub_projects_locations_apis_versions_specs_lint_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_lint`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsLintArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApihubV1LintSpecRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:lint
 /// Lints the requested spec and updates the corresponding API Spec with the lint response. This lint response will be available in all subsequent Get and List Spec calls to Core service.
 ///
@@ -4638,13 +4998,13 @@ pub fn apihub_projects_locations_apis_versions_specs_lint_execute(
 
 pub fn apihub_projects_locations_apis_versions_specs_lint(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApihubV1LintSpecRequest,
+    args: &ApihubProjectsLocationsApisVersionsSpecsLintArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_apis_versions_specs_lint_builder(client, name, body)?;
+    let builder =
+        apihub_projects_locations_apis_versions_specs_lint_builder(client, &args.name, &args.body)?;
     apihub_projects_locations_apis_versions_specs_lint_execute(builder)
 }
 
@@ -4762,6 +5122,19 @@ pub fn apihub_projects_locations_apis_versions_specs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
 /// List specs corresponding to a particular API resource.
 ///
@@ -4774,10 +5147,7 @@ pub fn apihub_projects_locations_apis_versions_specs_list_execute(
 
 pub fn apihub_projects_locations_apis_versions_specs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsApisVersionsSpecsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ListSpecsResponse>, ApiError>,
@@ -4787,7 +5157,11 @@ pub fn apihub_projects_locations_apis_versions_specs_list(
     ApiError,
 > {
     let builder = apihub_projects_locations_apis_versions_specs_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apihub_projects_locations_apis_versions_specs_list_execute(builder)
 }
@@ -4899,6 +5273,17 @@ pub fn apihub_projects_locations_apis_versions_specs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_apis_versions_specs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsApisVersionsSpecsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1Spec,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
 /// Update spec. The following fields in the spec can be updated: * display_name * source_uri * lint_response * attributes * contents * spec_type In case of an OAS spec, updating spec contents can lead to: 1. Creation, deletion and update of operations. 2. Creation, deletion and update of definitions. 3. Update of other info parsed out from the new spec. In case of contents or source_uri being present in update mask, spec_type must also be present. Also, spec_type can not be present in update mask if contents or source_uri is not present. The update_mask should be used to specify the fields being updated.
 ///
@@ -4911,9 +5296,7 @@ pub fn apihub_projects_locations_apis_versions_specs_patch_execute(
 
 pub fn apihub_projects_locations_apis_versions_specs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApihubV1Spec,
+    args: &ApihubProjectsLocationsApisVersionsSpecsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Spec>, ApiError>, P = ApiPending>
         + Send
@@ -4921,7 +5304,10 @@ pub fn apihub_projects_locations_apis_versions_specs_patch(
     ApiError,
 > {
     let builder = apihub_projects_locations_apis_versions_specs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apihub_projects_locations_apis_versions_specs_patch_execute(builder)
 }
@@ -5035,6 +5421,17 @@ pub fn apihub_projects_locations_attributes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_attributes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAttributesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: attributeId
+    pub attributeId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1Attribute,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/attributes
 /// Create a user defined attribute. Certain pre defined attributes are already created by the API hub. These attributes will have type as SYSTEM_DEFINED and can be listed via ListAttributes method. Allowed values for the same can be updated via UpdateAttribute method.
 ///
@@ -5047,9 +5444,7 @@ pub fn apihub_projects_locations_attributes_create_execute(
 
 pub fn apihub_projects_locations_attributes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    attributeId: Option<&str>,
-    body: &GoogleCloudApihubV1Attribute,
+    args: &ApihubProjectsLocationsAttributesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Attribute>, ApiError>,
@@ -5058,8 +5453,12 @@ pub fn apihub_projects_locations_attributes_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_attributes_create_builder(client, parent, attributeId, body)?;
+    let builder = apihub_projects_locations_attributes_create_builder(
+        client,
+        &args.parent,
+        args.attributeId.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_attributes_create_execute(builder)
 }
 
@@ -5153,6 +5552,13 @@ pub fn apihub_projects_locations_attributes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_attributes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAttributesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
 /// Delete an attribute. Note: System defined attributes cannot be deleted. All associations of the attribute being deleted with any API hub resource will also get deleted.
 ///
@@ -5165,12 +5571,12 @@ pub fn apihub_projects_locations_attributes_delete_execute(
 
 pub fn apihub_projects_locations_attributes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsAttributesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_attributes_delete_builder(client, name)?;
+    let builder = apihub_projects_locations_attributes_delete_builder(client, &args.name)?;
     apihub_projects_locations_attributes_delete_execute(builder)
 }
 
@@ -5268,6 +5674,13 @@ pub fn apihub_projects_locations_attributes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_attributes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAttributesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
 /// Get details about the attribute.
 ///
@@ -5280,7 +5693,7 @@ pub fn apihub_projects_locations_attributes_get_execute(
 
 pub fn apihub_projects_locations_attributes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsAttributesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Attribute>, ApiError>,
@@ -5289,7 +5702,7 @@ pub fn apihub_projects_locations_attributes_get(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_attributes_get_builder(client, name)?;
+    let builder = apihub_projects_locations_attributes_get_builder(client, &args.name)?;
     apihub_projects_locations_attributes_get_execute(builder)
 }
 
@@ -5407,6 +5820,19 @@ pub fn apihub_projects_locations_attributes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_attributes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAttributesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/attributes
 /// List all attributes.
 ///
@@ -5419,10 +5845,7 @@ pub fn apihub_projects_locations_attributes_list_execute(
 
 pub fn apihub_projects_locations_attributes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsAttributesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ListAttributesResponse>, ApiError>,
@@ -5432,7 +5855,11 @@ pub fn apihub_projects_locations_attributes_list(
     ApiError,
 > {
     let builder = apihub_projects_locations_attributes_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apihub_projects_locations_attributes_list_execute(builder)
 }
@@ -5546,6 +5973,17 @@ pub fn apihub_projects_locations_attributes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_attributes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsAttributesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1Attribute,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/attributes/{attributesId}
 /// Update the attribute. The following fields in the Attribute resource can be updated: * display_name The display name can be updated for user defined attributes only. * description The description can be updated for user defined attributes only. * allowed_values To update the list of allowed values, clients need to use the fetched list of allowed values and add or remove values to or from the same list. The mutable allowed values can be updated for both user defined and System defined attributes. The immutable allowed values cannot be updated or deleted. The updated list of allowed values cannot be empty. If an allowed value that is already used by some resource's attribute is deleted, then the association between the resource and the attribute value will also be deleted. * cardinality The cardinality can be updated for user defined attributes only. Cardinality can only be increased during an update. The update_mask should be used to specify the fields being updated.
 ///
@@ -5558,9 +5996,7 @@ pub fn apihub_projects_locations_attributes_patch_execute(
 
 pub fn apihub_projects_locations_attributes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApihubV1Attribute,
+    args: &ApihubProjectsLocationsAttributesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Attribute>, ApiError>,
@@ -5569,8 +6005,12 @@ pub fn apihub_projects_locations_attributes_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_attributes_patch_builder(client, name, updateMask, body)?;
+    let builder = apihub_projects_locations_attributes_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_attributes_patch_execute(builder)
 }
 
@@ -5683,6 +6123,17 @@ pub fn apihub_projects_locations_curations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_curations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsCurationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: curationId
+    pub curationId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1Curation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/curations
 /// Create a curation resource in the API hub. Once a curation resource is created, plugin instances can start using it.
 ///
@@ -5695,9 +6146,7 @@ pub fn apihub_projects_locations_curations_create_execute(
 
 pub fn apihub_projects_locations_curations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    curationId: Option<&str>,
-    body: &GoogleCloudApihubV1Curation,
+    args: &ApihubProjectsLocationsCurationsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Curation>, ApiError>,
@@ -5706,8 +6155,12 @@ pub fn apihub_projects_locations_curations_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_curations_create_builder(client, parent, curationId, body)?;
+    let builder = apihub_projects_locations_curations_create_builder(
+        client,
+        &args.parent,
+        args.curationId.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_curations_create_execute(builder)
 }
 
@@ -5801,6 +6254,13 @@ pub fn apihub_projects_locations_curations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_curations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsCurationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
 /// Delete a curation resource in the API hub. A curation can only be deleted if it's not being used by any plugin instance.
 ///
@@ -5813,12 +6273,12 @@ pub fn apihub_projects_locations_curations_delete_execute(
 
 pub fn apihub_projects_locations_curations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsCurationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_curations_delete_builder(client, name)?;
+    let builder = apihub_projects_locations_curations_delete_builder(client, &args.name)?;
     apihub_projects_locations_curations_delete_execute(builder)
 }
 
@@ -5916,6 +6376,13 @@ pub fn apihub_projects_locations_curations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_curations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsCurationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
 /// Get curation resource details.
 ///
@@ -5928,7 +6395,7 @@ pub fn apihub_projects_locations_curations_get_execute(
 
 pub fn apihub_projects_locations_curations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsCurationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Curation>, ApiError>,
@@ -5937,7 +6404,7 @@ pub fn apihub_projects_locations_curations_get(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_curations_get_builder(client, name)?;
+    let builder = apihub_projects_locations_curations_get_builder(client, &args.name)?;
     apihub_projects_locations_curations_get_execute(builder)
 }
 
@@ -6055,6 +6522,19 @@ pub fn apihub_projects_locations_curations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_curations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsCurationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/curations
 /// List curation resources in the API hub.
 ///
@@ -6067,10 +6547,7 @@ pub fn apihub_projects_locations_curations_list_execute(
 
 pub fn apihub_projects_locations_curations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsCurationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ListCurationsResponse>, ApiError>,
@@ -6080,7 +6557,11 @@ pub fn apihub_projects_locations_curations_list(
     ApiError,
 > {
     let builder = apihub_projects_locations_curations_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apihub_projects_locations_curations_list_execute(builder)
 }
@@ -6194,6 +6675,17 @@ pub fn apihub_projects_locations_curations_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_curations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsCurationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1Curation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/curations/{curationsId}
 /// Update a curation resource in the API hub. The following fields in the curation can be updated: * display_name * description The update_mask should be used to specify the fields being updated.
 ///
@@ -6206,9 +6698,7 @@ pub fn apihub_projects_locations_curations_patch_execute(
 
 pub fn apihub_projects_locations_curations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApihubV1Curation,
+    args: &ApihubProjectsLocationsCurationsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Curation>, ApiError>,
@@ -6217,8 +6707,12 @@ pub fn apihub_projects_locations_curations_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_curations_patch_builder(client, name, updateMask, body)?;
+    let builder = apihub_projects_locations_curations_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_curations_patch_execute(builder)
 }
 
@@ -6331,6 +6825,17 @@ pub fn apihub_projects_locations_dependencies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_dependencies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDependenciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dependencyId
+    pub dependencyId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1Dependency,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dependencies
 /// Create a dependency between two entities in the API hub.
 ///
@@ -6343,9 +6848,7 @@ pub fn apihub_projects_locations_dependencies_create_execute(
 
 pub fn apihub_projects_locations_dependencies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    dependencyId: Option<&str>,
-    body: &GoogleCloudApihubV1Dependency,
+    args: &ApihubProjectsLocationsDependenciesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Dependency>, ApiError>,
@@ -6354,8 +6857,12 @@ pub fn apihub_projects_locations_dependencies_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_dependencies_create_builder(client, parent, dependencyId, body)?;
+    let builder = apihub_projects_locations_dependencies_create_builder(
+        client,
+        &args.parent,
+        args.dependencyId.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_dependencies_create_execute(builder)
 }
 
@@ -6449,6 +6956,13 @@ pub fn apihub_projects_locations_dependencies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_dependencies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDependenciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
 /// Delete the dependency resource.
 ///
@@ -6461,12 +6975,12 @@ pub fn apihub_projects_locations_dependencies_delete_execute(
 
 pub fn apihub_projects_locations_dependencies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsDependenciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_dependencies_delete_builder(client, name)?;
+    let builder = apihub_projects_locations_dependencies_delete_builder(client, &args.name)?;
     apihub_projects_locations_dependencies_delete_execute(builder)
 }
 
@@ -6564,6 +7078,13 @@ pub fn apihub_projects_locations_dependencies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_dependencies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDependenciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
 /// Get details about a dependency resource in the API hub.
 ///
@@ -6576,7 +7097,7 @@ pub fn apihub_projects_locations_dependencies_get_execute(
 
 pub fn apihub_projects_locations_dependencies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsDependenciesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Dependency>, ApiError>,
@@ -6585,7 +7106,7 @@ pub fn apihub_projects_locations_dependencies_get(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_dependencies_get_builder(client, name)?;
+    let builder = apihub_projects_locations_dependencies_get_builder(client, &args.name)?;
     apihub_projects_locations_dependencies_get_execute(builder)
 }
 
@@ -6704,6 +7225,19 @@ pub fn apihub_projects_locations_dependencies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_dependencies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDependenciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dependencies
 /// List dependencies based on the provided filter and pagination parameters.
 ///
@@ -6716,10 +7250,7 @@ pub fn apihub_projects_locations_dependencies_list_execute(
 
 pub fn apihub_projects_locations_dependencies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsDependenciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ListDependenciesResponse>, ApiError>,
@@ -6729,7 +7260,11 @@ pub fn apihub_projects_locations_dependencies_list(
     ApiError,
 > {
     let builder = apihub_projects_locations_dependencies_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apihub_projects_locations_dependencies_list_execute(builder)
 }
@@ -6843,6 +7378,17 @@ pub fn apihub_projects_locations_dependencies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_dependencies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDependenciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1Dependency,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/dependencies/{dependenciesId}
 /// Update a dependency based on the update_mask provided in the request. The following fields in the dependency can be updated: * description
 ///
@@ -6855,9 +7401,7 @@ pub fn apihub_projects_locations_dependencies_patch_execute(
 
 pub fn apihub_projects_locations_dependencies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApihubV1Dependency,
+    args: &ApihubProjectsLocationsDependenciesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Dependency>, ApiError>,
@@ -6866,8 +7410,12 @@ pub fn apihub_projects_locations_dependencies_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_dependencies_patch_builder(client, name, updateMask, body)?;
+    let builder = apihub_projects_locations_dependencies_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_dependencies_patch_execute(builder)
 }
 
@@ -6980,6 +7528,17 @@ pub fn apihub_projects_locations_deployments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: deploymentId
+    pub deploymentId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1Deployment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments
 /// Create a deployment resource in the API hub. Once a deployment resource is created, it can be associated with API versions.
 ///
@@ -6992,9 +7551,7 @@ pub fn apihub_projects_locations_deployments_create_execute(
 
 pub fn apihub_projects_locations_deployments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    deploymentId: Option<&str>,
-    body: &GoogleCloudApihubV1Deployment,
+    args: &ApihubProjectsLocationsDeploymentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Deployment>, ApiError>,
@@ -7003,8 +7560,12 @@ pub fn apihub_projects_locations_deployments_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_deployments_create_builder(client, parent, deploymentId, body)?;
+    let builder = apihub_projects_locations_deployments_create_builder(
+        client,
+        &args.parent,
+        args.deploymentId.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_deployments_create_execute(builder)
 }
 
@@ -7098,6 +7659,13 @@ pub fn apihub_projects_locations_deployments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
 /// Delete a deployment resource in the API hub.
 ///
@@ -7110,12 +7678,12 @@ pub fn apihub_projects_locations_deployments_delete_execute(
 
 pub fn apihub_projects_locations_deployments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsDeploymentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_deployments_delete_builder(client, name)?;
+    let builder = apihub_projects_locations_deployments_delete_builder(client, &args.name)?;
     apihub_projects_locations_deployments_delete_execute(builder)
 }
 
@@ -7213,6 +7781,13 @@ pub fn apihub_projects_locations_deployments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
 /// Get details about a deployment and the API versions linked to it.
 ///
@@ -7225,7 +7800,7 @@ pub fn apihub_projects_locations_deployments_get_execute(
 
 pub fn apihub_projects_locations_deployments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Deployment>, ApiError>,
@@ -7234,7 +7809,7 @@ pub fn apihub_projects_locations_deployments_get(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_deployments_get_builder(client, name)?;
+    let builder = apihub_projects_locations_deployments_get_builder(client, &args.name)?;
     apihub_projects_locations_deployments_get_execute(builder)
 }
 
@@ -7353,6 +7928,19 @@ pub fn apihub_projects_locations_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments
 /// List deployment resources in the API hub.
 ///
@@ -7365,10 +7953,7 @@ pub fn apihub_projects_locations_deployments_list_execute(
 
 pub fn apihub_projects_locations_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ListDeploymentsResponse>, ApiError>,
@@ -7378,7 +7963,11 @@ pub fn apihub_projects_locations_deployments_list(
     ApiError,
 > {
     let builder = apihub_projects_locations_deployments_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apihub_projects_locations_deployments_list_execute(builder)
 }
@@ -7492,6 +8081,17 @@ pub fn apihub_projects_locations_deployments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDeploymentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1Deployment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/deployments/{deploymentsId}
 /// Update a deployment resource in the API hub. The following fields in the deployment resource can be updated: * display_name * description * documentation * deployment_type * resource_uri * endpoints * slo * environment * attributes * source_project * source_environment * management_url * source_uri The update_mask should be used to specify the fields being updated.
 ///
@@ -7504,9 +8104,7 @@ pub fn apihub_projects_locations_deployments_patch_execute(
 
 pub fn apihub_projects_locations_deployments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApihubV1Deployment,
+    args: &ApihubProjectsLocationsDeploymentsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1Deployment>, ApiError>,
@@ -7515,8 +8113,12 @@ pub fn apihub_projects_locations_deployments_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_deployments_patch_builder(client, name, updateMask, body)?;
+    let builder = apihub_projects_locations_deployments_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_deployments_patch_execute(builder)
 }
 
@@ -7615,6 +8217,13 @@ pub fn apihub_projects_locations_discovered_api_observations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_discovered_api_observations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDiscoveredApiObservationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}
 /// Gets a DiscoveredAPIObservation in a given project, location and ApiObservation.
 ///
@@ -7627,7 +8236,7 @@ pub fn apihub_projects_locations_discovered_api_observations_get_execute(
 
 pub fn apihub_projects_locations_discovered_api_observations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsDiscoveredApiObservationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1DiscoveredApiObservation>, ApiError>,
@@ -7636,7 +8245,8 @@ pub fn apihub_projects_locations_discovered_api_observations_get(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_discovered_api_observations_get_builder(client, name)?;
+    let builder =
+        apihub_projects_locations_discovered_api_observations_get_builder(client, &args.name)?;
     apihub_projects_locations_discovered_api_observations_get_execute(builder)
 }
 
@@ -7754,6 +8364,17 @@ pub fn apihub_projects_locations_discovered_api_observations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_discovered_api_observations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDiscoveredApiObservationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations
 /// Lists all the DiscoveredAPIObservations in a given project and location.
 ///
@@ -7766,9 +8387,7 @@ pub fn apihub_projects_locations_discovered_api_observations_list_execute(
 
 pub fn apihub_projects_locations_discovered_api_observations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsDiscoveredApiObservationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -7781,7 +8400,10 @@ pub fn apihub_projects_locations_discovered_api_observations_list(
     ApiError,
 > {
     let builder = apihub_projects_locations_discovered_api_observations_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apihub_projects_locations_discovered_api_observations_list_execute(builder)
 }
@@ -7880,6 +8502,13 @@ pub fn apihub_projects_locations_discovered_api_observations_discovered_api_oper
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_discovered_api_observations_discovered_api_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}/discoveredApiOperations/{discoveredApiOperationsId}
 /// Gets a DiscoveredAPIOperation in a given project, location, ApiObservation and ApiOperation.
 ///
@@ -7892,7 +8521,7 @@ pub fn apihub_projects_locations_discovered_api_observations_discovered_api_oper
 
 pub fn apihub_projects_locations_discovered_api_observations_discovered_api_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1DiscoveredApiOperation>, ApiError>,
@@ -7901,7 +8530,7 @@ pub fn apihub_projects_locations_discovered_api_observations_discovered_api_oper
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_builder(client, name)?;
+    let builder = apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_builder(client, &args.name)?;
     apihub_projects_locations_discovered_api_observations_discovered_api_operations_get_execute(
         builder,
     )
@@ -8021,6 +8650,17 @@ pub fn apihub_projects_locations_discovered_api_observations_discovered_api_oper
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_discovered_api_observations_discovered_api_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/discoveredApiObservations/{discoveredApiObservationsId}/discoveredApiOperations
 /// Lists all the DiscoveredAPIOperations in a given project, location and ApiObservation.
 ///
@@ -8033,9 +8673,7 @@ pub fn apihub_projects_locations_discovered_api_observations_discovered_api_oper
 
 pub fn apihub_projects_locations_discovered_api_observations_discovered_api_operations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -8047,7 +8685,7 @@ pub fn apihub_projects_locations_discovered_api_observations_discovered_api_oper
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     apihub_projects_locations_discovered_api_observations_discovered_api_operations_list_execute(
         builder,
     )
@@ -8162,6 +8800,17 @@ pub fn apihub_projects_locations_external_apis_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_external_apis_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsExternalApisCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: externalApiId
+    pub externalApiId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1ExternalApi,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/externalApis
 /// Create an External API resource in the API hub.
 ///
@@ -8174,9 +8823,7 @@ pub fn apihub_projects_locations_external_apis_create_execute(
 
 pub fn apihub_projects_locations_external_apis_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    externalApiId: Option<&str>,
-    body: &GoogleCloudApihubV1ExternalApi,
+    args: &ApihubProjectsLocationsExternalApisCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ExternalApi>, ApiError>,
@@ -8187,9 +8834,9 @@ pub fn apihub_projects_locations_external_apis_create(
 > {
     let builder = apihub_projects_locations_external_apis_create_builder(
         client,
-        parent,
-        externalApiId,
-        body,
+        &args.parent,
+        args.externalApiId.as_deref(),
+        &args.body,
     )?;
     apihub_projects_locations_external_apis_create_execute(builder)
 }
@@ -8284,6 +8931,13 @@ pub fn apihub_projects_locations_external_apis_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_external_apis_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsExternalApisDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
 /// Delete an External API resource in the API hub.
 ///
@@ -8296,12 +8950,12 @@ pub fn apihub_projects_locations_external_apis_delete_execute(
 
 pub fn apihub_projects_locations_external_apis_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsExternalApisDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_external_apis_delete_builder(client, name)?;
+    let builder = apihub_projects_locations_external_apis_delete_builder(client, &args.name)?;
     apihub_projects_locations_external_apis_delete_execute(builder)
 }
 
@@ -8399,6 +9053,13 @@ pub fn apihub_projects_locations_external_apis_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_external_apis_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsExternalApisGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
 /// Get details about an External API resource in the API hub.
 ///
@@ -8411,7 +9072,7 @@ pub fn apihub_projects_locations_external_apis_get_execute(
 
 pub fn apihub_projects_locations_external_apis_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsExternalApisGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ExternalApi>, ApiError>,
@@ -8420,7 +9081,7 @@ pub fn apihub_projects_locations_external_apis_get(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_external_apis_get_builder(client, name)?;
+    let builder = apihub_projects_locations_external_apis_get_builder(client, &args.name)?;
     apihub_projects_locations_external_apis_get_execute(builder)
 }
 
@@ -8535,6 +9196,17 @@ pub fn apihub_projects_locations_external_apis_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_external_apis_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsExternalApisListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/externalApis
 /// List External API resources in the API hub.
 ///
@@ -8547,9 +9219,7 @@ pub fn apihub_projects_locations_external_apis_list_execute(
 
 pub fn apihub_projects_locations_external_apis_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsExternalApisListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ListExternalApisResponse>, ApiError>,
@@ -8558,8 +9228,12 @@ pub fn apihub_projects_locations_external_apis_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_external_apis_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = apihub_projects_locations_external_apis_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apihub_projects_locations_external_apis_list_execute(builder)
 }
 
@@ -8672,6 +9346,17 @@ pub fn apihub_projects_locations_external_apis_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_external_apis_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsExternalApisPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1ExternalApi,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/externalApis/{externalApisId}
 /// Update an External API resource in the API hub. The following fields can be updated: * display_name * description * documentation * endpoints * paths The update_mask should be used to specify the fields being updated.
 ///
@@ -8684,9 +9369,7 @@ pub fn apihub_projects_locations_external_apis_patch_execute(
 
 pub fn apihub_projects_locations_external_apis_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApihubV1ExternalApi,
+    args: &ApihubProjectsLocationsExternalApisPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ExternalApi>, ApiError>,
@@ -8695,8 +9378,12 @@ pub fn apihub_projects_locations_external_apis_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_external_apis_patch_builder(client, name, updateMask, body)?;
+    let builder = apihub_projects_locations_external_apis_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_external_apis_patch_execute(builder)
 }
 
@@ -8810,6 +9497,17 @@ pub fn apihub_projects_locations_host_project_registrations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_host_project_registrations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsHostProjectRegistrationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: hostProjectRegistrationId
+    pub hostProjectRegistrationId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1HostProjectRegistration,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations
 /// Create a host project registration. A Google cloud project can be registered as a host project if it is not attached as a runtime project to another host project. A project can be registered as a host project only once. Subsequent register calls for the same project will fail.
 ///
@@ -8822,9 +9520,7 @@ pub fn apihub_projects_locations_host_project_registrations_create_execute(
 
 pub fn apihub_projects_locations_host_project_registrations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    hostProjectRegistrationId: Option<&str>,
-    body: &GoogleCloudApihubV1HostProjectRegistration,
+    args: &ApihubProjectsLocationsHostProjectRegistrationsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1HostProjectRegistration>, ApiError>,
@@ -8835,9 +9531,9 @@ pub fn apihub_projects_locations_host_project_registrations_create(
 > {
     let builder = apihub_projects_locations_host_project_registrations_create_builder(
         client,
-        parent,
-        hostProjectRegistrationId,
-        body,
+        &args.parent,
+        args.hostProjectRegistrationId.as_deref(),
+        &args.body,
     )?;
     apihub_projects_locations_host_project_registrations_create_execute(builder)
 }
@@ -8937,6 +9633,13 @@ pub fn apihub_projects_locations_host_project_registrations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_host_project_registrations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsHostProjectRegistrationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations/{hostProjectRegistrationsId}
 /// Get a host project registration.
 ///
@@ -8949,7 +9652,7 @@ pub fn apihub_projects_locations_host_project_registrations_get_execute(
 
 pub fn apihub_projects_locations_host_project_registrations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsHostProjectRegistrationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1HostProjectRegistration>, ApiError>,
@@ -8958,7 +9661,8 @@ pub fn apihub_projects_locations_host_project_registrations_get(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_host_project_registrations_get_builder(client, name)?;
+    let builder =
+        apihub_projects_locations_host_project_registrations_get_builder(client, &args.name)?;
     apihub_projects_locations_host_project_registrations_get_execute(builder)
 }
 
@@ -9084,6 +9788,21 @@ pub fn apihub_projects_locations_host_project_registrations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_host_project_registrations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsHostProjectRegistrationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/hostProjectRegistrations
 /// Lists host project registrations.
 ///
@@ -9096,11 +9815,7 @@ pub fn apihub_projects_locations_host_project_registrations_list_execute(
 
 pub fn apihub_projects_locations_host_project_registrations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsHostProjectRegistrationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -9113,7 +9828,12 @@ pub fn apihub_projects_locations_host_project_registrations_list(
     ApiError,
 > {
     let builder = apihub_projects_locations_host_project_registrations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apihub_projects_locations_host_project_registrations_list_execute(builder)
 }
@@ -9211,6 +9931,15 @@ pub fn apihub_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -9223,13 +9952,13 @@ pub fn apihub_projects_locations_operations_cancel_execute(
 
 pub fn apihub_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &ApihubProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        apihub_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     apihub_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -9323,6 +10052,13 @@ pub fn apihub_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -9335,12 +10071,12 @@ pub fn apihub_projects_locations_operations_delete_execute(
 
 pub fn apihub_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_operations_delete_builder(client, name)?;
+    let builder = apihub_projects_locations_operations_delete_builder(client, &args.name)?;
     apihub_projects_locations_operations_delete_execute(builder)
 }
 
@@ -9438,6 +10174,13 @@ pub fn apihub_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -9450,7 +10193,7 @@ pub fn apihub_projects_locations_operations_get_execute(
 
 pub fn apihub_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -9459,7 +10202,7 @@ pub fn apihub_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_operations_get_builder(client, name)?;
+    let builder = apihub_projects_locations_operations_get_builder(client, &args.name)?;
     apihub_projects_locations_operations_get_execute(builder)
 }
 
@@ -9582,6 +10325,21 @@ pub fn apihub_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -9594,11 +10352,7 @@ pub fn apihub_projects_locations_operations_list_execute(
 
 pub fn apihub_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ApihubProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -9609,11 +10363,11 @@ pub fn apihub_projects_locations_operations_list(
 > {
     let builder = apihub_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     apihub_projects_locations_operations_list_execute(builder)
 }
@@ -9725,6 +10479,17 @@ pub fn apihub_projects_locations_plugins_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pluginId
+    pub pluginId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1Plugin,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins
 /// Create an API Hub plugin resource in the API hub. Once a plugin is created, it can be used to create plugin instances.
 ///
@@ -9737,16 +10502,19 @@ pub fn apihub_projects_locations_plugins_create_execute(
 
 pub fn apihub_projects_locations_plugins_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    pluginId: Option<&str>,
-    body: &GoogleCloudApihubV1Plugin,
+    args: &ApihubProjectsLocationsPluginsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_plugins_create_builder(client, parent, pluginId, body)?;
+    let builder = apihub_projects_locations_plugins_create_builder(
+        client,
+        &args.parent,
+        args.pluginId.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_plugins_create_execute(builder)
 }
 
@@ -9844,6 +10612,13 @@ pub fn apihub_projects_locations_plugins_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}
 /// Delete a Plugin in API hub. Note, only user owned plugins can be deleted via this method.
 ///
@@ -9856,7 +10631,7 @@ pub fn apihub_projects_locations_plugins_delete_execute(
 
 pub fn apihub_projects_locations_plugins_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsPluginsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -9865,7 +10640,7 @@ pub fn apihub_projects_locations_plugins_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_plugins_delete_builder(client, name)?;
+    let builder = apihub_projects_locations_plugins_delete_builder(client, &args.name)?;
     apihub_projects_locations_plugins_delete_execute(builder)
 }
 
@@ -9964,6 +10739,15 @@ pub fn apihub_projects_locations_plugins_disable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsDisableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApihubV1DisablePluginRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}:disable
 /// Disables a plugin. The state of the plugin after disabling is DISABLED
 ///
@@ -9976,15 +10760,15 @@ pub fn apihub_projects_locations_plugins_disable_execute(
 
 pub fn apihub_projects_locations_plugins_disable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApihubV1DisablePluginRequest,
+    args: &ApihubProjectsLocationsPluginsDisableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_plugins_disable_builder(client, name, body)?;
+    let builder =
+        apihub_projects_locations_plugins_disable_builder(client, &args.name, &args.body)?;
     apihub_projects_locations_plugins_disable_execute(builder)
 }
 
@@ -10083,6 +10867,15 @@ pub fn apihub_projects_locations_plugins_enable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsEnableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApihubV1EnablePluginRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}:enable
 /// Enables a plugin. The state of the plugin after enabling is ENABLED
 ///
@@ -10095,15 +10888,14 @@ pub fn apihub_projects_locations_plugins_enable_execute(
 
 pub fn apihub_projects_locations_plugins_enable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApihubV1EnablePluginRequest,
+    args: &ApihubProjectsLocationsPluginsEnableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_plugins_enable_builder(client, name, body)?;
+    let builder = apihub_projects_locations_plugins_enable_builder(client, &args.name, &args.body)?;
     apihub_projects_locations_plugins_enable_execute(builder)
 }
 
@@ -10199,6 +10991,13 @@ pub fn apihub_projects_locations_plugins_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}
 /// Get an API Hub plugin.
 ///
@@ -10211,14 +11010,14 @@ pub fn apihub_projects_locations_plugins_get_execute(
 
 pub fn apihub_projects_locations_plugins_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsPluginsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudApihubV1Plugin>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_plugins_get_builder(client, name)?;
+    let builder = apihub_projects_locations_plugins_get_builder(client, &args.name)?;
     apihub_projects_locations_plugins_get_execute(builder)
 }
 
@@ -10316,6 +11115,13 @@ pub fn apihub_projects_locations_plugins_get_style_guide_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_get_style_guide`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsGetStyleGuideArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide
 /// Get the style guide being used for linting.
 ///
@@ -10328,7 +11134,7 @@ pub fn apihub_projects_locations_plugins_get_style_guide_execute(
 
 pub fn apihub_projects_locations_plugins_get_style_guide(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsPluginsGetStyleGuideArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1StyleGuide>, ApiError>,
@@ -10337,7 +11143,7 @@ pub fn apihub_projects_locations_plugins_get_style_guide(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_plugins_get_style_guide_builder(client, name)?;
+    let builder = apihub_projects_locations_plugins_get_style_guide_builder(client, &args.name)?;
     apihub_projects_locations_plugins_get_style_guide_execute(builder)
 }
 
@@ -10455,6 +11261,19 @@ pub fn apihub_projects_locations_plugins_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins
 /// List all the plugins in a given project and location.
 ///
@@ -10467,10 +11286,7 @@ pub fn apihub_projects_locations_plugins_list_execute(
 
 pub fn apihub_projects_locations_plugins_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsPluginsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ListPluginsResponse>, ApiError>,
@@ -10480,7 +11296,11 @@ pub fn apihub_projects_locations_plugins_list(
     ApiError,
 > {
     let builder = apihub_projects_locations_plugins_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apihub_projects_locations_plugins_list_execute(builder)
 }
@@ -10594,6 +11414,17 @@ pub fn apihub_projects_locations_plugins_update_style_guide_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_update_style_guide`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsUpdateStyleGuideArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1StyleGuide,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide
 /// Update the `styleGuide` to be used for liniting in by API hub.
 ///
@@ -10606,9 +11437,7 @@ pub fn apihub_projects_locations_plugins_update_style_guide_execute(
 
 pub fn apihub_projects_locations_plugins_update_style_guide(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApihubV1StyleGuide,
+    args: &ApihubProjectsLocationsPluginsUpdateStyleGuideArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1StyleGuide>, ApiError>,
@@ -10618,7 +11447,10 @@ pub fn apihub_projects_locations_plugins_update_style_guide(
     ApiError,
 > {
     let builder = apihub_projects_locations_plugins_update_style_guide_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apihub_projects_locations_plugins_update_style_guide_execute(builder)
 }
@@ -10732,6 +11564,17 @@ pub fn apihub_projects_locations_plugins_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pluginInstanceId
+    pub pluginInstanceId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1PluginInstance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances
 /// Creates a Plugin instance in the API hub.
 ///
@@ -10744,9 +11587,7 @@ pub fn apihub_projects_locations_plugins_instances_create_execute(
 
 pub fn apihub_projects_locations_plugins_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    pluginInstanceId: Option<&str>,
-    body: &GoogleCloudApihubV1PluginInstance,
+    args: &ApihubProjectsLocationsPluginsInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10757,9 +11598,9 @@ pub fn apihub_projects_locations_plugins_instances_create(
 > {
     let builder = apihub_projects_locations_plugins_instances_create_builder(
         client,
-        parent,
-        pluginInstanceId,
-        body,
+        &args.parent,
+        args.pluginInstanceId.as_deref(),
+        &args.body,
     )?;
     apihub_projects_locations_plugins_instances_create_execute(builder)
 }
@@ -10858,6 +11699,13 @@ pub fn apihub_projects_locations_plugins_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
 /// Deletes a plugin instance in the API hub.
 ///
@@ -10870,7 +11718,7 @@ pub fn apihub_projects_locations_plugins_instances_delete_execute(
 
 pub fn apihub_projects_locations_plugins_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsPluginsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10879,7 +11727,7 @@ pub fn apihub_projects_locations_plugins_instances_delete(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_plugins_instances_delete_builder(client, name)?;
+    let builder = apihub_projects_locations_plugins_instances_delete_builder(client, &args.name)?;
     apihub_projects_locations_plugins_instances_delete_execute(builder)
 }
 
@@ -10980,6 +11828,15 @@ pub fn apihub_projects_locations_plugins_instances_disable_action_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_instances_disable_action`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesDisableActionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApihubV1DisablePluginInstanceActionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:disableAction
 /// Disables a plugin instance in the API hub.
 ///
@@ -10992,8 +11849,7 @@ pub fn apihub_projects_locations_plugins_instances_disable_action_execute(
 
 pub fn apihub_projects_locations_plugins_instances_disable_action(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApihubV1DisablePluginInstanceActionRequest,
+    args: &ApihubProjectsLocationsPluginsInstancesDisableActionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11002,8 +11858,9 @@ pub fn apihub_projects_locations_plugins_instances_disable_action(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_plugins_instances_disable_action_builder(client, name, body)?;
+    let builder = apihub_projects_locations_plugins_instances_disable_action_builder(
+        client, &args.name, &args.body,
+    )?;
     apihub_projects_locations_plugins_instances_disable_action_execute(builder)
 }
 
@@ -11104,6 +11961,15 @@ pub fn apihub_projects_locations_plugins_instances_enable_action_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_instances_enable_action`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesEnableActionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApihubV1EnablePluginInstanceActionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:enableAction
 /// Enables a plugin instance in the API hub.
 ///
@@ -11116,8 +11982,7 @@ pub fn apihub_projects_locations_plugins_instances_enable_action_execute(
 
 pub fn apihub_projects_locations_plugins_instances_enable_action(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApihubV1EnablePluginInstanceActionRequest,
+    args: &ApihubProjectsLocationsPluginsInstancesEnableActionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11126,8 +11991,9 @@ pub fn apihub_projects_locations_plugins_instances_enable_action(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_plugins_instances_enable_action_builder(client, name, body)?;
+    let builder = apihub_projects_locations_plugins_instances_enable_action_builder(
+        client, &args.name, &args.body,
+    )?;
     apihub_projects_locations_plugins_instances_enable_action_execute(builder)
 }
 
@@ -11228,6 +12094,15 @@ pub fn apihub_projects_locations_plugins_instances_execute_action_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_instances_execute_action`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesExecuteActionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApihubV1ExecutePluginInstanceActionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:executeAction
 /// Executes a plugin instance in the API hub.
 ///
@@ -11240,8 +12115,7 @@ pub fn apihub_projects_locations_plugins_instances_execute_action_execute(
 
 pub fn apihub_projects_locations_plugins_instances_execute_action(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApihubV1ExecutePluginInstanceActionRequest,
+    args: &ApihubProjectsLocationsPluginsInstancesExecuteActionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11250,8 +12124,9 @@ pub fn apihub_projects_locations_plugins_instances_execute_action(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_plugins_instances_execute_action_builder(client, name, body)?;
+    let builder = apihub_projects_locations_plugins_instances_execute_action_builder(
+        client, &args.name, &args.body,
+    )?;
     apihub_projects_locations_plugins_instances_execute_action_execute(builder)
 }
 
@@ -11349,6 +12224,13 @@ pub fn apihub_projects_locations_plugins_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
 /// Get an API Hub plugin instance.
 ///
@@ -11361,7 +12243,7 @@ pub fn apihub_projects_locations_plugins_instances_get_execute(
 
 pub fn apihub_projects_locations_plugins_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsPluginsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1PluginInstance>, ApiError>,
@@ -11370,7 +12252,7 @@ pub fn apihub_projects_locations_plugins_instances_get(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_plugins_instances_get_builder(client, name)?;
+    let builder = apihub_projects_locations_plugins_instances_get_builder(client, &args.name)?;
     apihub_projects_locations_plugins_instances_get_execute(builder)
 }
 
@@ -11489,6 +12371,19 @@ pub fn apihub_projects_locations_plugins_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances
 /// List all the plugins in a given project and location. - can be used as wildcard value for {plugin_id}
 ///
@@ -11501,10 +12396,7 @@ pub fn apihub_projects_locations_plugins_instances_list_execute(
 
 pub fn apihub_projects_locations_plugins_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsPluginsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1ListPluginInstancesResponse>, ApiError>,
@@ -11514,7 +12406,11 @@ pub fn apihub_projects_locations_plugins_instances_list(
     ApiError,
 > {
     let builder = apihub_projects_locations_plugins_instances_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apihub_projects_locations_plugins_instances_list_execute(builder)
 }
@@ -11620,6 +12516,15 @@ pub fn apihub_projects_locations_plugins_instances_manage_source_data_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_instances_manage_source_data`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesManageSourceDataArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudApihubV1ManagePluginInstanceSourceDataRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}:manageSourceData
 /// Manages data for a given plugin instance.
 ///
@@ -11632,8 +12537,7 @@ pub fn apihub_projects_locations_plugins_instances_manage_source_data_execute(
 
 pub fn apihub_projects_locations_plugins_instances_manage_source_data(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudApihubV1ManagePluginInstanceSourceDataRequest,
+    args: &ApihubProjectsLocationsPluginsInstancesManageSourceDataArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -11645,8 +12549,9 @@ pub fn apihub_projects_locations_plugins_instances_manage_source_data(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_plugins_instances_manage_source_data_builder(client, name, body)?;
+    let builder = apihub_projects_locations_plugins_instances_manage_source_data_builder(
+        client, &args.name, &args.body,
+    )?;
     apihub_projects_locations_plugins_instances_manage_source_data_execute(builder)
 }
 
@@ -11759,6 +12664,17 @@ pub fn apihub_projects_locations_plugins_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1PluginInstance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/instances/{instancesId}
 /// Updates a plugin instance in the API hub. The following fields in the plugin_instance can be updated currently: * display_name * schedule_cron_expression The update_mask should be used to specify the fields being updated. To update the auth_config and additional_config of the plugin instance, use the ApplyPluginInstanceConfig method.
 ///
@@ -11771,9 +12687,7 @@ pub fn apihub_projects_locations_plugins_instances_patch_execute(
 
 pub fn apihub_projects_locations_plugins_instances_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudApihubV1PluginInstance,
+    args: &ApihubProjectsLocationsPluginsInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1PluginInstance>, ApiError>,
@@ -11782,8 +12696,12 @@ pub fn apihub_projects_locations_plugins_instances_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        apihub_projects_locations_plugins_instances_patch_builder(client, name, updateMask, body)?;
+    let builder = apihub_projects_locations_plugins_instances_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     apihub_projects_locations_plugins_instances_patch_execute(builder)
 }
 
@@ -11881,6 +12799,13 @@ pub fn apihub_projects_locations_plugins_style_guide_get_contents_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_plugins_style_guide_get_contents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsPluginsStyleGuideGetContentsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/plugins/{pluginsId}/styleGuide:contents
 /// Get the contents of the style guide.
 ///
@@ -11893,7 +12818,7 @@ pub fn apihub_projects_locations_plugins_style_guide_get_contents_execute(
 
 pub fn apihub_projects_locations_plugins_style_guide_get_contents(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsPluginsStyleGuideGetContentsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1StyleGuideContents>, ApiError>,
@@ -11902,7 +12827,8 @@ pub fn apihub_projects_locations_plugins_style_guide_get_contents(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_plugins_style_guide_get_contents_builder(client, name)?;
+    let builder =
+        apihub_projects_locations_plugins_style_guide_get_contents_builder(client, &args.name)?;
     apihub_projects_locations_plugins_style_guide_get_contents_execute(builder)
 }
 
@@ -12016,6 +12942,17 @@ pub fn apihub_projects_locations_runtime_project_attachments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_runtime_project_attachments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsRuntimeProjectAttachmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: runtimeProjectAttachmentId
+    pub runtimeProjectAttachmentId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudApihubV1RuntimeProjectAttachment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments
 /// Attaches a runtime project to the host project.
 ///
@@ -12028,9 +12965,7 @@ pub fn apihub_projects_locations_runtime_project_attachments_create_execute(
 
 pub fn apihub_projects_locations_runtime_project_attachments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    runtimeProjectAttachmentId: Option<&str>,
-    body: &GoogleCloudApihubV1RuntimeProjectAttachment,
+    args: &ApihubProjectsLocationsRuntimeProjectAttachmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1RuntimeProjectAttachment>, ApiError>,
@@ -12041,9 +12976,9 @@ pub fn apihub_projects_locations_runtime_project_attachments_create(
 > {
     let builder = apihub_projects_locations_runtime_project_attachments_create_builder(
         client,
-        parent,
-        runtimeProjectAttachmentId,
-        body,
+        &args.parent,
+        args.runtimeProjectAttachmentId.as_deref(),
+        &args.body,
     )?;
     apihub_projects_locations_runtime_project_attachments_create_execute(builder)
 }
@@ -12138,6 +13073,13 @@ pub fn apihub_projects_locations_runtime_project_attachments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_runtime_project_attachments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsRuntimeProjectAttachmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments/{runtimeProjectAttachmentsId}
 /// Delete a runtime project attachment in the API Hub. This call will detach the runtime project from the host project.
 ///
@@ -12150,13 +13092,13 @@ pub fn apihub_projects_locations_runtime_project_attachments_delete_execute(
 
 pub fn apihub_projects_locations_runtime_project_attachments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsRuntimeProjectAttachmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        apihub_projects_locations_runtime_project_attachments_delete_builder(client, name)?;
+        apihub_projects_locations_runtime_project_attachments_delete_builder(client, &args.name)?;
     apihub_projects_locations_runtime_project_attachments_delete_execute(builder)
 }
 
@@ -12255,6 +13197,13 @@ pub fn apihub_projects_locations_runtime_project_attachments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_runtime_project_attachments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsRuntimeProjectAttachmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments/{runtimeProjectAttachmentsId}
 /// Gets a runtime project attachment.
 ///
@@ -12267,7 +13216,7 @@ pub fn apihub_projects_locations_runtime_project_attachments_get_execute(
 
 pub fn apihub_projects_locations_runtime_project_attachments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApihubProjectsLocationsRuntimeProjectAttachmentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudApihubV1RuntimeProjectAttachment>, ApiError>,
@@ -12276,7 +13225,8 @@ pub fn apihub_projects_locations_runtime_project_attachments_get(
         + 'static,
     ApiError,
 > {
-    let builder = apihub_projects_locations_runtime_project_attachments_get_builder(client, name)?;
+    let builder =
+        apihub_projects_locations_runtime_project_attachments_get_builder(client, &args.name)?;
     apihub_projects_locations_runtime_project_attachments_get_execute(builder)
 }
 
@@ -12402,6 +13352,21 @@ pub fn apihub_projects_locations_runtime_project_attachments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apihub_projects_locations_runtime_project_attachments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApihubProjectsLocationsRuntimeProjectAttachmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/runtimeProjectAttachments
 /// List runtime projects attached to the host project.
 ///
@@ -12414,11 +13379,7 @@ pub fn apihub_projects_locations_runtime_project_attachments_list_execute(
 
 pub fn apihub_projects_locations_runtime_project_attachments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApihubProjectsLocationsRuntimeProjectAttachmentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -12431,7 +13392,12 @@ pub fn apihub_projects_locations_runtime_project_attachments_list(
     ApiError,
 > {
     let builder = apihub_projects_locations_runtime_project_attachments_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apihub_projects_locations_runtime_project_attachments_list_execute(builder)
 }

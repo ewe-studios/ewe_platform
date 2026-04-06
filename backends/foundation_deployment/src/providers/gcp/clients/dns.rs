@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/changes
 /// Atomically updates the ResourceRecordSet collection.
@@ -122,6 +124,19 @@ pub fn dns_changes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_changes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsChangesCreateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Request body.
+    pub body: Change,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/changes
 /// Atomically updates the ResourceRecordSet collection.
 ///
@@ -134,16 +149,18 @@ pub fn dns_changes_create_execute(
 
 pub fn dns_changes_create(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    clientOperationId: Option<&str>,
-    body: &Change,
+    args: &DnsChangesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Change>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dns_changes_create_builder(client, project, managedZone, clientOperationId, body)?;
+    let builder = dns_changes_create_builder(
+        client,
+        &args.project,
+        &args.managedZone,
+        args.clientOperationId.as_deref(),
+        &args.body,
+    )?;
     dns_changes_create_execute(builder)
 }
 
@@ -251,6 +268,19 @@ pub fn dns_changes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_changes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsChangesGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Path parameter: changeId
+    pub changeId: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/changes/{changeId}
 /// Fetches the representation of an existing Change.
 ///
@@ -263,16 +293,18 @@ pub fn dns_changes_get_execute(
 
 pub fn dns_changes_get(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    changeId: &str,
-    clientOperationId: Option<&str>,
+    args: &DnsChangesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Change>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dns_changes_get_builder(client, project, managedZone, changeId, clientOperationId)?;
+    let builder = dns_changes_get_builder(
+        client,
+        &args.project,
+        &args.managedZone,
+        &args.changeId,
+        args.clientOperationId.as_deref(),
+    )?;
     dns_changes_get_execute(builder)
 }
 
@@ -393,6 +425,23 @@ pub fn dns_changes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_changes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsChangesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: sortBy
+    pub sortBy: Option<String>,
+    /// Query parameter: sortOrder
+    pub sortOrder: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/changes
 /// Enumerates Changes to a ResourceRecordSet collection.
 ///
@@ -405,12 +454,7 @@ pub fn dns_changes_list_execute(
 
 pub fn dns_changes_list(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    sortBy: Option<&str>,
-    sortOrder: Option<&str>,
+    args: &DnsChangesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ChangesListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -419,12 +463,12 @@ pub fn dns_changes_list(
 > {
     let builder = dns_changes_list_builder(
         client,
-        project,
-        managedZone,
-        maxResults,
-        pageToken,
-        sortBy,
-        sortOrder,
+        &args.project,
+        &args.managedZone,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.sortBy.as_deref(),
+        args.sortOrder.as_deref(),
     )?;
     dns_changes_list_execute(builder)
 }
@@ -537,6 +581,21 @@ pub fn dns_dns_keys_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_dns_keys_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsDnsKeysGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Path parameter: dnsKeyId
+    pub dnsKeyId: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Query parameter: digestType
+    pub digestType: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/dnsKeys/{dnsKeyId}
 /// Fetches the representation of an existing DnsKey.
 ///
@@ -549,22 +608,18 @@ pub fn dns_dns_keys_get_execute(
 
 pub fn dns_dns_keys_get(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    dnsKeyId: &str,
-    clientOperationId: Option<&str>,
-    digestType: Option<&str>,
+    args: &DnsDnsKeysGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DnsKey>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dns_dns_keys_get_builder(
         client,
-        project,
-        managedZone,
-        dnsKeyId,
-        clientOperationId,
-        digestType,
+        &args.project,
+        &args.managedZone,
+        &args.dnsKeyId,
+        args.clientOperationId.as_deref(),
+        args.digestType.as_deref(),
     )?;
     dns_dns_keys_get_execute(builder)
 }
@@ -682,6 +737,21 @@ pub fn dns_dns_keys_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_dns_keys_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsDnsKeysListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Query parameter: digestType
+    pub digestType: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/dnsKeys
 /// Enumerates DnsKeys to a ResourceRecordSet collection.
 ///
@@ -694,11 +764,7 @@ pub fn dns_dns_keys_list_execute(
 
 pub fn dns_dns_keys_list(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    digestType: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DnsDnsKeysListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DnsKeysListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -707,11 +773,11 @@ pub fn dns_dns_keys_list(
 > {
     let builder = dns_dns_keys_list_builder(
         client,
-        project,
-        managedZone,
-        digestType,
-        maxResults,
-        pageToken,
+        &args.project,
+        &args.managedZone,
+        args.digestType.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
     )?;
     dns_dns_keys_list_execute(builder)
 }
@@ -820,6 +886,19 @@ pub fn dns_managed_zone_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_managed_zone_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZoneOperationsGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Path parameter: operation
+    pub operation: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/operations/{operation}
 /// Fetches the representation of an existing Operation.
 ///
@@ -832,20 +911,17 @@ pub fn dns_managed_zone_operations_get_execute(
 
 pub fn dns_managed_zone_operations_get(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    operation: &str,
-    clientOperationId: Option<&str>,
+    args: &DnsManagedZoneOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dns_managed_zone_operations_get_builder(
         client,
-        project,
-        managedZone,
-        operation,
-        clientOperationId,
+        &args.project,
+        &args.managedZone,
+        &args.operation,
+        args.clientOperationId.as_deref(),
     )?;
     dns_managed_zone_operations_get_execute(builder)
 }
@@ -965,6 +1041,21 @@ pub fn dns_managed_zone_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_managed_zone_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZoneOperationsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: sortBy
+    pub sortBy: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/operations
 /// Enumerates Operations for the given ManagedZone.
 ///
@@ -977,11 +1068,7 @@ pub fn dns_managed_zone_operations_list_execute(
 
 pub fn dns_managed_zone_operations_list(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    sortBy: Option<&str>,
+    args: &DnsManagedZoneOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ManagedZoneOperationsListResponse>, ApiError>,
@@ -992,11 +1079,11 @@ pub fn dns_managed_zone_operations_list(
 > {
     let builder = dns_managed_zone_operations_list_builder(
         client,
-        project,
-        managedZone,
-        maxResults,
-        pageToken,
-        sortBy,
+        &args.project,
+        &args.managedZone,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.sortBy.as_deref(),
     )?;
     dns_managed_zone_operations_list_execute(builder)
 }
@@ -1106,6 +1193,17 @@ pub fn dns_managed_zones_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_managed_zones_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesCreateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Request body.
+    pub body: ManagedZone,
+}
+
 /// GET dns/v1/projects/{project}/managedZones
 /// Creates a new ManagedZone.
 ///
@@ -1118,14 +1216,17 @@ pub fn dns_managed_zones_create_execute(
 
 pub fn dns_managed_zones_create(
     client: &SimpleHttpClient,
-    project: &str,
-    clientOperationId: Option<&str>,
-    body: &ManagedZone,
+    args: &DnsManagedZonesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ManagedZone>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dns_managed_zones_create_builder(client, project, clientOperationId, body)?;
+    let builder = dns_managed_zones_create_builder(
+        client,
+        &args.project,
+        args.clientOperationId.as_deref(),
+        &args.body,
+    )?;
     dns_managed_zones_create_execute(builder)
 }
 
@@ -1229,6 +1330,17 @@ pub fn dns_managed_zones_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_managed_zones_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesDeleteArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}
 /// Deletes a previously created ManagedZone.
 ///
@@ -1241,15 +1353,17 @@ pub fn dns_managed_zones_delete_execute(
 
 pub fn dns_managed_zones_delete(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    clientOperationId: Option<&str>,
+    args: &DnsManagedZonesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dns_managed_zones_delete_builder(client, project, managedZone, clientOperationId)?;
+    let builder = dns_managed_zones_delete_builder(
+        client,
+        &args.project,
+        &args.managedZone,
+        args.clientOperationId.as_deref(),
+    )?;
     dns_managed_zones_delete_execute(builder)
 }
 
@@ -1356,6 +1470,17 @@ pub fn dns_managed_zones_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_managed_zones_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}
 /// Fetches the representation of an existing ManagedZone.
 ///
@@ -1368,14 +1493,17 @@ pub fn dns_managed_zones_get_execute(
 
 pub fn dns_managed_zones_get(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    clientOperationId: Option<&str>,
+    args: &DnsManagedZonesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ManagedZone>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dns_managed_zones_get_builder(client, project, managedZone, clientOperationId)?;
+    let builder = dns_managed_zones_get_builder(
+        client,
+        &args.project,
+        &args.managedZone,
+        args.clientOperationId.as_deref(),
+    )?;
     dns_managed_zones_get_execute(builder)
 }
 
@@ -1474,6 +1602,15 @@ pub fn dns_managed_zones_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_managed_zones_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1GetIamPolicyRequest,
+}
+
 /// GET dns/v1/projects/{projectsId}/managedZones/{managedZonesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1486,15 +1623,14 @@ pub fn dns_managed_zones_get_iam_policy_execute(
 
 pub fn dns_managed_zones_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1GetIamPolicyRequest,
+    args: &DnsManagedZonesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dns_managed_zones_get_iam_policy_builder(client, resource, body)?;
+    let builder = dns_managed_zones_get_iam_policy_builder(client, &args.resource, &args.body)?;
     dns_managed_zones_get_iam_policy_execute(builder)
 }
 
@@ -1610,6 +1746,19 @@ pub fn dns_managed_zones_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_managed_zones_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: dnsName
+    pub dnsName: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/managedZones
 /// Enumerates ManagedZones that have been created but not yet deleted.
 ///
@@ -1622,17 +1771,20 @@ pub fn dns_managed_zones_list_execute(
 
 pub fn dns_managed_zones_list(
     client: &SimpleHttpClient,
-    project: &str,
-    dnsName: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DnsManagedZonesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ManagedZonesListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dns_managed_zones_list_builder(client, project, dnsName, maxResults, pageToken)?;
+    let builder = dns_managed_zones_list_builder(
+        client,
+        &args.project,
+        args.dnsName.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     dns_managed_zones_list_execute(builder)
 }
 
@@ -1742,6 +1894,19 @@ pub fn dns_managed_zones_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_managed_zones_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Request body.
+    pub body: ManagedZone,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}
 /// Applies a partial update to an existing ManagedZone.
 ///
@@ -1754,16 +1919,18 @@ pub fn dns_managed_zones_patch_execute(
 
 pub fn dns_managed_zones_patch(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    clientOperationId: Option<&str>,
-    body: &ManagedZone,
+    args: &DnsManagedZonesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dns_managed_zones_patch_builder(client, project, managedZone, clientOperationId, body)?;
+    let builder = dns_managed_zones_patch_builder(
+        client,
+        &args.project,
+        &args.managedZone,
+        args.clientOperationId.as_deref(),
+        &args.body,
+    )?;
     dns_managed_zones_patch_execute(builder)
 }
 
@@ -1862,6 +2029,15 @@ pub fn dns_managed_zones_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_managed_zones_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET dns/v1/projects/{projectsId}/managedZones/{managedZonesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1874,15 +2050,14 @@ pub fn dns_managed_zones_set_iam_policy_execute(
 
 pub fn dns_managed_zones_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &DnsManagedZonesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dns_managed_zones_set_iam_policy_builder(client, resource, body)?;
+    let builder = dns_managed_zones_set_iam_policy_builder(client, &args.resource, &args.body)?;
     dns_managed_zones_set_iam_policy_execute(builder)
 }
 
@@ -1983,6 +2158,15 @@ pub fn dns_managed_zones_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_managed_zones_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET dns/v1/projects/{projectsId}/managedZones/{managedZonesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this returns an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1995,8 +2179,7 @@ pub fn dns_managed_zones_test_iam_permissions_execute(
 
 pub fn dns_managed_zones_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &DnsManagedZonesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -2005,7 +2188,8 @@ pub fn dns_managed_zones_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = dns_managed_zones_test_iam_permissions_builder(client, resource, body)?;
+    let builder =
+        dns_managed_zones_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     dns_managed_zones_test_iam_permissions_execute(builder)
 }
 
@@ -2115,6 +2299,19 @@ pub fn dns_managed_zones_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_managed_zones_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsManagedZonesUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Request body.
+    pub body: ManagedZone,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}
 /// Updates an existing ManagedZone.
 ///
@@ -2127,16 +2324,18 @@ pub fn dns_managed_zones_update_execute(
 
 pub fn dns_managed_zones_update(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    clientOperationId: Option<&str>,
-    body: &ManagedZone,
+    args: &DnsManagedZonesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dns_managed_zones_update_builder(client, project, managedZone, clientOperationId, body)?;
+    let builder = dns_managed_zones_update_builder(
+        client,
+        &args.project,
+        &args.managedZone,
+        args.clientOperationId.as_deref(),
+        &args.body,
+    )?;
     dns_managed_zones_update_execute(builder)
 }
 
@@ -2245,6 +2444,17 @@ pub fn dns_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsPoliciesCreateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Request body.
+    pub body: Policy,
+}
+
 /// GET dns/v1/projects/{project}/policies
 /// Creates a new policy.
 ///
@@ -2257,14 +2467,17 @@ pub fn dns_policies_create_execute(
 
 pub fn dns_policies_create(
     client: &SimpleHttpClient,
-    project: &str,
-    clientOperationId: Option<&str>,
-    body: &Policy,
+    args: &DnsPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dns_policies_create_builder(client, project, clientOperationId, body)?;
+    let builder = dns_policies_create_builder(
+        client,
+        &args.project,
+        args.clientOperationId.as_deref(),
+        &args.body,
+    )?;
     dns_policies_create_execute(builder)
 }
 
@@ -2368,6 +2581,17 @@ pub fn dns_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsPoliciesDeleteArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: policy
+    pub policy: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/policies/{policy}
 /// Deletes a previously created policy. Fails if the policy is still being referenced by a network.
 ///
@@ -2380,14 +2604,17 @@ pub fn dns_policies_delete_execute(
 
 pub fn dns_policies_delete(
     client: &SimpleHttpClient,
-    project: &str,
-    policy: &str,
-    clientOperationId: Option<&str>,
+    args: &DnsPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dns_policies_delete_builder(client, project, policy, clientOperationId)?;
+    let builder = dns_policies_delete_builder(
+        client,
+        &args.project,
+        &args.policy,
+        args.clientOperationId.as_deref(),
+    )?;
     dns_policies_delete_execute(builder)
 }
 
@@ -2494,6 +2721,17 @@ pub fn dns_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsPoliciesGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: policy
+    pub policy: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/policies/{policy}
 /// Fetches the representation of an existing policy.
 ///
@@ -2506,14 +2744,17 @@ pub fn dns_policies_get_execute(
 
 pub fn dns_policies_get(
     client: &SimpleHttpClient,
-    project: &str,
-    policy: &str,
-    clientOperationId: Option<&str>,
+    args: &DnsPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dns_policies_get_builder(client, project, policy, clientOperationId)?;
+    let builder = dns_policies_get_builder(
+        client,
+        &args.project,
+        &args.policy,
+        args.clientOperationId.as_deref(),
+    )?;
     dns_policies_get_execute(builder)
 }
 
@@ -2625,6 +2866,17 @@ pub fn dns_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsPoliciesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/policies
 /// Enumerates all policies associated with a project.
 ///
@@ -2637,16 +2889,19 @@ pub fn dns_policies_list_execute(
 
 pub fn dns_policies_list(
     client: &SimpleHttpClient,
-    project: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DnsPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PoliciesListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dns_policies_list_builder(client, project, maxResults, pageToken)?;
+    let builder = dns_policies_list_builder(
+        client,
+        &args.project,
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     dns_policies_list_execute(builder)
 }
 
@@ -2758,6 +3013,19 @@ pub fn dns_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsPoliciesPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: policy
+    pub policy: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Request body.
+    pub body: Policy,
+}
+
 /// GET dns/v1/projects/{project}/policies/{policy}
 /// Applies a partial update to an existing policy.
 ///
@@ -2770,17 +3038,20 @@ pub fn dns_policies_patch_execute(
 
 pub fn dns_policies_patch(
     client: &SimpleHttpClient,
-    project: &str,
-    policy: &str,
-    clientOperationId: Option<&str>,
-    body: &Policy,
+    args: &DnsPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PoliciesPatchResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dns_policies_patch_builder(client, project, policy, clientOperationId, body)?;
+    let builder = dns_policies_patch_builder(
+        client,
+        &args.project,
+        &args.policy,
+        args.clientOperationId.as_deref(),
+        &args.body,
+    )?;
     dns_policies_patch_execute(builder)
 }
 
@@ -2892,6 +3163,19 @@ pub fn dns_policies_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_policies_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsPoliciesUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: policy
+    pub policy: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Request body.
+    pub body: Policy,
+}
+
 /// GET dns/v1/projects/{project}/policies/{policy}
 /// Updates an existing policy.
 ///
@@ -2904,17 +3188,20 @@ pub fn dns_policies_update_execute(
 
 pub fn dns_policies_update(
     client: &SimpleHttpClient,
-    project: &str,
-    policy: &str,
-    clientOperationId: Option<&str>,
-    body: &Policy,
+    args: &DnsPoliciesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PoliciesUpdateResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dns_policies_update_builder(client, project, policy, clientOperationId, body)?;
+    let builder = dns_policies_update_builder(
+        client,
+        &args.project,
+        &args.policy,
+        args.clientOperationId.as_deref(),
+        &args.body,
+    )?;
     dns_policies_update_execute(builder)
 }
 
@@ -3017,6 +3304,15 @@ pub fn dns_projects_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_projects_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsProjectsGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}
 /// Fetches the representation of an existing Project.
 ///
@@ -3029,13 +3325,13 @@ pub fn dns_projects_get_execute(
 
 pub fn dns_projects_get(
     client: &SimpleHttpClient,
-    project: &str,
-    clientOperationId: Option<&str>,
+    args: &DnsProjectsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Project>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dns_projects_get_builder(client, project, clientOperationId)?;
+    let builder =
+        dns_projects_get_builder(client, &args.project, args.clientOperationId.as_deref())?;
     dns_projects_get_execute(builder)
 }
 
@@ -3147,6 +3443,19 @@ pub fn dns_resource_record_sets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_resource_record_sets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResourceRecordSetsCreateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Request body.
+    pub body: ResourceRecordSet,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
 /// Creates a new ResourceRecordSet.
 ///
@@ -3159,10 +3468,7 @@ pub fn dns_resource_record_sets_create_execute(
 
 pub fn dns_resource_record_sets_create(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    clientOperationId: Option<&str>,
-    body: &ResourceRecordSet,
+    args: &DnsResourceRecordSetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResourceRecordSet>, ApiError>, P = ApiPending>
         + Send
@@ -3171,10 +3477,10 @@ pub fn dns_resource_record_sets_create(
 > {
     let builder = dns_resource_record_sets_create_builder(
         client,
-        project,
-        managedZone,
-        clientOperationId,
-        body,
+        &args.project,
+        &args.managedZone,
+        args.clientOperationId.as_deref(),
+        &args.body,
     )?;
     dns_resource_record_sets_create_execute(builder)
 }
@@ -3288,6 +3594,21 @@ pub fn dns_resource_record_sets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_resource_record_sets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResourceRecordSetsDeleteArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Path parameter: name
+    pub name: String,
+    /// Path parameter: type
+    pub type_rs: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
 /// Deletes a previously created ResourceRecordSet.
 ///
@@ -3300,11 +3621,7 @@ pub fn dns_resource_record_sets_delete_execute(
 
 pub fn dns_resource_record_sets_delete(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    name: &str,
-    type_rs: &str,
-    clientOperationId: Option<&str>,
+    args: &DnsResourceRecordSetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ResourceRecordSetsDeleteResponse>, ApiError>,
@@ -3315,11 +3632,11 @@ pub fn dns_resource_record_sets_delete(
 > {
     let builder = dns_resource_record_sets_delete_builder(
         client,
-        project,
-        managedZone,
-        name,
-        type_rs,
-        clientOperationId,
+        &args.project,
+        &args.managedZone,
+        &args.name,
+        &args.type_rs,
+        args.clientOperationId.as_deref(),
     )?;
     dns_resource_record_sets_delete_execute(builder)
 }
@@ -3431,6 +3748,21 @@ pub fn dns_resource_record_sets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_resource_record_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResourceRecordSetsGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Path parameter: name
+    pub name: String,
+    /// Path parameter: type
+    pub type_rs: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
 /// Fetches the representation of an existing ResourceRecordSet.
 ///
@@ -3443,11 +3775,7 @@ pub fn dns_resource_record_sets_get_execute(
 
 pub fn dns_resource_record_sets_get(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    name: &str,
-    type_rs: &str,
-    clientOperationId: Option<&str>,
+    args: &DnsResourceRecordSetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResourceRecordSet>, ApiError>, P = ApiPending>
         + Send
@@ -3456,11 +3784,11 @@ pub fn dns_resource_record_sets_get(
 > {
     let builder = dns_resource_record_sets_get_builder(
         client,
-        project,
-        managedZone,
-        name,
-        type_rs,
-        clientOperationId,
+        &args.project,
+        &args.managedZone,
+        &args.name,
+        &args.type_rs,
+        args.clientOperationId.as_deref(),
     )?;
     dns_resource_record_sets_get_execute(builder)
 }
@@ -3588,6 +3916,25 @@ pub fn dns_resource_record_sets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_resource_record_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResourceRecordSetsListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets
 /// Enumerates ResourceRecordSets that you have created but not yet deleted.
 ///
@@ -3600,13 +3947,7 @@ pub fn dns_resource_record_sets_list_execute(
 
 pub fn dns_resource_record_sets_list(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    filter: Option<&str>,
-    maxResults: Option<i32>,
-    name: Option<&str>,
-    pageToken: Option<&str>,
-    type_rs: Option<&str>,
+    args: &DnsResourceRecordSetsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ResourceRecordSetsListResponse>, ApiError>,
@@ -3617,13 +3958,13 @@ pub fn dns_resource_record_sets_list(
 > {
     let builder = dns_resource_record_sets_list_builder(
         client,
-        project,
-        managedZone,
-        filter,
-        maxResults,
-        name,
-        pageToken,
-        type_rs,
+        &args.project,
+        &args.managedZone,
+        args.filter.as_deref(),
+        args.maxResults,
+        args.name.as_deref(),
+        args.pageToken.as_deref(),
+        args.type_rs.as_deref(),
     )?;
     dns_resource_record_sets_list_execute(builder)
 }
@@ -3738,6 +4079,23 @@ pub fn dns_resource_record_sets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_resource_record_sets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResourceRecordSetsPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: managedZone
+    pub managedZone: String,
+    /// Path parameter: name
+    pub name: String,
+    /// Path parameter: type
+    pub type_rs: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Request body.
+    pub body: ResourceRecordSet,
+}
+
 /// GET dns/v1/projects/{project}/managedZones/{managedZone}/rrsets/{name}/{type}
 /// Applies a partial update to an existing ResourceRecordSet.
 ///
@@ -3750,12 +4108,7 @@ pub fn dns_resource_record_sets_patch_execute(
 
 pub fn dns_resource_record_sets_patch(
     client: &SimpleHttpClient,
-    project: &str,
-    managedZone: &str,
-    name: &str,
-    type_rs: &str,
-    clientOperationId: Option<&str>,
-    body: &ResourceRecordSet,
+    args: &DnsResourceRecordSetsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResourceRecordSet>, ApiError>, P = ApiPending>
         + Send
@@ -3764,12 +4117,12 @@ pub fn dns_resource_record_sets_patch(
 > {
     let builder = dns_resource_record_sets_patch_builder(
         client,
-        project,
-        managedZone,
-        name,
-        type_rs,
-        clientOperationId,
-        body,
+        &args.project,
+        &args.managedZone,
+        &args.name,
+        &args.type_rs,
+        args.clientOperationId.as_deref(),
+        &args.body,
     )?;
     dns_resource_record_sets_patch_execute(builder)
 }
@@ -3881,6 +4234,17 @@ pub fn dns_response_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_response_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePoliciesCreateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Request body.
+    pub body: ResponsePolicy,
+}
+
 /// GET dns/v1/projects/{project}/responsePolicies
 /// Creates a new Response Policy
 ///
@@ -3893,16 +4257,19 @@ pub fn dns_response_policies_create_execute(
 
 pub fn dns_response_policies_create(
     client: &SimpleHttpClient,
-    project: &str,
-    clientOperationId: Option<&str>,
-    body: &ResponsePolicy,
+    args: &DnsResponsePoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResponsePolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dns_response_policies_create_builder(client, project, clientOperationId, body)?;
+    let builder = dns_response_policies_create_builder(
+        client,
+        &args.project,
+        args.clientOperationId.as_deref(),
+        &args.body,
+    )?;
     dns_response_policies_create_execute(builder)
 }
 
@@ -4006,6 +4373,17 @@ pub fn dns_response_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_response_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePoliciesDeleteArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}
 /// Deletes a previously created Response Policy. Fails if the response policy is non-empty or still being referenced by a network.
 ///
@@ -4018,15 +4396,17 @@ pub fn dns_response_policies_delete_execute(
 
 pub fn dns_response_policies_delete(
     client: &SimpleHttpClient,
-    project: &str,
-    responsePolicy: &str,
-    clientOperationId: Option<&str>,
+    args: &DnsResponsePoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dns_response_policies_delete_builder(client, project, responsePolicy, clientOperationId)?;
+    let builder = dns_response_policies_delete_builder(
+        client,
+        &args.project,
+        &args.responsePolicy,
+        args.clientOperationId.as_deref(),
+    )?;
     dns_response_policies_delete_execute(builder)
 }
 
@@ -4135,6 +4515,17 @@ pub fn dns_response_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_response_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePoliciesGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}
 /// Fetches the representation of an existing Response Policy.
 ///
@@ -4147,17 +4538,19 @@ pub fn dns_response_policies_get_execute(
 
 pub fn dns_response_policies_get(
     client: &SimpleHttpClient,
-    project: &str,
-    responsePolicy: &str,
-    clientOperationId: Option<&str>,
+    args: &DnsResponsePoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResponsePolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dns_response_policies_get_builder(client, project, responsePolicy, clientOperationId)?;
+    let builder = dns_response_policies_get_builder(
+        client,
+        &args.project,
+        &args.responsePolicy,
+        args.clientOperationId.as_deref(),
+    )?;
     dns_response_policies_get_execute(builder)
 }
 
@@ -4271,6 +4664,17 @@ pub fn dns_response_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_response_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePoliciesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/responsePolicies
 /// Enumerates all Response Policies associated with a project.
 ///
@@ -4283,9 +4687,7 @@ pub fn dns_response_policies_list_execute(
 
 pub fn dns_response_policies_list(
     client: &SimpleHttpClient,
-    project: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DnsResponsePoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ResponsePoliciesListResponse>, ApiError>,
@@ -4294,7 +4696,12 @@ pub fn dns_response_policies_list(
         + 'static,
     ApiError,
 > {
-    let builder = dns_response_policies_list_builder(client, project, maxResults, pageToken)?;
+    let builder = dns_response_policies_list_builder(
+        client,
+        &args.project,
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     dns_response_policies_list_execute(builder)
 }
 
@@ -4408,6 +4815,19 @@ pub fn dns_response_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_response_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePoliciesPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Request body.
+    pub body: ResponsePolicy,
+}
+
 /// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}
 /// Applies a partial update to an existing Response Policy.
 ///
@@ -4420,10 +4840,7 @@ pub fn dns_response_policies_patch_execute(
 
 pub fn dns_response_policies_patch(
     client: &SimpleHttpClient,
-    project: &str,
-    responsePolicy: &str,
-    clientOperationId: Option<&str>,
-    body: &ResponsePolicy,
+    args: &DnsResponsePoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ResponsePoliciesPatchResponse>, ApiError>,
@@ -4434,10 +4851,10 @@ pub fn dns_response_policies_patch(
 > {
     let builder = dns_response_policies_patch_builder(
         client,
-        project,
-        responsePolicy,
-        clientOperationId,
-        body,
+        &args.project,
+        &args.responsePolicy,
+        args.clientOperationId.as_deref(),
+        &args.body,
     )?;
     dns_response_policies_patch_execute(builder)
 }
@@ -4552,6 +4969,19 @@ pub fn dns_response_policies_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_response_policies_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePoliciesUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Request body.
+    pub body: ResponsePolicy,
+}
+
 /// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}
 /// Updates an existing Response Policy.
 ///
@@ -4564,10 +4994,7 @@ pub fn dns_response_policies_update_execute(
 
 pub fn dns_response_policies_update(
     client: &SimpleHttpClient,
-    project: &str,
-    responsePolicy: &str,
-    clientOperationId: Option<&str>,
-    body: &ResponsePolicy,
+    args: &DnsResponsePoliciesUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ResponsePoliciesUpdateResponse>, ApiError>,
@@ -4578,10 +5005,10 @@ pub fn dns_response_policies_update(
 > {
     let builder = dns_response_policies_update_builder(
         client,
-        project,
-        responsePolicy,
-        clientOperationId,
-        body,
+        &args.project,
+        &args.responsePolicy,
+        args.clientOperationId.as_deref(),
+        &args.body,
     )?;
     dns_response_policies_update_execute(builder)
 }
@@ -4694,6 +5121,19 @@ pub fn dns_response_policy_rules_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_response_policy_rules_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePolicyRulesCreateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Request body.
+    pub body: ResponsePolicyRule,
+}
+
 /// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
 /// Creates a new Response Policy Rule.
 ///
@@ -4706,10 +5146,7 @@ pub fn dns_response_policy_rules_create_execute(
 
 pub fn dns_response_policy_rules_create(
     client: &SimpleHttpClient,
-    project: &str,
-    responsePolicy: &str,
-    clientOperationId: Option<&str>,
-    body: &ResponsePolicyRule,
+    args: &DnsResponsePolicyRulesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResponsePolicyRule>, ApiError>, P = ApiPending>
         + Send
@@ -4718,10 +5155,10 @@ pub fn dns_response_policy_rules_create(
 > {
     let builder = dns_response_policy_rules_create_builder(
         client,
-        project,
-        responsePolicy,
-        clientOperationId,
-        body,
+        &args.project,
+        &args.responsePolicy,
+        args.clientOperationId.as_deref(),
+        &args.body,
     )?;
     dns_response_policy_rules_create_execute(builder)
 }
@@ -4827,6 +5264,19 @@ pub fn dns_response_policy_rules_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_response_policy_rules_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePolicyRulesDeleteArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Path parameter: responsePolicyRule
+    pub responsePolicyRule: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
 /// Deletes a previously created Response Policy Rule.
 ///
@@ -4839,20 +5289,17 @@ pub fn dns_response_policy_rules_delete_execute(
 
 pub fn dns_response_policy_rules_delete(
     client: &SimpleHttpClient,
-    project: &str,
-    responsePolicy: &str,
-    responsePolicyRule: &str,
-    clientOperationId: Option<&str>,
+    args: &DnsResponsePolicyRulesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dns_response_policy_rules_delete_builder(
         client,
-        project,
-        responsePolicy,
-        responsePolicyRule,
-        clientOperationId,
+        &args.project,
+        &args.responsePolicy,
+        &args.responsePolicyRule,
+        args.clientOperationId.as_deref(),
     )?;
     dns_response_policy_rules_delete_execute(builder)
 }
@@ -4963,6 +5410,19 @@ pub fn dns_response_policy_rules_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_response_policy_rules_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePolicyRulesGetArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Path parameter: responsePolicyRule
+    pub responsePolicyRule: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
 /// Fetches the representation of an existing Response Policy Rule.
 ///
@@ -4975,10 +5435,7 @@ pub fn dns_response_policy_rules_get_execute(
 
 pub fn dns_response_policy_rules_get(
     client: &SimpleHttpClient,
-    project: &str,
-    responsePolicy: &str,
-    responsePolicyRule: &str,
-    clientOperationId: Option<&str>,
+    args: &DnsResponsePolicyRulesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResponsePolicyRule>, ApiError>, P = ApiPending>
         + Send
@@ -4987,10 +5444,10 @@ pub fn dns_response_policy_rules_get(
 > {
     let builder = dns_response_policy_rules_get_builder(
         client,
-        project,
-        responsePolicy,
-        responsePolicyRule,
-        clientOperationId,
+        &args.project,
+        &args.responsePolicy,
+        &args.responsePolicyRule,
+        args.clientOperationId.as_deref(),
     )?;
     dns_response_policy_rules_get_execute(builder)
 }
@@ -5106,6 +5563,19 @@ pub fn dns_response_policy_rules_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_response_policy_rules_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePolicyRulesListArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules
 /// Enumerates all Response Policy Rules associated with a project.
 ///
@@ -5118,10 +5588,7 @@ pub fn dns_response_policy_rules_list_execute(
 
 pub fn dns_response_policy_rules_list(
     client: &SimpleHttpClient,
-    project: &str,
-    responsePolicy: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DnsResponsePolicyRulesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ResponsePolicyRulesListResponse>, ApiError>,
@@ -5132,10 +5599,10 @@ pub fn dns_response_policy_rules_list(
 > {
     let builder = dns_response_policy_rules_list_builder(
         client,
-        project,
-        responsePolicy,
-        maxResults,
-        pageToken,
+        &args.project,
+        &args.responsePolicy,
+        args.maxResults,
+        args.pageToken.as_deref(),
     )?;
     dns_response_policy_rules_list_execute(builder)
 }
@@ -5251,6 +5718,21 @@ pub fn dns_response_policy_rules_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_response_policy_rules_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePolicyRulesPatchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Path parameter: responsePolicyRule
+    pub responsePolicyRule: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Request body.
+    pub body: ResponsePolicyRule,
+}
+
 /// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
 /// Applies a partial update to an existing Response Policy Rule.
 ///
@@ -5263,11 +5745,7 @@ pub fn dns_response_policy_rules_patch_execute(
 
 pub fn dns_response_policy_rules_patch(
     client: &SimpleHttpClient,
-    project: &str,
-    responsePolicy: &str,
-    responsePolicyRule: &str,
-    clientOperationId: Option<&str>,
-    body: &ResponsePolicyRule,
+    args: &DnsResponsePolicyRulesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ResponsePolicyRulesPatchResponse>, ApiError>,
@@ -5278,11 +5756,11 @@ pub fn dns_response_policy_rules_patch(
 > {
     let builder = dns_response_policy_rules_patch_builder(
         client,
-        project,
-        responsePolicy,
-        responsePolicyRule,
-        clientOperationId,
-        body,
+        &args.project,
+        &args.responsePolicy,
+        &args.responsePolicyRule,
+        args.clientOperationId.as_deref(),
+        &args.body,
     )?;
     dns_response_policy_rules_patch_execute(builder)
 }
@@ -5398,6 +5876,21 @@ pub fn dns_response_policy_rules_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dns_response_policy_rules_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DnsResponsePolicyRulesUpdateArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: responsePolicy
+    pub responsePolicy: String,
+    /// Path parameter: responsePolicyRule
+    pub responsePolicyRule: String,
+    /// Query parameter: clientOperationId
+    pub clientOperationId: Option<String>,
+    /// Request body.
+    pub body: ResponsePolicyRule,
+}
+
 /// GET dns/v1/projects/{project}/responsePolicies/{responsePolicy}/rules/{responsePolicyRule}
 /// Updates an existing Response Policy Rule.
 ///
@@ -5410,11 +5903,7 @@ pub fn dns_response_policy_rules_update_execute(
 
 pub fn dns_response_policy_rules_update(
     client: &SimpleHttpClient,
-    project: &str,
-    responsePolicy: &str,
-    responsePolicyRule: &str,
-    clientOperationId: Option<&str>,
-    body: &ResponsePolicyRule,
+    args: &DnsResponsePolicyRulesUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ResponsePolicyRulesUpdateResponse>, ApiError>,
@@ -5425,11 +5914,11 @@ pub fn dns_response_policy_rules_update(
 > {
     let builder = dns_response_policy_rules_update_builder(
         client,
-        project,
-        responsePolicy,
-        responsePolicyRule,
-        clientOperationId,
-        body,
+        &args.project,
+        &args.responsePolicy,
+        &args.responsePolicyRule,
+        args.clientOperationId.as_deref(),
+        &args.body,
     )?;
     dns_response_policy_rules_update_execute(builder)
 }

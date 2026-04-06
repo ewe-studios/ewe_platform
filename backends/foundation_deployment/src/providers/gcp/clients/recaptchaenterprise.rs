@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/assessments/{assessmentsId}:annotate
 /// Annotates a previously created Assessment to provide additional information on whether the event turned out to be authentic or fraudulent.
@@ -117,6 +119,15 @@ pub fn recaptchaenterprise_projects_assessments_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_assessments_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsAssessmentsAnnotateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentRequest,
+}
+
 /// GET v1/projects/{projectsId}/assessments/{assessmentsId}:annotate
 /// Annotates a previously created Assessment to provide additional information on whether the event turned out to be authentic or fraudulent.
 ///
@@ -129,8 +140,7 @@ pub fn recaptchaenterprise_projects_assessments_annotate_execute(
 
 pub fn recaptchaenterprise_projects_assessments_annotate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentRequest,
+    args: &RecaptchaenterpriseProjectsAssessmentsAnnotateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -142,7 +152,8 @@ pub fn recaptchaenterprise_projects_assessments_annotate(
         + 'static,
     ApiError,
 > {
-    let builder = recaptchaenterprise_projects_assessments_annotate_builder(client, name, body)?;
+    let builder =
+        recaptchaenterprise_projects_assessments_annotate_builder(client, &args.name, &args.body)?;
     recaptchaenterprise_projects_assessments_annotate_execute(builder)
 }
 
@@ -244,6 +255,15 @@ pub fn recaptchaenterprise_projects_assessments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_assessments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsAssessmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRecaptchaenterpriseV1Assessment,
+}
+
 /// GET v1/projects/{projectsId}/assessments
 /// Creates an Assessment of the likelihood an event is legitimate.
 ///
@@ -256,8 +276,7 @@ pub fn recaptchaenterprise_projects_assessments_create_execute(
 
 pub fn recaptchaenterprise_projects_assessments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRecaptchaenterpriseV1Assessment,
+    args: &RecaptchaenterpriseProjectsAssessmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Assessment>, ApiError>,
@@ -266,7 +285,8 @@ pub fn recaptchaenterprise_projects_assessments_create(
         + 'static,
     ApiError,
 > {
-    let builder = recaptchaenterprise_projects_assessments_create_builder(client, parent, body)?;
+    let builder =
+        recaptchaenterprise_projects_assessments_create_builder(client, &args.parent, &args.body)?;
     recaptchaenterprise_projects_assessments_create_execute(builder)
 }
 
@@ -368,6 +388,15 @@ pub fn recaptchaenterprise_projects_firewallpolicies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_firewallpolicies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsFirewallpoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRecaptchaenterpriseV1FirewallPolicy,
+}
+
 /// GET v1/projects/{projectsId}/firewallpolicies
 /// Creates a new FirewallPolicy, specifying conditions at which `reCAPTCHA` Enterprise actions can be executed. A project may have a maximum of 1000 policies.
 ///
@@ -380,8 +409,7 @@ pub fn recaptchaenterprise_projects_firewallpolicies_create_execute(
 
 pub fn recaptchaenterprise_projects_firewallpolicies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRecaptchaenterpriseV1FirewallPolicy,
+    args: &RecaptchaenterpriseProjectsFirewallpoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>, ApiError>,
@@ -390,8 +418,11 @@ pub fn recaptchaenterprise_projects_firewallpolicies_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        recaptchaenterprise_projects_firewallpolicies_create_builder(client, parent, body)?;
+    let builder = recaptchaenterprise_projects_firewallpolicies_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     recaptchaenterprise_projects_firewallpolicies_create_execute(builder)
 }
 
@@ -487,6 +518,13 @@ pub fn recaptchaenterprise_projects_firewallpolicies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_firewallpolicies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsFirewallpoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/firewallpolicies/{firewallpoliciesId}
 /// Deletes the specified firewall policy.
 ///
@@ -499,14 +537,14 @@ pub fn recaptchaenterprise_projects_firewallpolicies_delete_execute(
 
 pub fn recaptchaenterprise_projects_firewallpolicies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecaptchaenterpriseProjectsFirewallpoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = recaptchaenterprise_projects_firewallpolicies_delete_builder(client, name)?;
+    let builder = recaptchaenterprise_projects_firewallpolicies_delete_builder(client, &args.name)?;
     recaptchaenterprise_projects_firewallpolicies_delete_execute(builder)
 }
 
@@ -605,6 +643,13 @@ pub fn recaptchaenterprise_projects_firewallpolicies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_firewallpolicies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsFirewallpoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/firewallpolicies/{firewallpoliciesId}
 /// Returns the specified firewall policy.
 ///
@@ -617,7 +662,7 @@ pub fn recaptchaenterprise_projects_firewallpolicies_get_execute(
 
 pub fn recaptchaenterprise_projects_firewallpolicies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecaptchaenterpriseProjectsFirewallpoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>, ApiError>,
@@ -626,7 +671,7 @@ pub fn recaptchaenterprise_projects_firewallpolicies_get(
         + 'static,
     ApiError,
 > {
-    let builder = recaptchaenterprise_projects_firewallpolicies_get_builder(client, name)?;
+    let builder = recaptchaenterprise_projects_firewallpolicies_get_builder(client, &args.name)?;
     recaptchaenterprise_projects_firewallpolicies_get_execute(builder)
 }
 
@@ -744,6 +789,17 @@ pub fn recaptchaenterprise_projects_firewallpolicies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_firewallpolicies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsFirewallpoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/firewallpolicies
 /// Returns the list of all firewall policies that belong to a project.
 ///
@@ -756,9 +812,7 @@ pub fn recaptchaenterprise_projects_firewallpolicies_list_execute(
 
 pub fn recaptchaenterprise_projects_firewallpolicies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecaptchaenterpriseProjectsFirewallpoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -771,7 +825,10 @@ pub fn recaptchaenterprise_projects_firewallpolicies_list(
     ApiError,
 > {
     let builder = recaptchaenterprise_projects_firewallpolicies_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     recaptchaenterprise_projects_firewallpolicies_list_execute(builder)
 }
@@ -886,6 +943,17 @@ pub fn recaptchaenterprise_projects_firewallpolicies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_firewallpolicies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsFirewallpoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRecaptchaenterpriseV1FirewallPolicy,
+}
+
 /// GET v1/projects/{projectsId}/firewallpolicies/{firewallpoliciesId}
 /// Updates the specified firewall policy.
 ///
@@ -898,9 +966,7 @@ pub fn recaptchaenterprise_projects_firewallpolicies_patch_execute(
 
 pub fn recaptchaenterprise_projects_firewallpolicies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudRecaptchaenterpriseV1FirewallPolicy,
+    args: &RecaptchaenterpriseProjectsFirewallpoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1FirewallPolicy>, ApiError>,
@@ -910,7 +976,10 @@ pub fn recaptchaenterprise_projects_firewallpolicies_patch(
     ApiError,
 > {
     let builder = recaptchaenterprise_projects_firewallpolicies_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     recaptchaenterprise_projects_firewallpolicies_patch_execute(builder)
 }
@@ -1016,6 +1085,15 @@ pub fn recaptchaenterprise_projects_firewallpolicies_reorder_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_firewallpolicies_reorder`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsFirewallpoliciesReorderArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesRequest,
+}
+
 /// GET v1/projects/{projectsId}/firewallpolicies:reorder
 /// Reorders all firewall policies.
 ///
@@ -1028,8 +1106,7 @@ pub fn recaptchaenterprise_projects_firewallpolicies_reorder_execute(
 
 pub fn recaptchaenterprise_projects_firewallpolicies_reorder(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesRequest,
+    args: &RecaptchaenterpriseProjectsFirewallpoliciesReorderArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1041,8 +1118,11 @@ pub fn recaptchaenterprise_projects_firewallpolicies_reorder(
         + 'static,
     ApiError,
 > {
-    let builder =
-        recaptchaenterprise_projects_firewallpolicies_reorder_builder(client, parent, body)?;
+    let builder = recaptchaenterprise_projects_firewallpolicies_reorder_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     recaptchaenterprise_projects_firewallpolicies_reorder_execute(builder)
 }
 
@@ -1147,6 +1227,15 @@ pub fn recaptchaenterprise_projects_keys_add_ip_override_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_keys_add_ip_override`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysAddIpOverrideArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecaptchaenterpriseV1AddIpOverrideRequest,
+}
+
 /// GET v1/projects/{projectsId}/keys/{keysId}:addIpOverride
 /// Adds an IP override to a key. The following restrictions hold: * The maximum number of IP overrides per key is 1000. * For any conflict (such as IP already exists or IP part of an existing IP range), an error is returned.
 ///
@@ -1159,8 +1248,7 @@ pub fn recaptchaenterprise_projects_keys_add_ip_override_execute(
 
 pub fn recaptchaenterprise_projects_keys_add_ip_override(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecaptchaenterpriseV1AddIpOverrideRequest,
+    args: &RecaptchaenterpriseProjectsKeysAddIpOverrideArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1172,7 +1260,8 @@ pub fn recaptchaenterprise_projects_keys_add_ip_override(
         + 'static,
     ApiError,
 > {
-    let builder = recaptchaenterprise_projects_keys_add_ip_override_builder(client, name, body)?;
+    let builder =
+        recaptchaenterprise_projects_keys_add_ip_override_builder(client, &args.name, &args.body)?;
     recaptchaenterprise_projects_keys_add_ip_override_execute(builder)
 }
 
@@ -1273,6 +1362,15 @@ pub fn recaptchaenterprise_projects_keys_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_keys_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRecaptchaenterpriseV1Key,
+}
+
 /// GET v1/projects/{projectsId}/keys
 /// Creates a new `reCAPTCHA` Enterprise key.
 ///
@@ -1285,8 +1383,7 @@ pub fn recaptchaenterprise_projects_keys_create_execute(
 
 pub fn recaptchaenterprise_projects_keys_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRecaptchaenterpriseV1Key,
+    args: &RecaptchaenterpriseProjectsKeysCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Key>, ApiError>,
@@ -1295,7 +1392,8 @@ pub fn recaptchaenterprise_projects_keys_create(
         + 'static,
     ApiError,
 > {
-    let builder = recaptchaenterprise_projects_keys_create_builder(client, parent, body)?;
+    let builder =
+        recaptchaenterprise_projects_keys_create_builder(client, &args.parent, &args.body)?;
     recaptchaenterprise_projects_keys_create_execute(builder)
 }
 
@@ -1391,6 +1489,13 @@ pub fn recaptchaenterprise_projects_keys_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_keys_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/keys/{keysId}
 /// Deletes the specified key.
 ///
@@ -1403,14 +1508,14 @@ pub fn recaptchaenterprise_projects_keys_delete_execute(
 
 pub fn recaptchaenterprise_projects_keys_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecaptchaenterpriseProjectsKeysDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = recaptchaenterprise_projects_keys_delete_builder(client, name)?;
+    let builder = recaptchaenterprise_projects_keys_delete_builder(client, &args.name)?;
     recaptchaenterprise_projects_keys_delete_execute(builder)
 }
 
@@ -1508,6 +1613,13 @@ pub fn recaptchaenterprise_projects_keys_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_keys_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/keys/{keysId}
 /// Returns the specified key.
 ///
@@ -1520,7 +1632,7 @@ pub fn recaptchaenterprise_projects_keys_get_execute(
 
 pub fn recaptchaenterprise_projects_keys_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecaptchaenterpriseProjectsKeysGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Key>, ApiError>,
@@ -1529,7 +1641,7 @@ pub fn recaptchaenterprise_projects_keys_get(
         + 'static,
     ApiError,
 > {
-    let builder = recaptchaenterprise_projects_keys_get_builder(client, name)?;
+    let builder = recaptchaenterprise_projects_keys_get_builder(client, &args.name)?;
     recaptchaenterprise_projects_keys_get_execute(builder)
 }
 
@@ -1628,6 +1740,13 @@ pub fn recaptchaenterprise_projects_keys_get_metrics_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_keys_get_metrics`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysGetMetricsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/keys/{keysId}/metrics
 /// Get some aggregated metrics for a Key. This data can be used to build dashboards.
 ///
@@ -1640,7 +1759,7 @@ pub fn recaptchaenterprise_projects_keys_get_metrics_execute(
 
 pub fn recaptchaenterprise_projects_keys_get_metrics(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RecaptchaenterpriseProjectsKeysGetMetricsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Metrics>, ApiError>,
@@ -1649,7 +1768,7 @@ pub fn recaptchaenterprise_projects_keys_get_metrics(
         + 'static,
     ApiError,
 > {
-    let builder = recaptchaenterprise_projects_keys_get_metrics_builder(client, name)?;
+    let builder = recaptchaenterprise_projects_keys_get_metrics_builder(client, &args.name)?;
     recaptchaenterprise_projects_keys_get_metrics_execute(builder)
 }
 
@@ -1764,6 +1883,17 @@ pub fn recaptchaenterprise_projects_keys_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_keys_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/keys
 /// Returns the list of all keys that belong to a project.
 ///
@@ -1776,9 +1906,7 @@ pub fn recaptchaenterprise_projects_keys_list_execute(
 
 pub fn recaptchaenterprise_projects_keys_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecaptchaenterpriseProjectsKeysListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1ListKeysResponse>, ApiError>,
@@ -1787,8 +1915,12 @@ pub fn recaptchaenterprise_projects_keys_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        recaptchaenterprise_projects_keys_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = recaptchaenterprise_projects_keys_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     recaptchaenterprise_projects_keys_list_execute(builder)
 }
 
@@ -1906,6 +2038,17 @@ pub fn recaptchaenterprise_projects_keys_list_ip_overrides_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_keys_list_ip_overrides`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysListIpOverridesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/keys/{keysId}:listIpOverrides
 /// Lists all IP overrides for a key.
 ///
@@ -1918,9 +2061,7 @@ pub fn recaptchaenterprise_projects_keys_list_ip_overrides_execute(
 
 pub fn recaptchaenterprise_projects_keys_list_ip_overrides(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecaptchaenterpriseProjectsKeysListIpOverridesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1933,7 +2074,10 @@ pub fn recaptchaenterprise_projects_keys_list_ip_overrides(
     ApiError,
 > {
     let builder = recaptchaenterprise_projects_keys_list_ip_overrides_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     recaptchaenterprise_projects_keys_list_ip_overrides_execute(builder)
 }
@@ -2035,6 +2179,15 @@ pub fn recaptchaenterprise_projects_keys_migrate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_keys_migrate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysMigrateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecaptchaenterpriseV1MigrateKeyRequest,
+}
+
 /// GET v1/projects/{projectsId}/keys/{keysId}:migrate
 /// Migrates an existing key from `reCAPTCHA` to `reCAPTCHA` Enterprise. Once a key is migrated, it can be used from either product. SiteVerify requests are billed as CreateAssessment calls. You must be authenticated as one of the current owners of the `reCAPTCHA` Key, and your user must have the `reCAPTCHA` Enterprise Admin IAM role in the destination project.
 ///
@@ -2047,8 +2200,7 @@ pub fn recaptchaenterprise_projects_keys_migrate_execute(
 
 pub fn recaptchaenterprise_projects_keys_migrate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecaptchaenterpriseV1MigrateKeyRequest,
+    args: &RecaptchaenterpriseProjectsKeysMigrateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Key>, ApiError>,
@@ -2057,7 +2209,8 @@ pub fn recaptchaenterprise_projects_keys_migrate(
         + 'static,
     ApiError,
 > {
-    let builder = recaptchaenterprise_projects_keys_migrate_builder(client, name, body)?;
+    let builder =
+        recaptchaenterprise_projects_keys_migrate_builder(client, &args.name, &args.body)?;
     recaptchaenterprise_projects_keys_migrate_execute(builder)
 }
 
@@ -2170,6 +2323,17 @@ pub fn recaptchaenterprise_projects_keys_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_keys_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRecaptchaenterpriseV1Key,
+}
+
 /// GET v1/projects/{projectsId}/keys/{keysId}
 /// Updates the specified key.
 ///
@@ -2182,9 +2346,7 @@ pub fn recaptchaenterprise_projects_keys_patch_execute(
 
 pub fn recaptchaenterprise_projects_keys_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudRecaptchaenterpriseV1Key,
+    args: &RecaptchaenterpriseProjectsKeysPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRecaptchaenterpriseV1Key>, ApiError>,
@@ -2193,7 +2355,12 @@ pub fn recaptchaenterprise_projects_keys_patch(
         + 'static,
     ApiError,
 > {
-    let builder = recaptchaenterprise_projects_keys_patch_builder(client, name, updateMask, body)?;
+    let builder = recaptchaenterprise_projects_keys_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     recaptchaenterprise_projects_keys_patch_execute(builder)
 }
 
@@ -2298,6 +2465,15 @@ pub fn recaptchaenterprise_projects_keys_remove_ip_override_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_keys_remove_ip_override`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysRemoveIpOverrideArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideRequest,
+}
+
 /// GET v1/projects/{projectsId}/keys/{keysId}:removeIpOverride
 /// Removes an IP override from a key. The following restrictions hold: * If the IP isn't found in an existing IP override, a NOT_FOUND error is returned. * If the IP is found in an existing IP override, but the override type does not match, a NOT_FOUND error is returned.
 ///
@@ -2310,8 +2486,7 @@ pub fn recaptchaenterprise_projects_keys_remove_ip_override_execute(
 
 pub fn recaptchaenterprise_projects_keys_remove_ip_override(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideRequest,
+    args: &RecaptchaenterpriseProjectsKeysRemoveIpOverrideArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2323,7 +2498,9 @@ pub fn recaptchaenterprise_projects_keys_remove_ip_override(
         + 'static,
     ApiError,
 > {
-    let builder = recaptchaenterprise_projects_keys_remove_ip_override_builder(client, name, body)?;
+    let builder = recaptchaenterprise_projects_keys_remove_ip_override_builder(
+        client, &args.name, &args.body,
+    )?;
     recaptchaenterprise_projects_keys_remove_ip_override_execute(builder)
 }
 
@@ -2425,6 +2602,13 @@ pub fn recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_keys_retrieve_legacy_secret_key`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsKeysRetrieveLegacySecretKeyArgs {
+    /// Path parameter: key
+    pub key: String,
+}
+
 /// GET v1/projects/{projectsId}/keys/{keysId}:retrieveLegacySecretKey
 /// Returns the secret key related to the specified public key. You must use the legacy secret key only in a 3rd party integration with legacy `reCAPTCHA`.
 ///
@@ -2437,7 +2621,7 @@ pub fn recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_execute(
 
 pub fn recaptchaenterprise_projects_keys_retrieve_legacy_secret_key(
     client: &SimpleHttpClient,
-    key: &str,
+    args: &RecaptchaenterpriseProjectsKeysRetrieveLegacySecretKeyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2450,7 +2634,7 @@ pub fn recaptchaenterprise_projects_keys_retrieve_legacy_secret_key(
     ApiError,
 > {
     let builder =
-        recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_builder(client, key)?;
+        recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_builder(client, &args.key)?;
     recaptchaenterprise_projects_keys_retrieve_legacy_secret_key_execute(builder)
 }
 
@@ -2551,6 +2735,15 @@ pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_relatedaccountgroupmemberships_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsRelatedaccountgroupmembershipsSearchArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Request body.
+    pub body: GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsRequest,
+}
+
 /// GET v1/projects/{projectsId}/relatedaccountgroupmemberships:search
 /// Search group memberships related to a given account.
 ///
@@ -2563,8 +2756,7 @@ pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search_execut
 
 pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search(
     client: &SimpleHttpClient,
-    project: &str,
-    body: &GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsRequest,
+    args: &RecaptchaenterpriseProjectsRelatedaccountgroupmembershipsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2579,7 +2771,9 @@ pub fn recaptchaenterprise_projects_relatedaccountgroupmemberships_search(
     ApiError,
 > {
     let builder = recaptchaenterprise_projects_relatedaccountgroupmemberships_search_builder(
-        client, project, body,
+        client,
+        &args.project,
+        &args.body,
     )?;
     recaptchaenterprise_projects_relatedaccountgroupmemberships_search_execute(builder)
 }
@@ -2698,6 +2892,17 @@ pub fn recaptchaenterprise_projects_relatedaccountgroups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_relatedaccountgroups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsRelatedaccountgroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/relatedaccountgroups
 /// List groups of related accounts.
 ///
@@ -2710,9 +2915,7 @@ pub fn recaptchaenterprise_projects_relatedaccountgroups_list_execute(
 
 pub fn recaptchaenterprise_projects_relatedaccountgroups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecaptchaenterpriseProjectsRelatedaccountgroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2725,7 +2928,10 @@ pub fn recaptchaenterprise_projects_relatedaccountgroups_list(
     ApiError,
 > {
     let builder = recaptchaenterprise_projects_relatedaccountgroups_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     recaptchaenterprise_projects_relatedaccountgroups_list_execute(builder)
 }
@@ -2840,6 +3046,17 @@ pub fn recaptchaenterprise_projects_relatedaccountgroups_memberships_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`recaptchaenterprise_projects_relatedaccountgroups_memberships_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RecaptchaenterpriseProjectsRelatedaccountgroupsMembershipsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/relatedaccountgroups/{relatedaccountgroupsId}/memberships
 /// Get memberships in a group of related accounts.
 ///
@@ -2852,9 +3069,7 @@ pub fn recaptchaenterprise_projects_relatedaccountgroups_memberships_list_execut
 
 pub fn recaptchaenterprise_projects_relatedaccountgroups_memberships_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RecaptchaenterpriseProjectsRelatedaccountgroupsMembershipsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2869,7 +3084,10 @@ pub fn recaptchaenterprise_projects_relatedaccountgroups_memberships_list(
     ApiError,
 > {
     let builder = recaptchaenterprise_projects_relatedaccountgroups_memberships_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     recaptchaenterprise_projects_relatedaccountgroups_memberships_list_execute(builder)
 }

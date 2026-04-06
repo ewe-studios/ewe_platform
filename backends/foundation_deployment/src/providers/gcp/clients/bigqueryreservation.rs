@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/biReservation
 /// Retrieves a BI reservation.
@@ -108,6 +110,13 @@ pub fn bigqueryreservation_projects_locations_get_bi_reservation_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_get_bi_reservation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsGetBiReservationArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/biReservation
 /// Retrieves a BI reservation.
 ///
@@ -120,14 +129,15 @@ pub fn bigqueryreservation_projects_locations_get_bi_reservation_execute(
 
 pub fn bigqueryreservation_projects_locations_get_bi_reservation(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigqueryreservationProjectsLocationsGetBiReservationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BiReservation>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = bigqueryreservation_projects_locations_get_bi_reservation_builder(client, name)?;
+    let builder =
+        bigqueryreservation_projects_locations_get_bi_reservation_builder(client, &args.name)?;
     bigqueryreservation_projects_locations_get_bi_reservation_execute(builder)
 }
 
@@ -245,6 +255,19 @@ pub fn bigqueryreservation_projects_locations_search_all_assignments_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_search_all_assignments`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsSearchAllAssignmentsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:searchAllAssignments
 /// Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn't have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*.
 ///
@@ -257,10 +280,7 @@ pub fn bigqueryreservation_projects_locations_search_all_assignments_execute(
 
 pub fn bigqueryreservation_projects_locations_search_all_assignments(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &BigqueryreservationProjectsLocationsSearchAllAssignmentsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchAllAssignmentsResponse>, ApiError>,
@@ -270,7 +290,11 @@ pub fn bigqueryreservation_projects_locations_search_all_assignments(
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_search_all_assignments_builder(
-        client, parent, pageSize, pageToken, query,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
     )?;
     bigqueryreservation_projects_locations_search_all_assignments_execute(builder)
 }
@@ -387,6 +411,19 @@ pub fn bigqueryreservation_projects_locations_search_assignments_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_search_assignments`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsSearchAssignmentsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:searchAssignments
 /// Deprecated: Looks up assignments for a specified resource for a particular region. If the request is about a project: 1. Assignments created on the project will be returned if they exist. 2. Otherwise assignments created on the closest ancestor will be returned. 3. Assignments for different JobTypes will all be returned. The same logic applies if the request is about a folder. If the request is about an organization, then assignments created on the organization will be returned (organization doesn't have ancestors). Comparing to ListAssignments, there are some behavior differences: 1. permission on the assignee will be verified in this API. 2. Hierarchy lookup (project-&gt;folder-&gt;organization) happens in this API. 3. Parent here is projects/*/locations/*, instead of projects/*/locations/*reservations/*. **Note** "-" cannot be used for projects nor locations.
 ///
@@ -399,10 +436,7 @@ pub fn bigqueryreservation_projects_locations_search_assignments_execute(
 
 pub fn bigqueryreservation_projects_locations_search_assignments(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &BigqueryreservationProjectsLocationsSearchAssignmentsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchAssignmentsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -410,7 +444,11 @@ pub fn bigqueryreservation_projects_locations_search_assignments(
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_search_assignments_builder(
-        client, parent, pageSize, pageToken, query,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
     )?;
     bigqueryreservation_projects_locations_search_assignments_execute(builder)
 }
@@ -522,6 +560,17 @@ pub fn bigqueryreservation_projects_locations_update_bi_reservation_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_update_bi_reservation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsUpdateBiReservationArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: BiReservation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/biReservation
 /// Updates a BI reservation. Only fields specified in the field_mask are updated. A singleton BI reservation always exists with default size 0. In order to reserve BI capacity it needs to be updated to an amount greater than 0. In order to release BI capacity reservation size must be set to 0.
 ///
@@ -534,9 +583,7 @@ pub fn bigqueryreservation_projects_locations_update_bi_reservation_execute(
 
 pub fn bigqueryreservation_projects_locations_update_bi_reservation(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &BiReservation,
+    args: &BigqueryreservationProjectsLocationsUpdateBiReservationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BiReservation>, ApiError>, P = ApiPending>
         + Send
@@ -544,7 +591,10 @@ pub fn bigqueryreservation_projects_locations_update_bi_reservation(
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_update_bi_reservation_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     bigqueryreservation_projects_locations_update_bi_reservation_execute(builder)
 }
@@ -660,6 +710,19 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_create_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_capacity_commitments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsCapacityCommitmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: capacityCommitmentId
+    pub capacityCommitmentId: Option<String>,
+    /// Query parameter: enforceSingleAdminProjectPerOrg
+    pub enforceSingleAdminProjectPerOrg: Option<bool>,
+    /// Request body.
+    pub body: CapacityCommitment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/capacityCommitments
 /// Creates a new capacity commitment resource.
 ///
@@ -672,10 +735,7 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_create_execut
 
 pub fn bigqueryreservation_projects_locations_capacity_commitments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    capacityCommitmentId: Option<&str>,
-    enforceSingleAdminProjectPerOrg: Option<bool>,
-    body: &CapacityCommitment,
+    args: &BigqueryreservationProjectsLocationsCapacityCommitmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CapacityCommitment>, ApiError>, P = ApiPending>
         + Send
@@ -684,10 +744,10 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_create(
 > {
     let builder = bigqueryreservation_projects_locations_capacity_commitments_create_builder(
         client,
-        parent,
-        capacityCommitmentId,
-        enforceSingleAdminProjectPerOrg,
-        body,
+        &args.parent,
+        args.capacityCommitmentId.as_deref(),
+        args.enforceSingleAdminProjectPerOrg,
+        &args.body,
     )?;
     bigqueryreservation_projects_locations_capacity_commitments_create_execute(builder)
 }
@@ -794,6 +854,15 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_delete_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_capacity_commitments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsCapacityCommitmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/capacityCommitments/{capacityCommitmentsId}
 /// Deletes a capacity commitment. Attempting to delete capacity commitment before its commitment_end_time will fail with the error code google.rpc.Code.FAILED_PRECONDITION.
 ///
@@ -806,14 +875,13 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_delete_execut
 
 pub fn bigqueryreservation_projects_locations_capacity_commitments_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &BigqueryreservationProjectsLocationsCapacityCommitmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_capacity_commitments_delete_builder(
-        client, name, force,
+        client, &args.name, args.force,
     )?;
     bigqueryreservation_projects_locations_capacity_commitments_delete_execute(builder)
 }
@@ -910,6 +978,13 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_capacity_commitments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsCapacityCommitmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/capacityCommitments/{capacityCommitmentsId}
 /// Returns information about the capacity commitment.
 ///
@@ -922,15 +997,16 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_get_execute(
 
 pub fn bigqueryreservation_projects_locations_capacity_commitments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigqueryreservationProjectsLocationsCapacityCommitmentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CapacityCommitment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        bigqueryreservation_projects_locations_capacity_commitments_get_builder(client, name)?;
+    let builder = bigqueryreservation_projects_locations_capacity_commitments_get_builder(
+        client, &args.name,
+    )?;
     bigqueryreservation_projects_locations_capacity_commitments_get_execute(builder)
 }
 
@@ -1044,6 +1120,17 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_capacity_commitments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsCapacityCommitmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/capacityCommitments
 /// Lists all the capacity commitments for the admin project.
 ///
@@ -1056,9 +1143,7 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_list_execute(
 
 pub fn bigqueryreservation_projects_locations_capacity_commitments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigqueryreservationProjectsLocationsCapacityCommitmentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCapacityCommitmentsResponse>, ApiError>,
@@ -1068,7 +1153,10 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_list(
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_capacity_commitments_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigqueryreservation_projects_locations_capacity_commitments_list_execute(builder)
 }
@@ -1168,6 +1256,15 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_merge_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_capacity_commitments_merge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsCapacityCommitmentsMergeArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: MergeCapacityCommitmentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/capacityCommitments:merge
 /// Merges capacity commitments of the same plan into a single commitment. The resulting capacity commitment has the greater commitment_end_time out of the to-be-merged capacity commitments. Attempting to merge capacity commitments of different plan will fail with the error code google.rpc.Code.FAILED_PRECONDITION.
 ///
@@ -1180,8 +1277,7 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_merge_execute
 
 pub fn bigqueryreservation_projects_locations_capacity_commitments_merge(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &MergeCapacityCommitmentsRequest,
+    args: &BigqueryreservationProjectsLocationsCapacityCommitmentsMergeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CapacityCommitment>, ApiError>, P = ApiPending>
         + Send
@@ -1189,7 +1285,9 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_merge(
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_capacity_commitments_merge_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     bigqueryreservation_projects_locations_capacity_commitments_merge_execute(builder)
 }
@@ -1301,6 +1399,17 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_patch_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_capacity_commitments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsCapacityCommitmentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CapacityCommitment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/capacityCommitments/{capacityCommitmentsId}
 /// Updates an existing capacity commitment. Only plan and renewal_plan fields can be updated. Plan can only be changed to a plan of a longer commitment period. Attempting to change to a plan with shorter commitment period will fail with the error code google.rpc.Code.FAILED_PRECONDITION.
 ///
@@ -1313,9 +1422,7 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_patch_execute
 
 pub fn bigqueryreservation_projects_locations_capacity_commitments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &CapacityCommitment,
+    args: &BigqueryreservationProjectsLocationsCapacityCommitmentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CapacityCommitment>, ApiError>, P = ApiPending>
         + Send
@@ -1323,7 +1430,10 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_patch(
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_capacity_commitments_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     bigqueryreservation_projects_locations_capacity_commitments_patch_execute(builder)
 }
@@ -1425,6 +1535,15 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_split_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_capacity_commitments_split`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsCapacityCommitmentsSplitArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SplitCapacityCommitmentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/capacityCommitments/{capacityCommitmentsId}:split
 /// Splits capacity commitment to two commitments of the same plan and commitment_end_time. A common use case is to enable downgrading commitments. For example, in order to downgrade from 10000 slots to 8000, you might split a 10000 capacity commitment into commitments of 2000 and 8000. Then, you delete the first one after the commitment end time passes.
 ///
@@ -1437,8 +1556,7 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_split_execute
 
 pub fn bigqueryreservation_projects_locations_capacity_commitments_split(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SplitCapacityCommitmentRequest,
+    args: &BigqueryreservationProjectsLocationsCapacityCommitmentsSplitArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SplitCapacityCommitmentResponse>, ApiError>,
@@ -1448,7 +1566,7 @@ pub fn bigqueryreservation_projects_locations_capacity_commitments_split(
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_capacity_commitments_split_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     bigqueryreservation_projects_locations_capacity_commitments_split_execute(builder)
 }
@@ -1560,6 +1678,17 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservation_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: reservationGroupId
+    pub reservationGroupId: Option<String>,
+    /// Request body.
+    pub body: ReservationGroup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservationGroups
 /// Creates a new reservation group.
 ///
@@ -1572,9 +1701,7 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_create_execute(
 
 pub fn bigqueryreservation_projects_locations_reservation_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    reservationGroupId: Option<&str>,
-    body: &ReservationGroup,
+    args: &BigqueryreservationProjectsLocationsReservationGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReservationGroup>, ApiError>, P = ApiPending>
         + Send
@@ -1583,9 +1710,9 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_create(
 > {
     let builder = bigqueryreservation_projects_locations_reservation_groups_create_builder(
         client,
-        parent,
-        reservationGroupId,
-        body,
+        &args.parent,
+        args.reservationGroupId.as_deref(),
+        &args.body,
     )?;
     bigqueryreservation_projects_locations_reservation_groups_create_execute(builder)
 }
@@ -1680,6 +1807,13 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservation_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservationGroups/{reservationGroupsId}
 /// Deletes a reservation. Returns google.rpc.Code.FAILED_PRECONDITION when reservation has assignments.
 ///
@@ -1692,13 +1826,14 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_delete_execute(
 
 pub fn bigqueryreservation_projects_locations_reservation_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigqueryreservationProjectsLocationsReservationGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigqueryreservation_projects_locations_reservation_groups_delete_builder(client, name)?;
+    let builder = bigqueryreservation_projects_locations_reservation_groups_delete_builder(
+        client, &args.name,
+    )?;
     bigqueryreservation_projects_locations_reservation_groups_delete_execute(builder)
 }
 
@@ -1794,6 +1929,13 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservation_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservationGroups/{reservationGroupsId}
 /// Returns information about the reservation group.
 ///
@@ -1806,7 +1948,7 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_get_execute(
 
 pub fn bigqueryreservation_projects_locations_reservation_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigqueryreservationProjectsLocationsReservationGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReservationGroup>, ApiError>, P = ApiPending>
         + Send
@@ -1814,7 +1956,7 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_get(
     ApiError,
 > {
     let builder =
-        bigqueryreservation_projects_locations_reservation_groups_get_builder(client, name)?;
+        bigqueryreservation_projects_locations_reservation_groups_get_builder(client, &args.name)?;
     bigqueryreservation_projects_locations_reservation_groups_get_execute(builder)
 }
 
@@ -1928,6 +2070,17 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservation_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservationGroups
 /// Lists all the reservation groups for the project in the specified location.
 ///
@@ -1940,9 +2093,7 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_list_execute(
 
 pub fn bigqueryreservation_projects_locations_reservation_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigqueryreservationProjectsLocationsReservationGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListReservationGroupsResponse>, ApiError>,
@@ -1952,7 +2103,10 @@ pub fn bigqueryreservation_projects_locations_reservation_groups_list(
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_reservation_groups_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigqueryreservation_projects_locations_reservation_groups_list_execute(builder)
 }
@@ -2062,6 +2216,17 @@ pub fn bigqueryreservation_projects_locations_reservations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: reservationId
+    pub reservationId: Option<String>,
+    /// Request body.
+    pub body: Reservation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations
 /// Creates a new reservation resource.
 ///
@@ -2074,18 +2239,16 @@ pub fn bigqueryreservation_projects_locations_reservations_create_execute(
 
 pub fn bigqueryreservation_projects_locations_reservations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    reservationId: Option<&str>,
-    body: &Reservation,
+    args: &BigqueryreservationProjectsLocationsReservationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Reservation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_reservations_create_builder(
         client,
-        parent,
-        reservationId,
-        body,
+        &args.parent,
+        args.reservationId.as_deref(),
+        &args.body,
     )?;
     bigqueryreservation_projects_locations_reservations_create_execute(builder)
 }
@@ -2180,6 +2343,13 @@ pub fn bigqueryreservation_projects_locations_reservations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}
 /// Deletes a reservation. Returns google.rpc.Code.FAILED_PRECONDITION when reservation has assignments.
 ///
@@ -2192,12 +2362,13 @@ pub fn bigqueryreservation_projects_locations_reservations_delete_execute(
 
 pub fn bigqueryreservation_projects_locations_reservations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigqueryreservationProjectsLocationsReservationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigqueryreservation_projects_locations_reservations_delete_builder(client, name)?;
+    let builder =
+        bigqueryreservation_projects_locations_reservations_delete_builder(client, &args.name)?;
     bigqueryreservation_projects_locations_reservations_delete_execute(builder)
 }
 
@@ -2294,6 +2465,15 @@ pub fn bigqueryreservation_projects_locations_reservations_failover_reservation_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_failover_reservation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsFailoverReservationArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: FailoverReservationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}:failoverReservation
 /// Fail over a reservation to the secondary location. The operation should be done in the current secondary location, which will be promoted to the new primary location for the reservation. Attempting to failover a reservation in the current primary location will fail with the error code google.rpc.Code.FAILED_PRECONDITION.
 ///
@@ -2306,14 +2486,13 @@ pub fn bigqueryreservation_projects_locations_reservations_failover_reservation_
 
 pub fn bigqueryreservation_projects_locations_reservations_failover_reservation(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &FailoverReservationRequest,
+    args: &BigqueryreservationProjectsLocationsReservationsFailoverReservationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Reservation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_reservations_failover_reservation_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     bigqueryreservation_projects_locations_reservations_failover_reservation_execute(builder)
 }
@@ -2408,6 +2587,13 @@ pub fn bigqueryreservation_projects_locations_reservations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}
 /// Returns information about the reservation.
 ///
@@ -2420,12 +2606,13 @@ pub fn bigqueryreservation_projects_locations_reservations_get_execute(
 
 pub fn bigqueryreservation_projects_locations_reservations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigqueryreservationProjectsLocationsReservationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Reservation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigqueryreservation_projects_locations_reservations_get_builder(client, name)?;
+    let builder =
+        bigqueryreservation_projects_locations_reservations_get_builder(client, &args.name)?;
     bigqueryreservation_projects_locations_reservations_get_execute(builder)
 }
 
@@ -2531,6 +2718,15 @@ pub fn bigqueryreservation_projects_locations_reservations_get_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}:getIamPolicy
 /// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
 ///
@@ -2543,16 +2739,15 @@ pub fn bigqueryreservation_projects_locations_reservations_get_iam_policy_execut
 
 pub fn bigqueryreservation_projects_locations_reservations_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &BigqueryreservationProjectsLocationsReservationsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_reservations_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     bigqueryreservation_projects_locations_reservations_get_iam_policy_execute(builder)
 }
@@ -2665,6 +2860,17 @@ pub fn bigqueryreservation_projects_locations_reservations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations
 /// Lists all the reservations for the project in the specified location.
 ///
@@ -2677,9 +2883,7 @@ pub fn bigqueryreservation_projects_locations_reservations_list_execute(
 
 pub fn bigqueryreservation_projects_locations_reservations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigqueryreservationProjectsLocationsReservationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListReservationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2687,7 +2891,10 @@ pub fn bigqueryreservation_projects_locations_reservations_list(
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_reservations_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigqueryreservation_projects_locations_reservations_list_execute(builder)
 }
@@ -2797,6 +3004,17 @@ pub fn bigqueryreservation_projects_locations_reservations_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Reservation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}
 /// Updates an existing reservation resource.
 ///
@@ -2809,15 +3027,16 @@ pub fn bigqueryreservation_projects_locations_reservations_patch_execute(
 
 pub fn bigqueryreservation_projects_locations_reservations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Reservation,
+    args: &BigqueryreservationProjectsLocationsReservationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Reservation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_reservations_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     bigqueryreservation_projects_locations_reservations_patch_execute(builder)
 }
@@ -2915,6 +3134,15 @@ pub fn bigqueryreservation_projects_locations_reservations_set_iam_policy_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}:setIamPolicy
 /// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Reservations To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`setIamPolicy` to set policies on reservations.
 ///
@@ -2927,14 +3155,15 @@ pub fn bigqueryreservation_projects_locations_reservations_set_iam_policy_execut
 
 pub fn bigqueryreservation_projects_locations_reservations_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BigqueryreservationProjectsLocationsReservationsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_reservations_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigqueryreservation_projects_locations_reservations_set_iam_policy_execute(builder)
 }
@@ -3036,6 +3265,15 @@ pub fn bigqueryreservation_projects_locations_reservations_test_iam_permissions_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}:testIamPermissions
 /// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
 ///
@@ -3048,8 +3286,7 @@ pub fn bigqueryreservation_projects_locations_reservations_test_iam_permissions_
 
 pub fn bigqueryreservation_projects_locations_reservations_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BigqueryreservationProjectsLocationsReservationsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3059,7 +3296,9 @@ pub fn bigqueryreservation_projects_locations_reservations_test_iam_permissions(
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_reservations_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     bigqueryreservation_projects_locations_reservations_test_iam_permissions_execute(builder)
 }
@@ -3169,6 +3408,17 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_create_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_assignments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: assignmentId
+    pub assignmentId: Option<String>,
+    /// Request body.
+    pub body: Assignment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments
 /// Creates an assignment object which allows the given project to submit jobs of a certain type using slots from the specified reservation. Currently a resource (project, folder, organization) can only have one assignment per each (job_type, location) combination, and that reservation will be used for all jobs of the matching type. Different assignments can be created on different levels of the projects, folders or organization hierarchy. During query execution, the assignment is looked up at the project, folder and organization levels in that order. The first assignment found is applied to the query. When creating assignments, it does not matter if other assignments exist at higher levels. Example: * The organization organizationA contains two projects, project1 and project2. * Assignments for all three entities (organizationA, project1, and project2) could all be created and mapped to the same or different reservations. "None" assignments represent an absence of the assignment. Projects assigned to None use on-demand pricing. To create a "None" assignment, use "none" as a reservation_id in the parent. Example parent: `projects/myproject/locations/US/reservations/none`. Returns google.rpc.Code.PERMISSION_DENIED if user does not have 'bigquery.admin' permissions on the project using the reservation and the project that owns this reservation. Returns google.rpc.Code.INVALID_ARGUMENT when location of the assignment does not match location of the reservation.
 ///
@@ -3181,18 +3431,16 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_create_ex
 
 pub fn bigqueryreservation_projects_locations_reservations_assignments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    assignmentId: Option<&str>,
-    body: &Assignment,
+    args: &BigqueryreservationProjectsLocationsReservationsAssignmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Assignment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_reservations_assignments_create_builder(
         client,
-        parent,
-        assignmentId,
-        body,
+        &args.parent,
+        args.assignmentId.as_deref(),
+        &args.body,
     )?;
     bigqueryreservation_projects_locations_reservations_assignments_create_execute(builder)
 }
@@ -3287,6 +3535,13 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_delete_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_assignments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}
 /// Deletes a assignment. No expansion will happen. Example: * Organization organizationA contains two projects, project1 and project2. * Reservation res1 exists and was created previously. * CreateAssignment was used previously to define the following associations between entities and reservations:  and  In this example, deletion of the  assignment won't affect the other assignment . After said deletion, queries from project1 will still use res1 while queries from project2 will switch to use on-demand mode.
 ///
@@ -3299,13 +3554,13 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_delete_ex
 
 pub fn bigqueryreservation_projects_locations_reservations_assignments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &BigqueryreservationProjectsLocationsReservationsAssignmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_reservations_assignments_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     bigqueryreservation_projects_locations_reservations_assignments_delete_execute(builder)
 }
@@ -3412,6 +3667,15 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_get_iam_p
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_assignments_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:getIamPolicy
 /// Gets the access control policy for a resource. May return: * ANOT_FOUND error if the resource doesn't exist or you don't have the permission to view it. * An empty policy if the resource exists but doesn't have a set policy. Supported resources are: - Reservations - ReservationAssignments To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`getIamPolicy` to get policies on reservations.
 ///
@@ -3424,8 +3688,7 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_get_iam_p
 
 pub fn bigqueryreservation_projects_locations_reservations_assignments_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &BigqueryreservationProjectsLocationsReservationsAssignmentsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -3433,8 +3696,8 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_get_iam_p
     let builder =
         bigqueryreservation_projects_locations_reservations_assignments_get_iam_policy_builder(
             client,
-            resource,
-            options_requestedPolicyVersion,
+            &args.resource,
+            args.options_requestedPolicyVersion,
         )?;
     bigqueryreservation_projects_locations_reservations_assignments_get_iam_policy_execute(builder)
 }
@@ -3547,6 +3810,17 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_assignments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments
 /// Lists assignments. Only explicitly created assignments will be returned. Example: * Organization organizationA contains two projects, project1 and project2. * Reservation res1 exists and was created previously. * CreateAssignment was used previously to define the following associations between entities and reservations:  and  In this example, ListAssignments will just return the above two assignments for reservation res1, and no `expansion/merge` will happen. The wildcard "-" can be used for reservations in the request. In that case all assignments belongs to the specified project and location will be listed. **Note** "-" cannot be used for projects nor locations.
 ///
@@ -3559,9 +3833,7 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_list_exec
 
 pub fn bigqueryreservation_projects_locations_reservations_assignments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &BigqueryreservationProjectsLocationsReservationsAssignmentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAssignmentsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3569,7 +3841,10 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_list(
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_reservations_assignments_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     bigqueryreservation_projects_locations_reservations_assignments_list_execute(builder)
 }
@@ -3667,6 +3942,15 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_move_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_assignments_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsMoveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MoveAssignmentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:move
 /// Moves an assignment under a new reservation. This differs from removing an existing assignment and recreating a new one by providing a transactional change that ensures an assignee always has an associated reservation.
 ///
@@ -3679,14 +3963,13 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_move_exec
 
 pub fn bigqueryreservation_projects_locations_reservations_assignments_move(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MoveAssignmentRequest,
+    args: &BigqueryreservationProjectsLocationsReservationsAssignmentsMoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Assignment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_reservations_assignments_move_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     bigqueryreservation_projects_locations_reservations_assignments_move_execute(builder)
 }
@@ -3796,6 +4079,17 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_patch_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_assignments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Assignment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}
 /// Updates an existing assignment. Only the priority field can be updated.
 ///
@@ -3808,15 +4102,16 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_patch_exe
 
 pub fn bigqueryreservation_projects_locations_reservations_assignments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Assignment,
+    args: &BigqueryreservationProjectsLocationsReservationsAssignmentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Assignment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = bigqueryreservation_projects_locations_reservations_assignments_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     bigqueryreservation_projects_locations_reservations_assignments_patch_execute(builder)
 }
@@ -3914,6 +4209,15 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_set_iam_p
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_assignments_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:setIamPolicy
 /// Sets an access control policy for a resource. Replaces any existing policy. Supported resources are: - Reservations To call this method, you must have the following Google IAM permissions: - bigqueryreservation.reservations.`setIamPolicy` to set policies on reservations.
 ///
@@ -3926,15 +4230,16 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_set_iam_p
 
 pub fn bigqueryreservation_projects_locations_reservations_assignments_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &BigqueryreservationProjectsLocationsReservationsAssignmentsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         bigqueryreservation_projects_locations_reservations_assignments_set_iam_policy_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     bigqueryreservation_projects_locations_reservations_assignments_set_iam_policy_execute(builder)
 }
@@ -4036,6 +4341,15 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_test_iam_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`bigqueryreservation_projects_locations_reservations_assignments_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct BigqueryreservationProjectsLocationsReservationsAssignmentsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/assignments/{assignmentsId}:testIamPermissions
 /// Gets your permissions on a resource. Returns an empty set of permissions if the resource doesn't exist. Supported resources are: - Reservations No Google IAM permissions are required to call this method.
 ///
@@ -4048,8 +4362,7 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_test_iam_
 
 pub fn bigqueryreservation_projects_locations_reservations_assignments_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &BigqueryreservationProjectsLocationsReservationsAssignmentsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -4058,7 +4371,7 @@ pub fn bigqueryreservation_projects_locations_reservations_assignments_test_iam_
         + 'static,
     ApiError,
 > {
-    let builder = bigqueryreservation_projects_locations_reservations_assignments_test_iam_permissions_builder(client, resource, body)?;
+    let builder = bigqueryreservation_projects_locations_reservations_assignments_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     bigqueryreservation_projects_locations_reservations_assignments_test_iam_permissions_execute(
         builder,
     )

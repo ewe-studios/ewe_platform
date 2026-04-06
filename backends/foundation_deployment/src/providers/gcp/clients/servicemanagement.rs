@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
@@ -106,6 +108,13 @@ pub fn servicemanagement_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -118,12 +127,12 @@ pub fn servicemanagement_operations_get_execute(
 
 pub fn servicemanagement_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServicemanagementOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_operations_get_builder(client, name)?;
+    let builder = servicemanagement_operations_get_builder(client, &args.name)?;
     servicemanagement_operations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn servicemanagement_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementOperationsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/operations
 /// Lists service operations that match the specified filter in the request.
 ///
@@ -255,11 +279,7 @@ pub fn servicemanagement_operations_list_execute(
 
 pub fn servicemanagement_operations_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    name: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ServicemanagementOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn servicemanagement_operations_list(
 > {
     let builder = servicemanagement_operations_list_builder(
         client,
-        filter,
-        name,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        args.filter.as_deref(),
+        args.name.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     servicemanagement_operations_list_execute(builder)
 }
@@ -366,6 +386,13 @@ pub fn servicemanagement_services_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesCreateArgs {
+    /// Request body.
+    pub body: ManagedService,
+}
+
 /// GET v1/services
 /// Creates a new managed service. A managed service is immutable, and is subject to mandatory 30-day data retention. You cannot move a service or recreate it within 30 days after deletion. One producer project can own no more than 500 services. For security and reliability purposes, a production service should be hosted in a dedicated producer project. Operation
 ///
@@ -378,12 +405,12 @@ pub fn servicemanagement_services_create_execute(
 
 pub fn servicemanagement_services_create(
     client: &SimpleHttpClient,
-    body: &ManagedService,
+    args: &ServicemanagementServicesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_create_builder(client, body)?;
+    let builder = servicemanagement_services_create_builder(client, &args.body)?;
     servicemanagement_services_create_execute(builder)
 }
 
@@ -477,6 +504,13 @@ pub fn servicemanagement_services_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesDeleteArgs {
+    /// Path parameter: serviceName
+    pub serviceName: String,
+}
+
 /// GET v1/services/{serviceName}
 /// Deletes a managed service. This method will change the service to the Soft-Delete state for 30 days. Within this period, service producers may call UndeleteService to restore the service. After 30 days, the service will be permanently deleted. Operation
 ///
@@ -489,12 +523,12 @@ pub fn servicemanagement_services_delete_execute(
 
 pub fn servicemanagement_services_delete(
     client: &SimpleHttpClient,
-    serviceName: &str,
+    args: &ServicemanagementServicesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_delete_builder(client, serviceName)?;
+    let builder = servicemanagement_services_delete_builder(client, &args.serviceName)?;
     servicemanagement_services_delete_execute(builder)
 }
 
@@ -591,6 +625,13 @@ pub fn servicemanagement_services_generate_config_report_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_generate_config_report`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesGenerateConfigReportArgs {
+    /// Request body.
+    pub body: GenerateConfigReportRequest,
+}
+
 /// GET v1/services:generateConfigReport
 /// Generates and returns a report (errors, warnings and changes from existing configurations) associated with GenerateConfigReportRequest.new_value If GenerateConfigReportRequest.old_value is specified, GenerateConfigReportRequest will contain a single ChangeReport based on the comparison between GenerateConfigReportRequest.new_value and GenerateConfigReportRequest.old_value. If GenerateConfigReportRequest.old_value is not specified, this method will compare GenerateConfigReportRequest.new_value with the last pushed service configuration.
 ///
@@ -603,7 +644,7 @@ pub fn servicemanagement_services_generate_config_report_execute(
 
 pub fn servicemanagement_services_generate_config_report(
     client: &SimpleHttpClient,
-    body: &GenerateConfigReportRequest,
+    args: &ServicemanagementServicesGenerateConfigReportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateConfigReportResponse>, ApiError>,
@@ -612,7 +653,7 @@ pub fn servicemanagement_services_generate_config_report(
         + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_generate_config_report_builder(client, body)?;
+    let builder = servicemanagement_services_generate_config_report_builder(client, &args.body)?;
     servicemanagement_services_generate_config_report_execute(builder)
 }
 
@@ -708,6 +749,13 @@ pub fn servicemanagement_services_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesGetArgs {
+    /// Path parameter: serviceName
+    pub serviceName: String,
+}
+
 /// GET v1/services/{serviceName}
 /// Gets a managed service. Authentication is required unless the service is public.
 ///
@@ -720,14 +768,14 @@ pub fn servicemanagement_services_get_execute(
 
 pub fn servicemanagement_services_get(
     client: &SimpleHttpClient,
-    serviceName: &str,
+    args: &ServicemanagementServicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ManagedService>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_get_builder(client, serviceName)?;
+    let builder = servicemanagement_services_get_builder(client, &args.serviceName)?;
     servicemanagement_services_get_execute(builder)
 }
 
@@ -837,6 +885,17 @@ pub fn servicemanagement_services_get_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_get_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesGetConfigArgs {
+    /// Path parameter: serviceName
+    pub serviceName: String,
+    /// Query parameter: configId
+    pub configId: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/services/{serviceName}/config
 /// Gets a service configuration (version) for a managed service.
 ///
@@ -849,15 +908,17 @@ pub fn servicemanagement_services_get_config_execute(
 
 pub fn servicemanagement_services_get_config(
     client: &SimpleHttpClient,
-    serviceName: &str,
-    configId: Option<&str>,
-    view: Option<&str>,
+    args: &ServicemanagementServicesGetConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_get_config_builder(client, serviceName, configId, view)?;
+    let builder = servicemanagement_services_get_config_builder(
+        client,
+        &args.serviceName,
+        args.configId.as_deref(),
+        args.view.as_deref(),
+    )?;
     servicemanagement_services_get_config_execute(builder)
 }
 
@@ -954,6 +1015,15 @@ pub fn servicemanagement_services_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/services/{servicesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -966,13 +1036,13 @@ pub fn servicemanagement_services_get_iam_policy_execute(
 
 pub fn servicemanagement_services_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &ServicemanagementServicesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_get_iam_policy_builder(client, resource, body)?;
+    let builder =
+        servicemanagement_services_get_iam_policy_builder(client, &args.resource, &args.body)?;
     servicemanagement_services_get_iam_policy_execute(builder)
 }
 
@@ -1088,6 +1158,19 @@ pub fn servicemanagement_services_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesListArgs {
+    /// Query parameter: consumerId
+    pub consumerId: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: producerProjectId
+    pub producerProjectId: Option<String>,
+}
+
 /// GET v1/services
 /// Lists managed services. Returns all public services. For authenticated users, also returns all services the calling user has "servicemanagement.services.get" permission for.
 ///
@@ -1100,10 +1183,7 @@ pub fn servicemanagement_services_list_execute(
 
 pub fn servicemanagement_services_list(
     client: &SimpleHttpClient,
-    consumerId: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    producerProjectId: Option<&str>,
+    args: &ServicemanagementServicesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1112,10 +1192,10 @@ pub fn servicemanagement_services_list(
 > {
     let builder = servicemanagement_services_list_builder(
         client,
-        consumerId,
-        pageSize,
-        pageToken,
-        producerProjectId,
+        args.consumerId.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.producerProjectId.as_deref(),
     )?;
     servicemanagement_services_list_execute(builder)
 }
@@ -1213,6 +1293,15 @@ pub fn servicemanagement_services_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/services/{servicesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1225,13 +1314,13 @@ pub fn servicemanagement_services_set_iam_policy_execute(
 
 pub fn servicemanagement_services_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ServicemanagementServicesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        servicemanagement_services_set_iam_policy_builder(client, &args.resource, &args.body)?;
     servicemanagement_services_set_iam_policy_execute(builder)
 }
 
@@ -1332,6 +1421,15 @@ pub fn servicemanagement_services_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/services/{servicesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1344,8 +1442,7 @@ pub fn servicemanagement_services_test_iam_permissions_execute(
 
 pub fn servicemanagement_services_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ServicemanagementServicesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1354,7 +1451,11 @@ pub fn servicemanagement_services_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_test_iam_permissions_builder(client, resource, body)?;
+    let builder = servicemanagement_services_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     servicemanagement_services_test_iam_permissions_execute(builder)
 }
 
@@ -1448,6 +1549,13 @@ pub fn servicemanagement_services_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesUndeleteArgs {
+    /// Path parameter: serviceName
+    pub serviceName: String,
+}
+
 /// GET v1/services/{serviceName}:undelete
 /// Revives a previously deleted managed service. The method restores the service using the configuration at the time the service was deleted. The target service must exist and must have been deleted within the last 30 days. Operation
 ///
@@ -1460,12 +1568,12 @@ pub fn servicemanagement_services_undelete_execute(
 
 pub fn servicemanagement_services_undelete(
     client: &SimpleHttpClient,
-    serviceName: &str,
+    args: &ServicemanagementServicesUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_undelete_builder(client, serviceName)?;
+    let builder = servicemanagement_services_undelete_builder(client, &args.serviceName)?;
     servicemanagement_services_undelete_execute(builder)
 }
 
@@ -1562,6 +1670,15 @@ pub fn servicemanagement_services_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesConfigsCreateArgs {
+    /// Path parameter: serviceName
+    pub serviceName: String,
+    /// Request body.
+    pub body: Service,
+}
+
 /// GET v1/services/{serviceName}/configs
 /// Creates a new service configuration (version) for a managed service. This method only stores the service configuration. To roll out the service configuration to backend systems please call CreateServiceRollout. Only the 100 most recent service configurations and ones referenced by existing rollouts are kept for each service. The rest will be deleted eventually.
 ///
@@ -1574,13 +1691,13 @@ pub fn servicemanagement_services_configs_create_execute(
 
 pub fn servicemanagement_services_configs_create(
     client: &SimpleHttpClient,
-    serviceName: &str,
-    body: &Service,
+    args: &ServicemanagementServicesConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_configs_create_builder(client, serviceName, body)?;
+    let builder =
+        servicemanagement_services_configs_create_builder(client, &args.serviceName, &args.body)?;
     servicemanagement_services_configs_create_execute(builder)
 }
 
@@ -1687,6 +1804,17 @@ pub fn servicemanagement_services_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesConfigsGetArgs {
+    /// Path parameter: serviceName
+    pub serviceName: String,
+    /// Path parameter: configId
+    pub configId: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/services/{serviceName}/configs/{configId}
 /// Gets a service configuration (version) for a managed service.
 ///
@@ -1699,15 +1827,17 @@ pub fn servicemanagement_services_configs_get_execute(
 
 pub fn servicemanagement_services_configs_get(
     client: &SimpleHttpClient,
-    serviceName: &str,
-    configId: &str,
-    view: Option<&str>,
+    args: &ServicemanagementServicesConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_configs_get_builder(client, serviceName, configId, view)?;
+    let builder = servicemanagement_services_configs_get_builder(
+        client,
+        &args.serviceName,
+        &args.configId,
+        args.view.as_deref(),
+    )?;
     servicemanagement_services_configs_get_execute(builder)
 }
 
@@ -1821,6 +1951,17 @@ pub fn servicemanagement_services_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesConfigsListArgs {
+    /// Path parameter: serviceName
+    pub serviceName: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/services/{serviceName}/configs
 /// Lists the history of the service configuration for a managed service, from the newest to the oldest.
 ///
@@ -1833,9 +1974,7 @@ pub fn servicemanagement_services_configs_list_execute(
 
 pub fn servicemanagement_services_configs_list(
     client: &SimpleHttpClient,
-    serviceName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ServicemanagementServicesConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListServiceConfigsResponse>, ApiError>,
@@ -1844,8 +1983,12 @@ pub fn servicemanagement_services_configs_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_configs_list_builder(client, serviceName, pageSize, pageToken)?;
+    let builder = servicemanagement_services_configs_list_builder(
+        client,
+        &args.serviceName,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     servicemanagement_services_configs_list_execute(builder)
 }
 
@@ -1942,6 +2085,15 @@ pub fn servicemanagement_services_configs_submit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_configs_submit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesConfigsSubmitArgs {
+    /// Path parameter: serviceName
+    pub serviceName: String,
+    /// Request body.
+    pub body: SubmitConfigSourceRequest,
+}
+
 /// GET v1/services/{serviceName}/configs:submit
 /// Creates a new service configuration (version) for a managed service based on user-supplied configuration source files (for example: OpenAPI Specification). This method stores the source configurations as well as the generated service configuration. To rollout the service configuration to other services, please call CreateServiceRollout. Only the 100 most recent configuration sources and ones referenced by existing service configurtions are kept for each service. The rest will be deleted eventually. Operation
 ///
@@ -1954,13 +2106,13 @@ pub fn servicemanagement_services_configs_submit_execute(
 
 pub fn servicemanagement_services_configs_submit(
     client: &SimpleHttpClient,
-    serviceName: &str,
-    body: &SubmitConfigSourceRequest,
+    args: &ServicemanagementServicesConfigsSubmitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_configs_submit_builder(client, serviceName, body)?;
+    let builder =
+        servicemanagement_services_configs_submit_builder(client, &args.serviceName, &args.body)?;
     servicemanagement_services_configs_submit_execute(builder)
 }
 
@@ -2057,6 +2209,15 @@ pub fn servicemanagement_services_consumers_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_consumers_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesConsumersGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/services/{servicesId}/consumers/{consumersId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2069,14 +2230,16 @@ pub fn servicemanagement_services_consumers_get_iam_policy_execute(
 
 pub fn servicemanagement_services_consumers_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &ServicemanagementServicesConsumersGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_consumers_get_iam_policy_builder(client, resource, body)?;
+    let builder = servicemanagement_services_consumers_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     servicemanagement_services_consumers_get_iam_policy_execute(builder)
 }
 
@@ -2173,6 +2336,15 @@ pub fn servicemanagement_services_consumers_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_consumers_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesConsumersSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/services/{servicesId}/consumers/{consumersId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -2185,14 +2357,16 @@ pub fn servicemanagement_services_consumers_set_iam_policy_execute(
 
 pub fn servicemanagement_services_consumers_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ServicemanagementServicesConsumersSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_consumers_set_iam_policy_builder(client, resource, body)?;
+    let builder = servicemanagement_services_consumers_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     servicemanagement_services_consumers_set_iam_policy_execute(builder)
 }
 
@@ -2293,6 +2467,15 @@ pub fn servicemanagement_services_consumers_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_consumers_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesConsumersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/services/{servicesId}/consumers/{consumersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2305,8 +2488,7 @@ pub fn servicemanagement_services_consumers_test_iam_permissions_execute(
 
 pub fn servicemanagement_services_consumers_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ServicemanagementServicesConsumersTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2315,8 +2497,11 @@ pub fn servicemanagement_services_consumers_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        servicemanagement_services_consumers_test_iam_permissions_builder(client, resource, body)?;
+    let builder = servicemanagement_services_consumers_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     servicemanagement_services_consumers_test_iam_permissions_execute(builder)
 }
 
@@ -2413,6 +2598,15 @@ pub fn servicemanagement_services_rollouts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_rollouts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesRolloutsCreateArgs {
+    /// Path parameter: serviceName
+    pub serviceName: String,
+    /// Request body.
+    pub body: Rollout,
+}
+
 /// GET v1/services/{serviceName}/rollouts
 /// Creates a new service configuration rollout. Based on rollout, the Google Service Management will roll out the service configurations to different backend services. For example, the logging configuration will be pushed to Google Cloud Logging. Please note that any previous pending and running Rollouts and associated Operations will be automatically cancelled so that the latest Rollout will not be blocked by previous Rollouts. Only the 100 most recent (in any state) and the last 10 successful (if not already part of the set of 100 most recent) rollouts are kept for each service. The rest will be deleted eventually. Operation
 ///
@@ -2425,13 +2619,13 @@ pub fn servicemanagement_services_rollouts_create_execute(
 
 pub fn servicemanagement_services_rollouts_create(
     client: &SimpleHttpClient,
-    serviceName: &str,
-    body: &Rollout,
+    args: &ServicemanagementServicesRolloutsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_rollouts_create_builder(client, serviceName, body)?;
+    let builder =
+        servicemanagement_services_rollouts_create_builder(client, &args.serviceName, &args.body)?;
     servicemanagement_services_rollouts_create_execute(builder)
 }
 
@@ -2526,6 +2720,15 @@ pub fn servicemanagement_services_rollouts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_rollouts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesRolloutsGetArgs {
+    /// Path parameter: serviceName
+    pub serviceName: String,
+    /// Path parameter: rolloutId
+    pub rolloutId: String,
+}
+
 /// GET v1/services/{serviceName}/rollouts/{rolloutId}
 /// Gets a service configuration rollout.
 ///
@@ -2538,13 +2741,16 @@ pub fn servicemanagement_services_rollouts_get_execute(
 
 pub fn servicemanagement_services_rollouts_get(
     client: &SimpleHttpClient,
-    serviceName: &str,
-    rolloutId: &str,
+    args: &ServicemanagementServicesRolloutsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Rollout>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicemanagement_services_rollouts_get_builder(client, serviceName, rolloutId)?;
+    let builder = servicemanagement_services_rollouts_get_builder(
+        client,
+        &args.serviceName,
+        &args.rolloutId,
+    )?;
     servicemanagement_services_rollouts_get_execute(builder)
 }
 
@@ -2662,6 +2868,19 @@ pub fn servicemanagement_services_rollouts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`servicemanagement_services_rollouts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServicemanagementServicesRolloutsListArgs {
+    /// Path parameter: serviceName
+    pub serviceName: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/services/{serviceName}/rollouts
 /// Lists the history of the service configuration rollouts for a managed service, from the newest to the oldest.
 ///
@@ -2674,10 +2893,7 @@ pub fn servicemanagement_services_rollouts_list_execute(
 
 pub fn servicemanagement_services_rollouts_list(
     client: &SimpleHttpClient,
-    serviceName: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ServicemanagementServicesRolloutsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListServiceRolloutsResponse>, ApiError>,
@@ -2688,10 +2904,10 @@ pub fn servicemanagement_services_rollouts_list(
 > {
     let builder = servicemanagement_services_rollouts_list_builder(
         client,
-        serviceName,
-        filter,
-        pageSize,
-        pageToken,
+        &args.serviceName,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     servicemanagement_services_rollouts_list_execute(builder)
 }

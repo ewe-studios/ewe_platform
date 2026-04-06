@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET about
 /// Gets information about the user, the user's Drive, and system capabilities. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
@@ -215,6 +217,15 @@ pub fn drive_accessproposals_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_accessproposals_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveAccessproposalsGetArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: proposalId
+    pub proposalId: String,
+}
+
 /// GET files/{fileId}/accessproposals/{proposalId}
 /// Retrieves an access proposal by ID. For more information, see [Manage pending access proposals](<https://developers.google.`com/workspace/drive/api/guides/pending-access`>).
 ///
@@ -227,15 +238,14 @@ pub fn drive_accessproposals_get_execute(
 
 pub fn drive_accessproposals_get(
     client: &SimpleHttpClient,
-    fileId: &str,
-    proposalId: &str,
+    args: &DriveAccessproposalsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AccessProposal>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = drive_accessproposals_get_builder(client, fileId, proposalId)?;
+    let builder = drive_accessproposals_get_builder(client, &args.fileId, &args.proposalId)?;
     drive_accessproposals_get_execute(builder)
 }
 
@@ -349,6 +359,17 @@ pub fn drive_accessproposals_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_accessproposals_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveAccessproposalsListArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET files/{fileId}/accessproposals
 /// List the access proposals on a file. For more information, see [Manage pending access proposals](<https://developers.google.`com/workspace/drive/api/guides/pending-access`>). Note: Only approvers are able to list access proposals on a file. If the user isn't an approver, a 403 error is returned.
 ///
@@ -361,9 +382,7 @@ pub fn drive_accessproposals_list_execute(
 
 pub fn drive_accessproposals_list(
     client: &SimpleHttpClient,
-    fileId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DriveAccessproposalsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAccessProposalsResponse>, ApiError>,
@@ -372,7 +391,12 @@ pub fn drive_accessproposals_list(
         + 'static,
     ApiError,
 > {
-    let builder = drive_accessproposals_list_builder(client, fileId, pageSize, pageToken)?;
+    let builder = drive_accessproposals_list_builder(
+        client,
+        &args.fileId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     drive_accessproposals_list_execute(builder)
 }
 
@@ -467,6 +491,17 @@ pub fn drive_accessproposals_resolve_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_accessproposals_resolve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveAccessproposalsResolveArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: proposalId
+    pub proposalId: String,
+    /// Request body.
+    pub body: ResolveAccessProposalRequest,
+}
+
 /// GET files/{fileId}/accessproposals/{proposalId}:resolve
 /// Approves or denies an access proposal. For more information, see [Manage pending access proposals](<https://developers.google.`com/workspace/drive/api/guides/pending-access`>).
 ///
@@ -479,14 +514,13 @@ pub fn drive_accessproposals_resolve_execute(
 
 pub fn drive_accessproposals_resolve(
     client: &SimpleHttpClient,
-    fileId: &str,
-    proposalId: &str,
-    body: &ResolveAccessProposalRequest,
+    args: &DriveAccessproposalsResolveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_accessproposals_resolve_builder(client, fileId, proposalId, body)?;
+    let builder =
+        drive_accessproposals_resolve_builder(client, &args.fileId, &args.proposalId, &args.body)?;
     drive_accessproposals_resolve_execute(builder)
 }
 
@@ -581,6 +615,15 @@ pub fn drive_approvals_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_approvals_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveApprovalsGetArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: approvalId
+    pub approvalId: String,
+}
+
 /// GET files/{fileId}/approvals/{approvalId}
 /// Gets an Approval by ID.
 ///
@@ -593,13 +636,12 @@ pub fn drive_approvals_get_execute(
 
 pub fn drive_approvals_get(
     client: &SimpleHttpClient,
-    fileId: &str,
-    approvalId: &str,
+    args: &DriveApprovalsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Approval>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_approvals_get_builder(client, fileId, approvalId)?;
+    let builder = drive_approvals_get_builder(client, &args.fileId, &args.approvalId)?;
     drive_approvals_get_execute(builder)
 }
 
@@ -711,6 +753,17 @@ pub fn drive_approvals_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_approvals_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveApprovalsListArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET files/{fileId}/approvals
 /// Lists the Approvals on a file.
 ///
@@ -723,16 +776,19 @@ pub fn drive_approvals_list_execute(
 
 pub fn drive_approvals_list(
     client: &SimpleHttpClient,
-    fileId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DriveApprovalsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApprovalList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = drive_approvals_list_builder(client, fileId, pageSize, pageToken)?;
+    let builder = drive_approvals_list_builder(
+        client,
+        &args.fileId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     drive_approvals_list_execute(builder)
 }
 
@@ -823,6 +879,13 @@ pub fn drive_apps_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_apps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveAppsGetArgs {
+    /// Path parameter: appId
+    pub appId: String,
+}
+
 /// GET apps/{appId}
 /// Gets a specific app. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>).
 ///
@@ -835,12 +898,12 @@ pub fn drive_apps_get_execute(
 
 pub fn drive_apps_get(
     client: &SimpleHttpClient,
-    appId: &str,
+    args: &DriveAppsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<App>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_apps_get_builder(client, appId)?;
+    let builder = drive_apps_get_builder(client, &args.appId)?;
     drive_apps_get_execute(builder)
 }
 
@@ -950,6 +1013,17 @@ pub fn drive_apps_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_apps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveAppsListArgs {
+    /// Query parameter: appFilterExtensions
+    pub appFilterExtensions: Option<String>,
+    /// Query parameter: appFilterMimeTypes
+    pub appFilterMimeTypes: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+}
+
 /// GET apps
 /// Lists a user's installed apps. For more information, see [Return user info](<https://developers.google.`com/workspace/drive/api/guides/user-info`>).
 ///
@@ -962,18 +1036,16 @@ pub fn drive_apps_list_execute(
 
 pub fn drive_apps_list(
     client: &SimpleHttpClient,
-    appFilterExtensions: Option<&str>,
-    appFilterMimeTypes: Option<&str>,
-    languageCode: Option<&str>,
+    args: &DriveAppsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AppList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_apps_list_builder(
         client,
-        appFilterExtensions,
-        appFilterMimeTypes,
-        languageCode,
+        args.appFilterExtensions.as_deref(),
+        args.appFilterMimeTypes.as_deref(),
+        args.languageCode.as_deref(),
     )?;
     drive_apps_list_execute(builder)
 }
@@ -1090,6 +1162,19 @@ pub fn drive_changes_get_start_page_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_changes_get_start_page_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveChangesGetStartPageTokenArgs {
+    /// Query parameter: driveId
+    pub driveId: Option<String>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<bool>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<bool>,
+    /// Query parameter: teamDriveId
+    pub teamDriveId: Option<String>,
+}
+
 /// GET changes/startPageToken
 /// Gets the starting `pageToken` for listing future changes. For more information, see [Retrieve changes](<https://developers.google.`com/workspace/drive/api/guides/manage-changes`>).
 ///
@@ -1102,10 +1187,7 @@ pub fn drive_changes_get_start_page_token_execute(
 
 pub fn drive_changes_get_start_page_token(
     client: &SimpleHttpClient,
-    driveId: Option<&str>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    teamDriveId: Option<&str>,
+    args: &DriveChangesGetStartPageTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StartPageToken>, ApiError>, P = ApiPending>
         + Send
@@ -1114,10 +1196,10 @@ pub fn drive_changes_get_start_page_token(
 > {
     let builder = drive_changes_get_start_page_token_builder(
         client,
-        driveId,
-        supportsAllDrives,
-        supportsTeamDrives,
-        teamDriveId,
+        args.driveId.as_deref(),
+        args.supportsAllDrives,
+        args.supportsTeamDrives,
+        args.teamDriveId.as_deref(),
     )?;
     drive_changes_get_start_page_token_execute(builder)
 }
@@ -1269,6 +1351,39 @@ pub fn drive_changes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_changes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveChangesListArgs {
+    /// Path parameter: pageToken
+    pub pageToken: String,
+    /// Query parameter: driveId
+    pub driveId: Option<String>,
+    /// Query parameter: includeCorpusRemovals
+    pub includeCorpusRemovals: Option<bool>,
+    /// Query parameter: includeItemsFromAllDrives
+    pub includeItemsFromAllDrives: Option<bool>,
+    /// Query parameter: includeLabels
+    pub includeLabels: Option<String>,
+    /// Query parameter: includePermissionsForView
+    pub includePermissionsForView: Option<String>,
+    /// Query parameter: includeRemoved
+    pub includeRemoved: Option<bool>,
+    /// Query parameter: includeTeamDriveItems
+    pub includeTeamDriveItems: Option<bool>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: restrictToMyDrive
+    pub restrictToMyDrive: Option<bool>,
+    /// Query parameter: spaces
+    pub spaces: Option<String>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<bool>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<bool>,
+    /// Query parameter: teamDriveId
+    pub teamDriveId: Option<String>,
+}
+
 /// GET changes
 /// Lists the changes for a user or shared drive. For more information, see [Retrieve changes](<https://developers.google.`com/workspace/drive/api/guides/manage-changes`>).
 ///
@@ -1281,40 +1396,27 @@ pub fn drive_changes_list_execute(
 
 pub fn drive_changes_list(
     client: &SimpleHttpClient,
-    pageToken: &str,
-    driveId: Option<&str>,
-    includeCorpusRemovals: Option<bool>,
-    includeItemsFromAllDrives: Option<bool>,
-    includeLabels: Option<&str>,
-    includePermissionsForView: Option<&str>,
-    includeRemoved: Option<bool>,
-    includeTeamDriveItems: Option<bool>,
-    pageSize: Option<i32>,
-    restrictToMyDrive: Option<bool>,
-    spaces: Option<&str>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    teamDriveId: Option<&str>,
+    args: &DriveChangesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ChangeList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_changes_list_builder(
         client,
-        pageToken,
-        driveId,
-        includeCorpusRemovals,
-        includeItemsFromAllDrives,
-        includeLabels,
-        includePermissionsForView,
-        includeRemoved,
-        includeTeamDriveItems,
-        pageSize,
-        restrictToMyDrive,
-        spaces,
-        supportsAllDrives,
-        supportsTeamDrives,
-        teamDriveId,
+        &args.pageToken,
+        args.driveId.as_deref(),
+        args.includeCorpusRemovals,
+        args.includeItemsFromAllDrives,
+        args.includeLabels.as_deref(),
+        args.includePermissionsForView.as_deref(),
+        args.includeRemoved,
+        args.includeTeamDriveItems,
+        args.pageSize,
+        args.restrictToMyDrive,
+        args.spaces.as_deref(),
+        args.supportsAllDrives,
+        args.supportsTeamDrives,
+        args.teamDriveId.as_deref(),
     )?;
     drive_changes_list_execute(builder)
 }
@@ -1472,6 +1574,41 @@ pub fn drive_changes_watch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_changes_watch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveChangesWatchArgs {
+    /// Path parameter: pageToken
+    pub pageToken: String,
+    /// Query parameter: driveId
+    pub driveId: Option<String>,
+    /// Query parameter: includeCorpusRemovals
+    pub includeCorpusRemovals: Option<bool>,
+    /// Query parameter: includeItemsFromAllDrives
+    pub includeItemsFromAllDrives: Option<bool>,
+    /// Query parameter: includeLabels
+    pub includeLabels: Option<String>,
+    /// Query parameter: includePermissionsForView
+    pub includePermissionsForView: Option<String>,
+    /// Query parameter: includeRemoved
+    pub includeRemoved: Option<bool>,
+    /// Query parameter: includeTeamDriveItems
+    pub includeTeamDriveItems: Option<bool>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: restrictToMyDrive
+    pub restrictToMyDrive: Option<bool>,
+    /// Query parameter: spaces
+    pub spaces: Option<String>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<bool>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<bool>,
+    /// Query parameter: teamDriveId
+    pub teamDriveId: Option<String>,
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET changes/watch
 /// Subscribes to changes for a user. For more information, see [Notifications for resource changes](<https://developers.google.`com/workspace/drive/api/guides/push`>).
 ///
@@ -1484,42 +1621,28 @@ pub fn drive_changes_watch_execute(
 
 pub fn drive_changes_watch(
     client: &SimpleHttpClient,
-    pageToken: &str,
-    driveId: Option<&str>,
-    includeCorpusRemovals: Option<bool>,
-    includeItemsFromAllDrives: Option<bool>,
-    includeLabels: Option<&str>,
-    includePermissionsForView: Option<&str>,
-    includeRemoved: Option<bool>,
-    includeTeamDriveItems: Option<bool>,
-    pageSize: Option<i32>,
-    restrictToMyDrive: Option<bool>,
-    spaces: Option<&str>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    teamDriveId: Option<&str>,
-    body: &Channel,
+    args: &DriveChangesWatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_changes_watch_builder(
         client,
-        pageToken,
-        driveId,
-        includeCorpusRemovals,
-        includeItemsFromAllDrives,
-        includeLabels,
-        includePermissionsForView,
-        includeRemoved,
-        includeTeamDriveItems,
-        pageSize,
-        restrictToMyDrive,
-        spaces,
-        supportsAllDrives,
-        supportsTeamDrives,
-        teamDriveId,
-        body,
+        &args.pageToken,
+        args.driveId.as_deref(),
+        args.includeCorpusRemovals,
+        args.includeItemsFromAllDrives,
+        args.includeLabels.as_deref(),
+        args.includePermissionsForView.as_deref(),
+        args.includeRemoved,
+        args.includeTeamDriveItems,
+        args.pageSize,
+        args.restrictToMyDrive,
+        args.spaces.as_deref(),
+        args.supportsAllDrives,
+        args.supportsTeamDrives,
+        args.teamDriveId.as_deref(),
+        &args.body,
     )?;
     drive_changes_watch_execute(builder)
 }
@@ -1610,6 +1733,13 @@ pub fn drive_channels_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_channels_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveChannelsStopArgs {
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET channels/stop
 /// Stops watching resources through this channel. For more information, see [Notifications for resource changes](<https://developers.google.`com/workspace/drive/api/guides/push`>).
 ///
@@ -1622,12 +1752,12 @@ pub fn drive_channels_stop_execute(
 
 pub fn drive_channels_stop(
     client: &SimpleHttpClient,
-    body: &Channel,
+    args: &DriveChannelsStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_channels_stop_builder(client, body)?;
+    let builder = drive_channels_stop_builder(client, &args.body)?;
     drive_channels_stop_execute(builder)
 }
 
@@ -1724,6 +1854,15 @@ pub fn drive_comments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_comments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveCommentsCreateArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Request body.
+    pub body: Comment,
+}
+
 /// GET files/{fileId}/comments
 /// Creates a comment on a file. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
@@ -1736,13 +1875,12 @@ pub fn drive_comments_create_execute(
 
 pub fn drive_comments_create(
     client: &SimpleHttpClient,
-    fileId: &str,
-    body: &Comment,
+    args: &DriveCommentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_comments_create_builder(client, fileId, body)?;
+    let builder = drive_comments_create_builder(client, &args.fileId, &args.body)?;
     drive_comments_create_execute(builder)
 }
 
@@ -1834,6 +1972,15 @@ pub fn drive_comments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_comments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveCommentsDeleteArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+}
+
 /// GET files/{fileId}/comments/{commentId}
 /// Deletes a comment. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
@@ -1846,13 +1993,12 @@ pub fn drive_comments_delete_execute(
 
 pub fn drive_comments_delete(
     client: &SimpleHttpClient,
-    fileId: &str,
-    commentId: &str,
+    args: &DriveCommentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_comments_delete_builder(client, fileId, commentId)?;
+    let builder = drive_comments_delete_builder(client, &args.fileId, &args.commentId)?;
     drive_comments_delete_execute(builder)
 }
 
@@ -1959,6 +2105,17 @@ pub fn drive_comments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_comments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveCommentsGetArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+    /// Query parameter: includeDeleted
+    pub includeDeleted: Option<bool>,
+}
+
 /// GET files/{fileId}/comments/{commentId}
 /// Gets a comment by ID. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
@@ -1971,14 +2128,13 @@ pub fn drive_comments_get_execute(
 
 pub fn drive_comments_get(
     client: &SimpleHttpClient,
-    fileId: &str,
-    commentId: &str,
-    includeDeleted: Option<bool>,
+    args: &DriveCommentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_comments_get_builder(client, fileId, commentId, includeDeleted)?;
+    let builder =
+        drive_comments_get_builder(client, &args.fileId, &args.commentId, args.includeDeleted)?;
     drive_comments_get_execute(builder)
 }
 
@@ -2096,6 +2252,21 @@ pub fn drive_comments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_comments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveCommentsListArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: includeDeleted
+    pub includeDeleted: Option<bool>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: startModifiedTime
+    pub startModifiedTime: Option<String>,
+}
+
 /// GET files/{fileId}/comments
 /// Lists a file's comments. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
@@ -2108,22 +2279,18 @@ pub fn drive_comments_list_execute(
 
 pub fn drive_comments_list(
     client: &SimpleHttpClient,
-    fileId: &str,
-    includeDeleted: Option<bool>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    startModifiedTime: Option<&str>,
+    args: &DriveCommentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CommentList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_comments_list_builder(
         client,
-        fileId,
-        includeDeleted,
-        pageSize,
-        pageToken,
-        startModifiedTime,
+        &args.fileId,
+        args.includeDeleted,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.startModifiedTime.as_deref(),
     )?;
     drive_comments_list_execute(builder)
 }
@@ -2222,6 +2389,17 @@ pub fn drive_comments_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_comments_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveCommentsUpdateArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+    /// Request body.
+    pub body: Comment,
+}
+
 /// GET files/{fileId}/comments/{commentId}
 /// Updates a comment with patch semantics. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>). Required: The fields parameter must be set. To return the exact fields you need, see [Return specific fields](<https://developers.google.`com/workspace/drive/api/guides/fields-parameter`>).
 ///
@@ -2234,14 +2412,12 @@ pub fn drive_comments_update_execute(
 
 pub fn drive_comments_update(
     client: &SimpleHttpClient,
-    fileId: &str,
-    commentId: &str,
-    body: &Comment,
+    args: &DriveCommentsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_comments_update_builder(client, fileId, commentId, body)?;
+    let builder = drive_comments_update_builder(client, &args.fileId, &args.commentId, &args.body)?;
     drive_comments_update_execute(builder)
 }
 
@@ -2335,6 +2511,15 @@ pub fn drive_drives_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_drives_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveDrivesCreateArgs {
+    /// Path parameter: requestId
+    pub requestId: String,
+    /// Request body.
+    pub body: Drive,
+}
+
 /// GET drives
 /// Creates a shared drive. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
@@ -2347,13 +2532,12 @@ pub fn drive_drives_create_execute(
 
 pub fn drive_drives_create(
     client: &SimpleHttpClient,
-    requestId: &str,
-    body: &Drive,
+    args: &DriveDrivesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Drive>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_drives_create_builder(client, requestId, body)?;
+    let builder = drive_drives_create_builder(client, &args.requestId, &args.body)?;
     drive_drives_create_execute(builder)
 }
 
@@ -2457,6 +2641,17 @@ pub fn drive_drives_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_drives_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveDrivesDeleteArgs {
+    /// Path parameter: driveId
+    pub driveId: String,
+    /// Query parameter: allowItemDeletion
+    pub allowItemDeletion: Option<bool>,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<bool>,
+}
+
 /// GET drives/{driveId}
 /// Permanently deletes a shared drive for which the user is an organizer. The shared drive cannot contain any untrashed items. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
@@ -2469,15 +2664,17 @@ pub fn drive_drives_delete_execute(
 
 pub fn drive_drives_delete(
     client: &SimpleHttpClient,
-    driveId: &str,
-    allowItemDeletion: Option<bool>,
-    useDomainAdminAccess: Option<bool>,
+    args: &DriveDrivesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        drive_drives_delete_builder(client, driveId, allowItemDeletion, useDomainAdminAccess)?;
+    let builder = drive_drives_delete_builder(
+        client,
+        &args.driveId,
+        args.allowItemDeletion,
+        args.useDomainAdminAccess,
+    )?;
     drive_drives_delete_execute(builder)
 }
 
@@ -2580,6 +2777,15 @@ pub fn drive_drives_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_drives_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveDrivesGetArgs {
+    /// Path parameter: driveId
+    pub driveId: String,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<bool>,
+}
+
 /// GET drives/{driveId}
 /// Gets a shared drive's metadata by ID. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
@@ -2592,13 +2798,12 @@ pub fn drive_drives_get_execute(
 
 pub fn drive_drives_get(
     client: &SimpleHttpClient,
-    driveId: &str,
-    useDomainAdminAccess: Option<bool>,
+    args: &DriveDrivesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Drive>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_drives_get_builder(client, driveId, useDomainAdminAccess)?;
+    let builder = drive_drives_get_builder(client, &args.driveId, args.useDomainAdminAccess)?;
     drive_drives_get_execute(builder)
 }
 
@@ -2692,6 +2897,13 @@ pub fn drive_drives_hide_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_drives_hide`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveDrivesHideArgs {
+    /// Path parameter: driveId
+    pub driveId: String,
+}
+
 /// GET drives/{driveId}/hide
 /// Hides a shared drive from the default view. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
@@ -2704,12 +2916,12 @@ pub fn drive_drives_hide_execute(
 
 pub fn drive_drives_hide(
     client: &SimpleHttpClient,
-    driveId: &str,
+    args: &DriveDrivesHideArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Drive>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_drives_hide_builder(client, driveId)?;
+    let builder = drive_drives_hide_builder(client, &args.driveId)?;
     drive_drives_hide_execute(builder)
 }
 
@@ -2823,6 +3035,19 @@ pub fn drive_drives_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_drives_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveDrivesListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: q
+    pub q: Option<String>,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<bool>,
+}
+
 /// GET drives
 /// Lists the user's shared drives. This method accepts the q parameter, which is a search query combining one or more search terms. For more information, see the [Search for shared drives](<https://developers.google.`com/workspace/drive/api/guides/search-shareddrives`>) guide.
 ///
@@ -2835,15 +3060,18 @@ pub fn drive_drives_list_execute(
 
 pub fn drive_drives_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    q: Option<&str>,
-    useDomainAdminAccess: Option<bool>,
+    args: &DriveDrivesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DriveList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_drives_list_builder(client, pageSize, pageToken, q, useDomainAdminAccess)?;
+    let builder = drive_drives_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.q.as_deref(),
+        args.useDomainAdminAccess,
+    )?;
     drive_drives_list_execute(builder)
 }
 
@@ -2937,6 +3165,13 @@ pub fn drive_drives_unhide_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_drives_unhide`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveDrivesUnhideArgs {
+    /// Path parameter: driveId
+    pub driveId: String,
+}
+
 /// GET drives/{driveId}/unhide
 /// Restores a shared drive to the default view. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
@@ -2949,12 +3184,12 @@ pub fn drive_drives_unhide_execute(
 
 pub fn drive_drives_unhide(
     client: &SimpleHttpClient,
-    driveId: &str,
+    args: &DriveDrivesUnhideArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Drive>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_drives_unhide_builder(client, driveId)?;
+    let builder = drive_drives_unhide_builder(client, &args.driveId)?;
     drive_drives_unhide_execute(builder)
 }
 
@@ -3060,6 +3295,17 @@ pub fn drive_drives_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_drives_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveDrivesUpdateArgs {
+    /// Path parameter: driveId
+    pub driveId: String,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<bool>,
+    /// Request body.
+    pub body: Drive,
+}
+
 /// GET drives/{driveId}
 /// Updates the metadata for a shared drive. For more information, see [Manage shared drives](<https://developers.google.`com/workspace/drive/api/guides/manage-shareddrives`>).
 ///
@@ -3072,14 +3318,13 @@ pub fn drive_drives_update_execute(
 
 pub fn drive_drives_update(
     client: &SimpleHttpClient,
-    driveId: &str,
-    useDomainAdminAccess: Option<bool>,
-    body: &Drive,
+    args: &DriveDrivesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Drive>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_drives_update_builder(client, driveId, useDomainAdminAccess, body)?;
+    let builder =
+        drive_drives_update_builder(client, &args.driveId, args.useDomainAdminAccess, &args.body)?;
     drive_drives_update_execute(builder)
 }
 
@@ -3213,6 +3458,31 @@ pub fn drive_files_copy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_files_copy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesCopyArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: enforceSingleParent
+    pub enforceSingleParent: Option<bool>,
+    /// Query parameter: ignoreDefaultVisibility
+    pub ignoreDefaultVisibility: Option<bool>,
+    /// Query parameter: includeLabels
+    pub includeLabels: Option<String>,
+    /// Query parameter: includePermissionsForView
+    pub includePermissionsForView: Option<String>,
+    /// Query parameter: keepRevisionForever
+    pub keepRevisionForever: Option<bool>,
+    /// Query parameter: ocrLanguage
+    pub ocrLanguage: Option<String>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<bool>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<bool>,
+    /// Request body.
+    pub body: File,
+}
+
 /// GET files/{fileId}/copy
 /// Creates a copy of a file and applies any requested updates with patch semantics. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>).
 ///
@@ -3225,32 +3495,23 @@ pub fn drive_files_copy_execute(
 
 pub fn drive_files_copy(
     client: &SimpleHttpClient,
-    fileId: &str,
-    enforceSingleParent: Option<bool>,
-    ignoreDefaultVisibility: Option<bool>,
-    includeLabels: Option<&str>,
-    includePermissionsForView: Option<&str>,
-    keepRevisionForever: Option<bool>,
-    ocrLanguage: Option<&str>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    body: &File,
+    args: &DriveFilesCopyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_files_copy_builder(
         client,
-        fileId,
-        enforceSingleParent,
-        ignoreDefaultVisibility,
-        includeLabels,
-        includePermissionsForView,
-        keepRevisionForever,
-        ocrLanguage,
-        supportsAllDrives,
-        supportsTeamDrives,
-        body,
+        &args.fileId,
+        args.enforceSingleParent,
+        args.ignoreDefaultVisibility,
+        args.includeLabels.as_deref(),
+        args.includePermissionsForView.as_deref(),
+        args.keepRevisionForever,
+        args.ocrLanguage.as_deref(),
+        args.supportsAllDrives,
+        args.supportsTeamDrives,
+        &args.body,
     )?;
     drive_files_copy_execute(builder)
 }
@@ -3388,6 +3649,31 @@ pub fn drive_files_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_files_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesCreateArgs {
+    /// Query parameter: enforceSingleParent
+    pub enforceSingleParent: Option<bool>,
+    /// Query parameter: ignoreDefaultVisibility
+    pub ignoreDefaultVisibility: Option<bool>,
+    /// Query parameter: includeLabels
+    pub includeLabels: Option<String>,
+    /// Query parameter: includePermissionsForView
+    pub includePermissionsForView: Option<String>,
+    /// Query parameter: keepRevisionForever
+    pub keepRevisionForever: Option<bool>,
+    /// Query parameter: ocrLanguage
+    pub ocrLanguage: Option<String>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<bool>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<bool>,
+    /// Query parameter: useContentAsIndexableText
+    pub useContentAsIndexableText: Option<bool>,
+    /// Request body.
+    pub body: File,
+}
+
 /// GET files
 /// Creates a file. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>). This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>). Apps creating shortcuts with the create method must specify the MIME type `application/vnd`.google-apps.shortcut. Apps should specify a file extension in the name property when inserting files with the API. For example, an operation to insert a JPEG file should specify something like "name": "cat.jpg" in the metadata. Subsequent GET requests include the read-only `fileExtension` property populated with the extension originally specified in the name property. When a Google Drive user requests to download a file, or when the file is downloaded through the sync client, Drive builds a full filename (with extension) based on the name. In cases where the extension is missing, Drive attempts to determine the extension based on the file's MIME type.
 ///
@@ -3400,32 +3686,23 @@ pub fn drive_files_create_execute(
 
 pub fn drive_files_create(
     client: &SimpleHttpClient,
-    enforceSingleParent: Option<bool>,
-    ignoreDefaultVisibility: Option<bool>,
-    includeLabels: Option<&str>,
-    includePermissionsForView: Option<&str>,
-    keepRevisionForever: Option<bool>,
-    ocrLanguage: Option<&str>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    useContentAsIndexableText: Option<bool>,
-    body: &File,
+    args: &DriveFilesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_files_create_builder(
         client,
-        enforceSingleParent,
-        ignoreDefaultVisibility,
-        includeLabels,
-        includePermissionsForView,
-        keepRevisionForever,
-        ocrLanguage,
-        supportsAllDrives,
-        supportsTeamDrives,
-        useContentAsIndexableText,
-        body,
+        args.enforceSingleParent,
+        args.ignoreDefaultVisibility,
+        args.includeLabels.as_deref(),
+        args.includePermissionsForView.as_deref(),
+        args.keepRevisionForever,
+        args.ocrLanguage.as_deref(),
+        args.supportsAllDrives,
+        args.supportsTeamDrives,
+        args.useContentAsIndexableText,
+        &args.body,
     )?;
     drive_files_create_execute(builder)
 }
@@ -3534,6 +3811,19 @@ pub fn drive_files_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_files_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesDeleteArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: enforceSingleParent
+    pub enforceSingleParent: Option<bool>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<bool>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<bool>,
+}
+
 /// GET files/{fileId}
 /// Permanently deletes a file owned by the user without moving it to the trash. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>). If the file belongs to a shared drive, the user must be an organizer on the parent folder. If the target is a folder, all descendants owned by the user are also deleted.
 ///
@@ -3546,20 +3836,17 @@ pub fn drive_files_delete_execute(
 
 pub fn drive_files_delete(
     client: &SimpleHttpClient,
-    fileId: &str,
-    enforceSingleParent: Option<bool>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
+    args: &DriveFilesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_files_delete_builder(
         client,
-        fileId,
-        enforceSingleParent,
-        supportsAllDrives,
-        supportsTeamDrives,
+        &args.fileId,
+        args.enforceSingleParent,
+        args.supportsAllDrives,
+        args.supportsTeamDrives,
     )?;
     drive_files_delete_execute(builder)
 }
@@ -3670,6 +3957,17 @@ pub fn drive_files_download_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_files_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesDownloadArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: mimeType
+    pub mimeType: Option<String>,
+    /// Query parameter: revisionId
+    pub revisionId: Option<String>,
+}
+
 /// GET files/{fileId}/download
 /// Downloads the content of a file. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>). Operations are valid for 24 hours from the time of creation.
 ///
@@ -3682,14 +3980,17 @@ pub fn drive_files_download_execute(
 
 pub fn drive_files_download(
     client: &SimpleHttpClient,
-    fileId: &str,
-    mimeType: Option<&str>,
-    revisionId: Option<&str>,
+    args: &DriveFilesDownloadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_files_download_builder(client, fileId, mimeType, revisionId)?;
+    let builder = drive_files_download_builder(
+        client,
+        &args.fileId,
+        args.mimeType.as_deref(),
+        args.revisionId.as_deref(),
+    )?;
     drive_files_download_execute(builder)
 }
 
@@ -3792,6 +4093,15 @@ pub fn drive_files_empty_trash_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_files_empty_trash`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesEmptyTrashArgs {
+    /// Query parameter: driveId
+    pub driveId: Option<String>,
+    /// Query parameter: enforceSingleParent
+    pub enforceSingleParent: Option<bool>,
+}
+
 /// GET files/trash
 /// Permanently deletes all of the user's trashed files. For more information, see [Trash or delete files and folders](<https://developers.google.`com/workspace/drive/api/guides/delete`>).
 ///
@@ -3804,13 +4114,13 @@ pub fn drive_files_empty_trash_execute(
 
 pub fn drive_files_empty_trash(
     client: &SimpleHttpClient,
-    driveId: Option<&str>,
-    enforceSingleParent: Option<bool>,
+    args: &DriveFilesEmptyTrashArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_files_empty_trash_builder(client, driveId, enforceSingleParent)?;
+    let builder =
+        drive_files_empty_trash_builder(client, args.driveId.as_deref(), args.enforceSingleParent)?;
     drive_files_empty_trash_execute(builder)
 }
 
@@ -3902,6 +4212,15 @@ pub fn drive_files_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_files_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesExportArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: mimeType
+    pub mimeType: String,
+}
+
 /// GET files/{fileId}/export
 /// Exports a Google Workspace document to the requested MIME type and returns exported byte content. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>). Note that the exported content is limited to 10 MB.
 ///
@@ -3914,13 +4233,12 @@ pub fn drive_files_export_execute(
 
 pub fn drive_files_export(
     client: &SimpleHttpClient,
-    fileId: &str,
-    mimeType: &str,
+    args: &DriveFilesExportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_files_export_builder(client, fileId, mimeType)?;
+    let builder = drive_files_export_builder(client, &args.fileId, &args.mimeType)?;
     drive_files_export_execute(builder)
 }
 
@@ -4032,6 +4350,17 @@ pub fn drive_files_generate_ids_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_files_generate_ids`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesGenerateIdsArgs {
+    /// Query parameter: count
+    pub count: Option<i32>,
+    /// Query parameter: space
+    pub space: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET files/generateIds
 /// Generates a set of file IDs which can be provided in create or copy requests. For more information, see [Create and manage files](<https://developers.google.`com/workspace/drive/api/guides/create-file`>).
 ///
@@ -4044,16 +4373,19 @@ pub fn drive_files_generate_ids_execute(
 
 pub fn drive_files_generate_ids(
     client: &SimpleHttpClient,
-    count: Option<i32>,
-    space: Option<&str>,
-    type_rs: Option<&str>,
+    args: &DriveFilesGenerateIdsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GeneratedIds>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = drive_files_generate_ids_builder(client, count, space, type_rs)?;
+    let builder = drive_files_generate_ids_builder(
+        client,
+        args.count,
+        args.space.as_deref(),
+        args.type_rs.as_deref(),
+    )?;
     drive_files_generate_ids_execute(builder)
 }
 
@@ -4172,6 +4504,23 @@ pub fn drive_files_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_files_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesGetArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: acknowledgeAbuse
+    pub acknowledgeAbuse: Option<bool>,
+    /// Query parameter: includeLabels
+    pub includeLabels: Option<String>,
+    /// Query parameter: includePermissionsForView
+    pub includePermissionsForView: Option<String>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<bool>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<bool>,
+}
+
 /// GET files/{fileId}
 /// Gets a file's metadata or content by ID. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). If you provide the URL parameter alt=media, then the response includes the file contents in the response body. Downloading content with alt=media only works if the file is stored in Drive. To download Google Docs, Sheets, and Slides use [files.export](<https://developers.google.`com/workspace/drive/api/reference/rest/v3/files/export`>) instead. For more information, see [Download and export files](<https://developers.google.`com/workspace/drive/api/guides/manage-downloads`>).
 ///
@@ -4184,24 +4533,19 @@ pub fn drive_files_get_execute(
 
 pub fn drive_files_get(
     client: &SimpleHttpClient,
-    fileId: &str,
-    acknowledgeAbuse: Option<bool>,
-    includeLabels: Option<&str>,
-    includePermissionsForView: Option<&str>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
+    args: &DriveFilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_files_get_builder(
         client,
-        fileId,
-        acknowledgeAbuse,
-        includeLabels,
-        includePermissionsForView,
-        supportsAllDrives,
-        supportsTeamDrives,
+        &args.fileId,
+        args.acknowledgeAbuse,
+        args.includeLabels.as_deref(),
+        args.includePermissionsForView.as_deref(),
+        args.supportsAllDrives,
+        args.supportsTeamDrives,
     )?;
     drive_files_get_execute(builder)
 }
@@ -4360,6 +4704,41 @@ pub fn drive_files_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_files_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesListArgs {
+    /// Query parameter: corpora
+    pub corpora: Option<String>,
+    /// Query parameter: corpus
+    pub corpus: Option<String>,
+    /// Query parameter: driveId
+    pub driveId: Option<String>,
+    /// Query parameter: includeItemsFromAllDrives
+    pub includeItemsFromAllDrives: Option<bool>,
+    /// Query parameter: includeLabels
+    pub includeLabels: Option<String>,
+    /// Query parameter: includePermissionsForView
+    pub includePermissionsForView: Option<String>,
+    /// Query parameter: includeTeamDriveItems
+    pub includeTeamDriveItems: Option<bool>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: q
+    pub q: Option<String>,
+    /// Query parameter: spaces
+    pub spaces: Option<String>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<bool>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<bool>,
+    /// Query parameter: teamDriveId
+    pub teamDriveId: Option<String>,
+}
+
 /// GET files
 /// Lists the user's files. For more information, see [Search for files and folders](<https://developers.google.`com/workspace/drive/api/guides/search-files`>). This method accepts the q parameter, which is a search query combining one or more search terms. This method returns *all* files by default, including trashed files. If you don't want trashed files to appear in the list, use the trashed=`false` query parameter to remove trashed files from the results.
 ///
@@ -4372,42 +4751,28 @@ pub fn drive_files_list_execute(
 
 pub fn drive_files_list(
     client: &SimpleHttpClient,
-    corpora: Option<&str>,
-    corpus: Option<&str>,
-    driveId: Option<&str>,
-    includeItemsFromAllDrives: Option<bool>,
-    includeLabels: Option<&str>,
-    includePermissionsForView: Option<&str>,
-    includeTeamDriveItems: Option<bool>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    q: Option<&str>,
-    spaces: Option<&str>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    teamDriveId: Option<&str>,
+    args: &DriveFilesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FileList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_files_list_builder(
         client,
-        corpora,
-        corpus,
-        driveId,
-        includeItemsFromAllDrives,
-        includeLabels,
-        includePermissionsForView,
-        includeTeamDriveItems,
-        orderBy,
-        pageSize,
-        pageToken,
-        q,
-        spaces,
-        supportsAllDrives,
-        supportsTeamDrives,
-        teamDriveId,
+        args.corpora.as_deref(),
+        args.corpus.as_deref(),
+        args.driveId.as_deref(),
+        args.includeItemsFromAllDrives,
+        args.includeLabels.as_deref(),
+        args.includePermissionsForView.as_deref(),
+        args.includeTeamDriveItems,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.q.as_deref(),
+        args.spaces.as_deref(),
+        args.supportsAllDrives,
+        args.supportsTeamDrives,
+        args.teamDriveId.as_deref(),
     )?;
     drive_files_list_execute(builder)
 }
@@ -4518,6 +4883,17 @@ pub fn drive_files_list_labels_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_files_list_labels`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesListLabelsArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET files/{fileId}/listLabels
 /// Lists the labels on a file. For more information, see [List labels on a file](<https://developers.google.`com/workspace/drive/api/guides/list-labels`>).
 ///
@@ -4530,14 +4906,17 @@ pub fn drive_files_list_labels_execute(
 
 pub fn drive_files_list_labels(
     client: &SimpleHttpClient,
-    fileId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DriveFilesListLabelsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LabelList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_files_list_labels_builder(client, fileId, maxResults, pageToken)?;
+    let builder = drive_files_list_labels_builder(
+        client,
+        &args.fileId,
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     drive_files_list_labels_execute(builder)
 }
 
@@ -4636,6 +5015,15 @@ pub fn drive_files_modify_labels_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_files_modify_labels`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesModifyLabelsArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Request body.
+    pub body: ModifyLabelsRequest,
+}
+
 /// GET files/{fileId}/modifyLabels
 /// Modifies the set of labels applied to a file. For more information, see [Set a label field on a file](<https://developers.google.`com/workspace/drive/api/guides/set-label`>). Returns a list of the labels that were added or modified.
 ///
@@ -4648,15 +5036,14 @@ pub fn drive_files_modify_labels_execute(
 
 pub fn drive_files_modify_labels(
     client: &SimpleHttpClient,
-    fileId: &str,
-    body: &ModifyLabelsRequest,
+    args: &DriveFilesModifyLabelsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ModifyLabelsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = drive_files_modify_labels_builder(client, fileId, body)?;
+    let builder = drive_files_modify_labels_builder(client, &args.fileId, &args.body)?;
     drive_files_modify_labels_execute(builder)
 }
 
@@ -4798,6 +5185,35 @@ pub fn drive_files_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_files_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesUpdateArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: addParents
+    pub addParents: Option<String>,
+    /// Query parameter: enforceSingleParent
+    pub enforceSingleParent: Option<bool>,
+    /// Query parameter: includeLabels
+    pub includeLabels: Option<String>,
+    /// Query parameter: includePermissionsForView
+    pub includePermissionsForView: Option<String>,
+    /// Query parameter: keepRevisionForever
+    pub keepRevisionForever: Option<bool>,
+    /// Query parameter: ocrLanguage
+    pub ocrLanguage: Option<String>,
+    /// Query parameter: removeParents
+    pub removeParents: Option<String>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<bool>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<bool>,
+    /// Query parameter: useContentAsIndexableText
+    pub useContentAsIndexableText: Option<bool>,
+    /// Request body.
+    pub body: File,
+}
+
 /// GET files/{fileId}
 /// Updates a file's metadata, content, or both. When calling this method, only populate fields in the request that you want to modify. When updating fields, some fields might be changed automatically, such as `modifiedDate`. This method supports patch semantics. This method supports an */upload* URI and accepts uploaded media with the following characteristics: - *Maximum file size:* 5,120 GB - *Accepted Media MIME types:* */* (Specify a valid MIME type, rather than the literal */* value. The literal */* is only used to indicate that any valid MIME type can be uploaded. For more information, see [Google Workspace and Google Drive supported MIME types](<https://developers.google.`com/workspace/drive/api/guides/mime-types`>).) For more information on uploading files, see [Upload file data](<https://developers.google.`com/workspace/drive/api/guides/manage-uploads`>).
 ///
@@ -4810,36 +5226,25 @@ pub fn drive_files_update_execute(
 
 pub fn drive_files_update(
     client: &SimpleHttpClient,
-    fileId: &str,
-    addParents: Option<&str>,
-    enforceSingleParent: Option<bool>,
-    includeLabels: Option<&str>,
-    includePermissionsForView: Option<&str>,
-    keepRevisionForever: Option<bool>,
-    ocrLanguage: Option<&str>,
-    removeParents: Option<&str>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    useContentAsIndexableText: Option<bool>,
-    body: &File,
+    args: &DriveFilesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<File>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_files_update_builder(
         client,
-        fileId,
-        addParents,
-        enforceSingleParent,
-        includeLabels,
-        includePermissionsForView,
-        keepRevisionForever,
-        ocrLanguage,
-        removeParents,
-        supportsAllDrives,
-        supportsTeamDrives,
-        useContentAsIndexableText,
-        body,
+        &args.fileId,
+        args.addParents.as_deref(),
+        args.enforceSingleParent,
+        args.includeLabels.as_deref(),
+        args.includePermissionsForView.as_deref(),
+        args.keepRevisionForever,
+        args.ocrLanguage.as_deref(),
+        args.removeParents.as_deref(),
+        args.supportsAllDrives,
+        args.supportsTeamDrives,
+        args.useContentAsIndexableText,
+        &args.body,
     )?;
     drive_files_update_execute(builder)
 }
@@ -4962,6 +5367,25 @@ pub fn drive_files_watch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_files_watch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveFilesWatchArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: acknowledgeAbuse
+    pub acknowledgeAbuse: Option<bool>,
+    /// Query parameter: includeLabels
+    pub includeLabels: Option<String>,
+    /// Query parameter: includePermissionsForView
+    pub includePermissionsForView: Option<String>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<bool>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<bool>,
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET files/{fileId}/watch
 /// Subscribes to changes to a file. For more information, see [Notifications for resource changes](<https://developers.google.`com/workspace/drive/api/guides/push`>).
 ///
@@ -4974,26 +5398,20 @@ pub fn drive_files_watch_execute(
 
 pub fn drive_files_watch(
     client: &SimpleHttpClient,
-    fileId: &str,
-    acknowledgeAbuse: Option<bool>,
-    includeLabels: Option<&str>,
-    includePermissionsForView: Option<&str>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    body: &Channel,
+    args: &DriveFilesWatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_files_watch_builder(
         client,
-        fileId,
-        acknowledgeAbuse,
-        includeLabels,
-        includePermissionsForView,
-        supportsAllDrives,
-        supportsTeamDrives,
-        body,
+        &args.fileId,
+        args.acknowledgeAbuse,
+        args.includeLabels.as_deref(),
+        args.includePermissionsForView.as_deref(),
+        args.supportsAllDrives,
+        args.supportsTeamDrives,
+        &args.body,
     )?;
     drive_files_watch_execute(builder)
 }
@@ -5085,6 +5503,13 @@ pub fn drive_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET operations/{name}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -5097,12 +5522,12 @@ pub fn drive_operations_get_execute(
 
 pub fn drive_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DriveOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_operations_get_builder(client, name)?;
+    let builder = drive_operations_get_builder(client, &args.name)?;
     drive_operations_get_execute(builder)
 }
 
@@ -5243,6 +5668,33 @@ pub fn drive_permissions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_permissions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivePermissionsCreateArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: emailMessage
+    pub emailMessage: Option<String>,
+    /// Query parameter: enforceExpansiveAccess
+    pub enforceExpansiveAccess: Option<bool>,
+    /// Query parameter: enforceSingleParent
+    pub enforceSingleParent: Option<bool>,
+    /// Query parameter: moveToNewOwnersRoot
+    pub moveToNewOwnersRoot: Option<bool>,
+    /// Query parameter: sendNotificationEmail
+    pub sendNotificationEmail: Option<bool>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<bool>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<bool>,
+    /// Query parameter: transferOwnership
+    pub transferOwnership: Option<bool>,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<bool>,
+    /// Request body.
+    pub body: Permission,
+}
+
 /// GET files/{fileId}/permissions
 /// Creates a permission for a file or shared drive. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
 ///
@@ -5255,34 +5707,24 @@ pub fn drive_permissions_create_execute(
 
 pub fn drive_permissions_create(
     client: &SimpleHttpClient,
-    fileId: &str,
-    emailMessage: Option<&str>,
-    enforceExpansiveAccess: Option<bool>,
-    enforceSingleParent: Option<bool>,
-    moveToNewOwnersRoot: Option<bool>,
-    sendNotificationEmail: Option<bool>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    transferOwnership: Option<bool>,
-    useDomainAdminAccess: Option<bool>,
-    body: &Permission,
+    args: &DrivePermissionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Permission>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_permissions_create_builder(
         client,
-        fileId,
-        emailMessage,
-        enforceExpansiveAccess,
-        enforceSingleParent,
-        moveToNewOwnersRoot,
-        sendNotificationEmail,
-        supportsAllDrives,
-        supportsTeamDrives,
-        transferOwnership,
-        useDomainAdminAccess,
-        body,
+        &args.fileId,
+        args.emailMessage.as_deref(),
+        args.enforceExpansiveAccess,
+        args.enforceSingleParent,
+        args.moveToNewOwnersRoot,
+        args.sendNotificationEmail,
+        args.supportsAllDrives,
+        args.supportsTeamDrives,
+        args.transferOwnership,
+        args.useDomainAdminAccess,
+        &args.body,
     )?;
     drive_permissions_create_execute(builder)
 }
@@ -5399,6 +5841,23 @@ pub fn drive_permissions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_permissions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivePermissionsDeleteArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: permissionId
+    pub permissionId: String,
+    /// Query parameter: enforceExpansiveAccess
+    pub enforceExpansiveAccess: Option<bool>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<bool>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<bool>,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<bool>,
+}
+
 /// GET files/{fileId}/permissions/{permissionId}
 /// Deletes a permission. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
 ///
@@ -5411,24 +5870,19 @@ pub fn drive_permissions_delete_execute(
 
 pub fn drive_permissions_delete(
     client: &SimpleHttpClient,
-    fileId: &str,
-    permissionId: &str,
-    enforceExpansiveAccess: Option<bool>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    useDomainAdminAccess: Option<bool>,
+    args: &DrivePermissionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_permissions_delete_builder(
         client,
-        fileId,
-        permissionId,
-        enforceExpansiveAccess,
-        supportsAllDrives,
-        supportsTeamDrives,
-        useDomainAdminAccess,
+        &args.fileId,
+        &args.permissionId,
+        args.enforceExpansiveAccess,
+        args.supportsAllDrives,
+        args.supportsTeamDrives,
+        args.useDomainAdminAccess,
     )?;
     drive_permissions_delete_execute(builder)
 }
@@ -5544,6 +5998,21 @@ pub fn drive_permissions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_permissions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivePermissionsGetArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: permissionId
+    pub permissionId: String,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<bool>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<bool>,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<bool>,
+}
+
 /// GET files/{fileId}/permissions/{permissionId}
 /// Gets a permission by ID. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
 ///
@@ -5556,22 +6025,18 @@ pub fn drive_permissions_get_execute(
 
 pub fn drive_permissions_get(
     client: &SimpleHttpClient,
-    fileId: &str,
-    permissionId: &str,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    useDomainAdminAccess: Option<bool>,
+    args: &DrivePermissionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Permission>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_permissions_get_builder(
         client,
-        fileId,
-        permissionId,
-        supportsAllDrives,
-        supportsTeamDrives,
-        useDomainAdminAccess,
+        &args.fileId,
+        &args.permissionId,
+        args.supportsAllDrives,
+        args.supportsTeamDrives,
+        args.useDomainAdminAccess,
     )?;
     drive_permissions_get_execute(builder)
 }
@@ -5700,6 +6165,25 @@ pub fn drive_permissions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_permissions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivePermissionsListArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: includePermissionsForView
+    pub includePermissionsForView: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<bool>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<bool>,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<bool>,
+}
+
 /// GET files/{fileId}/permissions
 /// Lists a file's or shared drive's permissions. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>).
 ///
@@ -5712,13 +6196,7 @@ pub fn drive_permissions_list_execute(
 
 pub fn drive_permissions_list(
     client: &SimpleHttpClient,
-    fileId: &str,
-    includePermissionsForView: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    useDomainAdminAccess: Option<bool>,
+    args: &DrivePermissionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PermissionList>, ApiError>, P = ApiPending>
         + Send
@@ -5727,13 +6205,13 @@ pub fn drive_permissions_list(
 > {
     let builder = drive_permissions_list_builder(
         client,
-        fileId,
-        includePermissionsForView,
-        pageSize,
-        pageToken,
-        supportsAllDrives,
-        supportsTeamDrives,
-        useDomainAdminAccess,
+        &args.fileId,
+        args.includePermissionsForView.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.supportsAllDrives,
+        args.supportsTeamDrives,
+        args.useDomainAdminAccess,
     )?;
     drive_permissions_list_execute(builder)
 }
@@ -5864,6 +6342,29 @@ pub fn drive_permissions_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_permissions_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DrivePermissionsUpdateArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: permissionId
+    pub permissionId: String,
+    /// Query parameter: enforceExpansiveAccess
+    pub enforceExpansiveAccess: Option<bool>,
+    /// Query parameter: removeExpiration
+    pub removeExpiration: Option<bool>,
+    /// Query parameter: supportsAllDrives
+    pub supportsAllDrives: Option<bool>,
+    /// Query parameter: supportsTeamDrives
+    pub supportsTeamDrives: Option<bool>,
+    /// Query parameter: transferOwnership
+    pub transferOwnership: Option<bool>,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<bool>,
+    /// Request body.
+    pub body: Permission,
+}
+
 /// GET files/{fileId}/permissions/{permissionId}
 /// Updates a permission with patch semantics. For more information, see [Share files, folders, and drives](<https://developers.google.`com/workspace/drive/api/guides/manage-sharing`>). **Warning:** Concurrent permissions operations on the same file aren't supported; only the last update is applied.
 ///
@@ -5876,30 +6377,22 @@ pub fn drive_permissions_update_execute(
 
 pub fn drive_permissions_update(
     client: &SimpleHttpClient,
-    fileId: &str,
-    permissionId: &str,
-    enforceExpansiveAccess: Option<bool>,
-    removeExpiration: Option<bool>,
-    supportsAllDrives: Option<bool>,
-    supportsTeamDrives: Option<bool>,
-    transferOwnership: Option<bool>,
-    useDomainAdminAccess: Option<bool>,
-    body: &Permission,
+    args: &DrivePermissionsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Permission>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_permissions_update_builder(
         client,
-        fileId,
-        permissionId,
-        enforceExpansiveAccess,
-        removeExpiration,
-        supportsAllDrives,
-        supportsTeamDrives,
-        transferOwnership,
-        useDomainAdminAccess,
-        body,
+        &args.fileId,
+        &args.permissionId,
+        args.enforceExpansiveAccess,
+        args.removeExpiration,
+        args.supportsAllDrives,
+        args.supportsTeamDrives,
+        args.transferOwnership,
+        args.useDomainAdminAccess,
+        &args.body,
     )?;
     drive_permissions_update_execute(builder)
 }
@@ -5998,6 +6491,17 @@ pub fn drive_replies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_replies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveRepliesCreateArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+    /// Request body.
+    pub body: Reply,
+}
+
 /// GET files/{fileId}/comments/{commentId}/replies
 /// Creates a reply to a comment. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
@@ -6010,14 +6514,12 @@ pub fn drive_replies_create_execute(
 
 pub fn drive_replies_create(
     client: &SimpleHttpClient,
-    fileId: &str,
-    commentId: &str,
-    body: &Reply,
+    args: &DriveRepliesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Reply>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_replies_create_builder(client, fileId, commentId, body)?;
+    let builder = drive_replies_create_builder(client, &args.fileId, &args.commentId, &args.body)?;
     drive_replies_create_execute(builder)
 }
 
@@ -6110,6 +6612,17 @@ pub fn drive_replies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_replies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveRepliesDeleteArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+    /// Path parameter: replyId
+    pub replyId: String,
+}
+
 /// GET files/{fileId}/comments/{commentId}/replies/{replyId}
 /// Deletes a reply. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
@@ -6122,14 +6635,13 @@ pub fn drive_replies_delete_execute(
 
 pub fn drive_replies_delete(
     client: &SimpleHttpClient,
-    fileId: &str,
-    commentId: &str,
-    replyId: &str,
+    args: &DriveRepliesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_replies_delete_builder(client, fileId, commentId, replyId)?;
+    let builder =
+        drive_replies_delete_builder(client, &args.fileId, &args.commentId, &args.replyId)?;
     drive_replies_delete_execute(builder)
 }
 
@@ -6237,6 +6749,19 @@ pub fn drive_replies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_replies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveRepliesGetArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+    /// Path parameter: replyId
+    pub replyId: String,
+    /// Query parameter: includeDeleted
+    pub includeDeleted: Option<bool>,
+}
+
 /// GET files/{fileId}/comments/{commentId}/replies/{replyId}
 /// Gets a reply by ID. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
@@ -6249,15 +6774,18 @@ pub fn drive_replies_get_execute(
 
 pub fn drive_replies_get(
     client: &SimpleHttpClient,
-    fileId: &str,
-    commentId: &str,
-    replyId: &str,
-    includeDeleted: Option<bool>,
+    args: &DriveRepliesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Reply>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_replies_get_builder(client, fileId, commentId, replyId, includeDeleted)?;
+    let builder = drive_replies_get_builder(
+        client,
+        &args.fileId,
+        &args.commentId,
+        &args.replyId,
+        args.includeDeleted,
+    )?;
     drive_replies_get_execute(builder)
 }
 
@@ -6372,6 +6900,21 @@ pub fn drive_replies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_replies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveRepliesListArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+    /// Query parameter: includeDeleted
+    pub includeDeleted: Option<bool>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET files/{fileId}/comments/{commentId}/replies
 /// Lists a comment's replies. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
@@ -6384,22 +6927,18 @@ pub fn drive_replies_list_execute(
 
 pub fn drive_replies_list(
     client: &SimpleHttpClient,
-    fileId: &str,
-    commentId: &str,
-    includeDeleted: Option<bool>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DriveRepliesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReplyList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = drive_replies_list_builder(
         client,
-        fileId,
-        commentId,
-        includeDeleted,
-        pageSize,
-        pageToken,
+        &args.fileId,
+        &args.commentId,
+        args.includeDeleted,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     drive_replies_list_execute(builder)
 }
@@ -6499,6 +7038,19 @@ pub fn drive_replies_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_replies_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveRepliesUpdateArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: commentId
+    pub commentId: String,
+    /// Path parameter: replyId
+    pub replyId: String,
+    /// Request body.
+    pub body: Reply,
+}
+
 /// GET files/{fileId}/comments/{commentId}/replies/{replyId}
 /// Updates a reply with patch semantics. For more information, see [Manage comments and replies](<https://developers.google.`com/workspace/drive/api/guides/manage-comments`>).
 ///
@@ -6511,15 +7063,18 @@ pub fn drive_replies_update_execute(
 
 pub fn drive_replies_update(
     client: &SimpleHttpClient,
-    fileId: &str,
-    commentId: &str,
-    replyId: &str,
-    body: &Reply,
+    args: &DriveRepliesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Reply>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_replies_update_builder(client, fileId, commentId, replyId, body)?;
+    let builder = drive_replies_update_builder(
+        client,
+        &args.fileId,
+        &args.commentId,
+        &args.replyId,
+        &args.body,
+    )?;
     drive_replies_update_execute(builder)
 }
 
@@ -6611,6 +7166,15 @@ pub fn drive_revisions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_revisions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveRevisionsDeleteArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: revisionId
+    pub revisionId: String,
+}
+
 /// GET files/{fileId}/revisions/{revisionId}
 /// Permanently deletes a file version. You can only delete revisions for files with binary content in Google Drive, like images or videos. Revisions for other files, like Google Docs or Sheets, and the last remaining file version can't be deleted. For more information, see [Manage file revisions](<https://developers.google.`com/drive/api/guides/manage-revisions`>).
 ///
@@ -6623,13 +7187,12 @@ pub fn drive_revisions_delete_execute(
 
 pub fn drive_revisions_delete(
     client: &SimpleHttpClient,
-    fileId: &str,
-    revisionId: &str,
+    args: &DriveRevisionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_revisions_delete_builder(client, fileId, revisionId)?;
+    let builder = drive_revisions_delete_builder(client, &args.fileId, &args.revisionId)?;
     drive_revisions_delete_execute(builder)
 }
 
@@ -6736,6 +7299,17 @@ pub fn drive_revisions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_revisions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveRevisionsGetArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: revisionId
+    pub revisionId: String,
+    /// Query parameter: acknowledgeAbuse
+    pub acknowledgeAbuse: Option<bool>,
+}
+
 /// GET files/{fileId}/revisions/{revisionId}
 /// Gets a revision's metadata or content by ID. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
 ///
@@ -6748,14 +7322,17 @@ pub fn drive_revisions_get_execute(
 
 pub fn drive_revisions_get(
     client: &SimpleHttpClient,
-    fileId: &str,
-    revisionId: &str,
-    acknowledgeAbuse: Option<bool>,
+    args: &DriveRevisionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Revision>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_revisions_get_builder(client, fileId, revisionId, acknowledgeAbuse)?;
+    let builder = drive_revisions_get_builder(
+        client,
+        &args.fileId,
+        &args.revisionId,
+        args.acknowledgeAbuse,
+    )?;
     drive_revisions_get_execute(builder)
 }
 
@@ -6867,6 +7444,17 @@ pub fn drive_revisions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_revisions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveRevisionsListArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET files/{fileId}/revisions
 /// Lists a file's revisions. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>). **Important:** The list of revisions returned by this method might be incomplete for files with a large revision history, including frequently edited Google Docs, Sheets, and Slides. Older revisions might be omitted from the response, meaning the first revision returned may not be the oldest existing revision. The revision history visible in the Workspace editor user interface might be more complete than the list returned by the API.
 ///
@@ -6879,16 +7467,19 @@ pub fn drive_revisions_list_execute(
 
 pub fn drive_revisions_list(
     client: &SimpleHttpClient,
-    fileId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DriveRevisionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RevisionList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = drive_revisions_list_builder(client, fileId, pageSize, pageToken)?;
+    let builder = drive_revisions_list_builder(
+        client,
+        &args.fileId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     drive_revisions_list_execute(builder)
 }
 
@@ -6986,6 +7577,17 @@ pub fn drive_revisions_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_revisions_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveRevisionsUpdateArgs {
+    /// Path parameter: fileId
+    pub fileId: String,
+    /// Path parameter: revisionId
+    pub revisionId: String,
+    /// Request body.
+    pub body: Revision,
+}
+
 /// GET files/{fileId}/revisions/{revisionId}
 /// Updates a revision with patch semantics. For more information, see [Manage file revisions](<https://developers.google.`com/workspace/drive/api/guides/manage-revisions`>).
 ///
@@ -6998,14 +7600,13 @@ pub fn drive_revisions_update_execute(
 
 pub fn drive_revisions_update(
     client: &SimpleHttpClient,
-    fileId: &str,
-    revisionId: &str,
-    body: &Revision,
+    args: &DriveRevisionsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Revision>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_revisions_update_builder(client, fileId, revisionId, body)?;
+    let builder =
+        drive_revisions_update_builder(client, &args.fileId, &args.revisionId, &args.body)?;
     drive_revisions_update_execute(builder)
 }
 
@@ -7099,6 +7700,15 @@ pub fn drive_teamdrives_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_teamdrives_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveTeamdrivesCreateArgs {
+    /// Path parameter: requestId
+    pub requestId: String,
+    /// Request body.
+    pub body: TeamDrive,
+}
+
 /// GET teamdrives
 /// Deprecated: Use drives.create instead.
 ///
@@ -7111,13 +7721,12 @@ pub fn drive_teamdrives_create_execute(
 
 pub fn drive_teamdrives_create(
     client: &SimpleHttpClient,
-    requestId: &str,
-    body: &TeamDrive,
+    args: &DriveTeamdrivesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TeamDrive>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_teamdrives_create_builder(client, requestId, body)?;
+    let builder = drive_teamdrives_create_builder(client, &args.requestId, &args.body)?;
     drive_teamdrives_create_execute(builder)
 }
 
@@ -7208,6 +7817,13 @@ pub fn drive_teamdrives_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_teamdrives_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveTeamdrivesDeleteArgs {
+    /// Path parameter: teamDriveId
+    pub teamDriveId: String,
+}
+
 /// GET teamdrives/{teamDriveId}
 /// Deprecated: Use drives.delete instead.
 ///
@@ -7220,12 +7836,12 @@ pub fn drive_teamdrives_delete_execute(
 
 pub fn drive_teamdrives_delete(
     client: &SimpleHttpClient,
-    teamDriveId: &str,
+    args: &DriveTeamdrivesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_teamdrives_delete_builder(client, teamDriveId)?;
+    let builder = drive_teamdrives_delete_builder(client, &args.teamDriveId)?;
     drive_teamdrives_delete_execute(builder)
 }
 
@@ -7331,6 +7947,15 @@ pub fn drive_teamdrives_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_teamdrives_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveTeamdrivesGetArgs {
+    /// Path parameter: teamDriveId
+    pub teamDriveId: String,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<bool>,
+}
+
 /// GET teamdrives/{teamDriveId}
 /// Deprecated: Use drives.get instead.
 ///
@@ -7343,13 +7968,13 @@ pub fn drive_teamdrives_get_execute(
 
 pub fn drive_teamdrives_get(
     client: &SimpleHttpClient,
-    teamDriveId: &str,
-    useDomainAdminAccess: Option<bool>,
+    args: &DriveTeamdrivesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TeamDrive>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_teamdrives_get_builder(client, teamDriveId, useDomainAdminAccess)?;
+    let builder =
+        drive_teamdrives_get_builder(client, &args.teamDriveId, args.useDomainAdminAccess)?;
     drive_teamdrives_get_execute(builder)
 }
 
@@ -7465,6 +8090,19 @@ pub fn drive_teamdrives_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_teamdrives_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveTeamdrivesListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: q
+    pub q: Option<String>,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<bool>,
+}
+
 /// GET teamdrives
 /// Deprecated: Use drives.list instead.
 ///
@@ -7477,18 +8115,20 @@ pub fn drive_teamdrives_list_execute(
 
 pub fn drive_teamdrives_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    q: Option<&str>,
-    useDomainAdminAccess: Option<bool>,
+    args: &DriveTeamdrivesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TeamDriveList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        drive_teamdrives_list_builder(client, pageSize, pageToken, q, useDomainAdminAccess)?;
+    let builder = drive_teamdrives_list_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.q.as_deref(),
+        args.useDomainAdminAccess,
+    )?;
     drive_teamdrives_list_execute(builder)
 }
 
@@ -7597,6 +8237,17 @@ pub fn drive_teamdrives_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`drive_teamdrives_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DriveTeamdrivesUpdateArgs {
+    /// Path parameter: teamDriveId
+    pub teamDriveId: String,
+    /// Query parameter: useDomainAdminAccess
+    pub useDomainAdminAccess: Option<bool>,
+    /// Request body.
+    pub body: TeamDrive,
+}
+
 /// GET teamdrives/{teamDriveId}
 /// Deprecated: Use drives.update instead.
 ///
@@ -7609,13 +8260,16 @@ pub fn drive_teamdrives_update_execute(
 
 pub fn drive_teamdrives_update(
     client: &SimpleHttpClient,
-    teamDriveId: &str,
-    useDomainAdminAccess: Option<bool>,
-    body: &TeamDrive,
+    args: &DriveTeamdrivesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TeamDrive>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = drive_teamdrives_update_builder(client, teamDriveId, useDomainAdminAccess, body)?;
+    let builder = drive_teamdrives_update_builder(
+        client,
+        &args.teamDriveId,
+        args.useDomainAdminAccess,
+        &args.body,
+    )?;
     drive_teamdrives_update_execute(builder)
 }

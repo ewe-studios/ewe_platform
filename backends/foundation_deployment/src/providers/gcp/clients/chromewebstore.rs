@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/publishers/{publishersId}/items/{itemsId}:upload
 /// Upload a new package to an existing item.
@@ -111,6 +113,15 @@ pub fn chromewebstore_media_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromewebstore_media_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromewebstoreMediaUploadArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UploadItemPackageRequest,
+}
+
 /// GET v2/publishers/{publishersId}/items/{itemsId}:upload
 /// Upload a new package to an existing item.
 ///
@@ -123,15 +134,14 @@ pub fn chromewebstore_media_upload_execute(
 
 pub fn chromewebstore_media_upload(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UploadItemPackageRequest,
+    args: &ChromewebstoreMediaUploadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UploadItemPackageResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = chromewebstore_media_upload_builder(client, name, body)?;
+    let builder = chromewebstore_media_upload_builder(client, &args.name, &args.body)?;
     chromewebstore_media_upload_execute(builder)
 }
 
@@ -230,6 +240,15 @@ pub fn chromewebstore_publishers_items_cancel_submission_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromewebstore_publishers_items_cancel_submission`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromewebstorePublishersItemsCancelSubmissionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelSubmissionRequest,
+}
+
 /// GET v2/publishers/{publishersId}/items/{itemsId}:cancelSubmission
 /// Cancel the current active submission of an item if present. This can be used to cancel the review of a pending submission.
 ///
@@ -242,15 +261,15 @@ pub fn chromewebstore_publishers_items_cancel_submission_execute(
 
 pub fn chromewebstore_publishers_items_cancel_submission(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelSubmissionRequest,
+    args: &ChromewebstorePublishersItemsCancelSubmissionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CancelSubmissionResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = chromewebstore_publishers_items_cancel_submission_builder(client, name, body)?;
+    let builder =
+        chromewebstore_publishers_items_cancel_submission_builder(client, &args.name, &args.body)?;
     chromewebstore_publishers_items_cancel_submission_execute(builder)
 }
 
@@ -346,6 +365,13 @@ pub fn chromewebstore_publishers_items_fetch_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromewebstore_publishers_items_fetch_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromewebstorePublishersItemsFetchStatusArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/publishers/{publishersId}/items/{itemsId}:fetchStatus
 /// Fetch the status of an item.
 ///
@@ -358,14 +384,14 @@ pub fn chromewebstore_publishers_items_fetch_status_execute(
 
 pub fn chromewebstore_publishers_items_fetch_status(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ChromewebstorePublishersItemsFetchStatusArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FetchItemStatusResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = chromewebstore_publishers_items_fetch_status_builder(client, name)?;
+    let builder = chromewebstore_publishers_items_fetch_status_builder(client, &args.name)?;
     chromewebstore_publishers_items_fetch_status_execute(builder)
 }
 
@@ -464,6 +490,15 @@ pub fn chromewebstore_publishers_items_publish_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromewebstore_publishers_items_publish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromewebstorePublishersItemsPublishArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: PublishItemRequest,
+}
+
 /// GET v2/publishers/{publishersId}/items/{itemsId}:publish
 /// Submit the item to be published in the store. The item will be submitted for review unless skip_review is set to `true`, or the item is staged from a previous submission with publish_type set to STAGED_PUBLISH.
 ///
@@ -476,15 +511,14 @@ pub fn chromewebstore_publishers_items_publish_execute(
 
 pub fn chromewebstore_publishers_items_publish(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &PublishItemRequest,
+    args: &ChromewebstorePublishersItemsPublishArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PublishItemResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = chromewebstore_publishers_items_publish_builder(client, name, body)?;
+    let builder = chromewebstore_publishers_items_publish_builder(client, &args.name, &args.body)?;
     chromewebstore_publishers_items_publish_execute(builder)
 }
 
@@ -585,6 +619,15 @@ pub fn chromewebstore_publishers_items_set_published_deploy_percentage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`chromewebstore_publishers_items_set_published_deploy_percentage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ChromewebstorePublishersItemsSetPublishedDeployPercentageArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SetPublishedDeployPercentageRequest,
+}
+
 /// GET v2/publishers/{publishersId}/items/{itemsId}:setPublishedDeployPercentage
 /// Set a higher target deploy percentage for the item's published revision. This will be updated without the item being submitted for review. This is only available to items with over 10,000 seven-day active users.
 ///
@@ -597,8 +640,7 @@ pub fn chromewebstore_publishers_items_set_published_deploy_percentage_execute(
 
 pub fn chromewebstore_publishers_items_set_published_deploy_percentage(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SetPublishedDeployPercentageRequest,
+    args: &ChromewebstorePublishersItemsSetPublishedDeployPercentageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SetPublishedDeployPercentageResponse>, ApiError>,
@@ -608,7 +650,7 @@ pub fn chromewebstore_publishers_items_set_published_deploy_percentage(
     ApiError,
 > {
     let builder = chromewebstore_publishers_items_set_published_deploy_percentage_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     chromewebstore_publishers_items_set_published_deploy_percentage_execute(builder)
 }

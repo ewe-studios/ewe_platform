@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/applicationDetailService/getApkDetails
 /// Gets the details of an Android application APK.
@@ -119,6 +121,15 @@ pub fn testing_application_detail_service_get_apk_details_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`testing_application_detail_service_get_apk_details`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TestingApplicationDetailServiceGetApkDetailsArgs {
+    /// Query parameter: bundleLocation_gcsPath
+    pub bundleLocation_gcsPath: Option<String>,
+    /// Request body.
+    pub body: FileReference,
+}
+
 /// GET v1/applicationDetailService/getApkDetails
 /// Gets the details of an Android application APK.
 ///
@@ -131,8 +142,7 @@ pub fn testing_application_detail_service_get_apk_details_execute(
 
 pub fn testing_application_detail_service_get_apk_details(
     client: &SimpleHttpClient,
-    bundleLocation_gcsPath: Option<&str>,
-    body: &FileReference,
+    args: &TestingApplicationDetailServiceGetApkDetailsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetApkDetailsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -141,8 +151,8 @@ pub fn testing_application_detail_service_get_apk_details(
 > {
     let builder = testing_application_detail_service_get_apk_details_builder(
         client,
-        bundleLocation_gcsPath,
-        body,
+        args.bundleLocation_gcsPath.as_deref(),
+        &args.body,
     )?;
     testing_application_detail_service_get_apk_details_execute(builder)
 }
@@ -240,6 +250,15 @@ pub fn testing_projects_device_sessions_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`testing_projects_device_sessions_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TestingProjectsDeviceSessionsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelDeviceSessionRequest,
+}
+
 /// GET v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}:cancel
 /// POST /v1/`projects/{project_id}/`deviceSessions`/{device_session_id}`:cancel Changes the DeviceSession to state FINISHED and terminates all connections. Canceled sessions are not deleted and can be retrieved or listed by the user until they expire based on the 28 day deletion policy.
 ///
@@ -252,13 +271,12 @@ pub fn testing_projects_device_sessions_cancel_execute(
 
 pub fn testing_projects_device_sessions_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelDeviceSessionRequest,
+    args: &TestingProjectsDeviceSessionsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = testing_projects_device_sessions_cancel_builder(client, name, body)?;
+    let builder = testing_projects_device_sessions_cancel_builder(client, &args.name, &args.body)?;
     testing_projects_device_sessions_cancel_execute(builder)
 }
 
@@ -357,6 +375,15 @@ pub fn testing_projects_device_sessions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`testing_projects_device_sessions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TestingProjectsDeviceSessionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: DeviceSession,
+}
+
 /// GET v1/projects/{projectsId}/deviceSessions
 /// POST /v1/`projects/{project_id}/`deviceSessions``
 ///
@@ -369,15 +396,15 @@ pub fn testing_projects_device_sessions_create_execute(
 
 pub fn testing_projects_device_sessions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &DeviceSession,
+    args: &TestingProjectsDeviceSessionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeviceSession>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = testing_projects_device_sessions_create_builder(client, parent, body)?;
+    let builder =
+        testing_projects_device_sessions_create_builder(client, &args.parent, &args.body)?;
     testing_projects_device_sessions_create_execute(builder)
 }
 
@@ -473,6 +500,13 @@ pub fn testing_projects_device_sessions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`testing_projects_device_sessions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TestingProjectsDeviceSessionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}
 /// GET /v1/`projects/{project_id}/`deviceSessions`/{device_session_id}` Return a DeviceSession, which documents the allocation status and whether the device is allocated. Clients making requests from this API must poll GetDeviceSession.
 ///
@@ -485,14 +519,14 @@ pub fn testing_projects_device_sessions_get_execute(
 
 pub fn testing_projects_device_sessions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TestingProjectsDeviceSessionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeviceSession>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = testing_projects_device_sessions_get_builder(client, name)?;
+    let builder = testing_projects_device_sessions_get_builder(client, &args.name)?;
     testing_projects_device_sessions_get_execute(builder)
 }
 
@@ -610,6 +644,19 @@ pub fn testing_projects_device_sessions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`testing_projects_device_sessions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TestingProjectsDeviceSessionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/deviceSessions
 /// GET /v1/`projects/{project_id}/`deviceSessions`` Lists device Sessions owned by the project user.
 ///
@@ -622,10 +669,7 @@ pub fn testing_projects_device_sessions_list_execute(
 
 pub fn testing_projects_device_sessions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TestingProjectsDeviceSessionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListDeviceSessionsResponse>, ApiError>,
@@ -634,8 +678,13 @@ pub fn testing_projects_device_sessions_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        testing_projects_device_sessions_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = testing_projects_device_sessions_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     testing_projects_device_sessions_list_execute(builder)
 }
 
@@ -746,6 +795,17 @@ pub fn testing_projects_device_sessions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`testing_projects_device_sessions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TestingProjectsDeviceSessionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: DeviceSession,
+}
+
 /// GET v1/projects/{projectsId}/deviceSessions/{deviceSessionsId}
 /// PATCH /v1/`projects/{`projectId`}/`deviceSessions`/`deviceSessionId`}`:`updateDeviceSession` Updates the current device session to the fields described by the update_mask.
 ///
@@ -758,16 +818,19 @@ pub fn testing_projects_device_sessions_patch_execute(
 
 pub fn testing_projects_device_sessions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &DeviceSession,
+    args: &TestingProjectsDeviceSessionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeviceSession>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = testing_projects_device_sessions_patch_builder(client, name, updateMask, body)?;
+    let builder = testing_projects_device_sessions_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     testing_projects_device_sessions_patch_execute(builder)
 }
 
@@ -864,6 +927,15 @@ pub fn testing_projects_test_matrices_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`testing_projects_test_matrices_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TestingProjectsTestMatricesCancelArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: testMatrixId
+    pub testMatrixId: String,
+}
+
 /// GET v1/projects/{projectId}/testMatrices/{testMatrixId}:cancel
 /// Cancels unfinished test executions in a test matrix. This call returns immediately and cancellation proceeds asynchronously. If the matrix is already final, this operation will have no effect. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the Test Matrix does not exist
 ///
@@ -876,15 +948,15 @@ pub fn testing_projects_test_matrices_cancel_execute(
 
 pub fn testing_projects_test_matrices_cancel(
     client: &SimpleHttpClient,
-    projectId: &str,
-    testMatrixId: &str,
+    args: &TestingProjectsTestMatricesCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CancelTestMatrixResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = testing_projects_test_matrices_cancel_builder(client, projectId, testMatrixId)?;
+    let builder =
+        testing_projects_test_matrices_cancel_builder(client, &args.projectId, &args.testMatrixId)?;
     testing_projects_test_matrices_cancel_execute(builder)
 }
 
@@ -993,6 +1065,17 @@ pub fn testing_projects_test_matrices_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`testing_projects_test_matrices_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TestingProjectsTestMatricesCreateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: TestMatrix,
+}
+
 /// GET v1/projects/{projectId}/testMatrices
 /// Creates and runs a matrix of tests according to the given specifications. Unsupported environments will be returned in the state UNSUPPORTED. A test matrix is limited to use at most 2000 devices in parallel. The returned matrix will not yet contain the executions that will be created for this matrix. Execution creation happens later on and will require a call to GetTestMatrix. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed or if the matrix tries to use too many simultaneous devices.
 ///
@@ -1005,15 +1088,17 @@ pub fn testing_projects_test_matrices_create_execute(
 
 pub fn testing_projects_test_matrices_create(
     client: &SimpleHttpClient,
-    projectId: &str,
-    requestId: Option<&str>,
-    body: &TestMatrix,
+    args: &TestingProjectsTestMatricesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TestMatrix>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        testing_projects_test_matrices_create_builder(client, projectId, requestId, body)?;
+    let builder = testing_projects_test_matrices_create_builder(
+        client,
+        &args.projectId,
+        args.requestId.as_deref(),
+        &args.body,
+    )?;
     testing_projects_test_matrices_create_execute(builder)
 }
 
@@ -1108,6 +1193,15 @@ pub fn testing_projects_test_matrices_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`testing_projects_test_matrices_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TestingProjectsTestMatricesGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: testMatrixId
+    pub testMatrixId: String,
+}
+
 /// GET v1/projects/{projectId}/testMatrices/{testMatrixId}
 /// Checks the status of a test matrix and the executions once they are created. The test matrix will contain the list of test executions to run if and only if the `resultStorage`.`toolResultsExecution` fields have been populated. Note: Flaky test executions may be added to the matrix at a later stage. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the Test Matrix does not exist
 ///
@@ -1120,13 +1214,13 @@ pub fn testing_projects_test_matrices_get_execute(
 
 pub fn testing_projects_test_matrices_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    testMatrixId: &str,
+    args: &TestingProjectsTestMatricesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TestMatrix>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = testing_projects_test_matrices_get_builder(client, projectId, testMatrixId)?;
+    let builder =
+        testing_projects_test_matrices_get_builder(client, &args.projectId, &args.testMatrixId)?;
     testing_projects_test_matrices_get_execute(builder)
 }
 
@@ -1238,6 +1332,17 @@ pub fn testing_test_environment_catalog_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`testing_test_environment_catalog_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TestingTestEnvironmentCatalogGetArgs {
+    /// Path parameter: environmentType
+    pub environmentType: String,
+    /// Query parameter: includeViewableModels
+    pub includeViewableModels: Option<bool>,
+    /// Query parameter: projectId
+    pub projectId: Option<String>,
+}
+
 /// GET v1/testEnvironmentCatalog/{environmentType}
 /// Gets the catalog of supported test environments. May return any of the following canonical error codes: - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the environment type does not exist - INTERNAL - if an internal error occurred
 ///
@@ -1250,9 +1355,7 @@ pub fn testing_test_environment_catalog_get_execute(
 
 pub fn testing_test_environment_catalog_get(
     client: &SimpleHttpClient,
-    environmentType: &str,
-    includeViewableModels: Option<bool>,
-    projectId: Option<&str>,
+    args: &TestingTestEnvironmentCatalogGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TestEnvironmentCatalog>, ApiError>, P = ApiPending>
         + Send
@@ -1261,9 +1364,9 @@ pub fn testing_test_environment_catalog_get(
 > {
     let builder = testing_test_environment_catalog_get_builder(
         client,
-        environmentType,
-        includeViewableModels,
-        projectId,
+        &args.environmentType,
+        args.includeViewableModels,
+        args.projectId.as_deref(),
     )?;
     testing_test_environment_catalog_get_execute(builder)
 }

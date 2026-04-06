@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
@@ -109,6 +111,15 @@ pub fn pubsublite_admin_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -121,14 +132,14 @@ pub fn pubsublite_admin_projects_locations_operations_cancel_execute(
 
 pub fn pubsublite_admin_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &PubsubliteAdminProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        pubsublite_admin_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = pubsublite_admin_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     pubsublite_admin_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -222,6 +233,13 @@ pub fn pubsublite_admin_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -234,12 +252,13 @@ pub fn pubsublite_admin_projects_locations_operations_delete_execute(
 
 pub fn pubsublite_admin_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PubsubliteAdminProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsublite_admin_projects_locations_operations_delete_builder(client, name)?;
+    let builder =
+        pubsublite_admin_projects_locations_operations_delete_builder(client, &args.name)?;
     pubsublite_admin_projects_locations_operations_delete_execute(builder)
 }
 
@@ -333,6 +352,13 @@ pub fn pubsublite_admin_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -345,12 +371,12 @@ pub fn pubsublite_admin_projects_locations_operations_get_execute(
 
 pub fn pubsublite_admin_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PubsubliteAdminProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsublite_admin_projects_locations_operations_get_builder(client, name)?;
+    let builder = pubsublite_admin_projects_locations_operations_get_builder(client, &args.name)?;
     pubsublite_admin_projects_locations_operations_get_execute(builder)
 }
 
@@ -470,6 +496,21 @@ pub fn pubsublite_admin_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -482,11 +523,7 @@ pub fn pubsublite_admin_projects_locations_operations_list_execute(
 
 pub fn pubsublite_admin_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &PubsubliteAdminProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -495,11 +532,11 @@ pub fn pubsublite_admin_projects_locations_operations_list(
 > {
     let builder = pubsublite_admin_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     pubsublite_admin_projects_locations_operations_list_execute(builder)
 }
@@ -609,6 +646,17 @@ pub fn pubsublite_admin_projects_locations_reservations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_reservations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsReservationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: reservationId
+    pub reservationId: Option<String>,
+    /// Request body.
+    pub body: Reservation,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/reservations
 /// Creates a new reservation.
 ///
@@ -621,18 +669,16 @@ pub fn pubsublite_admin_projects_locations_reservations_create_execute(
 
 pub fn pubsublite_admin_projects_locations_reservations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    reservationId: Option<&str>,
-    body: &Reservation,
+    args: &PubsubliteAdminProjectsLocationsReservationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Reservation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = pubsublite_admin_projects_locations_reservations_create_builder(
         client,
-        parent,
-        reservationId,
-        body,
+        &args.parent,
+        args.reservationId.as_deref(),
+        &args.body,
     )?;
     pubsublite_admin_projects_locations_reservations_create_execute(builder)
 }
@@ -727,6 +773,13 @@ pub fn pubsublite_admin_projects_locations_reservations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_reservations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsReservationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}
 /// Deletes the specified reservation.
 ///
@@ -739,12 +792,13 @@ pub fn pubsublite_admin_projects_locations_reservations_delete_execute(
 
 pub fn pubsublite_admin_projects_locations_reservations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PubsubliteAdminProjectsLocationsReservationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsublite_admin_projects_locations_reservations_delete_builder(client, name)?;
+    let builder =
+        pubsublite_admin_projects_locations_reservations_delete_builder(client, &args.name)?;
     pubsublite_admin_projects_locations_reservations_delete_execute(builder)
 }
 
@@ -838,6 +892,13 @@ pub fn pubsublite_admin_projects_locations_reservations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_reservations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsReservationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}
 /// Returns the reservation configuration.
 ///
@@ -850,12 +911,12 @@ pub fn pubsublite_admin_projects_locations_reservations_get_execute(
 
 pub fn pubsublite_admin_projects_locations_reservations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PubsubliteAdminProjectsLocationsReservationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Reservation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsublite_admin_projects_locations_reservations_get_builder(client, name)?;
+    let builder = pubsublite_admin_projects_locations_reservations_get_builder(client, &args.name)?;
     pubsublite_admin_projects_locations_reservations_get_execute(builder)
 }
 
@@ -967,6 +1028,17 @@ pub fn pubsublite_admin_projects_locations_reservations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_reservations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsReservationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/reservations
 /// Returns the list of reservations for the given project.
 ///
@@ -979,9 +1051,7 @@ pub fn pubsublite_admin_projects_locations_reservations_list_execute(
 
 pub fn pubsublite_admin_projects_locations_reservations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PubsubliteAdminProjectsLocationsReservationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListReservationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -989,7 +1059,10 @@ pub fn pubsublite_admin_projects_locations_reservations_list(
     ApiError,
 > {
     let builder = pubsublite_admin_projects_locations_reservations_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     pubsublite_admin_projects_locations_reservations_list_execute(builder)
 }
@@ -1099,6 +1172,17 @@ pub fn pubsublite_admin_projects_locations_reservations_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_reservations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsReservationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Reservation,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}
 /// Updates properties of the specified reservation.
 ///
@@ -1111,15 +1195,16 @@ pub fn pubsublite_admin_projects_locations_reservations_patch_execute(
 
 pub fn pubsublite_admin_projects_locations_reservations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Reservation,
+    args: &PubsubliteAdminProjectsLocationsReservationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Reservation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = pubsublite_admin_projects_locations_reservations_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     pubsublite_admin_projects_locations_reservations_patch_execute(builder)
 }
@@ -1234,6 +1319,17 @@ pub fn pubsublite_admin_projects_locations_reservations_topics_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_reservations_topics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsReservationsTopicsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/reservations/{reservationsId}/topics
 /// Lists the topics attached to the specified reservation.
 ///
@@ -1246,9 +1342,7 @@ pub fn pubsublite_admin_projects_locations_reservations_topics_list_execute(
 
 pub fn pubsublite_admin_projects_locations_reservations_topics_list(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PubsubliteAdminProjectsLocationsReservationsTopicsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListReservationTopicsResponse>, ApiError>,
@@ -1258,7 +1352,10 @@ pub fn pubsublite_admin_projects_locations_reservations_topics_list(
     ApiError,
 > {
     let builder = pubsublite_admin_projects_locations_reservations_topics_list_builder(
-        client, name, pageSize, pageToken,
+        client,
+        &args.name,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     pubsublite_admin_projects_locations_reservations_topics_list_execute(builder)
 }
@@ -1374,6 +1471,19 @@ pub fn pubsublite_admin_projects_locations_subscriptions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_subscriptions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsSubscriptionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: skipBacklog
+    pub skipBacklog: Option<bool>,
+    /// Query parameter: subscriptionId
+    pub subscriptionId: Option<String>,
+    /// Request body.
+    pub body: Subscription,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/subscriptions
 /// Creates a new subscription.
 ///
@@ -1386,10 +1496,7 @@ pub fn pubsublite_admin_projects_locations_subscriptions_create_execute(
 
 pub fn pubsublite_admin_projects_locations_subscriptions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    skipBacklog: Option<bool>,
-    subscriptionId: Option<&str>,
-    body: &Subscription,
+    args: &PubsubliteAdminProjectsLocationsSubscriptionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
@@ -1398,10 +1505,10 @@ pub fn pubsublite_admin_projects_locations_subscriptions_create(
 > {
     let builder = pubsublite_admin_projects_locations_subscriptions_create_builder(
         client,
-        parent,
-        skipBacklog,
-        subscriptionId,
-        body,
+        &args.parent,
+        args.skipBacklog,
+        args.subscriptionId.as_deref(),
+        &args.body,
     )?;
     pubsublite_admin_projects_locations_subscriptions_create_execute(builder)
 }
@@ -1496,6 +1603,13 @@ pub fn pubsublite_admin_projects_locations_subscriptions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_subscriptions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsSubscriptionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/subscriptions/{subscriptionsId}
 /// Deletes the specified subscription.
 ///
@@ -1508,12 +1622,13 @@ pub fn pubsublite_admin_projects_locations_subscriptions_delete_execute(
 
 pub fn pubsublite_admin_projects_locations_subscriptions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PubsubliteAdminProjectsLocationsSubscriptionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsublite_admin_projects_locations_subscriptions_delete_builder(client, name)?;
+    let builder =
+        pubsublite_admin_projects_locations_subscriptions_delete_builder(client, &args.name)?;
     pubsublite_admin_projects_locations_subscriptions_delete_execute(builder)
 }
 
@@ -1609,6 +1724,13 @@ pub fn pubsublite_admin_projects_locations_subscriptions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_subscriptions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsSubscriptionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/subscriptions/{subscriptionsId}
 /// Returns the subscription configuration.
 ///
@@ -1621,14 +1743,15 @@ pub fn pubsublite_admin_projects_locations_subscriptions_get_execute(
 
 pub fn pubsublite_admin_projects_locations_subscriptions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PubsubliteAdminProjectsLocationsSubscriptionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = pubsublite_admin_projects_locations_subscriptions_get_builder(client, name)?;
+    let builder =
+        pubsublite_admin_projects_locations_subscriptions_get_builder(client, &args.name)?;
     pubsublite_admin_projects_locations_subscriptions_get_execute(builder)
 }
 
@@ -1740,6 +1863,17 @@ pub fn pubsublite_admin_projects_locations_subscriptions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_subscriptions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsSubscriptionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/subscriptions
 /// Returns the list of subscriptions for the given project.
 ///
@@ -1752,9 +1886,7 @@ pub fn pubsublite_admin_projects_locations_subscriptions_list_execute(
 
 pub fn pubsublite_admin_projects_locations_subscriptions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PubsubliteAdminProjectsLocationsSubscriptionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSubscriptionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1762,7 +1894,10 @@ pub fn pubsublite_admin_projects_locations_subscriptions_list(
     ApiError,
 > {
     let builder = pubsublite_admin_projects_locations_subscriptions_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     pubsublite_admin_projects_locations_subscriptions_list_execute(builder)
 }
@@ -1874,6 +2009,17 @@ pub fn pubsublite_admin_projects_locations_subscriptions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_subscriptions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsSubscriptionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Subscription,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/subscriptions/{subscriptionsId}
 /// Updates properties of the specified subscription.
 ///
@@ -1886,9 +2032,7 @@ pub fn pubsublite_admin_projects_locations_subscriptions_patch_execute(
 
 pub fn pubsublite_admin_projects_locations_subscriptions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Subscription,
+    args: &PubsubliteAdminProjectsLocationsSubscriptionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
@@ -1896,7 +2040,10 @@ pub fn pubsublite_admin_projects_locations_subscriptions_patch(
     ApiError,
 > {
     let builder = pubsublite_admin_projects_locations_subscriptions_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     pubsublite_admin_projects_locations_subscriptions_patch_execute(builder)
 }
@@ -1994,6 +2141,15 @@ pub fn pubsublite_admin_projects_locations_subscriptions_seek_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_subscriptions_seek`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsSubscriptionsSeekArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SeekSubscriptionRequest,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/subscriptions/{subscriptionsId}:seek
 /// Performs an out-of-band seek for a subscription to a specified target, which may be timestamps or named positions within the message backlog. Seek translates these targets to cursors for each partition and orchestrates subscribers to start consuming messages from these seek cursors. If an operation is returned, the seek has been registered and subscribers will eventually receive messages from the seek cursors (i.e. eventual consistency), as long as they are using a minimum supported client library version and not a system that tracks cursors independently of P`ub/Sub` Lite (e.g. Apache Beam, Dataflow, Spark). The seek operation will fail for unsupported clients. If clients would like to know when subscribers react to the seek (or not), they can poll the operation. The seek operation will succeed and complete once subscribers are ready to receive messages from the seek cursors for all partitions of the topic. This means that the seek operation will not complete until all subscribers come online. If the previous seek operation has not yet completed, it will be aborted and the new invocation of seek will supersede it.
 ///
@@ -2006,14 +2162,14 @@ pub fn pubsublite_admin_projects_locations_subscriptions_seek_execute(
 
 pub fn pubsublite_admin_projects_locations_subscriptions_seek(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SeekSubscriptionRequest,
+    args: &PubsubliteAdminProjectsLocationsSubscriptionsSeekArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        pubsublite_admin_projects_locations_subscriptions_seek_builder(client, name, body)?;
+    let builder = pubsublite_admin_projects_locations_subscriptions_seek_builder(
+        client, &args.name, &args.body,
+    )?;
     pubsublite_admin_projects_locations_subscriptions_seek_execute(builder)
 }
 
@@ -2122,6 +2278,17 @@ pub fn pubsublite_admin_projects_locations_topics_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_topics_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsTopicsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: topicId
+    pub topicId: Option<String>,
+    /// Request body.
+    pub body: Topic,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/topics
 /// Creates a new topic.
 ///
@@ -2134,15 +2301,17 @@ pub fn pubsublite_admin_projects_locations_topics_create_execute(
 
 pub fn pubsublite_admin_projects_locations_topics_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    topicId: Option<&str>,
-    body: &Topic,
+    args: &PubsubliteAdminProjectsLocationsTopicsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        pubsublite_admin_projects_locations_topics_create_builder(client, parent, topicId, body)?;
+    let builder = pubsublite_admin_projects_locations_topics_create_builder(
+        client,
+        &args.parent,
+        args.topicId.as_deref(),
+        &args.body,
+    )?;
     pubsublite_admin_projects_locations_topics_create_execute(builder)
 }
 
@@ -2236,6 +2405,13 @@ pub fn pubsublite_admin_projects_locations_topics_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_topics_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsTopicsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/topics/{topicsId}
 /// Deletes the specified topic.
 ///
@@ -2248,12 +2424,12 @@ pub fn pubsublite_admin_projects_locations_topics_delete_execute(
 
 pub fn pubsublite_admin_projects_locations_topics_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PubsubliteAdminProjectsLocationsTopicsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsublite_admin_projects_locations_topics_delete_builder(client, name)?;
+    let builder = pubsublite_admin_projects_locations_topics_delete_builder(client, &args.name)?;
     pubsublite_admin_projects_locations_topics_delete_execute(builder)
 }
 
@@ -2347,6 +2523,13 @@ pub fn pubsublite_admin_projects_locations_topics_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_topics_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsTopicsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/topics/{topicsId}
 /// Returns the topic configuration.
 ///
@@ -2359,12 +2542,12 @@ pub fn pubsublite_admin_projects_locations_topics_get_execute(
 
 pub fn pubsublite_admin_projects_locations_topics_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PubsubliteAdminProjectsLocationsTopicsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = pubsublite_admin_projects_locations_topics_get_builder(client, name)?;
+    let builder = pubsublite_admin_projects_locations_topics_get_builder(client, &args.name)?;
     pubsublite_admin_projects_locations_topics_get_execute(builder)
 }
 
@@ -2460,6 +2643,13 @@ pub fn pubsublite_admin_projects_locations_topics_get_partitions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_topics_get_partitions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsTopicsGetPartitionsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/topics/{topicsId}/partitions
 /// Returns the partition information for the requested topic.
 ///
@@ -2472,14 +2662,15 @@ pub fn pubsublite_admin_projects_locations_topics_get_partitions_execute(
 
 pub fn pubsublite_admin_projects_locations_topics_get_partitions(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PubsubliteAdminProjectsLocationsTopicsGetPartitionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TopicPartitions>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = pubsublite_admin_projects_locations_topics_get_partitions_builder(client, name)?;
+    let builder =
+        pubsublite_admin_projects_locations_topics_get_partitions_builder(client, &args.name)?;
     pubsublite_admin_projects_locations_topics_get_partitions_execute(builder)
 }
 
@@ -2591,6 +2782,17 @@ pub fn pubsublite_admin_projects_locations_topics_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_topics_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsTopicsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/topics
 /// Returns the list of topics for the given project.
 ///
@@ -2603,9 +2805,7 @@ pub fn pubsublite_admin_projects_locations_topics_list_execute(
 
 pub fn pubsublite_admin_projects_locations_topics_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PubsubliteAdminProjectsLocationsTopicsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTopicsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2613,7 +2813,10 @@ pub fn pubsublite_admin_projects_locations_topics_list(
     ApiError,
 > {
     let builder = pubsublite_admin_projects_locations_topics_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     pubsublite_admin_projects_locations_topics_list_execute(builder)
 }
@@ -2723,6 +2926,17 @@ pub fn pubsublite_admin_projects_locations_topics_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_topics_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsTopicsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Topic,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/topics/{topicsId}
 /// Updates properties of the specified topic.
 ///
@@ -2735,15 +2949,17 @@ pub fn pubsublite_admin_projects_locations_topics_patch_execute(
 
 pub fn pubsublite_admin_projects_locations_topics_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Topic,
+    args: &PubsubliteAdminProjectsLocationsTopicsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Topic>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        pubsublite_admin_projects_locations_topics_patch_builder(client, name, updateMask, body)?;
+    let builder = pubsublite_admin_projects_locations_topics_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     pubsublite_admin_projects_locations_topics_patch_execute(builder)
 }
 
@@ -2857,6 +3073,17 @@ pub fn pubsublite_admin_projects_locations_topics_subscriptions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_admin_projects_locations_topics_subscriptions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteAdminProjectsLocationsTopicsSubscriptionsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/admin/projects/{projectsId}/locations/{locationsId}/topics/{topicsId}/subscriptions
 /// Lists the subscriptions attached to the specified topic.
 ///
@@ -2869,9 +3096,7 @@ pub fn pubsublite_admin_projects_locations_topics_subscriptions_list_execute(
 
 pub fn pubsublite_admin_projects_locations_topics_subscriptions_list(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PubsubliteAdminProjectsLocationsTopicsSubscriptionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTopicSubscriptionsResponse>, ApiError>,
@@ -2881,7 +3106,10 @@ pub fn pubsublite_admin_projects_locations_topics_subscriptions_list(
     ApiError,
 > {
     let builder = pubsublite_admin_projects_locations_topics_subscriptions_list_builder(
-        client, name, pageSize, pageToken,
+        client,
+        &args.name,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     pubsublite_admin_projects_locations_topics_subscriptions_list_execute(builder)
 }
@@ -2981,6 +3209,15 @@ pub fn pubsublite_cursor_projects_locations_subscriptions_commit_cursor_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_cursor_projects_locations_subscriptions_commit_cursor`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteCursorProjectsLocationsSubscriptionsCommitCursorArgs {
+    /// Path parameter: subscription
+    pub subscription: String,
+    /// Request body.
+    pub body: CommitCursorRequest,
+}
+
 /// GET v1/cursor/projects/{projectsId}/locations/{locationsId}/subscriptions/{subscriptionsId}:commitCursor
 /// Updates the committed cursor.
 ///
@@ -2993,8 +3230,7 @@ pub fn pubsublite_cursor_projects_locations_subscriptions_commit_cursor_execute(
 
 pub fn pubsublite_cursor_projects_locations_subscriptions_commit_cursor(
     client: &SimpleHttpClient,
-    subscription: &str,
-    body: &CommitCursorRequest,
+    args: &PubsubliteCursorProjectsLocationsSubscriptionsCommitCursorArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CommitCursorResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3003,8 +3239,8 @@ pub fn pubsublite_cursor_projects_locations_subscriptions_commit_cursor(
 > {
     let builder = pubsublite_cursor_projects_locations_subscriptions_commit_cursor_builder(
         client,
-        subscription,
-        body,
+        &args.subscription,
+        &args.body,
     )?;
     pubsublite_cursor_projects_locations_subscriptions_commit_cursor_execute(builder)
 }
@@ -3119,6 +3355,17 @@ pub fn pubsublite_cursor_projects_locations_subscriptions_cursors_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_cursor_projects_locations_subscriptions_cursors_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteCursorProjectsLocationsSubscriptionsCursorsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/cursor/projects/{projectsId}/locations/{locationsId}/subscriptions/{subscriptionsId}/cursors
 /// Returns all committed cursor information for a subscription.
 ///
@@ -3131,9 +3378,7 @@ pub fn pubsublite_cursor_projects_locations_subscriptions_cursors_list_execute(
 
 pub fn pubsublite_cursor_projects_locations_subscriptions_cursors_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PubsubliteCursorProjectsLocationsSubscriptionsCursorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPartitionCursorsResponse>, ApiError>,
@@ -3143,7 +3388,10 @@ pub fn pubsublite_cursor_projects_locations_subscriptions_cursors_list(
     ApiError,
 > {
     let builder = pubsublite_cursor_projects_locations_subscriptions_cursors_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     pubsublite_cursor_projects_locations_subscriptions_cursors_list_execute(builder)
 }
@@ -3243,6 +3491,15 @@ pub fn pubsublite_topic_stats_projects_locations_topics_compute_head_cursor_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_topic_stats_projects_locations_topics_compute_head_cursor`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteTopicStatsProjectsLocationsTopicsComputeHeadCursorArgs {
+    /// Path parameter: topic
+    pub topic: String,
+    /// Request body.
+    pub body: ComputeHeadCursorRequest,
+}
+
 /// GET v1/topicStats/projects/{projectsId}/locations/{locationsId}/topics/{topicsId}:computeHeadCursor
 /// Compute the head cursor for the partition. The head cursor's offset is guaranteed to be less than or equal to all messages which have not yet been acknowledged as published, and greater than the offset of any message whose publish has already been acknowledged. It is zero if there have never been messages in the partition.
 ///
@@ -3255,8 +3512,7 @@ pub fn pubsublite_topic_stats_projects_locations_topics_compute_head_cursor_exec
 
 pub fn pubsublite_topic_stats_projects_locations_topics_compute_head_cursor(
     client: &SimpleHttpClient,
-    topic: &str,
-    body: &ComputeHeadCursorRequest,
+    args: &PubsubliteTopicStatsProjectsLocationsTopicsComputeHeadCursorArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ComputeHeadCursorResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3264,7 +3520,9 @@ pub fn pubsublite_topic_stats_projects_locations_topics_compute_head_cursor(
     ApiError,
 > {
     let builder = pubsublite_topic_stats_projects_locations_topics_compute_head_cursor_builder(
-        client, topic, body,
+        client,
+        &args.topic,
+        &args.body,
     )?;
     pubsublite_topic_stats_projects_locations_topics_compute_head_cursor_execute(builder)
 }
@@ -3366,6 +3624,15 @@ pub fn pubsublite_topic_stats_projects_locations_topics_compute_message_stats_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_topic_stats_projects_locations_topics_compute_message_stats`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteTopicStatsProjectsLocationsTopicsComputeMessageStatsArgs {
+    /// Path parameter: topic
+    pub topic: String,
+    /// Request body.
+    pub body: ComputeMessageStatsRequest,
+}
+
 /// GET v1/topicStats/projects/{projectsId}/locations/{locationsId}/topics/{topicsId}:computeMessageStats
 /// Compute statistics about a range of messages in a given topic and partition.
 ///
@@ -3378,8 +3645,7 @@ pub fn pubsublite_topic_stats_projects_locations_topics_compute_message_stats_ex
 
 pub fn pubsublite_topic_stats_projects_locations_topics_compute_message_stats(
     client: &SimpleHttpClient,
-    topic: &str,
-    body: &ComputeMessageStatsRequest,
+    args: &PubsubliteTopicStatsProjectsLocationsTopicsComputeMessageStatsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ComputeMessageStatsResponse>, ApiError>,
@@ -3389,7 +3655,9 @@ pub fn pubsublite_topic_stats_projects_locations_topics_compute_message_stats(
     ApiError,
 > {
     let builder = pubsublite_topic_stats_projects_locations_topics_compute_message_stats_builder(
-        client, topic, body,
+        client,
+        &args.topic,
+        &args.body,
     )?;
     pubsublite_topic_stats_projects_locations_topics_compute_message_stats_execute(builder)
 }
@@ -3489,6 +3757,15 @@ pub fn pubsublite_topic_stats_projects_locations_topics_compute_time_cursor_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pubsublite_topic_stats_projects_locations_topics_compute_time_cursor`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PubsubliteTopicStatsProjectsLocationsTopicsComputeTimeCursorArgs {
+    /// Path parameter: topic
+    pub topic: String,
+    /// Request body.
+    pub body: ComputeTimeCursorRequest,
+}
+
 /// GET v1/topicStats/projects/{projectsId}/locations/{locationsId}/topics/{topicsId}:computeTimeCursor
 /// Compute the corresponding cursor for a publish or event time in a topic partition.
 ///
@@ -3501,8 +3778,7 @@ pub fn pubsublite_topic_stats_projects_locations_topics_compute_time_cursor_exec
 
 pub fn pubsublite_topic_stats_projects_locations_topics_compute_time_cursor(
     client: &SimpleHttpClient,
-    topic: &str,
-    body: &ComputeTimeCursorRequest,
+    args: &PubsubliteTopicStatsProjectsLocationsTopicsComputeTimeCursorArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ComputeTimeCursorResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3510,7 +3786,9 @@ pub fn pubsublite_topic_stats_projects_locations_topics_compute_time_cursor(
     ApiError,
 > {
     let builder = pubsublite_topic_stats_projects_locations_topics_compute_time_cursor_builder(
-        client, topic, body,
+        client,
+        &args.topic,
+        &args.body,
     )?;
     pubsublite_topic_stats_projects_locations_topics_compute_time_cursor_execute(builder)
 }

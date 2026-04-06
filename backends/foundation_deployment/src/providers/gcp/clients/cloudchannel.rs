@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/accounts/{accountsId}:checkCloudIdentityAccountsExist
 /// Confirms the existence of Cloud Identity accounts based on the domain and if the Cloud Identity accounts are owned by the reseller. Possible error codes: * PERMISSION_DENIED: The reseller account making the request is different from the reseller account in the API request. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * INVALID_VALUE: Invalid domain value in the request. Return value: A list of CloudIdentityCustomerAccount resources for the domain (may be empty) Note: in the v1alpha1 version of the API, a NOT_FOUND error returns if no CloudIdentityCustomerAccount resources match the domain.
@@ -117,6 +119,15 @@ pub fn cloudchannel_accounts_check_cloud_identity_accounts_exist_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_check_cloud_identity_accounts_exist`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCheckCloudIdentityAccountsExistArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1CheckCloudIdentityAccountsExistRequest,
+}
+
 /// GET v1/accounts/{accountsId}:checkCloudIdentityAccountsExist
 /// Confirms the existence of Cloud Identity accounts based on the domain and if the Cloud Identity accounts are owned by the reseller. Possible error codes: * PERMISSION_DENIED: The reseller account making the request is different from the reseller account in the API request. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * INVALID_VALUE: Invalid domain value in the request. Return value: A list of CloudIdentityCustomerAccount resources for the domain (may be empty) Note: in the v1alpha1 version of the API, a NOT_FOUND error returns if no CloudIdentityCustomerAccount resources match the domain.
 ///
@@ -129,8 +140,7 @@ pub fn cloudchannel_accounts_check_cloud_identity_accounts_exist_execute(
 
 pub fn cloudchannel_accounts_check_cloud_identity_accounts_exist(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudChannelV1CheckCloudIdentityAccountsExistRequest,
+    args: &CloudchannelAccountsCheckCloudIdentityAccountsExistArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -142,8 +152,11 @@ pub fn cloudchannel_accounts_check_cloud_identity_accounts_exist(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_check_cloud_identity_accounts_exist_builder(client, parent, body)?;
+    let builder = cloudchannel_accounts_check_cloud_identity_accounts_exist_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     cloudchannel_accounts_check_cloud_identity_accounts_exist_execute(builder)
 }
 
@@ -262,6 +275,19 @@ pub fn cloudchannel_accounts_list_subscribers_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_list_subscribers`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsListSubscribersArgs {
+    /// Path parameter: account
+    pub account: String,
+    /// Query parameter: integrator
+    pub integrator: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}:listSubscribers
 /// Lists service accounts with subscriber privileges on the P`ub/Sub` topic created for this Channel Services account or integrator. Possible error codes: * PERMISSION_DENIED: The reseller account making the request and the provided reseller account are different, or the impersonated user is not a super admin. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: The topic resource doesn't exist. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: A list of service email addresses.
 ///
@@ -274,10 +300,7 @@ pub fn cloudchannel_accounts_list_subscribers_execute(
 
 pub fn cloudchannel_accounts_list_subscribers(
     client: &SimpleHttpClient,
-    account: &str,
-    integrator: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudchannelAccountsListSubscribersArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListSubscribersResponse>, ApiError>,
@@ -287,7 +310,11 @@ pub fn cloudchannel_accounts_list_subscribers(
     ApiError,
 > {
     let builder = cloudchannel_accounts_list_subscribers_builder(
-        client, account, integrator, pageSize, pageToken,
+        client,
+        &args.account,
+        args.integrator.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudchannel_accounts_list_subscribers_execute(builder)
 }
@@ -390,6 +417,15 @@ pub fn cloudchannel_accounts_list_transferable_offers_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_list_transferable_offers`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsListTransferableOffersArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1ListTransferableOffersRequest,
+}
+
 /// GET v1/accounts/{accountsId}:listTransferableOffers
 /// List TransferableOffers of a customer based on Cloud Identity ID or Customer Name in the request. Use this method when a reseller gets the entitlement information of an unowned customer. The reseller should provide the customer's Cloud Identity ID or Customer Name. Possible error codes: * PERMISSION_DENIED: * The customer doesn't belong to the reseller and has no auth token. * The customer provided incorrect reseller information when generating auth token. * The reseller account making the request is different from the reseller account in the query. * The reseller is not authorized to transact on this Product. See <https://support.google.`com/channelservices/answer/9759265`> * INVALID_ARGUMENT: Required request parameters are missing or invalid. Return value: List of TransferableOffer for the given customer and SKU.
 ///
@@ -402,8 +438,7 @@ pub fn cloudchannel_accounts_list_transferable_offers_execute(
 
 pub fn cloudchannel_accounts_list_transferable_offers(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudChannelV1ListTransferableOffersRequest,
+    args: &CloudchannelAccountsListTransferableOffersArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListTransferableOffersResponse>, ApiError>,
@@ -412,7 +447,8 @@ pub fn cloudchannel_accounts_list_transferable_offers(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_list_transferable_offers_builder(client, parent, body)?;
+    let builder =
+        cloudchannel_accounts_list_transferable_offers_builder(client, &args.parent, &args.body)?;
     cloudchannel_accounts_list_transferable_offers_execute(builder)
 }
 
@@ -514,6 +550,15 @@ pub fn cloudchannel_accounts_list_transferable_skus_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_list_transferable_skus`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsListTransferableSkusArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1ListTransferableSkusRequest,
+}
+
 /// GET v1/accounts/{accountsId}:listTransferableSkus
 /// List TransferableSkus of a customer based on the Cloud Identity ID or Customer Name in the request. Use this method to list the entitlements information of an unowned customer. You should provide the customer's Cloud Identity ID or Customer Name. Possible error codes: * PERMISSION_DENIED: * The customer doesn't belong to the reseller and has no auth token. * The supplied auth token is invalid. * The reseller account making the request is different from the reseller account in the query. * INVALID_ARGUMENT: Required request parameters are missing or invalid. Return value: A list of the customer's TransferableSku.
 ///
@@ -526,8 +571,7 @@ pub fn cloudchannel_accounts_list_transferable_skus_execute(
 
 pub fn cloudchannel_accounts_list_transferable_skus(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudChannelV1ListTransferableSkusRequest,
+    args: &CloudchannelAccountsListTransferableSkusArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListTransferableSkusResponse>, ApiError>,
@@ -536,7 +580,8 @@ pub fn cloudchannel_accounts_list_transferable_skus(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_list_transferable_skus_builder(client, parent, body)?;
+    let builder =
+        cloudchannel_accounts_list_transferable_skus_builder(client, &args.parent, &args.body)?;
     cloudchannel_accounts_list_transferable_skus_execute(builder)
 }
 
@@ -638,6 +683,15 @@ pub fn cloudchannel_accounts_register_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_register`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsRegisterArgs {
+    /// Path parameter: account
+    pub account: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1RegisterSubscriberRequest,
+}
+
 /// GET v1/accounts/{accountsId}:register
 /// Registers a service account with subscriber privileges on the P`ub/Sub` topic for this Channel Services account or integrator. After you create a subscriber, you get the events through SubscriberEvent Possible error codes: * PERMISSION_DENIED: The reseller account making the request and the provided reseller account are different, or the impersonated user is not a super admin. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The topic name with the registered service email address.
 ///
@@ -650,8 +704,7 @@ pub fn cloudchannel_accounts_register_execute(
 
 pub fn cloudchannel_accounts_register(
     client: &SimpleHttpClient,
-    account: &str,
-    body: &GoogleCloudChannelV1RegisterSubscriberRequest,
+    args: &CloudchannelAccountsRegisterArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1RegisterSubscriberResponse>, ApiError>,
@@ -660,7 +713,7 @@ pub fn cloudchannel_accounts_register(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_register_builder(client, account, body)?;
+    let builder = cloudchannel_accounts_register_builder(client, &args.account, &args.body)?;
     cloudchannel_accounts_register_execute(builder)
 }
 
@@ -762,6 +815,15 @@ pub fn cloudchannel_accounts_unregister_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_unregister`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsUnregisterArgs {
+    /// Path parameter: account
+    pub account: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1UnregisterSubscriberRequest,
+}
+
 /// GET v1/accounts/{accountsId}:unregister
 /// Unregisters a service account with subscriber privileges on the P`ub/Sub` topic created for this Channel Services account or integrator. If there are no service accounts left with subscriber privileges, this deletes the topic. You can call ListSubscribers to check for these accounts. Possible error codes: * PERMISSION_DENIED: The reseller account making the request and the provided reseller account are different, or the impersonated user is not a super admin. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: The topic resource doesn't exist. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The topic name that unregistered the service email address. Returns a success response if the service email address wasn't registered with the topic.
 ///
@@ -774,8 +836,7 @@ pub fn cloudchannel_accounts_unregister_execute(
 
 pub fn cloudchannel_accounts_unregister(
     client: &SimpleHttpClient,
-    account: &str,
-    body: &GoogleCloudChannelV1UnregisterSubscriberRequest,
+    args: &CloudchannelAccountsUnregisterArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1UnregisterSubscriberResponse>, ApiError>,
@@ -784,7 +845,7 @@ pub fn cloudchannel_accounts_unregister(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_unregister_builder(client, account, body)?;
+    let builder = cloudchannel_accounts_unregister_builder(client, &args.account, &args.body)?;
     cloudchannel_accounts_unregister_execute(builder)
 }
 
@@ -885,6 +946,15 @@ pub fn cloudchannel_accounts_channel_partner_links_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_channel_partner_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsChannelPartnerLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1ChannelPartnerLink,
+}
+
 /// GET v1/accounts/{accountsId}/channelPartnerLinks
 /// Initiates a channel partner link between a distributor and a reseller, or between resellers in an n-tier reseller channel. Invited partners need to follow the invite_link_uri provided in the response to accept. After accepting the invitation, a link is set up between the two parties. You must be a distributor to call this method. Possible error codes: * PERMISSION_DENIED: The reseller account making the request is different from the reseller account in the API request. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * ALREADY_EXISTS: The ChannelPartnerLink sent in the request already exists. * NOT_FOUND: No Cloud Identity customer exists for provided domain. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The new ChannelPartnerLink resource.
 ///
@@ -897,8 +967,7 @@ pub fn cloudchannel_accounts_channel_partner_links_create_execute(
 
 pub fn cloudchannel_accounts_channel_partner_links_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudChannelV1ChannelPartnerLink,
+    args: &CloudchannelAccountsChannelPartnerLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ChannelPartnerLink>, ApiError>,
@@ -907,7 +976,11 @@ pub fn cloudchannel_accounts_channel_partner_links_create(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_channel_partner_links_create_builder(client, parent, body)?;
+    let builder = cloudchannel_accounts_channel_partner_links_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     cloudchannel_accounts_channel_partner_links_create_execute(builder)
 }
 
@@ -1017,6 +1090,15 @@ pub fn cloudchannel_accounts_channel_partner_links_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_channel_partner_links_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsChannelPartnerLinksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}
 /// Returns the requested ChannelPartnerLink resource. You must be a distributor to call this method. Possible error codes: * PERMISSION_DENIED: The reseller account making the request is different from the reseller account in the API request. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: ChannelPartnerLink resource not found because of an invalid channel partner link name. Return value: The ChannelPartnerLink resource.
 ///
@@ -1029,8 +1111,7 @@ pub fn cloudchannel_accounts_channel_partner_links_get_execute(
 
 pub fn cloudchannel_accounts_channel_partner_links_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &CloudchannelAccountsChannelPartnerLinksGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ChannelPartnerLink>, ApiError>,
@@ -1039,7 +1120,11 @@ pub fn cloudchannel_accounts_channel_partner_links_get(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_channel_partner_links_get_builder(client, name, view)?;
+    let builder = cloudchannel_accounts_channel_partner_links_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     cloudchannel_accounts_channel_partner_links_get_execute(builder)
 }
 
@@ -1158,6 +1243,19 @@ pub fn cloudchannel_accounts_channel_partner_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_channel_partner_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsChannelPartnerLinksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/channelPartnerLinks
 /// List ChannelPartnerLinks belonging to a distributor. You must be a distributor to call this method. Possible error codes: * PERMISSION_DENIED: The reseller account making the request is different from the reseller account in the API request. * INVALID_ARGUMENT: Required request parameters are missing or invalid. Return value: The list of the distributor account's ChannelPartnerLink resources.
 ///
@@ -1170,10 +1268,7 @@ pub fn cloudchannel_accounts_channel_partner_links_list_execute(
 
 pub fn cloudchannel_accounts_channel_partner_links_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &CloudchannelAccountsChannelPartnerLinksListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListChannelPartnerLinksResponse>, ApiError>,
@@ -1183,7 +1278,11 @@ pub fn cloudchannel_accounts_channel_partner_links_list(
     ApiError,
 > {
     let builder = cloudchannel_accounts_channel_partner_links_list_builder(
-        client, parent, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     cloudchannel_accounts_channel_partner_links_list_execute(builder)
 }
@@ -1285,6 +1384,15 @@ pub fn cloudchannel_accounts_channel_partner_links_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_channel_partner_links_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsChannelPartnerLinksPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1UpdateChannelPartnerLinkRequest,
+}
+
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}
 /// Updates a channel partner link. Distributors call this method to change a link's status. For example, to suspend a partner link. You must be a distributor to call this method. Possible error codes: * PERMISSION_DENIED: The reseller account making the request is different from the reseller account in the API request. * INVALID_ARGUMENT: * Required request parameters are missing or invalid. * Link state cannot change from invited to active or suspended. * Cannot send reseller_cloud_identity_id, invite_url, or name in update mask. * NOT_FOUND: ChannelPartnerLink resource not found. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The updated ChannelPartnerLink resource.
 ///
@@ -1297,8 +1405,7 @@ pub fn cloudchannel_accounts_channel_partner_links_patch_execute(
 
 pub fn cloudchannel_accounts_channel_partner_links_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudChannelV1UpdateChannelPartnerLinkRequest,
+    args: &CloudchannelAccountsChannelPartnerLinksPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ChannelPartnerLink>, ApiError>,
@@ -1307,7 +1414,8 @@ pub fn cloudchannel_accounts_channel_partner_links_patch(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_channel_partner_links_patch_builder(client, name, body)?;
+    let builder =
+        cloudchannel_accounts_channel_partner_links_patch_builder(client, &args.name, &args.body)?;
     cloudchannel_accounts_channel_partner_links_patch_execute(builder)
 }
 
@@ -1409,6 +1517,15 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1ChannelPartnerRepricingConfig,
+}
+
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}/channelPartnerRepricingConfigs
 /// Creates a ChannelPartnerRepricingConfig. Call this method to set modifications for a specific ChannelPartner's bill. You can only create configs if the RepricingConfig.effective_invoice_month is a future month. If needed, you can create a config for the current month, with some restrictions. When creating a config for a future month, make sure there are no existing configs for that RepricingConfig.effective_invoice_month. The following restrictions are for creating configs in the current month. * This functionality is reserved for recovering from an erroneous config, and should not be used for regular business cases. * The new config will not modify exports used with other configs. Changes to the config may be immediate, but may take up to 24 hours. * There is a limit of ten configs for any ChannelPartner or RepricingConfig.EntitlementGranularity.entitlement, for any RepricingConfig.effective_invoice_month. * The contained ChannelPartnerRepricingConfig.repricing_config value must be different from the value used in the current config for a ChannelPartner. Possible Error Codes: * PERMISSION_DENIED: If the account making the request and the account being queried are different. * INVALID_ARGUMENT: Missing or invalid required parameters in the request. Also displays if the updated config is for the current month or past months. * NOT_FOUND: The ChannelPartnerRepricingConfig specified does not exist or is not associated with the given account. * INTERNAL: Any non-user error related to technical issues in the backend. In this case, contact Cloud Channel support. Return Value: If successful, the updated ChannelPartnerRepricingConfig resource, otherwise returns an error.
 ///
@@ -1421,8 +1538,7 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
 
 pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudChannelV1ChannelPartnerRepricingConfig,
+    args: &CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ChannelPartnerRepricingConfig>, ApiError>,
@@ -1431,7 +1547,7 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_create_builder(client, parent, body)?;
+    let builder = cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_create_builder(client, &args.parent, &args.body)?;
     cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_create_execute(
         builder,
     )
@@ -1529,6 +1645,13 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}/channelPartnerRepricingConfigs/{channelPartnerRepricingConfigsId}
 /// Deletes the given ChannelPartnerRepricingConfig permanently. You can only delete configs if their RepricingConfig.effective_invoice_month is set to a date after the current month. Possible error codes: * PERMISSION_DENIED: The account making the request does not own this customer. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * FAILED_PRECONDITION: The ChannelPartnerRepricingConfig is active or in the past. * NOT_FOUND: No ChannelPartnerRepricingConfig found for the name in the request.
 ///
@@ -1541,14 +1664,14 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
 
 pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_delete_builder(client, name)?;
+    let builder = cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_delete_builder(client, &args.name)?;
     cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_delete_execute(
         builder,
     )
@@ -1649,6 +1772,13 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}/channelPartnerRepricingConfigs/{channelPartnerRepricingConfigsId}
 /// Gets information about how a Distributor modifies their bill before sending it to a ChannelPartner. Possible Error Codes: * PERMISSION_DENIED: If the account making the request and the account being queried are different. * NOT_FOUND: The ChannelPartnerRepricingConfig was not found. * INTERNAL: Any non-user error related to technical issues in the backend. In this case, contact Cloud Channel support. Return Value: If successful, the ChannelPartnerRepricingConfig resource, otherwise returns an error.
 ///
@@ -1661,7 +1791,7 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
 
 pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ChannelPartnerRepricingConfig>, ApiError>,
@@ -1672,7 +1802,7 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
 > {
     let builder =
         cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_get_execute(
         builder,
@@ -1797,6 +1927,19 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}/channelPartnerRepricingConfigs
 /// Lists information about how a Reseller modifies their bill before sending it to a ChannelPartner. Possible Error Codes: * PERMISSION_DENIED: If the account making the request and the account being queried are different. * NOT_FOUND: The ChannelPartnerRepricingConfig specified does not exist or is not associated with the given account. * INTERNAL: Any non-user error related to technical issues in the backend. In this case, contact Cloud Channel support. Return Value: If successful, the ChannelPartnerRepricingConfig resources. The data for each resource is displayed in the ascending order of: * Channel Partner ID * RepricingConfig.effective_invoice_month * ChannelPartnerRepricingConfig.update_time If unsuccessful, returns an error.
 ///
@@ -1809,10 +1952,7 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
 
 pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1826,7 +1966,11 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
 > {
     let builder =
         cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_list_builder(
-            client, parent, filter, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_list_execute(
         builder,
@@ -1931,6 +2075,15 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1ChannelPartnerRepricingConfig,
+}
+
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}/channelPartnerRepricingConfigs/{channelPartnerRepricingConfigsId}
 /// Updates a ChannelPartnerRepricingConfig. Call this method to set modifications for a specific ChannelPartner's bill. This method overwrites the existing CustomerRepricingConfig. You can only update configs if the RepricingConfig.effective_invoice_month is a future month. To make changes to configs for the current month, use CreateChannelPartnerRepricingConfig, taking note of its restrictions. You cannot update the RepricingConfig.effective_invoice_month. When updating a config in the future: * This config must already exist. Possible Error Codes: * PERMISSION_DENIED: If the account making the request and the account being queried are different. * INVALID_ARGUMENT: Missing or invalid required parameters in the request. Also displays if the updated config is for the current month or past months. * NOT_FOUND: The ChannelPartnerRepricingConfig specified does not exist or is not associated with the given account. * INTERNAL: Any non-user error related to technical issues in the backend. In this case, contact Cloud Channel support. Return Value: If successful, the updated ChannelPartnerRepricingConfig resource, otherwise returns an error.
 ///
@@ -1943,8 +2096,7 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
 
 pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudChannelV1ChannelPartnerRepricingConfig,
+    args: &CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ChannelPartnerRepricingConfig>, ApiError>,
@@ -1953,7 +2105,7 @@ pub fn cloudchannel_accounts_channel_partner_links_channel_partner_repricing_con
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_patch_builder(client, name, body)?;
+    let builder = cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_patch_builder(client, &args.name, &args.body)?;
     cloudchannel_accounts_channel_partner_links_channel_partner_repricing_configs_patch_execute(
         builder,
     )
@@ -2056,6 +2208,15 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_channel_partner_links_customers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsChannelPartnerLinksCustomersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1Customer,
+}
+
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}/customers
 /// Creates a new Customer resource under the reseller or distributor account. Possible error codes: * PERMISSION_DENIED: * The reseller account making the request is different from the reseller account in the API request. * You are not authorized to create a customer. See <https://support.google.`com/channelservices/answer/9759265`> * INVALID_ARGUMENT: * Required request parameters are missing or invalid. * Domain field value doesn't match the primary email domain. Return value: The newly created Customer resource.
 ///
@@ -2068,8 +2229,7 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_create_execute(
 
 pub fn cloudchannel_accounts_channel_partner_links_customers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudChannelV1Customer,
+    args: &CloudchannelAccountsChannelPartnerLinksCustomersCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1Customer>, ApiError>,
@@ -2078,8 +2238,11 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_channel_partner_links_customers_create_builder(client, parent, body)?;
+    let builder = cloudchannel_accounts_channel_partner_links_customers_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     cloudchannel_accounts_channel_partner_links_customers_create_execute(builder)
 }
 
@@ -2175,6 +2338,13 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_channel_partner_links_customers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsChannelPartnerLinksCustomersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}/customers/{customersId}
 /// Deletes the given Customer permanently. Possible error codes: * PERMISSION_DENIED: The account making the request does not own this customer. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * FAILED_PRECONDITION: The customer has existing entitlements. * NOT_FOUND: No Customer resource found for the name in the request.
 ///
@@ -2187,7 +2357,7 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_delete_execute(
 
 pub fn cloudchannel_accounts_channel_partner_links_customers_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudchannelAccountsChannelPartnerLinksCustomersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -2195,7 +2365,7 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_delete(
     ApiError,
 > {
     let builder =
-        cloudchannel_accounts_channel_partner_links_customers_delete_builder(client, name)?;
+        cloudchannel_accounts_channel_partner_links_customers_delete_builder(client, &args.name)?;
     cloudchannel_accounts_channel_partner_links_customers_delete_execute(builder)
 }
 
@@ -2293,6 +2463,13 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_channel_partner_links_customers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsChannelPartnerLinksCustomersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}/customers/{customersId}
 /// Returns the requested Customer resource. Possible error codes: * PERMISSION_DENIED: The reseller account making the request is different from the reseller account in the API request. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: The customer resource doesn't exist. Usually the result of an invalid name parameter. Return value: The Customer resource.
 ///
@@ -2305,7 +2482,7 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_get_execute(
 
 pub fn cloudchannel_accounts_channel_partner_links_customers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudchannelAccountsChannelPartnerLinksCustomersGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1Customer>, ApiError>,
@@ -2314,7 +2491,8 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_get(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_channel_partner_links_customers_get_builder(client, name)?;
+    let builder =
+        cloudchannel_accounts_channel_partner_links_customers_get_builder(client, &args.name)?;
     cloudchannel_accounts_channel_partner_links_customers_get_execute(builder)
 }
 
@@ -2415,6 +2593,15 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_channel_partner_links_customers_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsChannelPartnerLinksCustomersImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1ImportCustomerRequest,
+}
+
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}/customers:import
 /// Imports a Customer from the Cloud Identity associated with the provided Cloud Identity ID or domain before a TransferEntitlements call. If a linked Customer already exists and overwrite_if_exists is `true`, it will update that Customer's data. Possible error codes: * PERMISSION_DENIED: * The reseller account making the request is different from the reseller account in the API request. * You are not authorized to import the customer. See <https://support.google.`com/channelservices/answer/9759265`> * NOT_FOUND: Cloud Identity doesn't exist or was deleted. * INVALID_ARGUMENT: Required parameters are missing, or the auth_token is expired or invalid. * ALREADY_EXISTS: A customer already exists and has conflicting critical fields. Requires an overwrite. Return value: The Customer.
 ///
@@ -2427,8 +2614,7 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_import_execute(
 
 pub fn cloudchannel_accounts_channel_partner_links_customers_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudChannelV1ImportCustomerRequest,
+    args: &CloudchannelAccountsChannelPartnerLinksCustomersImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1Customer>, ApiError>,
@@ -2437,8 +2623,11 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_import(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_channel_partner_links_customers_import_builder(client, parent, body)?;
+    let builder = cloudchannel_accounts_channel_partner_links_customers_import_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     cloudchannel_accounts_channel_partner_links_customers_import_execute(builder)
 }
 
@@ -2556,6 +2745,19 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_channel_partner_links_customers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsChannelPartnerLinksCustomersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}/customers
 /// List Customers. Possible error codes: * PERMISSION_DENIED: The reseller account making the request is different from the reseller account in the API request. * INVALID_ARGUMENT: Required request parameters are missing or invalid. Return value: List of Customers, or an empty list if there are no customers.
 ///
@@ -2568,10 +2770,7 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_list_execute(
 
 pub fn cloudchannel_accounts_channel_partner_links_customers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudchannelAccountsChannelPartnerLinksCustomersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListCustomersResponse>, ApiError>,
@@ -2581,7 +2780,11 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_list(
     ApiError,
 > {
     let builder = cloudchannel_accounts_channel_partner_links_customers_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudchannel_accounts_channel_partner_links_customers_list_execute(builder)
 }
@@ -2695,6 +2898,17 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_channel_partner_links_customers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsChannelPartnerLinksCustomersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudChannelV1Customer,
+}
+
 /// GET v1/accounts/{accountsId}/channelPartnerLinks/{channelPartnerLinksId}/customers/{customersId}
 /// Updates an existing Customer resource for the reseller or distributor. Possible error codes: * PERMISSION_DENIED: The reseller account making the request is different from the reseller account in the API request. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: No Customer resource found for the name in the request. Return value: The updated Customer resource.
 ///
@@ -2707,9 +2921,7 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_patch_execute(
 
 pub fn cloudchannel_accounts_channel_partner_links_customers_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudChannelV1Customer,
+    args: &CloudchannelAccountsChannelPartnerLinksCustomersPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1Customer>, ApiError>,
@@ -2719,7 +2931,10 @@ pub fn cloudchannel_accounts_channel_partner_links_customers_patch(
     ApiError,
 > {
     let builder = cloudchannel_accounts_channel_partner_links_customers_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     cloudchannel_accounts_channel_partner_links_customers_patch_execute(builder)
 }
@@ -2821,6 +3036,15 @@ pub fn cloudchannel_accounts_customers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1Customer,
+}
+
 /// GET v1/accounts/{accountsId}/customers
 /// Creates a new Customer resource under the reseller or distributor account. Possible error codes: * PERMISSION_DENIED: * The reseller account making the request is different from the reseller account in the API request. * You are not authorized to create a customer. See <https://support.google.`com/channelservices/answer/9759265`> * INVALID_ARGUMENT: * Required request parameters are missing or invalid. * Domain field value doesn't match the primary email domain. Return value: The newly created Customer resource.
 ///
@@ -2833,8 +3057,7 @@ pub fn cloudchannel_accounts_customers_create_execute(
 
 pub fn cloudchannel_accounts_customers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudChannelV1Customer,
+    args: &CloudchannelAccountsCustomersCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1Customer>, ApiError>,
@@ -2843,7 +3066,7 @@ pub fn cloudchannel_accounts_customers_create(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_customers_create_builder(client, parent, body)?;
+    let builder = cloudchannel_accounts_customers_create_builder(client, &args.parent, &args.body)?;
     cloudchannel_accounts_customers_create_execute(builder)
 }
 
@@ -2939,6 +3162,13 @@ pub fn cloudchannel_accounts_customers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}
 /// Deletes the given Customer permanently. Possible error codes: * PERMISSION_DENIED: The account making the request does not own this customer. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * FAILED_PRECONDITION: The customer has existing entitlements. * NOT_FOUND: No Customer resource found for the name in the request.
 ///
@@ -2951,14 +3181,14 @@ pub fn cloudchannel_accounts_customers_delete_execute(
 
 pub fn cloudchannel_accounts_customers_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudchannelAccountsCustomersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_customers_delete_builder(client, name)?;
+    let builder = cloudchannel_accounts_customers_delete_builder(client, &args.name)?;
     cloudchannel_accounts_customers_delete_execute(builder)
 }
 
@@ -3056,6 +3286,13 @@ pub fn cloudchannel_accounts_customers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}
 /// Returns the requested Customer resource. Possible error codes: * PERMISSION_DENIED: The reseller account making the request is different from the reseller account in the API request. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: The customer resource doesn't exist. Usually the result of an invalid name parameter. Return value: The Customer resource.
 ///
@@ -3068,7 +3305,7 @@ pub fn cloudchannel_accounts_customers_get_execute(
 
 pub fn cloudchannel_accounts_customers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudchannelAccountsCustomersGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1Customer>, ApiError>,
@@ -3077,7 +3314,7 @@ pub fn cloudchannel_accounts_customers_get(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_customers_get_builder(client, name)?;
+    let builder = cloudchannel_accounts_customers_get_builder(client, &args.name)?;
     cloudchannel_accounts_customers_get_execute(builder)
 }
 
@@ -3178,6 +3415,15 @@ pub fn cloudchannel_accounts_customers_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1ImportCustomerRequest,
+}
+
 /// GET v1/accounts/{accountsId}/customers:import
 /// Imports a Customer from the Cloud Identity associated with the provided Cloud Identity ID or domain before a TransferEntitlements call. If a linked Customer already exists and overwrite_if_exists is `true`, it will update that Customer's data. Possible error codes: * PERMISSION_DENIED: * The reseller account making the request is different from the reseller account in the API request. * You are not authorized to import the customer. See <https://support.google.`com/channelservices/answer/9759265`> * NOT_FOUND: Cloud Identity doesn't exist or was deleted. * INVALID_ARGUMENT: Required parameters are missing, or the auth_token is expired or invalid. * ALREADY_EXISTS: A customer already exists and has conflicting critical fields. Requires an overwrite. Return value: The Customer.
 ///
@@ -3190,8 +3436,7 @@ pub fn cloudchannel_accounts_customers_import_execute(
 
 pub fn cloudchannel_accounts_customers_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudChannelV1ImportCustomerRequest,
+    args: &CloudchannelAccountsCustomersImportArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1Customer>, ApiError>,
@@ -3200,7 +3445,7 @@ pub fn cloudchannel_accounts_customers_import(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_customers_import_builder(client, parent, body)?;
+    let builder = cloudchannel_accounts_customers_import_builder(client, &args.parent, &args.body)?;
     cloudchannel_accounts_customers_import_execute(builder)
 }
 
@@ -3318,6 +3563,19 @@ pub fn cloudchannel_accounts_customers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/customers
 /// List Customers. Possible error codes: * PERMISSION_DENIED: The reseller account making the request is different from the reseller account in the API request. * INVALID_ARGUMENT: Required request parameters are missing or invalid. Return value: List of Customers, or an empty list if there are no customers.
 ///
@@ -3330,10 +3588,7 @@ pub fn cloudchannel_accounts_customers_list_execute(
 
 pub fn cloudchannel_accounts_customers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudchannelAccountsCustomersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListCustomersResponse>, ApiError>,
@@ -3342,8 +3597,13 @@ pub fn cloudchannel_accounts_customers_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_customers_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = cloudchannel_accounts_customers_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     cloudchannel_accounts_customers_list_execute(builder)
 }
 
@@ -3482,6 +3742,29 @@ pub fn cloudchannel_accounts_customers_list_purchasable_offers_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_list_purchasable_offers`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersListPurchasableOffersArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: changeOfferPurchase_billingAccount
+    pub changeOfferPurchase_billingAccount: Option<String>,
+    /// Query parameter: changeOfferPurchase_entitlement
+    pub changeOfferPurchase_entitlement: Option<String>,
+    /// Query parameter: changeOfferPurchase_newSku
+    pub changeOfferPurchase_newSku: Option<String>,
+    /// Query parameter: createEntitlementPurchase_billingAccount
+    pub createEntitlementPurchase_billingAccount: Option<String>,
+    /// Query parameter: createEntitlementPurchase_sku
+    pub createEntitlementPurchase_sku: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}:listPurchasableOffers
 /// Lists the following: * Offers that you can purchase for a customer. * Offers that you can change for an entitlement. Possible error codes: * PERMISSION_DENIED: * The customer doesn't belong to the reseller * The reseller is not authorized to transact on this Product. See <https://support.google.`com/channelservices/answer/9759265`> * INVALID_ARGUMENT: Required request parameters are missing or invalid.
 ///
@@ -3494,15 +3777,7 @@ pub fn cloudchannel_accounts_customers_list_purchasable_offers_execute(
 
 pub fn cloudchannel_accounts_customers_list_purchasable_offers(
     client: &SimpleHttpClient,
-    customer: &str,
-    changeOfferPurchase_billingAccount: Option<&str>,
-    changeOfferPurchase_entitlement: Option<&str>,
-    changeOfferPurchase_newSku: Option<&str>,
-    createEntitlementPurchase_billingAccount: Option<&str>,
-    createEntitlementPurchase_sku: Option<&str>,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudchannelAccountsCustomersListPurchasableOffersArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListPurchasableOffersResponse>, ApiError>,
@@ -3513,15 +3788,15 @@ pub fn cloudchannel_accounts_customers_list_purchasable_offers(
 > {
     let builder = cloudchannel_accounts_customers_list_purchasable_offers_builder(
         client,
-        customer,
-        changeOfferPurchase_billingAccount,
-        changeOfferPurchase_entitlement,
-        changeOfferPurchase_newSku,
-        createEntitlementPurchase_billingAccount,
-        createEntitlementPurchase_sku,
-        languageCode,
-        pageSize,
-        pageToken,
+        &args.customer,
+        args.changeOfferPurchase_billingAccount.as_deref(),
+        args.changeOfferPurchase_entitlement.as_deref(),
+        args.changeOfferPurchase_newSku.as_deref(),
+        args.createEntitlementPurchase_billingAccount.as_deref(),
+        args.createEntitlementPurchase_sku.as_deref(),
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudchannel_accounts_customers_list_purchasable_offers_execute(builder)
 }
@@ -3653,6 +3928,25 @@ pub fn cloudchannel_accounts_customers_list_purchasable_skus_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_list_purchasable_skus`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersListPurchasableSkusArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: changeOfferPurchase_changeType
+    pub changeOfferPurchase_changeType: Option<String>,
+    /// Query parameter: changeOfferPurchase_entitlement
+    pub changeOfferPurchase_entitlement: Option<String>,
+    /// Query parameter: createEntitlementPurchase_product
+    pub createEntitlementPurchase_product: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}:listPurchasableSkus
 /// Lists the following: * SKUs that you can purchase for a customer * SKUs that you can upgrade or downgrade for an entitlement. Possible error codes: * PERMISSION_DENIED: The customer doesn't belong to the reseller. * INVALID_ARGUMENT: Required request parameters are missing or invalid.
 ///
@@ -3665,13 +3959,7 @@ pub fn cloudchannel_accounts_customers_list_purchasable_skus_execute(
 
 pub fn cloudchannel_accounts_customers_list_purchasable_skus(
     client: &SimpleHttpClient,
-    customer: &str,
-    changeOfferPurchase_changeType: Option<&str>,
-    changeOfferPurchase_entitlement: Option<&str>,
-    createEntitlementPurchase_product: Option<&str>,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudchannelAccountsCustomersListPurchasableSkusArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListPurchasableSkusResponse>, ApiError>,
@@ -3682,13 +3970,13 @@ pub fn cloudchannel_accounts_customers_list_purchasable_skus(
 > {
     let builder = cloudchannel_accounts_customers_list_purchasable_skus_builder(
         client,
-        customer,
-        changeOfferPurchase_changeType,
-        changeOfferPurchase_entitlement,
-        createEntitlementPurchase_product,
-        languageCode,
-        pageSize,
-        pageToken,
+        &args.customer,
+        args.changeOfferPurchase_changeType.as_deref(),
+        args.changeOfferPurchase_entitlement.as_deref(),
+        args.createEntitlementPurchase_product.as_deref(),
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudchannel_accounts_customers_list_purchasable_skus_execute(builder)
 }
@@ -3802,6 +4090,17 @@ pub fn cloudchannel_accounts_customers_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudChannelV1Customer,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}
 /// Updates an existing Customer resource for the reseller or distributor. Possible error codes: * PERMISSION_DENIED: The reseller account making the request is different from the reseller account in the API request. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: No Customer resource found for the name in the request. Return value: The updated Customer resource.
 ///
@@ -3814,9 +4113,7 @@ pub fn cloudchannel_accounts_customers_patch_execute(
 
 pub fn cloudchannel_accounts_customers_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudChannelV1Customer,
+    args: &CloudchannelAccountsCustomersPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1Customer>, ApiError>,
@@ -3825,7 +4122,12 @@ pub fn cloudchannel_accounts_customers_patch(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_customers_patch_builder(client, name, updateMask, body)?;
+    let builder = cloudchannel_accounts_customers_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudchannel_accounts_customers_patch_execute(builder)
 }
 
@@ -3926,6 +4228,15 @@ pub fn cloudchannel_accounts_customers_provision_cloud_identity_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_provision_cloud_identity`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersProvisionCloudIdentityArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1ProvisionCloudIdentityRequest,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}:provisionCloudIdentity
 /// Creates a Cloud Identity for the given customer using the customer's information, or the information provided here. Possible error codes: * PERMISSION_DENIED: * The customer doesn't belong to the reseller. * You are not authorized to provision cloud identity id. See <https://support.google.`com/channelservices/answer/9759265`> * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: The customer was not found. * ALREADY_EXISTS: The customer's primary email already exists. Retry after changing the customer's primary contact email. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The ID of a long-running operation. To get the results of the operation, call the GetOperation method of CloudChannelOperationsService. The Operation metadata contains an instance of OperationMetadata.
 ///
@@ -3938,8 +4249,7 @@ pub fn cloudchannel_accounts_customers_provision_cloud_identity_execute(
 
 pub fn cloudchannel_accounts_customers_provision_cloud_identity(
     client: &SimpleHttpClient,
-    customer: &str,
-    body: &GoogleCloudChannelV1ProvisionCloudIdentityRequest,
+    args: &CloudchannelAccountsCustomersProvisionCloudIdentityArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3948,8 +4258,11 @@ pub fn cloudchannel_accounts_customers_provision_cloud_identity(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_customers_provision_cloud_identity_builder(client, customer, body)?;
+    let builder = cloudchannel_accounts_customers_provision_cloud_identity_builder(
+        client,
+        &args.customer,
+        &args.body,
+    )?;
     cloudchannel_accounts_customers_provision_cloud_identity_execute(builder)
 }
 
@@ -4063,6 +4376,15 @@ pub fn cloudchannel_accounts_customers_query_eligible_billing_accounts_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_query_eligible_billing_accounts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersQueryEligibleBillingAccountsArgs {
+    /// Path parameter: customer
+    pub customer: String,
+    /// Query parameter: skus
+    pub skus: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}:queryEligibleBillingAccounts
 /// Lists the billing accounts that are eligible to purchase particular SKUs for a given customer. Possible error codes: * PERMISSION_DENIED: The customer doesn't belong to the reseller. * INVALID_ARGUMENT: Required request parameters are missing or invalid. Return value: Based on the provided list of SKUs, returns a list of SKU groups that must be purchased using the same billing account and the billing accounts eligible to purchase each SKU group.
 ///
@@ -4075,8 +4397,7 @@ pub fn cloudchannel_accounts_customers_query_eligible_billing_accounts_execute(
 
 pub fn cloudchannel_accounts_customers_query_eligible_billing_accounts(
     client: &SimpleHttpClient,
-    customer: &str,
-    skus: Option<&str>,
+    args: &CloudchannelAccountsCustomersQueryEligibleBillingAccountsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4089,7 +4410,9 @@ pub fn cloudchannel_accounts_customers_query_eligible_billing_accounts(
     ApiError,
 > {
     let builder = cloudchannel_accounts_customers_query_eligible_billing_accounts_builder(
-        client, customer, skus,
+        client,
+        &args.customer,
+        args.skus.as_deref(),
     )?;
     cloudchannel_accounts_customers_query_eligible_billing_accounts_execute(builder)
 }
@@ -4191,6 +4514,15 @@ pub fn cloudchannel_accounts_customers_transfer_entitlements_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_transfer_entitlements`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersTransferEntitlementsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1TransferEntitlementsRequest,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}:transferEntitlements
 /// Transfers customer entitlements to new reseller. Possible error codes: * PERMISSION_DENIED: * The customer doesn't belong to the reseller. * The reseller is not authorized to transact on this Product. See <https://support.google.`com/channelservices/answer/9759265`> * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: The customer or offer resource was not found. * ALREADY_EXISTS: The SKU was already transferred for the customer. * CONDITION_NOT_MET or FAILED_PRECONDITION: * The SKU requires domain verification to transfer, but the domain is not verified. * An Add-On SKU (example, Vault or Drive) is missing the pre-requisite SKU (example, G Suite Basic). * (Developer accounts only) Reseller and resold domain must meet the following naming requirements: * Domain names must start with goog-test. * Domain names must include the reseller domain. * Specify all transferring entitlements. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The ID of a long-running operation. To get the results of the operation, call the GetOperation method of CloudChannelOperationsService. The Operation metadata will contain an instance of OperationMetadata.
 ///
@@ -4203,8 +4535,7 @@ pub fn cloudchannel_accounts_customers_transfer_entitlements_execute(
 
 pub fn cloudchannel_accounts_customers_transfer_entitlements(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudChannelV1TransferEntitlementsRequest,
+    args: &CloudchannelAccountsCustomersTransferEntitlementsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4213,8 +4544,11 @@ pub fn cloudchannel_accounts_customers_transfer_entitlements(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_customers_transfer_entitlements_builder(client, parent, body)?;
+    let builder = cloudchannel_accounts_customers_transfer_entitlements_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     cloudchannel_accounts_customers_transfer_entitlements_execute(builder)
 }
 
@@ -4315,6 +4649,15 @@ pub fn cloudchannel_accounts_customers_transfer_entitlements_to_google_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_transfer_entitlements_to_google`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersTransferEntitlementsToGoogleArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1TransferEntitlementsToGoogleRequest,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}:transferEntitlementsToGoogle
 /// Transfers customer entitlements from their current reseller to Google. Possible error codes: * PERMISSION_DENIED: The customer doesn't belong to the reseller. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: The customer or offer resource was not found. * ALREADY_EXISTS: The SKU was already transferred for the customer. * CONDITION_NOT_MET or FAILED_PRECONDITION: * The SKU requires domain verification to transfer, but the domain is not verified. * An Add-On SKU (example, Vault or Drive) is missing the pre-requisite SKU (example, G Suite Basic). * (Developer accounts only) Reseller and resold domain must meet the following naming requirements: * Domain names must start with goog-test. * Domain names must include the reseller domain. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The ID of a long-running operation. To get the results of the operation, call the GetOperation method of CloudChannelOperationsService. The response will contain google.protobuf.Empty on success. The Operation metadata will contain an instance of OperationMetadata.
 ///
@@ -4327,8 +4670,7 @@ pub fn cloudchannel_accounts_customers_transfer_entitlements_to_google_execute(
 
 pub fn cloudchannel_accounts_customers_transfer_entitlements_to_google(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudChannelV1TransferEntitlementsToGoogleRequest,
+    args: &CloudchannelAccountsCustomersTransferEntitlementsToGoogleArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4338,7 +4680,9 @@ pub fn cloudchannel_accounts_customers_transfer_entitlements_to_google(
     ApiError,
 > {
     let builder = cloudchannel_accounts_customers_transfer_entitlements_to_google_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     cloudchannel_accounts_customers_transfer_entitlements_to_google_execute(builder)
 }
@@ -4441,6 +4785,15 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_customer_repricing_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersCustomerRepricingConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1CustomerRepricingConfig,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/customerRepricingConfigs
 /// Creates a CustomerRepricingConfig. Call this method to set modifications for a specific customer's bill. You can only create configs if the RepricingConfig.effective_invoice_month is a future month. If needed, you can create a config for the current month, with some restrictions. When creating a config for a future month, make sure there are no existing configs for that RepricingConfig.effective_invoice_month. The following restrictions are for creating configs in the current month. * This functionality is reserved for recovering from an erroneous config, and should not be used for regular business cases. * The new config will not modify exports used with other configs. Changes to the config may be immediate, but may take up to 24 hours. * There is a limit of ten configs for any RepricingConfig.EntitlementGranularity.entitlement, for any RepricingConfig.effective_invoice_month. * The contained CustomerRepricingConfig.repricing_config value must be different from the value used in the current config for a RepricingConfig.EntitlementGranularity.entitlement. Possible Error Codes: * PERMISSION_DENIED: If the account making the request and the account being queried are different. * INVALID_ARGUMENT: Missing or invalid required parameters in the request. Also displays if the updated config is for the current month or past months. * NOT_FOUND: The CustomerRepricingConfig specified does not exist or is not associated with the given account. * INTERNAL: Any non-user error related to technical issues in the backend. In this case, contact Cloud Channel support. Return Value: If successful, the updated CustomerRepricingConfig resource, otherwise returns an error.
 ///
@@ -4453,8 +4806,7 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_create_execute
 
 pub fn cloudchannel_accounts_customers_customer_repricing_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudChannelV1CustomerRepricingConfig,
+    args: &CloudchannelAccountsCustomersCustomerRepricingConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1CustomerRepricingConfig>, ApiError>,
@@ -4464,7 +4816,9 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_create(
     ApiError,
 > {
     let builder = cloudchannel_accounts_customers_customer_repricing_configs_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     cloudchannel_accounts_customers_customer_repricing_configs_create_execute(builder)
 }
@@ -4561,6 +4915,13 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_customer_repricing_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersCustomerRepricingConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/customerRepricingConfigs/{customerRepricingConfigsId}
 /// Deletes the given CustomerRepricingConfig permanently. You can only delete configs if their RepricingConfig.effective_invoice_month is set to a date after the current month. Possible error codes: * PERMISSION_DENIED: The account making the request does not own this customer. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * FAILED_PRECONDITION: The CustomerRepricingConfig is active or in the past. * NOT_FOUND: No CustomerRepricingConfig found for the name in the request.
 ///
@@ -4573,15 +4934,16 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_delete_execute
 
 pub fn cloudchannel_accounts_customers_customer_repricing_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudchannelAccountsCustomersCustomerRepricingConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_customers_customer_repricing_configs_delete_builder(client, name)?;
+    let builder = cloudchannel_accounts_customers_customer_repricing_configs_delete_builder(
+        client, &args.name,
+    )?;
     cloudchannel_accounts_customers_customer_repricing_configs_delete_execute(builder)
 }
 
@@ -4680,6 +5042,13 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_customer_repricing_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersCustomerRepricingConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/customerRepricingConfigs/{customerRepricingConfigsId}
 /// Gets information about how a Reseller modifies their bill before sending it to a Customer. Possible Error Codes: * PERMISSION_DENIED: If the account making the request and the account being queried are different. * NOT_FOUND: The CustomerRepricingConfig was not found. * INTERNAL: Any non-user error related to technical issues in the backend. In this case, contact Cloud Channel support. Return Value: If successful, the CustomerRepricingConfig resource, otherwise returns an error.
 ///
@@ -4692,7 +5061,7 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_get_execute(
 
 pub fn cloudchannel_accounts_customers_customer_repricing_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudchannelAccountsCustomersCustomerRepricingConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1CustomerRepricingConfig>, ApiError>,
@@ -4702,7 +5071,7 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_get(
     ApiError,
 > {
     let builder =
-        cloudchannel_accounts_customers_customer_repricing_configs_get_builder(client, name)?;
+        cloudchannel_accounts_customers_customer_repricing_configs_get_builder(client, &args.name)?;
     cloudchannel_accounts_customers_customer_repricing_configs_get_execute(builder)
 }
 
@@ -4824,6 +5193,19 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_customer_repricing_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersCustomerRepricingConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/customerRepricingConfigs
 /// Lists information about how a Reseller modifies their bill before sending it to a Customer. Possible Error Codes: * PERMISSION_DENIED: If the account making the request and the account being queried are different. * NOT_FOUND: The CustomerRepricingConfig specified does not exist or is not associated with the given account. * INTERNAL: Any non-user error related to technical issues in the backend. In this case, contact Cloud Channel support. Return Value: If successful, the CustomerRepricingConfig resources. The data for each resource is displayed in the ascending order of: * Customer ID * RepricingConfig.EntitlementGranularity.entitlement * RepricingConfig.effective_invoice_month * CustomerRepricingConfig.update_time If unsuccessful, returns an error.
 ///
@@ -4836,10 +5218,7 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_list_execute(
 
 pub fn cloudchannel_accounts_customers_customer_repricing_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudchannelAccountsCustomersCustomerRepricingConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -4852,7 +5231,11 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_list(
     ApiError,
 > {
     let builder = cloudchannel_accounts_customers_customer_repricing_configs_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudchannel_accounts_customers_customer_repricing_configs_list_execute(builder)
 }
@@ -4955,6 +5338,15 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_customer_repricing_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersCustomerRepricingConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1CustomerRepricingConfig,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/customerRepricingConfigs/{customerRepricingConfigsId}
 /// Updates a CustomerRepricingConfig. Call this method to set modifications for a specific customer's bill. This method overwrites the existing CustomerRepricingConfig. You can only update configs if the RepricingConfig.effective_invoice_month is a future month. To make changes to configs for the current month, use CreateCustomerRepricingConfig, taking note of its restrictions. You cannot update the RepricingConfig.effective_invoice_month. When updating a config in the future: * This config must already exist. Possible Error Codes: * PERMISSION_DENIED: If the account making the request and the account being queried are different. * INVALID_ARGUMENT: Missing or invalid required parameters in the request. Also displays if the updated config is for the current month or past months. * NOT_FOUND: The CustomerRepricingConfig specified does not exist or is not associated with the given account. * INTERNAL: Any non-user error related to technical issues in the backend. In this case, contact Cloud Channel support. Return Value: If successful, the updated CustomerRepricingConfig resource, otherwise returns an error.
 ///
@@ -4967,8 +5359,7 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_patch_execute(
 
 pub fn cloudchannel_accounts_customers_customer_repricing_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudChannelV1CustomerRepricingConfig,
+    args: &CloudchannelAccountsCustomersCustomerRepricingConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1CustomerRepricingConfig>, ApiError>,
@@ -4978,7 +5369,7 @@ pub fn cloudchannel_accounts_customers_customer_repricing_configs_patch(
     ApiError,
 > {
     let builder = cloudchannel_accounts_customers_customer_repricing_configs_patch_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     cloudchannel_accounts_customers_customer_repricing_configs_patch_execute(builder)
 }
@@ -5080,6 +5471,15 @@ pub fn cloudchannel_accounts_customers_entitlements_activate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_entitlements_activate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersEntitlementsActivateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1ActivateEntitlementRequest,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/entitlements/{entitlementsId}:activate
 /// Activates a previously suspended entitlement. Entitlements suspended for pending ToS acceptance can't be activated using this method. An entitlement activation is a long-running operation and it updates the state of the customer entitlement. Possible error codes: * PERMISSION_DENIED: The reseller account making the request is different from the reseller account in the API request. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: Entitlement resource not found. * SUSPENSION_NOT_RESELLER_INITIATED: Can only activate reseller-initiated suspensions and entitlements that have accepted the TOS. * NOT_SUSPENDED: Can only activate suspended entitlements not in an `ACTIVE` state. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The ID of a long-running operation. To get the results of the operation, call the GetOperation method of CloudChannelOperationsService. The Operation metadata will contain an instance of OperationMetadata.
 ///
@@ -5092,8 +5492,7 @@ pub fn cloudchannel_accounts_customers_entitlements_activate_execute(
 
 pub fn cloudchannel_accounts_customers_entitlements_activate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudChannelV1ActivateEntitlementRequest,
+    args: &CloudchannelAccountsCustomersEntitlementsActivateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5102,8 +5501,9 @@ pub fn cloudchannel_accounts_customers_entitlements_activate(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_customers_entitlements_activate_builder(client, name, body)?;
+    let builder = cloudchannel_accounts_customers_entitlements_activate_builder(
+        client, &args.name, &args.body,
+    )?;
     cloudchannel_accounts_customers_entitlements_activate_execute(builder)
 }
 
@@ -5204,6 +5604,15 @@ pub fn cloudchannel_accounts_customers_entitlements_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_entitlements_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersEntitlementsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1CancelEntitlementRequest,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/entitlements/{entitlementsId}:cancel
 /// Cancels a previously fulfilled entitlement. An entitlement cancellation is a long-running operation. Possible error codes: * PERMISSION_DENIED: The reseller account making the request is different from the reseller account in the API request. * FAILED_PRECONDITION: There are Google Cloud projects linked to the Google Cloud entitlement's Cloud Billing subaccount. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: Entitlement resource not found. * DELETION_TYPE_NOT_ALLOWED: Cancel is only allowed for Google Workspace add-ons, or entitlements for Google Cloud's development platform. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The ID of a long-running operation. To get the results of the operation, call the GetOperation method of CloudChannelOperationsService. The response will contain google.protobuf.Empty on success. The Operation metadata will contain an instance of OperationMetadata.
 ///
@@ -5216,8 +5625,7 @@ pub fn cloudchannel_accounts_customers_entitlements_cancel_execute(
 
 pub fn cloudchannel_accounts_customers_entitlements_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudChannelV1CancelEntitlementRequest,
+    args: &CloudchannelAccountsCustomersEntitlementsCancelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5226,7 +5634,9 @@ pub fn cloudchannel_accounts_customers_entitlements_cancel(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_customers_entitlements_cancel_builder(client, name, body)?;
+    let builder = cloudchannel_accounts_customers_entitlements_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     cloudchannel_accounts_customers_entitlements_cancel_execute(builder)
 }
 
@@ -5327,6 +5737,15 @@ pub fn cloudchannel_accounts_customers_entitlements_change_offer_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_entitlements_change_offer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersEntitlementsChangeOfferArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1ChangeOfferRequest,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/entitlements/{entitlementsId}:changeOffer
 /// Updates the Offer for an existing customer entitlement. An entitlement update is a long-running operation and it updates the entitlement as a result of fulfillment. Possible error codes: * PERMISSION_DENIED: The customer doesn't belong to the reseller. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: Offer or Entitlement resource not found. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The ID of a long-running operation. To get the results of the operation, call the GetOperation method of CloudChannelOperationsService. The Operation metadata will contain an instance of OperationMetadata.
 ///
@@ -5339,8 +5758,7 @@ pub fn cloudchannel_accounts_customers_entitlements_change_offer_execute(
 
 pub fn cloudchannel_accounts_customers_entitlements_change_offer(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudChannelV1ChangeOfferRequest,
+    args: &CloudchannelAccountsCustomersEntitlementsChangeOfferArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5349,8 +5767,9 @@ pub fn cloudchannel_accounts_customers_entitlements_change_offer(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_customers_entitlements_change_offer_builder(client, name, body)?;
+    let builder = cloudchannel_accounts_customers_entitlements_change_offer_builder(
+        client, &args.name, &args.body,
+    )?;
     cloudchannel_accounts_customers_entitlements_change_offer_execute(builder)
 }
 
@@ -5451,6 +5870,15 @@ pub fn cloudchannel_accounts_customers_entitlements_change_parameters_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_entitlements_change_parameters`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersEntitlementsChangeParametersArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1ChangeParametersRequest,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/entitlements/{entitlementsId}:changeParameters
 /// Change parameters of the entitlement. An entitlement update is a long-running operation and it updates the entitlement as a result of fulfillment. Possible error codes: * PERMISSION_DENIED: The customer doesn't belong to the reseller. * INVALID_ARGUMENT: Required request parameters are missing or invalid. For example, the number of seats being changed is greater than the allowed number of max seats, or decreasing seats for a commitment based plan. * NOT_FOUND: Entitlement resource not found. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The ID of a long-running operation. To get the results of the operation, call the GetOperation method of CloudChannelOperationsService. The Operation metadata will contain an instance of OperationMetadata.
 ///
@@ -5463,8 +5891,7 @@ pub fn cloudchannel_accounts_customers_entitlements_change_parameters_execute(
 
 pub fn cloudchannel_accounts_customers_entitlements_change_parameters(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudChannelV1ChangeParametersRequest,
+    args: &CloudchannelAccountsCustomersEntitlementsChangeParametersArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5473,8 +5900,9 @@ pub fn cloudchannel_accounts_customers_entitlements_change_parameters(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_customers_entitlements_change_parameters_builder(client, name, body)?;
+    let builder = cloudchannel_accounts_customers_entitlements_change_parameters_builder(
+        client, &args.name, &args.body,
+    )?;
     cloudchannel_accounts_customers_entitlements_change_parameters_execute(builder)
 }
 
@@ -5575,6 +6003,15 @@ pub fn cloudchannel_accounts_customers_entitlements_change_renewal_settings_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_entitlements_change_renewal_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersEntitlementsChangeRenewalSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1ChangeRenewalSettingsRequest,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/entitlements/{entitlementsId}:changeRenewalSettings
 /// Updates the renewal settings for an existing customer entitlement. An entitlement update is a long-running operation and it updates the entitlement as a result of fulfillment. Possible error codes: * PERMISSION_DENIED: The customer doesn't belong to the reseller. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: Entitlement resource not found. * NOT_COMMITMENT_PLAN: Renewal Settings are only applicable for a commitment plan. Can't enable or disable renewals for non-commitment plans. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The ID of a long-running operation. To get the results of the operation, call the GetOperation method of CloudChannelOperationsService. The Operation metadata will contain an instance of OperationMetadata.
 ///
@@ -5587,8 +6024,7 @@ pub fn cloudchannel_accounts_customers_entitlements_change_renewal_settings_exec
 
 pub fn cloudchannel_accounts_customers_entitlements_change_renewal_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudChannelV1ChangeRenewalSettingsRequest,
+    args: &CloudchannelAccountsCustomersEntitlementsChangeRenewalSettingsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5598,7 +6034,7 @@ pub fn cloudchannel_accounts_customers_entitlements_change_renewal_settings(
     ApiError,
 > {
     let builder = cloudchannel_accounts_customers_entitlements_change_renewal_settings_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     cloudchannel_accounts_customers_entitlements_change_renewal_settings_execute(builder)
 }
@@ -5700,6 +6136,15 @@ pub fn cloudchannel_accounts_customers_entitlements_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_entitlements_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersEntitlementsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1CreateEntitlementRequest,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/entitlements
 /// Creates an entitlement for a customer. Possible error codes: * PERMISSION_DENIED: * The customer doesn't belong to the reseller. * The reseller is not authorized to transact on this Product. See <https://support.google.`com/channelservices/answer/9759265`> * INVALID_ARGUMENT: * Required request parameters are missing or invalid. * There is already a customer entitlement for a SKU from the same product family. * INVALID_VALUE: Make sure the OfferId is valid. If it is, contact Google Channel support for further troubleshooting. * NOT_FOUND: The customer or offer resource was not found. * ALREADY_EXISTS: * The SKU was already purchased for the customer. * The customer's primary email already exists. Retry after changing the customer's primary contact email. * CONDITION_NOT_MET or FAILED_PRECONDITION: * The domain required for purchasing a SKU has not been verified. * A pre-requisite SKU required to purchase an Add-On SKU is missing. For example, Google Workspace Business Starter is required to purchase Vault or Drive. * (Developer accounts only) Reseller and resold domain must meet the following naming requirements: * Domain names must start with goog-test. * Domain names must include the reseller domain. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The ID of a long-running operation. To get the results of the operation, call the GetOperation method of CloudChannelOperationsService. The Operation metadata will contain an instance of OperationMetadata.
 ///
@@ -5712,8 +6157,7 @@ pub fn cloudchannel_accounts_customers_entitlements_create_execute(
 
 pub fn cloudchannel_accounts_customers_entitlements_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudChannelV1CreateEntitlementRequest,
+    args: &CloudchannelAccountsCustomersEntitlementsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5722,8 +6166,11 @@ pub fn cloudchannel_accounts_customers_entitlements_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_customers_entitlements_create_builder(client, parent, body)?;
+    let builder = cloudchannel_accounts_customers_entitlements_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     cloudchannel_accounts_customers_entitlements_create_execute(builder)
 }
 
@@ -5821,6 +6268,13 @@ pub fn cloudchannel_accounts_customers_entitlements_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_entitlements_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersEntitlementsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/entitlements/{entitlementsId}
 /// Returns the requested Entitlement resource. Possible error codes: * PERMISSION_DENIED: The customer doesn't belong to the reseller. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: The customer entitlement was not found. Return value: The requested Entitlement resource.
 ///
@@ -5833,7 +6287,7 @@ pub fn cloudchannel_accounts_customers_entitlements_get_execute(
 
 pub fn cloudchannel_accounts_customers_entitlements_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudchannelAccountsCustomersEntitlementsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1Entitlement>, ApiError>,
@@ -5842,7 +6296,7 @@ pub fn cloudchannel_accounts_customers_entitlements_get(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_customers_entitlements_get_builder(client, name)?;
+    let builder = cloudchannel_accounts_customers_entitlements_get_builder(client, &args.name)?;
     cloudchannel_accounts_customers_entitlements_get_execute(builder)
 }
 
@@ -5957,6 +6411,17 @@ pub fn cloudchannel_accounts_customers_entitlements_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_entitlements_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersEntitlementsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/entitlements
 /// Lists Entitlements belonging to a customer. Possible error codes: * PERMISSION_DENIED: The customer doesn't belong to the reseller. * INVALID_ARGUMENT: Required request parameters are missing or invalid. Return value: A list of the customer's Entitlements.
 ///
@@ -5969,9 +6434,7 @@ pub fn cloudchannel_accounts_customers_entitlements_list_execute(
 
 pub fn cloudchannel_accounts_customers_entitlements_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudchannelAccountsCustomersEntitlementsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListEntitlementsResponse>, ApiError>,
@@ -5981,7 +6444,10 @@ pub fn cloudchannel_accounts_customers_entitlements_list(
     ApiError,
 > {
     let builder = cloudchannel_accounts_customers_entitlements_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudchannel_accounts_customers_entitlements_list_execute(builder)
 }
@@ -6101,6 +6567,19 @@ pub fn cloudchannel_accounts_customers_entitlements_list_entitlement_changes_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_entitlements_list_entitlement_changes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersEntitlementsListEntitlementChangesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/entitlements/{entitlementsId}:listEntitlementChanges
 /// List entitlement history. Possible error codes: * PERMISSION_DENIED: The reseller account making the request and the provided reseller account are different. * INVALID_ARGUMENT: Missing or invalid required fields in the request. * NOT_FOUND: The parent resource doesn't exist. Usually the result of an invalid name parameter. * INTERNAL: Any non-user error related to a technical issue in the backend. In this case, contact CloudChannel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. In this case, contact Cloud Channel support. Return value: List of EntitlementChanges.
 ///
@@ -6113,10 +6592,7 @@ pub fn cloudchannel_accounts_customers_entitlements_list_entitlement_changes_exe
 
 pub fn cloudchannel_accounts_customers_entitlements_list_entitlement_changes(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudchannelAccountsCustomersEntitlementsListEntitlementChangesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListEntitlementChangesResponse>, ApiError>,
@@ -6126,7 +6602,11 @@ pub fn cloudchannel_accounts_customers_entitlements_list_entitlement_changes(
     ApiError,
 > {
     let builder = cloudchannel_accounts_customers_entitlements_list_entitlement_changes_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudchannel_accounts_customers_entitlements_list_entitlement_changes_execute(builder)
 }
@@ -6223,6 +6703,13 @@ pub fn cloudchannel_accounts_customers_entitlements_lookup_offer_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_entitlements_lookup_offer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersEntitlementsLookupOfferArgs {
+    /// Path parameter: entitlement
+    pub entitlement: String,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/entitlements/{entitlementsId}:lookupOffer
 /// Returns the requested Offer resource. Possible error codes: * PERMISSION_DENIED: The entitlement doesn't belong to the reseller. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: Entitlement or offer was not found. Return value: The Offer resource.
 ///
@@ -6235,15 +6722,17 @@ pub fn cloudchannel_accounts_customers_entitlements_lookup_offer_execute(
 
 pub fn cloudchannel_accounts_customers_entitlements_lookup_offer(
     client: &SimpleHttpClient,
-    entitlement: &str,
+    args: &CloudchannelAccountsCustomersEntitlementsLookupOfferArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudChannelV1Offer>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_customers_entitlements_lookup_offer_builder(client, entitlement)?;
+    let builder = cloudchannel_accounts_customers_entitlements_lookup_offer_builder(
+        client,
+        &args.entitlement,
+    )?;
     cloudchannel_accounts_customers_entitlements_lookup_offer_execute(builder)
 }
 
@@ -6344,6 +6833,15 @@ pub fn cloudchannel_accounts_customers_entitlements_start_paid_service_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_entitlements_start_paid_service`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersEntitlementsStartPaidServiceArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1StartPaidServiceRequest,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/entitlements/{entitlementsId}:startPaidService
 /// Starts paid service for a trial entitlement. Starts paid service for a trial entitlement immediately. This method is only applicable if a plan is set up for a trial entitlement but has some trial days remaining. Possible error codes: * PERMISSION_DENIED: The customer doesn't belong to the reseller. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: Entitlement resource not found. * FAILED_PRECONDITION/NOT_IN_TRIAL: This method only works for entitlement on trial plans. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The ID of a long-running operation. To get the results of the operation, call the GetOperation method of CloudChannelOperationsService. The Operation metadata will contain an instance of OperationMetadata.
 ///
@@ -6356,8 +6854,7 @@ pub fn cloudchannel_accounts_customers_entitlements_start_paid_service_execute(
 
 pub fn cloudchannel_accounts_customers_entitlements_start_paid_service(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudChannelV1StartPaidServiceRequest,
+    args: &CloudchannelAccountsCustomersEntitlementsStartPaidServiceArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6367,7 +6864,7 @@ pub fn cloudchannel_accounts_customers_entitlements_start_paid_service(
     ApiError,
 > {
     let builder = cloudchannel_accounts_customers_entitlements_start_paid_service_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     cloudchannel_accounts_customers_entitlements_start_paid_service_execute(builder)
 }
@@ -6469,6 +6966,15 @@ pub fn cloudchannel_accounts_customers_entitlements_suspend_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_customers_entitlements_suspend`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsCustomersEntitlementsSuspendArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1SuspendEntitlementRequest,
+}
+
 /// GET v1/accounts/{accountsId}/customers/{customersId}/entitlements/{entitlementsId}:suspend
 /// Suspends a previously fulfilled entitlement. An entitlement suspension is a long-running operation. Possible error codes: * PERMISSION_DENIED: The customer doesn't belong to the reseller. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: Entitlement resource not found. * NOT_ACTIVE: Entitlement is not active. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The ID of a long-running operation. To get the results of the operation, call the GetOperation method of CloudChannelOperationsService. The Operation metadata will contain an instance of OperationMetadata.
 ///
@@ -6481,8 +6987,7 @@ pub fn cloudchannel_accounts_customers_entitlements_suspend_execute(
 
 pub fn cloudchannel_accounts_customers_entitlements_suspend(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudChannelV1SuspendEntitlementRequest,
+    args: &CloudchannelAccountsCustomersEntitlementsSuspendArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6491,7 +6996,9 @@ pub fn cloudchannel_accounts_customers_entitlements_suspend(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_customers_entitlements_suspend_builder(client, name, body)?;
+    let builder = cloudchannel_accounts_customers_entitlements_suspend_builder(
+        client, &args.name, &args.body,
+    )?;
     cloudchannel_accounts_customers_entitlements_suspend_execute(builder)
 }
 
@@ -6617,6 +7124,23 @@ pub fn cloudchannel_accounts_offers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_offers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsOffersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showFutureOffers
+    pub showFutureOffers: Option<bool>,
+}
+
 /// GET v1/accounts/{accountsId}/offers
 /// Lists the Offers the reseller can sell. Possible error codes: * INVALID_ARGUMENT: Required request parameters are missing or invalid.
 ///
@@ -6629,12 +7153,7 @@ pub fn cloudchannel_accounts_offers_list_execute(
 
 pub fn cloudchannel_accounts_offers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showFutureOffers: Option<bool>,
+    args: &CloudchannelAccountsOffersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListOffersResponse>, ApiError>,
@@ -6645,12 +7164,12 @@ pub fn cloudchannel_accounts_offers_list(
 > {
     let builder = cloudchannel_accounts_offers_list_builder(
         client,
-        parent,
-        filter,
-        languageCode,
-        pageSize,
-        pageToken,
-        showFutureOffers,
+        &args.parent,
+        args.filter.as_deref(),
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showFutureOffers,
     )?;
     cloudchannel_accounts_offers_list_execute(builder)
 }
@@ -6753,6 +7272,15 @@ pub fn cloudchannel_accounts_report_jobs_fetch_report_results_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_report_jobs_fetch_report_results`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsReportJobsFetchReportResultsArgs {
+    /// Path parameter: reportJob
+    pub reportJob: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1FetchReportResultsRequest,
+}
+
 /// GET v1/accounts/{accountsId}/reportJobs/{reportJobsId}:fetchReportResults
 /// Retrieves data generated by CloudChannelReportsService.RunReportJob. Deprecated: Please use [Export Channel Services data to BigQuery](<https://cloud.google.`com/channel/docs/rebilling/export-data-to-bigquery`>) instead.
 ///
@@ -6765,8 +7293,7 @@ pub fn cloudchannel_accounts_report_jobs_fetch_report_results_execute(
 
 pub fn cloudchannel_accounts_report_jobs_fetch_report_results(
     client: &SimpleHttpClient,
-    reportJob: &str,
-    body: &GoogleCloudChannelV1FetchReportResultsRequest,
+    args: &CloudchannelAccountsReportJobsFetchReportResultsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1FetchReportResultsResponse>, ApiError>,
@@ -6775,8 +7302,11 @@ pub fn cloudchannel_accounts_report_jobs_fetch_report_results(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_report_jobs_fetch_report_results_builder(client, reportJob, body)?;
+    let builder = cloudchannel_accounts_report_jobs_fetch_report_results_builder(
+        client,
+        &args.reportJob,
+        &args.body,
+    )?;
     cloudchannel_accounts_report_jobs_fetch_report_results_execute(builder)
 }
 
@@ -6895,6 +7425,19 @@ pub fn cloudchannel_accounts_reports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_reports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsReportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/reports
 /// Lists the reports that RunReportJob can run. These reports include an ID, a description, and the list of columns that will be in the result. Deprecated: Please use [Export Channel Services data to BigQuery](<https://cloud.google.`com/channel/docs/rebilling/export-data-to-bigquery`>) instead.
 ///
@@ -6907,10 +7450,7 @@ pub fn cloudchannel_accounts_reports_list_execute(
 
 pub fn cloudchannel_accounts_reports_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudchannelAccountsReportsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListReportsResponse>, ApiError>,
@@ -6921,10 +7461,10 @@ pub fn cloudchannel_accounts_reports_list(
 > {
     let builder = cloudchannel_accounts_reports_list_builder(
         client,
-        parent,
-        languageCode,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudchannel_accounts_reports_list_execute(builder)
 }
@@ -7026,6 +7566,15 @@ pub fn cloudchannel_accounts_reports_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_reports_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsReportsRunArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1RunReportJobRequest,
+}
+
 /// GET v1/accounts/{accountsId}/reports/{reportsId}:run
 /// Begins generation of data for a given report. The report identifier is a UID (for example, 613bf59q). Possible error codes: * PERMISSION_DENIED: The user doesn't have access to this report. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: The report identifier was not found. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The ID of a long-running operation. To get the results of the operation, call the GetOperation method of CloudChannelOperationsService. The Operation metadata contains an instance of OperationMetadata. To get the results of report generation, call CloudChannelReportsService.FetchReportResults with the RunReportJobResponse.report_job. Deprecated: Please use [Export Channel Services data to BigQuery](<https://cloud.google.`com/channel/docs/rebilling/export-data-to-bigquery`>) instead.
 ///
@@ -7038,8 +7587,7 @@ pub fn cloudchannel_accounts_reports_run_execute(
 
 pub fn cloudchannel_accounts_reports_run(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudChannelV1RunReportJobRequest,
+    args: &CloudchannelAccountsReportsRunArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7048,7 +7596,7 @@ pub fn cloudchannel_accounts_reports_run(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_accounts_reports_run_builder(client, name, body)?;
+    let builder = cloudchannel_accounts_reports_run_builder(client, &args.name, &args.body)?;
     cloudchannel_accounts_reports_run_execute(builder)
 }
 
@@ -7162,6 +7710,17 @@ pub fn cloudchannel_accounts_sku_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_sku_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsSkuGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/skuGroups
 /// Lists the Rebilling supported SKU groups the account is authorized to sell. Reference: <https://cloud.google.`com/skus/sku-groups`> Possible Error Codes: * PERMISSION_DENIED: If the account making the request and the account being queried are different, or the account doesn't exist. * INTERNAL: Any non-user error related to technical issues in the backend. In this case, contact Cloud Channel support. Return Value: If successful, the SkuGroup resources. The data for each resource is displayed in the alphabetical order of SKU group display name. The data for each resource is displayed in the ascending order of SkuGroup.display_name If unsuccessful, returns an error.
 ///
@@ -7174,9 +7733,7 @@ pub fn cloudchannel_accounts_sku_groups_list_execute(
 
 pub fn cloudchannel_accounts_sku_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudchannelAccountsSkuGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListSkuGroupsResponse>, ApiError>,
@@ -7185,8 +7742,12 @@ pub fn cloudchannel_accounts_sku_groups_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_accounts_sku_groups_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = cloudchannel_accounts_sku_groups_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     cloudchannel_accounts_sku_groups_list_execute(builder)
 }
 
@@ -7301,6 +7862,17 @@ pub fn cloudchannel_accounts_sku_groups_billable_skus_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_accounts_sku_groups_billable_skus_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelAccountsSkuGroupsBillableSkusListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/accounts/{accountsId}/skuGroups/{skuGroupsId}/billableSkus
 /// Lists the Billable SKUs in a given SKU group. Possible error codes: PERMISSION_DENIED: If the account making the request and the account being queried for are different, or the account doesn't exist. INVALID_ARGUMENT: Missing or invalid required parameters in the request. INTERNAL: Any non-user error related to technical issue in the backend. In this case, contact cloud channel support. Return Value: If successful, the BillableSku resources. The data for each resource is displayed in the ascending order of: * BillableSku.service_display_name * BillableSku.sku_display_name If unsuccessful, returns an error.
 ///
@@ -7313,9 +7885,7 @@ pub fn cloudchannel_accounts_sku_groups_billable_skus_list_execute(
 
 pub fn cloudchannel_accounts_sku_groups_billable_skus_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudchannelAccountsSkuGroupsBillableSkusListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListSkuGroupBillableSkusResponse>, ApiError>,
@@ -7325,7 +7895,10 @@ pub fn cloudchannel_accounts_sku_groups_billable_skus_list(
     ApiError,
 > {
     let builder = cloudchannel_accounts_sku_groups_billable_skus_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudchannel_accounts_sku_groups_billable_skus_list_execute(builder)
 }
@@ -7445,6 +8018,19 @@ pub fn cloudchannel_integrators_list_subscribers_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_integrators_list_subscribers`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelIntegratorsListSubscribersArgs {
+    /// Path parameter: integrator
+    pub integrator: String,
+    /// Query parameter: account
+    pub account: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/integrators/{integratorsId}:listSubscribers
 /// Lists service accounts with subscriber privileges on the P`ub/Sub` topic created for this Channel Services account or integrator. Possible error codes: * PERMISSION_DENIED: The reseller account making the request and the provided reseller account are different, or the impersonated user is not a super admin. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: The topic resource doesn't exist. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: A list of service email addresses.
 ///
@@ -7457,10 +8043,7 @@ pub fn cloudchannel_integrators_list_subscribers_execute(
 
 pub fn cloudchannel_integrators_list_subscribers(
     client: &SimpleHttpClient,
-    integrator: &str,
-    account: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudchannelIntegratorsListSubscribersArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListSubscribersResponse>, ApiError>,
@@ -7470,7 +8053,11 @@ pub fn cloudchannel_integrators_list_subscribers(
     ApiError,
 > {
     let builder = cloudchannel_integrators_list_subscribers_builder(
-        client, integrator, account, pageSize, pageToken,
+        client,
+        &args.integrator,
+        args.account.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudchannel_integrators_list_subscribers_execute(builder)
 }
@@ -7573,6 +8160,15 @@ pub fn cloudchannel_integrators_register_subscriber_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_integrators_register_subscriber`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelIntegratorsRegisterSubscriberArgs {
+    /// Path parameter: integrator
+    pub integrator: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1RegisterSubscriberRequest,
+}
+
 /// GET v1/integrators/{integratorsId}:registerSubscriber
 /// Registers a service account with subscriber privileges on the P`ub/Sub` topic for this Channel Services account or integrator. After you create a subscriber, you get the events through SubscriberEvent Possible error codes: * PERMISSION_DENIED: The reseller account making the request and the provided reseller account are different, or the impersonated user is not a super admin. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The topic name with the registered service email address.
 ///
@@ -7585,8 +8181,7 @@ pub fn cloudchannel_integrators_register_subscriber_execute(
 
 pub fn cloudchannel_integrators_register_subscriber(
     client: &SimpleHttpClient,
-    integrator: &str,
-    body: &GoogleCloudChannelV1RegisterSubscriberRequest,
+    args: &CloudchannelIntegratorsRegisterSubscriberArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1RegisterSubscriberResponse>, ApiError>,
@@ -7595,7 +8190,8 @@ pub fn cloudchannel_integrators_register_subscriber(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_integrators_register_subscriber_builder(client, integrator, body)?;
+    let builder =
+        cloudchannel_integrators_register_subscriber_builder(client, &args.integrator, &args.body)?;
     cloudchannel_integrators_register_subscriber_execute(builder)
 }
 
@@ -7697,6 +8293,15 @@ pub fn cloudchannel_integrators_unregister_subscriber_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_integrators_unregister_subscriber`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelIntegratorsUnregisterSubscriberArgs {
+    /// Path parameter: integrator
+    pub integrator: String,
+    /// Request body.
+    pub body: GoogleCloudChannelV1UnregisterSubscriberRequest,
+}
+
 /// GET v1/integrators/{integratorsId}:unregisterSubscriber
 /// Unregisters a service account with subscriber privileges on the P`ub/Sub` topic created for this Channel Services account or integrator. If there are no service accounts left with subscriber privileges, this deletes the topic. You can call ListSubscribers to check for these accounts. Possible error codes: * PERMISSION_DENIED: The reseller account making the request and the provided reseller account are different, or the impersonated user is not a super admin. * INVALID_ARGUMENT: Required request parameters are missing or invalid. * NOT_FOUND: The topic resource doesn't exist. * INTERNAL: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. * UNKNOWN: Any non-user error related to a technical issue in the backend. Contact Cloud Channel support. Return value: The topic name that unregistered the service email address. Returns a success response if the service email address wasn't registered with the topic.
 ///
@@ -7709,8 +8314,7 @@ pub fn cloudchannel_integrators_unregister_subscriber_execute(
 
 pub fn cloudchannel_integrators_unregister_subscriber(
     client: &SimpleHttpClient,
-    integrator: &str,
-    body: &GoogleCloudChannelV1UnregisterSubscriberRequest,
+    args: &CloudchannelIntegratorsUnregisterSubscriberArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1UnregisterSubscriberResponse>, ApiError>,
@@ -7719,7 +8323,11 @@ pub fn cloudchannel_integrators_unregister_subscriber(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_integrators_unregister_subscriber_builder(client, integrator, body)?;
+    let builder = cloudchannel_integrators_unregister_subscriber_builder(
+        client,
+        &args.integrator,
+        &args.body,
+    )?;
     cloudchannel_integrators_unregister_subscriber_execute(builder)
 }
 
@@ -7818,6 +8426,15 @@ pub fn cloudchannel_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -7830,15 +8447,14 @@ pub fn cloudchannel_operations_cancel_execute(
 
 pub fn cloudchannel_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &CloudchannelOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_operations_cancel_builder(client, name, body)?;
+    let builder = cloudchannel_operations_cancel_builder(client, &args.name, &args.body)?;
     cloudchannel_operations_cancel_execute(builder)
 }
 
@@ -7931,6 +8547,13 @@ pub fn cloudchannel_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -7943,14 +8566,14 @@ pub fn cloudchannel_operations_delete_execute(
 
 pub fn cloudchannel_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudchannelOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_operations_delete_builder(client, name)?;
+    let builder = cloudchannel_operations_delete_builder(client, &args.name)?;
     cloudchannel_operations_delete_execute(builder)
 }
 
@@ -8045,6 +8668,13 @@ pub fn cloudchannel_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -8057,7 +8687,7 @@ pub fn cloudchannel_operations_get_execute(
 
 pub fn cloudchannel_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudchannelOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -8066,7 +8696,7 @@ pub fn cloudchannel_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = cloudchannel_operations_get_builder(client, name)?;
+    let builder = cloudchannel_operations_get_builder(client, &args.name)?;
     cloudchannel_operations_get_execute(builder)
 }
 
@@ -8186,6 +8816,21 @@ pub fn cloudchannel_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -8198,11 +8843,7 @@ pub fn cloudchannel_operations_list_execute(
 
 pub fn cloudchannel_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &CloudchannelOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -8213,11 +8854,11 @@ pub fn cloudchannel_operations_list(
 > {
     let builder = cloudchannel_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     cloudchannel_operations_list_execute(builder)
 }
@@ -8336,6 +8977,19 @@ pub fn cloudchannel_products_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_products_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelProductsListArgs {
+    /// Query parameter: account
+    pub account: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/products
 /// Lists the Products the reseller is authorized to sell. Possible error codes: * INVALID_ARGUMENT: Required request parameters are missing or invalid.
 ///
@@ -8348,10 +9002,7 @@ pub fn cloudchannel_products_list_execute(
 
 pub fn cloudchannel_products_list(
     client: &SimpleHttpClient,
-    account: Option<&str>,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudchannelProductsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListProductsResponse>, ApiError>,
@@ -8360,8 +9011,13 @@ pub fn cloudchannel_products_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudchannel_products_list_builder(client, account, languageCode, pageSize, pageToken)?;
+    let builder = cloudchannel_products_list_builder(
+        client,
+        args.account.as_deref(),
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     cloudchannel_products_list_execute(builder)
 }
 
@@ -8483,6 +9139,21 @@ pub fn cloudchannel_products_skus_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudchannel_products_skus_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudchannelProductsSkusListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: account
+    pub account: Option<String>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/products/{productsId}/skus
 /// Lists the SKUs for a product the reseller is authorized to sell. Possible error codes: * INVALID_ARGUMENT: Required request parameters are missing or invalid.
 ///
@@ -8495,11 +9166,7 @@ pub fn cloudchannel_products_skus_list_execute(
 
 pub fn cloudchannel_products_skus_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    account: Option<&str>,
-    languageCode: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudchannelProductsSkusListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudChannelV1ListSkusResponse>, ApiError>,
@@ -8510,11 +9177,11 @@ pub fn cloudchannel_products_skus_list(
 > {
     let builder = cloudchannel_products_skus_list_builder(
         client,
-        parent,
-        account,
-        languageCode,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.account.as_deref(),
+        args.languageCode.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudchannel_products_skus_list_execute(builder)
 }

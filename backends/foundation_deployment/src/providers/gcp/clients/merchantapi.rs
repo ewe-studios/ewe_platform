@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET reviews/v1beta/accounts/{accountsId}/merchantReviews/{merchantReviewsId}
 /// Deletes merchant review.
@@ -106,6 +108,13 @@ pub fn merchantapi_accounts_merchant_reviews_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`merchantapi_accounts_merchant_reviews_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MerchantapiAccountsMerchantReviewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET reviews/v1beta/accounts/{accountsId}/merchantReviews/{merchantReviewsId}
 /// Deletes merchant review.
 ///
@@ -118,12 +127,12 @@ pub fn merchantapi_accounts_merchant_reviews_delete_execute(
 
 pub fn merchantapi_accounts_merchant_reviews_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MerchantapiAccountsMerchantReviewsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = merchantapi_accounts_merchant_reviews_delete_builder(client, name)?;
+    let builder = merchantapi_accounts_merchant_reviews_delete_builder(client, &args.name)?;
     merchantapi_accounts_merchant_reviews_delete_execute(builder)
 }
 
@@ -219,6 +228,13 @@ pub fn merchantapi_accounts_merchant_reviews_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`merchantapi_accounts_merchant_reviews_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MerchantapiAccountsMerchantReviewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET reviews/v1beta/accounts/{accountsId}/merchantReviews/{merchantReviewsId}
 /// Gets a merchant review.
 ///
@@ -231,14 +247,14 @@ pub fn merchantapi_accounts_merchant_reviews_get_execute(
 
 pub fn merchantapi_accounts_merchant_reviews_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MerchantapiAccountsMerchantReviewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MerchantReview>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = merchantapi_accounts_merchant_reviews_get_builder(client, name)?;
+    let builder = merchantapi_accounts_merchant_reviews_get_builder(client, &args.name)?;
     merchantapi_accounts_merchant_reviews_get_execute(builder)
 }
 
@@ -349,6 +365,17 @@ pub fn merchantapi_accounts_merchant_reviews_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`merchantapi_accounts_merchant_reviews_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MerchantapiAccountsMerchantReviewsInsertArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataSource
+    pub dataSource: Option<String>,
+    /// Request body.
+    pub body: MerchantReview,
+}
+
 /// GET reviews/v1beta/accounts/{accountsId}/merchantReviews:insert
 /// Inserts a review for your Merchant Center account. If the review already exists, then the review is replaced with the new instance.
 ///
@@ -361,17 +388,19 @@ pub fn merchantapi_accounts_merchant_reviews_insert_execute(
 
 pub fn merchantapi_accounts_merchant_reviews_insert(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataSource: Option<&str>,
-    body: &MerchantReview,
+    args: &MerchantapiAccountsMerchantReviewsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MerchantReview>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        merchantapi_accounts_merchant_reviews_insert_builder(client, parent, dataSource, body)?;
+    let builder = merchantapi_accounts_merchant_reviews_insert_builder(
+        client,
+        &args.parent,
+        args.dataSource.as_deref(),
+        &args.body,
+    )?;
     merchantapi_accounts_merchant_reviews_insert_execute(builder)
 }
 
@@ -485,6 +514,17 @@ pub fn merchantapi_accounts_merchant_reviews_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`merchantapi_accounts_merchant_reviews_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MerchantapiAccountsMerchantReviewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET reviews/v1beta/accounts/{accountsId}/merchantReviews
 /// Lists merchant reviews.
 ///
@@ -497,9 +537,7 @@ pub fn merchantapi_accounts_merchant_reviews_list_execute(
 
 pub fn merchantapi_accounts_merchant_reviews_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MerchantapiAccountsMerchantReviewsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMerchantReviewsResponse>, ApiError>,
@@ -508,8 +546,12 @@ pub fn merchantapi_accounts_merchant_reviews_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        merchantapi_accounts_merchant_reviews_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = merchantapi_accounts_merchant_reviews_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     merchantapi_accounts_merchant_reviews_list_execute(builder)
 }
 
@@ -603,6 +645,13 @@ pub fn merchantapi_accounts_product_reviews_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`merchantapi_accounts_product_reviews_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MerchantapiAccountsProductReviewsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET reviews/v1beta/accounts/{accountsId}/productReviews/{productReviewsId}
 /// Deletes a product review.
 ///
@@ -615,12 +664,12 @@ pub fn merchantapi_accounts_product_reviews_delete_execute(
 
 pub fn merchantapi_accounts_product_reviews_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MerchantapiAccountsProductReviewsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = merchantapi_accounts_product_reviews_delete_builder(client, name)?;
+    let builder = merchantapi_accounts_product_reviews_delete_builder(client, &args.name)?;
     merchantapi_accounts_product_reviews_delete_execute(builder)
 }
 
@@ -716,6 +765,13 @@ pub fn merchantapi_accounts_product_reviews_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`merchantapi_accounts_product_reviews_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MerchantapiAccountsProductReviewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET reviews/v1beta/accounts/{accountsId}/productReviews/{productReviewsId}
 /// Gets a product review.
 ///
@@ -728,14 +784,14 @@ pub fn merchantapi_accounts_product_reviews_get_execute(
 
 pub fn merchantapi_accounts_product_reviews_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MerchantapiAccountsProductReviewsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductReview>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = merchantapi_accounts_product_reviews_get_builder(client, name)?;
+    let builder = merchantapi_accounts_product_reviews_get_builder(client, &args.name)?;
     merchantapi_accounts_product_reviews_get_execute(builder)
 }
 
@@ -846,6 +902,17 @@ pub fn merchantapi_accounts_product_reviews_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`merchantapi_accounts_product_reviews_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MerchantapiAccountsProductReviewsInsertArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: dataSource
+    pub dataSource: Option<String>,
+    /// Request body.
+    pub body: ProductReview,
+}
+
 /// GET reviews/v1beta/accounts/{accountsId}/productReviews:insert
 /// Inserts a product review.
 ///
@@ -858,17 +925,19 @@ pub fn merchantapi_accounts_product_reviews_insert_execute(
 
 pub fn merchantapi_accounts_product_reviews_insert(
     client: &SimpleHttpClient,
-    parent: &str,
-    dataSource: Option<&str>,
-    body: &ProductReview,
+    args: &MerchantapiAccountsProductReviewsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProductReview>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        merchantapi_accounts_product_reviews_insert_builder(client, parent, dataSource, body)?;
+    let builder = merchantapi_accounts_product_reviews_insert_builder(
+        client,
+        &args.parent,
+        args.dataSource.as_deref(),
+        &args.body,
+    )?;
     merchantapi_accounts_product_reviews_insert_execute(builder)
 }
 
@@ -982,6 +1051,17 @@ pub fn merchantapi_accounts_product_reviews_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`merchantapi_accounts_product_reviews_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MerchantapiAccountsProductReviewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET reviews/v1beta/accounts/{accountsId}/productReviews
 /// Lists product reviews.
 ///
@@ -994,9 +1074,7 @@ pub fn merchantapi_accounts_product_reviews_list_execute(
 
 pub fn merchantapi_accounts_product_reviews_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MerchantapiAccountsProductReviewsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListProductReviewsResponse>, ApiError>,
@@ -1005,7 +1083,11 @@ pub fn merchantapi_accounts_product_reviews_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        merchantapi_accounts_product_reviews_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = merchantapi_accounts_product_reviews_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     merchantapi_accounts_product_reviews_list_execute(builder)
 }

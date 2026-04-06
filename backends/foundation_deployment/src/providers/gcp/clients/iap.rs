@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/brands
 /// Constructs a new OAuth brand for the project if one does not exist. The created brand is "internal only", meaning that OAuth clients created under it only accept requests from users who belong to the same Google Workspace organization as the project. The brand is created in an un-reviewed status. NOTE: The "internal only" status can be manually changed in the Google Cloud Console. Requires that a brand does not already exist for the project, and that the specified support email is owned by the caller.
@@ -106,6 +108,15 @@ pub fn iap_projects_brands_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_projects_brands_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsBrandsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Brand,
+}
+
 /// GET v1/projects/{projectsId}/brands
 /// Constructs a new OAuth brand for the project if one does not exist. The created brand is "internal only", meaning that OAuth clients created under it only accept requests from users who belong to the same Google Workspace organization as the project. The brand is created in an un-reviewed status. NOTE: The "internal only" status can be manually changed in the Google Cloud Console. Requires that a brand does not already exist for the project, and that the specified support email is owned by the caller.
 ///
@@ -118,13 +129,12 @@ pub fn iap_projects_brands_create_execute(
 
 pub fn iap_projects_brands_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Brand,
+    args: &IapProjectsBrandsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Brand>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = iap_projects_brands_create_builder(client, parent, body)?;
+    let builder = iap_projects_brands_create_builder(client, &args.parent, &args.body)?;
     iap_projects_brands_create_execute(builder)
 }
 
@@ -215,6 +225,13 @@ pub fn iap_projects_brands_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_projects_brands_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsBrandsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/brands/{brandsId}
 /// Retrieves the OAuth brand of the project.
 ///
@@ -227,12 +244,12 @@ pub fn iap_projects_brands_get_execute(
 
 pub fn iap_projects_brands_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IapProjectsBrandsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Brand>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = iap_projects_brands_get_builder(client, name)?;
+    let builder = iap_projects_brands_get_builder(client, &args.name)?;
     iap_projects_brands_get_execute(builder)
 }
 
@@ -325,6 +342,13 @@ pub fn iap_projects_brands_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_projects_brands_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsBrandsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/brands
 /// Lists the existing brands for the project.
 ///
@@ -337,14 +361,14 @@ pub fn iap_projects_brands_list_execute(
 
 pub fn iap_projects_brands_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &IapProjectsBrandsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBrandsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = iap_projects_brands_list_builder(client, parent)?;
+    let builder = iap_projects_brands_list_builder(client, &args.parent)?;
     iap_projects_brands_list_execute(builder)
 }
 
@@ -443,6 +467,15 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_projects_brands_identity_aware_proxy_clients_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsBrandsIdentityAwareProxyClientsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: IdentityAwareProxyClient,
+}
+
 /// GET v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients
 /// Creates an Identity Aware Proxy (IAP) OAuth client. The client is owned by IAP. Requires that the brand for the project exists and that it is set for internal-only use.
 ///
@@ -455,16 +488,18 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_create_execute(
 
 pub fn iap_projects_brands_identity_aware_proxy_clients_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &IdentityAwareProxyClient,
+    args: &IapProjectsBrandsIdentityAwareProxyClientsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IdentityAwareProxyClient>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        iap_projects_brands_identity_aware_proxy_clients_create_builder(client, parent, body)?;
+    let builder = iap_projects_brands_identity_aware_proxy_clients_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     iap_projects_brands_identity_aware_proxy_clients_create_execute(builder)
 }
 
@@ -558,6 +593,13 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_projects_brands_identity_aware_proxy_clients_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsBrandsIdentityAwareProxyClientsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}
 /// Deletes an Identity Aware Proxy (IAP) OAuth client. Useful for removing obsolete clients, managing the number of clients in a given project, and cleaning up after tests. Requires that the client is owned by IAP.
 ///
@@ -570,12 +612,13 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_delete_execute(
 
 pub fn iap_projects_brands_identity_aware_proxy_clients_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IapProjectsBrandsIdentityAwareProxyClientsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = iap_projects_brands_identity_aware_proxy_clients_delete_builder(client, name)?;
+    let builder =
+        iap_projects_brands_identity_aware_proxy_clients_delete_builder(client, &args.name)?;
     iap_projects_brands_identity_aware_proxy_clients_delete_execute(builder)
 }
 
@@ -671,6 +714,13 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_projects_brands_identity_aware_proxy_clients_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsBrandsIdentityAwareProxyClientsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}
 /// Retrieves an Identity Aware Proxy (IAP) OAuth client. Requires that the client is owned by IAP.
 ///
@@ -683,14 +733,14 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_get_execute(
 
 pub fn iap_projects_brands_identity_aware_proxy_clients_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IapProjectsBrandsIdentityAwareProxyClientsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IdentityAwareProxyClient>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = iap_projects_brands_identity_aware_proxy_clients_get_builder(client, name)?;
+    let builder = iap_projects_brands_identity_aware_proxy_clients_get_builder(client, &args.name)?;
     iap_projects_brands_identity_aware_proxy_clients_get_execute(builder)
 }
 
@@ -804,6 +854,17 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_projects_brands_identity_aware_proxy_clients_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsBrandsIdentityAwareProxyClientsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients
 /// Lists the existing clients for the brand.
 ///
@@ -816,9 +877,7 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_list_execute(
 
 pub fn iap_projects_brands_identity_aware_proxy_clients_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &IapProjectsBrandsIdentityAwareProxyClientsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListIdentityAwareProxyClientsResponse>, ApiError>,
@@ -828,7 +887,10 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_list(
     ApiError,
 > {
     let builder = iap_projects_brands_identity_aware_proxy_clients_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     iap_projects_brands_identity_aware_proxy_clients_list_execute(builder)
 }
@@ -928,6 +990,15 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_reset_secret_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_projects_brands_identity_aware_proxy_clients_reset_secret`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsBrandsIdentityAwareProxyClientsResetSecretArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResetIdentityAwareProxyClientSecretRequest,
+}
+
 /// GET v1/projects/{projectsId}/brands/{brandsId}/identityAwareProxyClients/{identityAwareProxyClientsId}:resetSecret
 /// Resets an Identity Aware Proxy (IAP) OAuth client secret. Useful if the secret was compromised. Requires that the client is owned by IAP.
 ///
@@ -940,16 +1011,16 @@ pub fn iap_projects_brands_identity_aware_proxy_clients_reset_secret_execute(
 
 pub fn iap_projects_brands_identity_aware_proxy_clients_reset_secret(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResetIdentityAwareProxyClientSecretRequest,
+    args: &IapProjectsBrandsIdentityAwareProxyClientsResetSecretArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IdentityAwareProxyClient>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        iap_projects_brands_identity_aware_proxy_clients_reset_secret_builder(client, name, body)?;
+    let builder = iap_projects_brands_identity_aware_proxy_clients_reset_secret_builder(
+        client, &args.name, &args.body,
+    )?;
     iap_projects_brands_identity_aware_proxy_clients_reset_secret_execute(builder)
 }
 
@@ -1060,6 +1131,17 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_projects_iap_tunnel_locations_dest_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsIapTunnelLocationsDestGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: tunnelDestGroupId
+    pub tunnelDestGroupId: Option<String>,
+    /// Request body.
+    pub body: TunnelDestGroup,
+}
+
 /// GET v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups
 /// Creates a new TunnelDestGroup.
 ///
@@ -1072,9 +1154,7 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_create_execute(
 
 pub fn iap_projects_iap_tunnel_locations_dest_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    tunnelDestGroupId: Option<&str>,
-    body: &TunnelDestGroup,
+    args: &IapProjectsIapTunnelLocationsDestGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TunnelDestGroup>, ApiError>, P = ApiPending>
         + Send
@@ -1083,9 +1163,9 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_create(
 > {
     let builder = iap_projects_iap_tunnel_locations_dest_groups_create_builder(
         client,
-        parent,
-        tunnelDestGroupId,
-        body,
+        &args.parent,
+        args.tunnelDestGroupId.as_deref(),
+        &args.body,
     )?;
     iap_projects_iap_tunnel_locations_dest_groups_create_execute(builder)
 }
@@ -1180,6 +1260,13 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_projects_iap_tunnel_locations_dest_groups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsIapTunnelLocationsDestGroupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
 /// Deletes a TunnelDestGroup.
 ///
@@ -1192,12 +1279,12 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_delete_execute(
 
 pub fn iap_projects_iap_tunnel_locations_dest_groups_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IapProjectsIapTunnelLocationsDestGroupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = iap_projects_iap_tunnel_locations_dest_groups_delete_builder(client, name)?;
+    let builder = iap_projects_iap_tunnel_locations_dest_groups_delete_builder(client, &args.name)?;
     iap_projects_iap_tunnel_locations_dest_groups_delete_execute(builder)
 }
 
@@ -1293,6 +1380,13 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_projects_iap_tunnel_locations_dest_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsIapTunnelLocationsDestGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
 /// Retrieves an existing TunnelDestGroup.
 ///
@@ -1305,14 +1399,14 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_get_execute(
 
 pub fn iap_projects_iap_tunnel_locations_dest_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IapProjectsIapTunnelLocationsDestGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TunnelDestGroup>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = iap_projects_iap_tunnel_locations_dest_groups_get_builder(client, name)?;
+    let builder = iap_projects_iap_tunnel_locations_dest_groups_get_builder(client, &args.name)?;
     iap_projects_iap_tunnel_locations_dest_groups_get_execute(builder)
 }
 
@@ -1426,6 +1520,17 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_projects_iap_tunnel_locations_dest_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsIapTunnelLocationsDestGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups
 /// Lists the existing TunnelDestGroups. To group across all locations, use a - as the location ID. For example: /v1/`projects/123/iap_tunnel/locations/-/`destGroups``
 ///
@@ -1438,9 +1543,7 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_list_execute(
 
 pub fn iap_projects_iap_tunnel_locations_dest_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &IapProjectsIapTunnelLocationsDestGroupsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTunnelDestGroupsResponse>, ApiError>,
@@ -1450,7 +1553,10 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_list(
     ApiError,
 > {
     let builder = iap_projects_iap_tunnel_locations_dest_groups_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     iap_projects_iap_tunnel_locations_dest_groups_list_execute(builder)
 }
@@ -1562,6 +1668,17 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_projects_iap_tunnel_locations_dest_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapProjectsIapTunnelLocationsDestGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: TunnelDestGroup,
+}
+
 /// GET v1/projects/{projectsId}/iap_tunnel/locations/{locationsId}/destGroups/{destGroupsId}
 /// Updates a TunnelDestGroup.
 ///
@@ -1574,9 +1691,7 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_patch_execute(
 
 pub fn iap_projects_iap_tunnel_locations_dest_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &TunnelDestGroup,
+    args: &IapProjectsIapTunnelLocationsDestGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TunnelDestGroup>, ApiError>, P = ApiPending>
         + Send
@@ -1584,7 +1699,10 @@ pub fn iap_projects_iap_tunnel_locations_dest_groups_patch(
     ApiError,
 > {
     let builder = iap_projects_iap_tunnel_locations_dest_groups_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     iap_projects_iap_tunnel_locations_dest_groups_patch_execute(builder)
 }
@@ -1679,6 +1797,15 @@ pub fn iap_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/{v1Id}:getIamPolicy
 /// Gets the access control policy for an Identity-Aware Proxy protected resource. More information about managing access via IAP can be found at: <https://cloud.google.`com/iap/docs/managing-access`#managing_access_via_the_api>
 ///
@@ -1691,13 +1818,12 @@ pub fn iap_get_iam_policy_execute(
 
 pub fn iap_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &IapGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = iap_get_iam_policy_builder(client, resource, body)?;
+    let builder = iap_get_iam_policy_builder(client, &args.resource, &args.body)?;
     iap_get_iam_policy_execute(builder)
 }
 
@@ -1788,6 +1914,13 @@ pub fn iap_get_iap_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_get_iap_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapGetIapSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/{v1Id}:iapSettings
 /// Gets the IAP settings on a particular IAP protected resource.
 ///
@@ -1800,12 +1933,12 @@ pub fn iap_get_iap_settings_execute(
 
 pub fn iap_get_iap_settings(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IapGetIapSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IapSettings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = iap_get_iap_settings_builder(client, name)?;
+    let builder = iap_get_iap_settings_builder(client, &args.name)?;
     iap_get_iap_settings_execute(builder)
 }
 
@@ -1899,6 +2032,15 @@ pub fn iap_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/{v1Id}:setIamPolicy
 /// Sets the access control policy for an Identity-Aware Proxy protected resource. Replaces any existing policy. More information about managing access via IAP can be found at: <https://cloud.google.`com/iap/docs/managing-access`#managing_access_via_the_api>
 ///
@@ -1911,13 +2053,12 @@ pub fn iap_set_iam_policy_execute(
 
 pub fn iap_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &IapSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = iap_set_iam_policy_builder(client, resource, body)?;
+    let builder = iap_set_iam_policy_builder(client, &args.resource, &args.body)?;
     iap_set_iam_policy_execute(builder)
 }
 
@@ -2018,6 +2159,15 @@ pub fn iap_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/{v1Id}:testIamPermissions
 /// Returns permissions that a caller has on the Identity-Aware Proxy protected resource. More information about managing access via IAP can be found at: <https://cloud.google.`com/iap/docs/managing-access`#managing_access_via_the_api>
 ///
@@ -2030,8 +2180,7 @@ pub fn iap_test_iam_permissions_execute(
 
 pub fn iap_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &IapTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2040,7 +2189,7 @@ pub fn iap_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = iap_test_iam_permissions_builder(client, resource, body)?;
+    let builder = iap_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     iap_test_iam_permissions_execute(builder)
 }
 
@@ -2146,6 +2295,17 @@ pub fn iap_update_iap_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_update_iap_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapUpdateIapSettingsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: IapSettings,
+}
+
 /// GET v1/{v1Id}:iapSettings
 /// Updates the IAP settings on a particular IAP protected resource. It replaces all fields unless the update_mask is set.
 ///
@@ -2158,14 +2318,17 @@ pub fn iap_update_iap_settings_execute(
 
 pub fn iap_update_iap_settings(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &IapSettings,
+    args: &IapUpdateIapSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IapSettings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = iap_update_iap_settings_builder(client, name, updateMask, body)?;
+    let builder = iap_update_iap_settings_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     iap_update_iap_settings_execute(builder)
 }
 
@@ -2275,6 +2438,15 @@ pub fn iap_validate_attribute_expression_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iap_validate_attribute_expression`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IapValidateAttributeExpressionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: expression
+    pub expression: Option<String>,
+}
+
 /// GET v1/{v1Id}:validateAttributeExpression
 /// Validates that a given CEL expression conforms to IAP restrictions.
 ///
@@ -2287,8 +2459,7 @@ pub fn iap_validate_attribute_expression_execute(
 
 pub fn iap_validate_attribute_expression(
     client: &SimpleHttpClient,
-    name: &str,
-    expression: Option<&str>,
+    args: &IapValidateAttributeExpressionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ValidateIapAttributeExpressionResponse>, ApiError>,
@@ -2297,6 +2468,7 @@ pub fn iap_validate_attribute_expression(
         + 'static,
     ApiError,
 > {
-    let builder = iap_validate_attribute_expression_builder(client, name, expression)?;
+    let builder =
+        iap_validate_attribute_expression_builder(client, &args.name, args.expression.as_deref())?;
     iap_validate_attribute_expression_execute(builder)
 }

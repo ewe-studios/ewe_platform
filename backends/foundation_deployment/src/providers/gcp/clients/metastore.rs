@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn metastore_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn metastore_projects_locations_get_execute(
 
 pub fn metastore_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MetastoreProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = metastore_projects_locations_get_builder(client, name)?;
+    let builder = metastore_projects_locations_get_builder(client, &args.name)?;
     metastore_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn metastore_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service.This method lists locations based on the resource scope provided in the ListLocationsRequest.name field: Global locations: If name is empty, the method lists the public locations available to all projects. Project-specific locations: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project.For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn metastore_projects_locations_list_execute(
 
 pub fn metastore_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MetastoreProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn metastore_projects_locations_list(
 > {
     let builder = metastore_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     metastore_projects_locations_list_execute(builder)
 }
@@ -386,6 +406,19 @@ pub fn metastore_projects_locations_federations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_federations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsFederationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: federationId
+    pub federationId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Federation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/federations
 /// Creates a metastore federation in a project and location.
 ///
@@ -398,20 +431,17 @@ pub fn metastore_projects_locations_federations_create_execute(
 
 pub fn metastore_projects_locations_federations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    federationId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Federation,
+    args: &MetastoreProjectsLocationsFederationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_federations_create_builder(
         client,
-        parent,
-        federationId,
-        requestId,
-        body,
+        &args.parent,
+        args.federationId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     metastore_projects_locations_federations_create_execute(builder)
 }
@@ -518,6 +548,15 @@ pub fn metastore_projects_locations_federations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_federations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsFederationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/federations/{federationsId}
 /// Deletes a single federation.
 ///
@@ -530,13 +569,16 @@ pub fn metastore_projects_locations_federations_delete_execute(
 
 pub fn metastore_projects_locations_federations_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &MetastoreProjectsLocationsFederationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = metastore_projects_locations_federations_delete_builder(client, name, requestId)?;
+    let builder = metastore_projects_locations_federations_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     metastore_projects_locations_federations_delete_execute(builder)
 }
 
@@ -630,6 +672,13 @@ pub fn metastore_projects_locations_federations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_federations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsFederationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/federations/{federationsId}
 /// Gets the details of a single federation.
 ///
@@ -642,12 +691,12 @@ pub fn metastore_projects_locations_federations_get_execute(
 
 pub fn metastore_projects_locations_federations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MetastoreProjectsLocationsFederationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Federation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = metastore_projects_locations_federations_get_builder(client, name)?;
+    let builder = metastore_projects_locations_federations_get_builder(client, &args.name)?;
     metastore_projects_locations_federations_get_execute(builder)
 }
 
@@ -753,6 +802,15 @@ pub fn metastore_projects_locations_federations_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_federations_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsFederationsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/federations/{federationsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -765,16 +823,15 @@ pub fn metastore_projects_locations_federations_get_iam_policy_execute(
 
 pub fn metastore_projects_locations_federations_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &MetastoreProjectsLocationsFederationsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_federations_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     metastore_projects_locations_federations_get_iam_policy_execute(builder)
 }
@@ -895,6 +952,21 @@ pub fn metastore_projects_locations_federations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_federations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsFederationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/federations
 /// Lists federations in a project and location.
 ///
@@ -907,11 +979,7 @@ pub fn metastore_projects_locations_federations_list_execute(
 
 pub fn metastore_projects_locations_federations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MetastoreProjectsLocationsFederationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFederationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -919,7 +987,12 @@ pub fn metastore_projects_locations_federations_list(
     ApiError,
 > {
     let builder = metastore_projects_locations_federations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     metastore_projects_locations_federations_list_execute(builder)
 }
@@ -1033,6 +1106,19 @@ pub fn metastore_projects_locations_federations_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_federations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsFederationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Federation,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/federations/{federationsId}
 /// Updates the fields of a federation.
 ///
@@ -1045,16 +1131,17 @@ pub fn metastore_projects_locations_federations_patch_execute(
 
 pub fn metastore_projects_locations_federations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Federation,
+    args: &MetastoreProjectsLocationsFederationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_federations_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     metastore_projects_locations_federations_patch_execute(builder)
 }
@@ -1152,6 +1239,15 @@ pub fn metastore_projects_locations_federations_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_federations_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsFederationsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/federations/{federationsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1164,14 +1260,16 @@ pub fn metastore_projects_locations_federations_set_iam_policy_execute(
 
 pub fn metastore_projects_locations_federations_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &MetastoreProjectsLocationsFederationsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        metastore_projects_locations_federations_set_iam_policy_builder(client, resource, body)?;
+    let builder = metastore_projects_locations_federations_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     metastore_projects_locations_federations_set_iam_policy_execute(builder)
 }
 
@@ -1272,6 +1370,15 @@ pub fn metastore_projects_locations_federations_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_federations_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsFederationsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/federations/{federationsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1284,8 +1391,7 @@ pub fn metastore_projects_locations_federations_test_iam_permissions_execute(
 
 pub fn metastore_projects_locations_federations_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &MetastoreProjectsLocationsFederationsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1295,7 +1401,9 @@ pub fn metastore_projects_locations_federations_test_iam_permissions(
     ApiError,
 > {
     let builder = metastore_projects_locations_federations_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     metastore_projects_locations_federations_test_iam_permissions_execute(builder)
 }
@@ -1393,6 +1501,15 @@ pub fn metastore_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1405,13 +1522,13 @@ pub fn metastore_projects_locations_operations_cancel_execute(
 
 pub fn metastore_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &MetastoreProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = metastore_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        metastore_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     metastore_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1505,6 +1622,13 @@ pub fn metastore_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1517,12 +1641,12 @@ pub fn metastore_projects_locations_operations_delete_execute(
 
 pub fn metastore_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MetastoreProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = metastore_projects_locations_operations_delete_builder(client, name)?;
+    let builder = metastore_projects_locations_operations_delete_builder(client, &args.name)?;
     metastore_projects_locations_operations_delete_execute(builder)
 }
 
@@ -1616,6 +1740,13 @@ pub fn metastore_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1628,12 +1759,12 @@ pub fn metastore_projects_locations_operations_get_execute(
 
 pub fn metastore_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MetastoreProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = metastore_projects_locations_operations_get_builder(client, name)?;
+    let builder = metastore_projects_locations_operations_get_builder(client, &args.name)?;
     metastore_projects_locations_operations_get_execute(builder)
 }
 
@@ -1753,6 +1884,21 @@ pub fn metastore_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1765,11 +1911,7 @@ pub fn metastore_projects_locations_operations_list_execute(
 
 pub fn metastore_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &MetastoreProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1778,11 +1920,11 @@ pub fn metastore_projects_locations_operations_list(
 > {
     let builder = metastore_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     metastore_projects_locations_operations_list_execute(builder)
 }
@@ -1880,6 +2022,15 @@ pub fn metastore_projects_locations_services_alter_location_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_alter_location`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesAlterLocationArgs {
+    /// Path parameter: service
+    pub service: String,
+    /// Request body.
+    pub body: AlterMetadataResourceLocationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:alterLocation
 /// Alter metadata resource location. The metadata resource can be a database, table, or partition. This functionality only updates the parent directory for the respective metadata resource and does not transfer any existing data to the new location.
 ///
@@ -1892,14 +2043,16 @@ pub fn metastore_projects_locations_services_alter_location_execute(
 
 pub fn metastore_projects_locations_services_alter_location(
     client: &SimpleHttpClient,
-    service: &str,
-    body: &AlterMetadataResourceLocationRequest,
+    args: &MetastoreProjectsLocationsServicesAlterLocationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        metastore_projects_locations_services_alter_location_builder(client, service, body)?;
+    let builder = metastore_projects_locations_services_alter_location_builder(
+        client,
+        &args.service,
+        &args.body,
+    )?;
     metastore_projects_locations_services_alter_location_execute(builder)
 }
 
@@ -1996,6 +2149,15 @@ pub fn metastore_projects_locations_services_alter_table_properties_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_alter_table_properties`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesAlterTablePropertiesArgs {
+    /// Path parameter: service
+    pub service: String,
+    /// Request body.
+    pub body: AlterTablePropertiesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:alterTableProperties
 /// Alter metadata table properties.
 ///
@@ -2008,14 +2170,15 @@ pub fn metastore_projects_locations_services_alter_table_properties_execute(
 
 pub fn metastore_projects_locations_services_alter_table_properties(
     client: &SimpleHttpClient,
-    service: &str,
-    body: &AlterTablePropertiesRequest,
+    args: &MetastoreProjectsLocationsServicesAlterTablePropertiesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_services_alter_table_properties_builder(
-        client, service, body,
+        client,
+        &args.service,
+        &args.body,
     )?;
     metastore_projects_locations_services_alter_table_properties_execute(builder)
 }
@@ -2113,6 +2276,15 @@ pub fn metastore_projects_locations_services_cancel_migration_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_cancel_migration`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesCancelMigrationArgs {
+    /// Path parameter: service
+    pub service: String,
+    /// Request body.
+    pub body: CancelMigrationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:cancelMigration
 /// Cancels the ongoing Managed Migration process.
 ///
@@ -2125,14 +2297,16 @@ pub fn metastore_projects_locations_services_cancel_migration_execute(
 
 pub fn metastore_projects_locations_services_cancel_migration(
     client: &SimpleHttpClient,
-    service: &str,
-    body: &CancelMigrationRequest,
+    args: &MetastoreProjectsLocationsServicesCancelMigrationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        metastore_projects_locations_services_cancel_migration_builder(client, service, body)?;
+    let builder = metastore_projects_locations_services_cancel_migration_builder(
+        client,
+        &args.service,
+        &args.body,
+    )?;
     metastore_projects_locations_services_cancel_migration_execute(builder)
 }
 
@@ -2229,6 +2403,15 @@ pub fn metastore_projects_locations_services_complete_migration_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_complete_migration`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesCompleteMigrationArgs {
+    /// Path parameter: service
+    pub service: String,
+    /// Request body.
+    pub body: CompleteMigrationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:completeMigration
 /// Completes the managed migration process. The Dataproc Metastore service will switch to using its own backend database after successful migration.
 ///
@@ -2241,14 +2424,16 @@ pub fn metastore_projects_locations_services_complete_migration_execute(
 
 pub fn metastore_projects_locations_services_complete_migration(
     client: &SimpleHttpClient,
-    service: &str,
-    body: &CompleteMigrationRequest,
+    args: &MetastoreProjectsLocationsServicesCompleteMigrationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        metastore_projects_locations_services_complete_migration_builder(client, service, body)?;
+    let builder = metastore_projects_locations_services_complete_migration_builder(
+        client,
+        &args.service,
+        &args.body,
+    )?;
     metastore_projects_locations_services_complete_migration_execute(builder)
 }
 
@@ -2361,6 +2546,19 @@ pub fn metastore_projects_locations_services_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: serviceId
+    pub serviceId: Option<String>,
+    /// Request body.
+    pub body: Service,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services
 /// Creates a metastore service in a project and location.
 ///
@@ -2373,16 +2571,17 @@ pub fn metastore_projects_locations_services_create_execute(
 
 pub fn metastore_projects_locations_services_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    serviceId: Option<&str>,
-    body: &Service,
+    args: &MetastoreProjectsLocationsServicesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_services_create_builder(
-        client, parent, requestId, serviceId, body,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.serviceId.as_deref(),
+        &args.body,
     )?;
     metastore_projects_locations_services_create_execute(builder)
 }
@@ -2489,6 +2688,15 @@ pub fn metastore_projects_locations_services_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}
 /// Deletes a single service.
 ///
@@ -2501,13 +2709,16 @@ pub fn metastore_projects_locations_services_delete_execute(
 
 pub fn metastore_projects_locations_services_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &MetastoreProjectsLocationsServicesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = metastore_projects_locations_services_delete_builder(client, name, requestId)?;
+    let builder = metastore_projects_locations_services_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     metastore_projects_locations_services_delete_execute(builder)
 }
 
@@ -2604,6 +2815,15 @@ pub fn metastore_projects_locations_services_export_metadata_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_export_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesExportMetadataArgs {
+    /// Path parameter: service
+    pub service: String,
+    /// Request body.
+    pub body: ExportMetadataRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:exportMetadata
 /// Exports metadata from a service.
 ///
@@ -2616,14 +2836,16 @@ pub fn metastore_projects_locations_services_export_metadata_execute(
 
 pub fn metastore_projects_locations_services_export_metadata(
     client: &SimpleHttpClient,
-    service: &str,
-    body: &ExportMetadataRequest,
+    args: &MetastoreProjectsLocationsServicesExportMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        metastore_projects_locations_services_export_metadata_builder(client, service, body)?;
+    let builder = metastore_projects_locations_services_export_metadata_builder(
+        client,
+        &args.service,
+        &args.body,
+    )?;
     metastore_projects_locations_services_export_metadata_execute(builder)
 }
 
@@ -2717,6 +2939,13 @@ pub fn metastore_projects_locations_services_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}
 /// Gets the details of a single service.
 ///
@@ -2729,12 +2958,12 @@ pub fn metastore_projects_locations_services_get_execute(
 
 pub fn metastore_projects_locations_services_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MetastoreProjectsLocationsServicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = metastore_projects_locations_services_get_builder(client, name)?;
+    let builder = metastore_projects_locations_services_get_builder(client, &args.name)?;
     metastore_projects_locations_services_get_execute(builder)
 }
 
@@ -2840,6 +3069,15 @@ pub fn metastore_projects_locations_services_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2852,16 +3090,15 @@ pub fn metastore_projects_locations_services_get_iam_policy_execute(
 
 pub fn metastore_projects_locations_services_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &MetastoreProjectsLocationsServicesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_services_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     metastore_projects_locations_services_get_iam_policy_execute(builder)
 }
@@ -2982,6 +3219,21 @@ pub fn metastore_projects_locations_services_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services
 /// Lists services in a project and location.
 ///
@@ -2994,11 +3246,7 @@ pub fn metastore_projects_locations_services_list_execute(
 
 pub fn metastore_projects_locations_services_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MetastoreProjectsLocationsServicesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3006,7 +3254,12 @@ pub fn metastore_projects_locations_services_list(
     ApiError,
 > {
     let builder = metastore_projects_locations_services_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     metastore_projects_locations_services_list_execute(builder)
 }
@@ -3104,6 +3357,15 @@ pub fn metastore_projects_locations_services_move_table_to_database_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_move_table_to_database`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesMoveTableToDatabaseArgs {
+    /// Path parameter: service
+    pub service: String,
+    /// Request body.
+    pub body: MoveTableToDatabaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:moveTableToDatabase
 /// Move a table to another database.
 ///
@@ -3116,14 +3378,15 @@ pub fn metastore_projects_locations_services_move_table_to_database_execute(
 
 pub fn metastore_projects_locations_services_move_table_to_database(
     client: &SimpleHttpClient,
-    service: &str,
-    body: &MoveTableToDatabaseRequest,
+    args: &MetastoreProjectsLocationsServicesMoveTableToDatabaseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_services_move_table_to_database_builder(
-        client, service, body,
+        client,
+        &args.service,
+        &args.body,
     )?;
     metastore_projects_locations_services_move_table_to_database_execute(builder)
 }
@@ -3237,6 +3500,19 @@ pub fn metastore_projects_locations_services_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Service,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}
 /// Updates the parameters of a single service.
 ///
@@ -3249,16 +3525,17 @@ pub fn metastore_projects_locations_services_patch_execute(
 
 pub fn metastore_projects_locations_services_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Service,
+    args: &MetastoreProjectsLocationsServicesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_services_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     metastore_projects_locations_services_patch_execute(builder)
 }
@@ -3356,6 +3633,15 @@ pub fn metastore_projects_locations_services_query_metadata_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_query_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesQueryMetadataArgs {
+    /// Path parameter: service
+    pub service: String,
+    /// Request body.
+    pub body: QueryMetadataRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:queryMetadata
 /// Query Dataproc Metastore metadata.
 ///
@@ -3368,14 +3654,16 @@ pub fn metastore_projects_locations_services_query_metadata_execute(
 
 pub fn metastore_projects_locations_services_query_metadata(
     client: &SimpleHttpClient,
-    service: &str,
-    body: &QueryMetadataRequest,
+    args: &MetastoreProjectsLocationsServicesQueryMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        metastore_projects_locations_services_query_metadata_builder(client, service, body)?;
+    let builder = metastore_projects_locations_services_query_metadata_builder(
+        client,
+        &args.service,
+        &args.body,
+    )?;
     metastore_projects_locations_services_query_metadata_execute(builder)
 }
 
@@ -3472,6 +3760,15 @@ pub fn metastore_projects_locations_services_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesRestoreArgs {
+    /// Path parameter: service
+    pub service: String,
+    /// Request body.
+    pub body: RestoreServiceRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:restore
 /// Restores a service from a backup.
 ///
@@ -3484,13 +3781,13 @@ pub fn metastore_projects_locations_services_restore_execute(
 
 pub fn metastore_projects_locations_services_restore(
     client: &SimpleHttpClient,
-    service: &str,
-    body: &RestoreServiceRequest,
+    args: &MetastoreProjectsLocationsServicesRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = metastore_projects_locations_services_restore_builder(client, service, body)?;
+    let builder =
+        metastore_projects_locations_services_restore_builder(client, &args.service, &args.body)?;
     metastore_projects_locations_services_restore_execute(builder)
 }
 
@@ -3587,6 +3884,15 @@ pub fn metastore_projects_locations_services_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3599,14 +3905,16 @@ pub fn metastore_projects_locations_services_set_iam_policy_execute(
 
 pub fn metastore_projects_locations_services_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &MetastoreProjectsLocationsServicesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        metastore_projects_locations_services_set_iam_policy_builder(client, resource, body)?;
+    let builder = metastore_projects_locations_services_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     metastore_projects_locations_services_set_iam_policy_execute(builder)
 }
 
@@ -3703,6 +4011,15 @@ pub fn metastore_projects_locations_services_start_migration_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_start_migration`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesStartMigrationArgs {
+    /// Path parameter: service
+    pub service: String,
+    /// Request body.
+    pub body: StartMigrationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:startMigration
 /// Starts the Managed Migration process.
 ///
@@ -3715,14 +4032,16 @@ pub fn metastore_projects_locations_services_start_migration_execute(
 
 pub fn metastore_projects_locations_services_start_migration(
     client: &SimpleHttpClient,
-    service: &str,
-    body: &StartMigrationRequest,
+    args: &MetastoreProjectsLocationsServicesStartMigrationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        metastore_projects_locations_services_start_migration_builder(client, service, body)?;
+    let builder = metastore_projects_locations_services_start_migration_builder(
+        client,
+        &args.service,
+        &args.body,
+    )?;
     metastore_projects_locations_services_start_migration_execute(builder)
 }
 
@@ -3823,6 +4142,15 @@ pub fn metastore_projects_locations_services_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3835,8 +4163,7 @@ pub fn metastore_projects_locations_services_test_iam_permissions_execute(
 
 pub fn metastore_projects_locations_services_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &MetastoreProjectsLocationsServicesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3845,8 +4172,11 @@ pub fn metastore_projects_locations_services_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        metastore_projects_locations_services_test_iam_permissions_builder(client, resource, body)?;
+    let builder = metastore_projects_locations_services_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     metastore_projects_locations_services_test_iam_permissions_execute(builder)
 }
 
@@ -3959,6 +4289,19 @@ pub fn metastore_projects_locations_services_backups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_backups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesBackupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: backupId
+    pub backupId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Backup,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/backups
 /// Creates a new backup in a given project and location.
 ///
@@ -3971,16 +4314,17 @@ pub fn metastore_projects_locations_services_backups_create_execute(
 
 pub fn metastore_projects_locations_services_backups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    backupId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Backup,
+    args: &MetastoreProjectsLocationsServicesBackupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_services_backups_create_builder(
-        client, parent, backupId, requestId, body,
+        client,
+        &args.parent,
+        args.backupId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     metastore_projects_locations_services_backups_create_execute(builder)
 }
@@ -4087,6 +4431,15 @@ pub fn metastore_projects_locations_services_backups_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_backups_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesBackupsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/backups/{backupsId}
 /// Deletes a single backup.
 ///
@@ -4099,14 +4452,16 @@ pub fn metastore_projects_locations_services_backups_delete_execute(
 
 pub fn metastore_projects_locations_services_backups_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &MetastoreProjectsLocationsServicesBackupsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        metastore_projects_locations_services_backups_delete_builder(client, name, requestId)?;
+    let builder = metastore_projects_locations_services_backups_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     metastore_projects_locations_services_backups_delete_execute(builder)
 }
 
@@ -4200,6 +4555,13 @@ pub fn metastore_projects_locations_services_backups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_backups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesBackupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/backups/{backupsId}
 /// Gets details of a single backup.
 ///
@@ -4212,12 +4574,12 @@ pub fn metastore_projects_locations_services_backups_get_execute(
 
 pub fn metastore_projects_locations_services_backups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MetastoreProjectsLocationsServicesBackupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Backup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = metastore_projects_locations_services_backups_get_builder(client, name)?;
+    let builder = metastore_projects_locations_services_backups_get_builder(client, &args.name)?;
     metastore_projects_locations_services_backups_get_execute(builder)
 }
 
@@ -4323,6 +4685,15 @@ pub fn metastore_projects_locations_services_backups_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_backups_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesBackupsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/backups/{backupsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -4335,16 +4706,15 @@ pub fn metastore_projects_locations_services_backups_get_iam_policy_execute(
 
 pub fn metastore_projects_locations_services_backups_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &MetastoreProjectsLocationsServicesBackupsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_services_backups_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     metastore_projects_locations_services_backups_get_iam_policy_execute(builder)
 }
@@ -4465,6 +4835,21 @@ pub fn metastore_projects_locations_services_backups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_backups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesBackupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/backups
 /// Lists backups in a service.
 ///
@@ -4477,11 +4862,7 @@ pub fn metastore_projects_locations_services_backups_list_execute(
 
 pub fn metastore_projects_locations_services_backups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MetastoreProjectsLocationsServicesBackupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBackupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4489,7 +4870,12 @@ pub fn metastore_projects_locations_services_backups_list(
     ApiError,
 > {
     let builder = metastore_projects_locations_services_backups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     metastore_projects_locations_services_backups_list_execute(builder)
 }
@@ -4587,6 +4973,15 @@ pub fn metastore_projects_locations_services_backups_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_backups_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesBackupsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/backups/{backupsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -4599,14 +4994,15 @@ pub fn metastore_projects_locations_services_backups_set_iam_policy_execute(
 
 pub fn metastore_projects_locations_services_backups_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &MetastoreProjectsLocationsServicesBackupsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_services_backups_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     metastore_projects_locations_services_backups_set_iam_policy_execute(builder)
 }
@@ -4713,6 +5109,15 @@ pub fn metastore_projects_locations_services_databases_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_databases_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesDatabasesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/databases/{databasesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -4725,16 +5130,15 @@ pub fn metastore_projects_locations_services_databases_get_iam_policy_execute(
 
 pub fn metastore_projects_locations_services_databases_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &MetastoreProjectsLocationsServicesDatabasesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_services_databases_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     metastore_projects_locations_services_databases_get_iam_policy_execute(builder)
 }
@@ -4832,6 +5236,15 @@ pub fn metastore_projects_locations_services_databases_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_databases_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesDatabasesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/databases/{databasesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -4844,14 +5257,15 @@ pub fn metastore_projects_locations_services_databases_set_iam_policy_execute(
 
 pub fn metastore_projects_locations_services_databases_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &MetastoreProjectsLocationsServicesDatabasesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_services_databases_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     metastore_projects_locations_services_databases_set_iam_policy_execute(builder)
 }
@@ -4958,6 +5372,15 @@ pub fn metastore_projects_locations_services_databases_tables_get_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_databases_tables_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesDatabasesTablesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/databases/{databasesId}/tables/{tablesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -4970,16 +5393,15 @@ pub fn metastore_projects_locations_services_databases_tables_get_iam_policy_exe
 
 pub fn metastore_projects_locations_services_databases_tables_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &MetastoreProjectsLocationsServicesDatabasesTablesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_services_databases_tables_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     metastore_projects_locations_services_databases_tables_get_iam_policy_execute(builder)
 }
@@ -5077,6 +5499,15 @@ pub fn metastore_projects_locations_services_databases_tables_set_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_databases_tables_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesDatabasesTablesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/databases/{databasesId}/tables/{tablesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -5089,14 +5520,15 @@ pub fn metastore_projects_locations_services_databases_tables_set_iam_policy_exe
 
 pub fn metastore_projects_locations_services_databases_tables_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &MetastoreProjectsLocationsServicesDatabasesTablesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_services_databases_tables_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     metastore_projects_locations_services_databases_tables_set_iam_policy_execute(builder)
 }
@@ -5210,6 +5642,19 @@ pub fn metastore_projects_locations_services_metadata_imports_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_metadata_imports_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesMetadataImportsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: metadataImportId
+    pub metadataImportId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: MetadataImport,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/metadataImports
 /// Creates a new MetadataImport in a given project and location.
 ///
@@ -5222,20 +5667,17 @@ pub fn metastore_projects_locations_services_metadata_imports_create_execute(
 
 pub fn metastore_projects_locations_services_metadata_imports_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    metadataImportId: Option<&str>,
-    requestId: Option<&str>,
-    body: &MetadataImport,
+    args: &MetastoreProjectsLocationsServicesMetadataImportsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_services_metadata_imports_create_builder(
         client,
-        parent,
-        metadataImportId,
-        requestId,
-        body,
+        &args.parent,
+        args.metadataImportId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     metastore_projects_locations_services_metadata_imports_create_execute(builder)
 }
@@ -5332,6 +5774,13 @@ pub fn metastore_projects_locations_services_metadata_imports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_metadata_imports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesMetadataImportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/metadataImports/{metadataImportsId}
 /// Gets details of a single import.
 ///
@@ -5344,14 +5793,15 @@ pub fn metastore_projects_locations_services_metadata_imports_get_execute(
 
 pub fn metastore_projects_locations_services_metadata_imports_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MetastoreProjectsLocationsServicesMetadataImportsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MetadataImport>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = metastore_projects_locations_services_metadata_imports_get_builder(client, name)?;
+    let builder =
+        metastore_projects_locations_services_metadata_imports_get_builder(client, &args.name)?;
     metastore_projects_locations_services_metadata_imports_get_execute(builder)
 }
 
@@ -5473,6 +5923,21 @@ pub fn metastore_projects_locations_services_metadata_imports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_metadata_imports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesMetadataImportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/metadataImports
 /// Lists imports in a service.
 ///
@@ -5485,11 +5950,7 @@ pub fn metastore_projects_locations_services_metadata_imports_list_execute(
 
 pub fn metastore_projects_locations_services_metadata_imports_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MetastoreProjectsLocationsServicesMetadataImportsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMetadataImportsResponse>, ApiError>,
@@ -5499,7 +5960,12 @@ pub fn metastore_projects_locations_services_metadata_imports_list(
     ApiError,
 > {
     let builder = metastore_projects_locations_services_metadata_imports_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     metastore_projects_locations_services_metadata_imports_list_execute(builder)
 }
@@ -5613,6 +6079,19 @@ pub fn metastore_projects_locations_services_metadata_imports_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_metadata_imports_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesMetadataImportsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: MetadataImport,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/metadataImports/{metadataImportsId}
 /// Updates a single import. Only the description field of MetadataImport is supported to be updated.
 ///
@@ -5625,16 +6104,17 @@ pub fn metastore_projects_locations_services_metadata_imports_patch_execute(
 
 pub fn metastore_projects_locations_services_metadata_imports_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &MetadataImport,
+    args: &MetastoreProjectsLocationsServicesMetadataImportsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_services_metadata_imports_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     metastore_projects_locations_services_metadata_imports_patch_execute(builder)
 }
@@ -5741,6 +6221,15 @@ pub fn metastore_projects_locations_services_migration_executions_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_migration_executions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesMigrationExecutionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/migrationExecutions/{migrationExecutionsId}
 /// Deletes a single migration execution.
 ///
@@ -5753,14 +6242,15 @@ pub fn metastore_projects_locations_services_migration_executions_delete_execute
 
 pub fn metastore_projects_locations_services_migration_executions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &MetastoreProjectsLocationsServicesMigrationExecutionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = metastore_projects_locations_services_migration_executions_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     metastore_projects_locations_services_migration_executions_delete_execute(builder)
 }
@@ -5857,6 +6347,13 @@ pub fn metastore_projects_locations_services_migration_executions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_migration_executions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesMigrationExecutionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/migrationExecutions/{migrationExecutionsId}
 /// Gets details of a single migration execution.
 ///
@@ -5869,7 +6366,7 @@ pub fn metastore_projects_locations_services_migration_executions_get_execute(
 
 pub fn metastore_projects_locations_services_migration_executions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &MetastoreProjectsLocationsServicesMigrationExecutionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MigrationExecution>, ApiError>, P = ApiPending>
         + Send
@@ -5877,7 +6374,7 @@ pub fn metastore_projects_locations_services_migration_executions_get(
     ApiError,
 > {
     let builder =
-        metastore_projects_locations_services_migration_executions_get_builder(client, name)?;
+        metastore_projects_locations_services_migration_executions_get_builder(client, &args.name)?;
     metastore_projects_locations_services_migration_executions_get_execute(builder)
 }
 
@@ -5999,6 +6496,21 @@ pub fn metastore_projects_locations_services_migration_executions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`metastore_projects_locations_services_migration_executions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct MetastoreProjectsLocationsServicesMigrationExecutionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/migrationExecutions
 /// Lists migration executions on a service.
 ///
@@ -6011,11 +6523,7 @@ pub fn metastore_projects_locations_services_migration_executions_list_execute(
 
 pub fn metastore_projects_locations_services_migration_executions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &MetastoreProjectsLocationsServicesMigrationExecutionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMigrationExecutionsResponse>, ApiError>,
@@ -6025,7 +6533,12 @@ pub fn metastore_projects_locations_services_migration_executions_list(
     ApiError,
 > {
     let builder = metastore_projects_locations_services_migration_executions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     metastore_projects_locations_services_migration_executions_list_execute(builder)
 }

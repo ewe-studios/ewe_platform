@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:checkUpgrade
 /// Check if an upgrade operation on the environment will succeed. In case of problems detailed info can be found in the returned Operation.
@@ -109,6 +111,15 @@ pub fn composer_projects_locations_environments_check_upgrade_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_check_upgrade`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsCheckUpgradeArgs {
+    /// Path parameter: environment
+    pub environment: String,
+    /// Request body.
+    pub body: CheckUpgradeRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:checkUpgrade
 /// Check if an upgrade operation on the environment will succeed. In case of problems detailed info can be found in the returned Operation.
 ///
@@ -121,14 +132,16 @@ pub fn composer_projects_locations_environments_check_upgrade_execute(
 
 pub fn composer_projects_locations_environments_check_upgrade(
     client: &SimpleHttpClient,
-    environment: &str,
-    body: &CheckUpgradeRequest,
+    args: &ComposerProjectsLocationsEnvironmentsCheckUpgradeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        composer_projects_locations_environments_check_upgrade_builder(client, environment, body)?;
+    let builder = composer_projects_locations_environments_check_upgrade_builder(
+        client,
+        &args.environment,
+        &args.body,
+    )?;
     composer_projects_locations_environments_check_upgrade_execute(builder)
 }
 
@@ -225,6 +238,15 @@ pub fn composer_projects_locations_environments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Environment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments
 /// Create a new environment.
 ///
@@ -237,13 +259,13 @@ pub fn composer_projects_locations_environments_create_execute(
 
 pub fn composer_projects_locations_environments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Environment,
+    args: &ComposerProjectsLocationsEnvironmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = composer_projects_locations_environments_create_builder(client, parent, body)?;
+    let builder =
+        composer_projects_locations_environments_create_builder(client, &args.parent, &args.body)?;
     composer_projects_locations_environments_create_execute(builder)
 }
 
@@ -340,6 +362,15 @@ pub fn composer_projects_locations_environments_database_failover_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_database_failover`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsDatabaseFailoverArgs {
+    /// Path parameter: environment
+    pub environment: String,
+    /// Request body.
+    pub body: DatabaseFailoverRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:databaseFailover
 /// Triggers database failover (only for highly resilient environments).
 ///
@@ -352,16 +383,15 @@ pub fn composer_projects_locations_environments_database_failover_execute(
 
 pub fn composer_projects_locations_environments_database_failover(
     client: &SimpleHttpClient,
-    environment: &str,
-    body: &DatabaseFailoverRequest,
+    args: &ComposerProjectsLocationsEnvironmentsDatabaseFailoverArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = composer_projects_locations_environments_database_failover_builder(
         client,
-        environment,
-        body,
+        &args.environment,
+        &args.body,
     )?;
     composer_projects_locations_environments_database_failover_execute(builder)
 }
@@ -456,6 +486,13 @@ pub fn composer_projects_locations_environments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}
 /// Delete an environment.
 ///
@@ -468,12 +505,12 @@ pub fn composer_projects_locations_environments_delete_execute(
 
 pub fn composer_projects_locations_environments_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ComposerProjectsLocationsEnvironmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = composer_projects_locations_environments_delete_builder(client, name)?;
+    let builder = composer_projects_locations_environments_delete_builder(client, &args.name)?;
     composer_projects_locations_environments_delete_execute(builder)
 }
 
@@ -574,6 +611,15 @@ pub fn composer_projects_locations_environments_execute_airflow_command_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_execute_airflow_command`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsExecuteAirflowCommandArgs {
+    /// Path parameter: environment
+    pub environment: String,
+    /// Request body.
+    pub body: ExecuteAirflowCommandRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:executeAirflowCommand
 /// Executes Airflow CLI command.
 ///
@@ -586,8 +632,7 @@ pub fn composer_projects_locations_environments_execute_airflow_command_execute(
 
 pub fn composer_projects_locations_environments_execute_airflow_command(
     client: &SimpleHttpClient,
-    environment: &str,
-    body: &ExecuteAirflowCommandRequest,
+    args: &ComposerProjectsLocationsEnvironmentsExecuteAirflowCommandArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ExecuteAirflowCommandResponse>, ApiError>,
@@ -598,8 +643,8 @@ pub fn composer_projects_locations_environments_execute_airflow_command(
 > {
     let builder = composer_projects_locations_environments_execute_airflow_command_builder(
         client,
-        environment,
-        body,
+        &args.environment,
+        &args.body,
     )?;
     composer_projects_locations_environments_execute_airflow_command_execute(builder)
 }
@@ -698,6 +743,13 @@ pub fn composer_projects_locations_environments_fetch_database_properties_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_fetch_database_properties`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsFetchDatabasePropertiesArgs {
+    /// Path parameter: environment
+    pub environment: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:fetchDatabaseProperties
 /// Fetches database properties.
 ///
@@ -710,7 +762,7 @@ pub fn composer_projects_locations_environments_fetch_database_properties_execut
 
 pub fn composer_projects_locations_environments_fetch_database_properties(
     client: &SimpleHttpClient,
-    environment: &str,
+    args: &ComposerProjectsLocationsEnvironmentsFetchDatabasePropertiesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchDatabasePropertiesResponse>, ApiError>,
@@ -721,7 +773,7 @@ pub fn composer_projects_locations_environments_fetch_database_properties(
 > {
     let builder = composer_projects_locations_environments_fetch_database_properties_builder(
         client,
-        environment,
+        &args.environment,
     )?;
     composer_projects_locations_environments_fetch_database_properties_execute(builder)
 }
@@ -816,6 +868,13 @@ pub fn composer_projects_locations_environments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}
 /// Get an existing environment.
 ///
@@ -828,12 +887,12 @@ pub fn composer_projects_locations_environments_get_execute(
 
 pub fn composer_projects_locations_environments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ComposerProjectsLocationsEnvironmentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = composer_projects_locations_environments_get_builder(client, name)?;
+    let builder = composer_projects_locations_environments_get_builder(client, &args.name)?;
     composer_projects_locations_environments_get_execute(builder)
 }
 
@@ -945,6 +1004,17 @@ pub fn composer_projects_locations_environments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments
 /// List environments.
 ///
@@ -957,17 +1027,19 @@ pub fn composer_projects_locations_environments_list_execute(
 
 pub fn composer_projects_locations_environments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ComposerProjectsLocationsEnvironmentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListEnvironmentsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        composer_projects_locations_environments_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = composer_projects_locations_environments_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     composer_projects_locations_environments_list_execute(builder)
 }
 
@@ -1064,6 +1136,15 @@ pub fn composer_projects_locations_environments_load_snapshot_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_load_snapshot`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsLoadSnapshotArgs {
+    /// Path parameter: environment
+    pub environment: String,
+    /// Request body.
+    pub body: LoadSnapshotRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:loadSnapshot
 /// Loads a snapshot of a Cloud Composer environment. As a result of this operation, a snapshot of environment's specified in LoadSnapshotRequest is loaded into the environment.
 ///
@@ -1076,14 +1157,16 @@ pub fn composer_projects_locations_environments_load_snapshot_execute(
 
 pub fn composer_projects_locations_environments_load_snapshot(
     client: &SimpleHttpClient,
-    environment: &str,
-    body: &LoadSnapshotRequest,
+    args: &ComposerProjectsLocationsEnvironmentsLoadSnapshotArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        composer_projects_locations_environments_load_snapshot_builder(client, environment, body)?;
+    let builder = composer_projects_locations_environments_load_snapshot_builder(
+        client,
+        &args.environment,
+        &args.body,
+    )?;
     composer_projects_locations_environments_load_snapshot_execute(builder)
 }
 
@@ -1192,6 +1275,17 @@ pub fn composer_projects_locations_environments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Environment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}
 /// Update an environment.
 ///
@@ -1204,15 +1298,17 @@ pub fn composer_projects_locations_environments_patch_execute(
 
 pub fn composer_projects_locations_environments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Environment,
+    args: &ComposerProjectsLocationsEnvironmentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        composer_projects_locations_environments_patch_builder(client, name, updateMask, body)?;
+    let builder = composer_projects_locations_environments_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     composer_projects_locations_environments_patch_execute(builder)
 }
 
@@ -1313,6 +1409,15 @@ pub fn composer_projects_locations_environments_poll_airflow_command_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_poll_airflow_command`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsPollAirflowCommandArgs {
+    /// Path parameter: environment
+    pub environment: String,
+    /// Request body.
+    pub body: PollAirflowCommandRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:pollAirflowCommand
 /// Polls Airflow CLI command execution and fetches logs.
 ///
@@ -1325,8 +1430,7 @@ pub fn composer_projects_locations_environments_poll_airflow_command_execute(
 
 pub fn composer_projects_locations_environments_poll_airflow_command(
     client: &SimpleHttpClient,
-    environment: &str,
-    body: &PollAirflowCommandRequest,
+    args: &ComposerProjectsLocationsEnvironmentsPollAirflowCommandArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<PollAirflowCommandResponse>, ApiError>,
@@ -1337,8 +1441,8 @@ pub fn composer_projects_locations_environments_poll_airflow_command(
 > {
     let builder = composer_projects_locations_environments_poll_airflow_command_builder(
         client,
-        environment,
-        body,
+        &args.environment,
+        &args.body,
     )?;
     composer_projects_locations_environments_poll_airflow_command_execute(builder)
 }
@@ -1436,6 +1540,15 @@ pub fn composer_projects_locations_environments_restart_web_server_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_restart_web_server`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsRestartWebServerArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestartWebServerRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:restartWebServer
 /// Restart Airflow web server.
 ///
@@ -1448,14 +1561,14 @@ pub fn composer_projects_locations_environments_restart_web_server_execute(
 
 pub fn composer_projects_locations_environments_restart_web_server(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestartWebServerRequest,
+    args: &ComposerProjectsLocationsEnvironmentsRestartWebServerArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        composer_projects_locations_environments_restart_web_server_builder(client, name, body)?;
+    let builder = composer_projects_locations_environments_restart_web_server_builder(
+        client, &args.name, &args.body,
+    )?;
     composer_projects_locations_environments_restart_web_server_execute(builder)
 }
 
@@ -1552,6 +1665,15 @@ pub fn composer_projects_locations_environments_save_snapshot_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_save_snapshot`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsSaveSnapshotArgs {
+    /// Path parameter: environment
+    pub environment: String,
+    /// Request body.
+    pub body: SaveSnapshotRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:saveSnapshot
 /// Creates a snapshots of a Cloud Composer environment. As a result of this operation, snapshot of environment's state is stored in a location specified in the SaveSnapshotRequest.
 ///
@@ -1564,14 +1686,16 @@ pub fn composer_projects_locations_environments_save_snapshot_execute(
 
 pub fn composer_projects_locations_environments_save_snapshot(
     client: &SimpleHttpClient,
-    environment: &str,
-    body: &SaveSnapshotRequest,
+    args: &ComposerProjectsLocationsEnvironmentsSaveSnapshotArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        composer_projects_locations_environments_save_snapshot_builder(client, environment, body)?;
+    let builder = composer_projects_locations_environments_save_snapshot_builder(
+        client,
+        &args.environment,
+        &args.body,
+    )?;
     composer_projects_locations_environments_save_snapshot_execute(builder)
 }
 
@@ -1672,6 +1796,15 @@ pub fn composer_projects_locations_environments_stop_airflow_command_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_stop_airflow_command`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsStopAirflowCommandArgs {
+    /// Path parameter: environment
+    pub environment: String,
+    /// Request body.
+    pub body: StopAirflowCommandRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}:stopAirflowCommand
 /// Stops Airflow CLI command execution.
 ///
@@ -1684,8 +1817,7 @@ pub fn composer_projects_locations_environments_stop_airflow_command_execute(
 
 pub fn composer_projects_locations_environments_stop_airflow_command(
     client: &SimpleHttpClient,
-    environment: &str,
-    body: &StopAirflowCommandRequest,
+    args: &ComposerProjectsLocationsEnvironmentsStopAirflowCommandArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<StopAirflowCommandResponse>, ApiError>,
@@ -1696,8 +1828,8 @@ pub fn composer_projects_locations_environments_stop_airflow_command(
 > {
     let builder = composer_projects_locations_environments_stop_airflow_command_builder(
         client,
-        environment,
-        body,
+        &args.environment,
+        &args.body,
     )?;
     composer_projects_locations_environments_stop_airflow_command_execute(builder)
 }
@@ -1797,6 +1929,15 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_creat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_user_workloads_config_maps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UserWorkloadsConfigMap,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsConfigMaps
 /// Creates a user workloads ConfigMap. This method is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
 ///
@@ -1809,8 +1950,7 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_creat
 
 pub fn composer_projects_locations_environments_user_workloads_config_maps_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UserWorkloadsConfigMap,
+    args: &ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserWorkloadsConfigMap>, ApiError>, P = ApiPending>
         + Send
@@ -1819,7 +1959,9 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_creat
 > {
     let builder =
         composer_projects_locations_environments_user_workloads_config_maps_create_builder(
-            client, parent, body,
+            client,
+            &args.parent,
+            &args.body,
         )?;
     composer_projects_locations_environments_user_workloads_config_maps_create_execute(builder)
 }
@@ -1914,6 +2056,13 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_delet
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_user_workloads_config_maps_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsConfigMaps/{userWorkloadsConfigMapsId}
 /// Deletes a user workloads ConfigMap. This method is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
 ///
@@ -1926,14 +2075,14 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_delet
 
 pub fn composer_projects_locations_environments_user_workloads_config_maps_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         composer_projects_locations_environments_user_workloads_config_maps_delete_builder(
-            client, name,
+            client, &args.name,
         )?;
     composer_projects_locations_environments_user_workloads_config_maps_delete_execute(builder)
 }
@@ -2030,6 +2179,13 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_get_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_user_workloads_config_maps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsConfigMaps/{userWorkloadsConfigMapsId}
 /// Gets an existing user workloads ConfigMap. This method is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
 ///
@@ -2042,7 +2198,7 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_get_e
 
 pub fn composer_projects_locations_environments_user_workloads_config_maps_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserWorkloadsConfigMap>, ApiError>, P = ApiPending>
         + Send
@@ -2050,7 +2206,7 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_get(
     ApiError,
 > {
     let builder = composer_projects_locations_environments_user_workloads_config_maps_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     composer_projects_locations_environments_user_workloads_config_maps_get_execute(builder)
 }
@@ -2165,6 +2321,17 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_list_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_user_workloads_config_maps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsConfigMaps
 /// Lists user workloads ConfigMaps. This method is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
 ///
@@ -2177,9 +2344,7 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_list_
 
 pub fn composer_projects_locations_environments_user_workloads_config_maps_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListUserWorkloadsConfigMapsResponse>, ApiError>,
@@ -2189,7 +2354,10 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_list(
     ApiError,
 > {
     let builder = composer_projects_locations_environments_user_workloads_config_maps_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     composer_projects_locations_environments_user_workloads_config_maps_list_execute(builder)
 }
@@ -2289,6 +2457,15 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_updat
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_user_workloads_config_maps_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UserWorkloadsConfigMap,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsConfigMaps/{userWorkloadsConfigMapsId}
 /// Updates a user workloads ConfigMap. This method is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
 ///
@@ -2301,8 +2478,7 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_updat
 
 pub fn composer_projects_locations_environments_user_workloads_config_maps_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UserWorkloadsConfigMap,
+    args: &ComposerProjectsLocationsEnvironmentsUserWorkloadsConfigMapsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserWorkloadsConfigMap>, ApiError>, P = ApiPending>
         + Send
@@ -2311,7 +2487,7 @@ pub fn composer_projects_locations_environments_user_workloads_config_maps_updat
 > {
     let builder =
         composer_projects_locations_environments_user_workloads_config_maps_update_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     composer_projects_locations_environments_user_workloads_config_maps_update_execute(builder)
 }
@@ -2411,6 +2587,15 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_create_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_user_workloads_secrets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsUserWorkloadsSecretsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UserWorkloadsSecret,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsSecrets
 /// Creates a user workloads Secret. This method is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
 ///
@@ -2423,8 +2608,7 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_create_ex
 
 pub fn composer_projects_locations_environments_user_workloads_secrets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UserWorkloadsSecret,
+    args: &ComposerProjectsLocationsEnvironmentsUserWorkloadsSecretsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserWorkloadsSecret>, ApiError>, P = ApiPending>
         + Send
@@ -2432,7 +2616,9 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_create(
     ApiError,
 > {
     let builder = composer_projects_locations_environments_user_workloads_secrets_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     composer_projects_locations_environments_user_workloads_secrets_create_execute(builder)
 }
@@ -2527,6 +2713,13 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_delete_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_user_workloads_secrets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsUserWorkloadsSecretsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsSecrets/{userWorkloadsSecretsId}
 /// Deletes a user workloads Secret. This method is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
 ///
@@ -2539,13 +2732,13 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_delete_ex
 
 pub fn composer_projects_locations_environments_user_workloads_secrets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ComposerProjectsLocationsEnvironmentsUserWorkloadsSecretsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = composer_projects_locations_environments_user_workloads_secrets_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     composer_projects_locations_environments_user_workloads_secrets_delete_execute(builder)
 }
@@ -2642,6 +2835,13 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_get_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_user_workloads_secrets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsUserWorkloadsSecretsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsSecrets/{userWorkloadsSecretsId}
 /// Gets an existing user workloads Secret. Values of the "data" field in the response are cleared. This method is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
 ///
@@ -2654,15 +2854,16 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_get_execu
 
 pub fn composer_projects_locations_environments_user_workloads_secrets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ComposerProjectsLocationsEnvironmentsUserWorkloadsSecretsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserWorkloadsSecret>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        composer_projects_locations_environments_user_workloads_secrets_get_builder(client, name)?;
+    let builder = composer_projects_locations_environments_user_workloads_secrets_get_builder(
+        client, &args.name,
+    )?;
     composer_projects_locations_environments_user_workloads_secrets_get_execute(builder)
 }
 
@@ -2776,6 +2977,17 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_user_workloads_secrets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsUserWorkloadsSecretsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsSecrets
 /// Lists user workloads Secrets. This method is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
 ///
@@ -2788,9 +3000,7 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_list_exec
 
 pub fn composer_projects_locations_environments_user_workloads_secrets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ComposerProjectsLocationsEnvironmentsUserWorkloadsSecretsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListUserWorkloadsSecretsResponse>, ApiError>,
@@ -2800,7 +3010,10 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_list(
     ApiError,
 > {
     let builder = composer_projects_locations_environments_user_workloads_secrets_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     composer_projects_locations_environments_user_workloads_secrets_list_execute(builder)
 }
@@ -2900,6 +3113,15 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_update_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_user_workloads_secrets_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsUserWorkloadsSecretsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UserWorkloadsSecret,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}/userWorkloadsSecrets/{userWorkloadsSecretsId}
 /// Updates a user workloads Secret. This method is supported for Cloud Composer environments in versions composer-3-airflow-*.*.*-build.* and newer.
 ///
@@ -2912,8 +3134,7 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_update_ex
 
 pub fn composer_projects_locations_environments_user_workloads_secrets_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UserWorkloadsSecret,
+    args: &ComposerProjectsLocationsEnvironmentsUserWorkloadsSecretsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserWorkloadsSecret>, ApiError>, P = ApiPending>
         + Send
@@ -2921,7 +3142,7 @@ pub fn composer_projects_locations_environments_user_workloads_secrets_update(
     ApiError,
 > {
     let builder = composer_projects_locations_environments_user_workloads_secrets_update_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     composer_projects_locations_environments_user_workloads_secrets_update_execute(builder)
 }
@@ -3038,6 +3259,19 @@ pub fn composer_projects_locations_environments_workloads_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_environments_workloads_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsEnvironmentsWorkloadsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/environments/{environmentsId}/workloads
 /// Lists workloads in a Cloud Composer environment. Workload is a unit that runs a single Composer component. This method is supported for Cloud Composer environments in versions composer-2.*.*-airflow-*.*.* and newer.
 ///
@@ -3050,10 +3284,7 @@ pub fn composer_projects_locations_environments_workloads_list_execute(
 
 pub fn composer_projects_locations_environments_workloads_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ComposerProjectsLocationsEnvironmentsWorkloadsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListWorkloadsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3061,7 +3292,11 @@ pub fn composer_projects_locations_environments_workloads_list(
     ApiError,
 > {
     let builder = composer_projects_locations_environments_workloads_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     composer_projects_locations_environments_workloads_list_execute(builder)
 }
@@ -3178,6 +3413,19 @@ pub fn composer_projects_locations_image_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_image_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsImageVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: includePastReleases
+    pub includePastReleases: Option<bool>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/imageVersions
 /// List ImageVersions for provided location.
 ///
@@ -3190,10 +3438,7 @@ pub fn composer_projects_locations_image_versions_list_execute(
 
 pub fn composer_projects_locations_image_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    includePastReleases: Option<bool>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ComposerProjectsLocationsImageVersionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListImageVersionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3202,10 +3447,10 @@ pub fn composer_projects_locations_image_versions_list(
 > {
     let builder = composer_projects_locations_image_versions_list_builder(
         client,
-        parent,
-        includePastReleases,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.includePastReleases,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     composer_projects_locations_image_versions_list_execute(builder)
 }
@@ -3300,6 +3545,13 @@ pub fn composer_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -3312,12 +3564,12 @@ pub fn composer_projects_locations_operations_delete_execute(
 
 pub fn composer_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ComposerProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = composer_projects_locations_operations_delete_builder(client, name)?;
+    let builder = composer_projects_locations_operations_delete_builder(client, &args.name)?;
     composer_projects_locations_operations_delete_execute(builder)
 }
 
@@ -3411,6 +3663,13 @@ pub fn composer_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3423,12 +3682,12 @@ pub fn composer_projects_locations_operations_get_execute(
 
 pub fn composer_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ComposerProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = composer_projects_locations_operations_get_builder(client, name)?;
+    let builder = composer_projects_locations_operations_get_builder(client, &args.name)?;
     composer_projects_locations_operations_get_execute(builder)
 }
 
@@ -3548,6 +3807,21 @@ pub fn composer_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`composer_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ComposerProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -3560,11 +3834,7 @@ pub fn composer_projects_locations_operations_list_execute(
 
 pub fn composer_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ComposerProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3573,11 +3843,11 @@ pub fn composer_projects_locations_operations_list(
 > {
     let builder = composer_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     composer_projects_locations_operations_list_execute(builder)
 }

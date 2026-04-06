@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}:test
 /// Test Source for syntactic and semantic correctness. Issues present, if any, will be returned to the caller with a description, severity, and source location. The test method may be executed with Source or a Ruleset name. Passing Source is useful for unit testing new rules. Passing a Ruleset name is useful for regression testing an existing rule. The following is an example of Source that permits users to upload images to a bucket bearing their user id and matching the correct metadata: _*Example*_ // Users are allowed to subscribe and unsubscribe to the blog. service firebase.storage { match /`users/{`userId`}/images/{`imageName`}` { allow write: if `userId` == request.auth.uid && (`imageName`.matches('*.png$') || `imageName`.matches('*.jpg$')) && resource.`mimeType`.matches('^image/') } }
@@ -111,6 +113,15 @@ pub fn firebaserules_projects_test_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaserules_projects_test`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsTestArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: TestRulesetRequest,
+}
+
 /// GET v1/projects/{projectsId}:test
 /// Test Source for syntactic and semantic correctness. Issues present, if any, will be returned to the caller with a description, severity, and source location. The test method may be executed with Source or a Ruleset name. Passing Source is useful for unit testing new rules. Passing a Ruleset name is useful for regression testing an existing rule. The following is an example of Source that permits users to upload images to a bucket bearing their user id and matching the correct metadata: _*Example*_ // Users are allowed to subscribe and unsubscribe to the blog. service firebase.storage { match /`users/{`userId`}/images/{`imageName`}` { allow write: if `userId` == request.auth.uid && (`imageName`.matches('*.png$') || `imageName`.matches('*.jpg$')) && resource.`mimeType`.matches('^image/') } }
 ///
@@ -123,15 +134,14 @@ pub fn firebaserules_projects_test_execute(
 
 pub fn firebaserules_projects_test(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &TestRulesetRequest,
+    args: &FirebaserulesProjectsTestArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TestRulesetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = firebaserules_projects_test_builder(client, name, body)?;
+    let builder = firebaserules_projects_test_builder(client, &args.name, &args.body)?;
     firebaserules_projects_test_execute(builder)
 }
 
@@ -228,6 +238,15 @@ pub fn firebaserules_projects_releases_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaserules_projects_releases_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsReleasesCreateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Release,
+}
+
 /// GET v1/projects/{projectsId}/releases
 /// Create a Release. Release names should reflect the developer's deployment practices. For example, the release name may include the environment name, application name, application version, or any other name meaningful to the developer. Once a Release refers to a Ruleset, the rules can be enforced by Firebase Rules-enabled services. More than one Release may be 'live' concurrently. Consider the following three Release names for `projects/foo` and the Ruleset to which they refer. Release Name -&gt; Ruleset Name * `projects/foo/releases/prod` -&gt; `projects/foo/rulesets/uuid123` * `projects/foo/releases/prod/beta` -&gt; `projects/foo/rulesets/uuid123` * `projects/foo/releases/prod/v23` -&gt; `projects/foo/rulesets/uuid456` The relationships reflect a Ruleset rollout in progress. The prod and `prod/beta` releases refer to the same Ruleset. However, `prod/v23` refers to a new Ruleset. The Ruleset reference for a Release may be updated using the UpdateRelease method.
 ///
@@ -240,13 +259,12 @@ pub fn firebaserules_projects_releases_create_execute(
 
 pub fn firebaserules_projects_releases_create(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &Release,
+    args: &FirebaserulesProjectsReleasesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaserules_projects_releases_create_builder(client, name, body)?;
+    let builder = firebaserules_projects_releases_create_builder(client, &args.name, &args.body)?;
     firebaserules_projects_releases_create_execute(builder)
 }
 
@@ -340,6 +358,13 @@ pub fn firebaserules_projects_releases_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaserules_projects_releases_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsReleasesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/releases/{releasesId}
 /// Delete a Release by resource name.
 ///
@@ -352,12 +377,12 @@ pub fn firebaserules_projects_releases_delete_execute(
 
 pub fn firebaserules_projects_releases_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaserulesProjectsReleasesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaserules_projects_releases_delete_builder(client, name)?;
+    let builder = firebaserules_projects_releases_delete_builder(client, &args.name)?;
     firebaserules_projects_releases_delete_execute(builder)
 }
 
@@ -451,6 +476,13 @@ pub fn firebaserules_projects_releases_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaserules_projects_releases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsReleasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/releases/{releasesId}
 /// Get a Release by name.
 ///
@@ -463,12 +495,12 @@ pub fn firebaserules_projects_releases_get_execute(
 
 pub fn firebaserules_projects_releases_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaserulesProjectsReleasesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaserules_projects_releases_get_builder(client, name)?;
+    let builder = firebaserules_projects_releases_get_builder(client, &args.name)?;
     firebaserules_projects_releases_get_execute(builder)
 }
 
@@ -578,6 +610,15 @@ pub fn firebaserules_projects_releases_get_executable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaserules_projects_releases_get_executable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsReleasesGetExecutableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: executableVersion
+    pub executableVersion: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/releases/{releasesId}:getExecutable
 /// Get the Release executable to use when enforcing rules.
 ///
@@ -590,8 +631,7 @@ pub fn firebaserules_projects_releases_get_executable_execute(
 
 pub fn firebaserules_projects_releases_get_executable(
     client: &SimpleHttpClient,
-    name: &str,
-    executableVersion: Option<&str>,
+    args: &FirebaserulesProjectsReleasesGetExecutableArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetReleaseExecutableResponse>, ApiError>,
@@ -600,8 +640,11 @@ pub fn firebaserules_projects_releases_get_executable(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaserules_projects_releases_get_executable_builder(client, name, executableVersion)?;
+    let builder = firebaserules_projects_releases_get_executable_builder(
+        client,
+        &args.name,
+        args.executableVersion.as_deref(),
+    )?;
     firebaserules_projects_releases_get_executable_execute(builder)
 }
 
@@ -717,6 +760,19 @@ pub fn firebaserules_projects_releases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaserules_projects_releases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsReleasesListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/releases
 /// List the Release values for a project. This list may optionally be filtered by Release name, Ruleset name, TestSuite name, or any combination thereof.
 ///
@@ -729,18 +785,20 @@ pub fn firebaserules_projects_releases_list_execute(
 
 pub fn firebaserules_projects_releases_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirebaserulesProjectsReleasesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListReleasesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaserules_projects_releases_list_builder(client, name, filter, pageSize, pageToken)?;
+    let builder = firebaserules_projects_releases_list_builder(
+        client,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     firebaserules_projects_releases_list_execute(builder)
 }
 
@@ -837,6 +895,15 @@ pub fn firebaserules_projects_releases_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaserules_projects_releases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsReleasesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpdateReleaseRequest,
+}
+
 /// GET v1/projects/{projectsId}/releases/{releasesId}
 /// Update a Release via PATCH. Only updates to ruleset_name will be honored. Release rename is not supported. To create a Release use the CreateRelease method.
 ///
@@ -849,13 +916,12 @@ pub fn firebaserules_projects_releases_patch_execute(
 
 pub fn firebaserules_projects_releases_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpdateReleaseRequest,
+    args: &FirebaserulesProjectsReleasesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Release>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaserules_projects_releases_patch_builder(client, name, body)?;
+    let builder = firebaserules_projects_releases_patch_builder(client, &args.name, &args.body)?;
     firebaserules_projects_releases_patch_execute(builder)
 }
 
@@ -952,6 +1018,15 @@ pub fn firebaserules_projects_rulesets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaserules_projects_rulesets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsRulesetsCreateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Ruleset,
+}
+
 /// GET v1/projects/{projectsId}/rulesets
 /// Create a Ruleset from Source. The Ruleset is given a unique generated name which is returned to the caller. Source containing syntactic or semantics errors will result in an error response indicating the first error encountered. For a detailed view of Source issues, use TestRuleset.
 ///
@@ -964,13 +1039,12 @@ pub fn firebaserules_projects_rulesets_create_execute(
 
 pub fn firebaserules_projects_rulesets_create(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &Ruleset,
+    args: &FirebaserulesProjectsRulesetsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Ruleset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaserules_projects_rulesets_create_builder(client, name, body)?;
+    let builder = firebaserules_projects_rulesets_create_builder(client, &args.name, &args.body)?;
     firebaserules_projects_rulesets_create_execute(builder)
 }
 
@@ -1064,6 +1138,13 @@ pub fn firebaserules_projects_rulesets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaserules_projects_rulesets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsRulesetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/rulesets/{rulesetsId}
 /// Delete a Ruleset by resource name. If the Ruleset is referenced by a Release the operation will fail.
 ///
@@ -1076,12 +1157,12 @@ pub fn firebaserules_projects_rulesets_delete_execute(
 
 pub fn firebaserules_projects_rulesets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaserulesProjectsRulesetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaserules_projects_rulesets_delete_builder(client, name)?;
+    let builder = firebaserules_projects_rulesets_delete_builder(client, &args.name)?;
     firebaserules_projects_rulesets_delete_execute(builder)
 }
 
@@ -1175,6 +1256,13 @@ pub fn firebaserules_projects_rulesets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaserules_projects_rulesets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsRulesetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/rulesets/{rulesetsId}
 /// Get a Ruleset by name including the full Source contents.
 ///
@@ -1187,12 +1275,12 @@ pub fn firebaserules_projects_rulesets_get_execute(
 
 pub fn firebaserules_projects_rulesets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &FirebaserulesProjectsRulesetsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Ruleset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebaserules_projects_rulesets_get_builder(client, name)?;
+    let builder = firebaserules_projects_rulesets_get_builder(client, &args.name)?;
     firebaserules_projects_rulesets_get_execute(builder)
 }
 
@@ -1308,6 +1396,19 @@ pub fn firebaserules_projects_rulesets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebaserules_projects_rulesets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebaserulesProjectsRulesetsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/rulesets
 /// List Ruleset metadata only and optionally filter the results by Ruleset name. The full Source contents of a Ruleset may be retrieved with GetRuleset.
 ///
@@ -1320,17 +1421,19 @@ pub fn firebaserules_projects_rulesets_list_execute(
 
 pub fn firebaserules_projects_rulesets_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &FirebaserulesProjectsRulesetsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRulesetsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebaserules_projects_rulesets_list_builder(client, name, filter, pageSize, pageToken)?;
+    let builder = firebaserules_projects_rulesets_list_builder(
+        client,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     firebaserules_projects_rulesets_list_execute(builder)
 }

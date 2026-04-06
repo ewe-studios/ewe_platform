@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/scanConfigs
 /// Creates a new ScanConfig.
@@ -109,6 +111,15 @@ pub fn websecurityscanner_projects_scan_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`websecurityscanner_projects_scan_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ScanConfig,
+}
+
 /// GET v1/projects/{projectsId}/scanConfigs
 /// Creates a new ScanConfig.
 ///
@@ -121,13 +132,13 @@ pub fn websecurityscanner_projects_scan_configs_create_execute(
 
 pub fn websecurityscanner_projects_scan_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ScanConfig,
+    args: &WebsecurityscannerProjectsScanConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ScanConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = websecurityscanner_projects_scan_configs_create_builder(client, parent, body)?;
+    let builder =
+        websecurityscanner_projects_scan_configs_create_builder(client, &args.parent, &args.body)?;
     websecurityscanner_projects_scan_configs_create_execute(builder)
 }
 
@@ -221,6 +232,13 @@ pub fn websecurityscanner_projects_scan_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`websecurityscanner_projects_scan_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}
 /// Deletes an existing ScanConfig and its child resources.
 ///
@@ -233,12 +251,12 @@ pub fn websecurityscanner_projects_scan_configs_delete_execute(
 
 pub fn websecurityscanner_projects_scan_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WebsecurityscannerProjectsScanConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = websecurityscanner_projects_scan_configs_delete_builder(client, name)?;
+    let builder = websecurityscanner_projects_scan_configs_delete_builder(client, &args.name)?;
     websecurityscanner_projects_scan_configs_delete_execute(builder)
 }
 
@@ -332,6 +350,13 @@ pub fn websecurityscanner_projects_scan_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`websecurityscanner_projects_scan_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}
 /// Gets a ScanConfig.
 ///
@@ -344,12 +369,12 @@ pub fn websecurityscanner_projects_scan_configs_get_execute(
 
 pub fn websecurityscanner_projects_scan_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WebsecurityscannerProjectsScanConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ScanConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = websecurityscanner_projects_scan_configs_get_builder(client, name)?;
+    let builder = websecurityscanner_projects_scan_configs_get_builder(client, &args.name)?;
     websecurityscanner_projects_scan_configs_get_execute(builder)
 }
 
@@ -461,6 +486,17 @@ pub fn websecurityscanner_projects_scan_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`websecurityscanner_projects_scan_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/scanConfigs
 /// Lists ScanConfigs under a given project.
 ///
@@ -473,17 +509,19 @@ pub fn websecurityscanner_projects_scan_configs_list_execute(
 
 pub fn websecurityscanner_projects_scan_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WebsecurityscannerProjectsScanConfigsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListScanConfigsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        websecurityscanner_projects_scan_configs_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = websecurityscanner_projects_scan_configs_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     websecurityscanner_projects_scan_configs_list_execute(builder)
 }
 
@@ -592,6 +630,17 @@ pub fn websecurityscanner_projects_scan_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`websecurityscanner_projects_scan_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ScanConfig,
+}
+
 /// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}
 /// Updates a ScanConfig. This method support partial update of a ScanConfig.
 ///
@@ -604,15 +653,17 @@ pub fn websecurityscanner_projects_scan_configs_patch_execute(
 
 pub fn websecurityscanner_projects_scan_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ScanConfig,
+    args: &WebsecurityscannerProjectsScanConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ScanConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        websecurityscanner_projects_scan_configs_patch_builder(client, name, updateMask, body)?;
+    let builder = websecurityscanner_projects_scan_configs_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     websecurityscanner_projects_scan_configs_patch_execute(builder)
 }
 
@@ -709,6 +760,15 @@ pub fn websecurityscanner_projects_scan_configs_start_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`websecurityscanner_projects_scan_configs_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsStartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StartScanRunRequest,
+}
+
 /// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}:start
 /// Start a ScanRun according to the given ScanConfig.
 ///
@@ -721,13 +781,13 @@ pub fn websecurityscanner_projects_scan_configs_start_execute(
 
 pub fn websecurityscanner_projects_scan_configs_start(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StartScanRunRequest,
+    args: &WebsecurityscannerProjectsScanConfigsStartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ScanRun>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = websecurityscanner_projects_scan_configs_start_builder(client, name, body)?;
+    let builder =
+        websecurityscanner_projects_scan_configs_start_builder(client, &args.name, &args.body)?;
     websecurityscanner_projects_scan_configs_start_execute(builder)
 }
 
@@ -821,6 +881,13 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`websecurityscanner_projects_scan_configs_scan_runs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsScanRunsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}
 /// Gets a ScanRun.
 ///
@@ -833,12 +900,13 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_get_execute(
 
 pub fn websecurityscanner_projects_scan_configs_scan_runs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WebsecurityscannerProjectsScanConfigsScanRunsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ScanRun>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = websecurityscanner_projects_scan_configs_scan_runs_get_builder(client, name)?;
+    let builder =
+        websecurityscanner_projects_scan_configs_scan_runs_get_builder(client, &args.name)?;
     websecurityscanner_projects_scan_configs_scan_runs_get_execute(builder)
 }
 
@@ -950,6 +1018,17 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`websecurityscanner_projects_scan_configs_scan_runs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsScanRunsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns
 /// Lists ScanRuns under a given ScanConfig, in descending order of ScanRun stop time.
 ///
@@ -962,9 +1041,7 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_list_execute(
 
 pub fn websecurityscanner_projects_scan_configs_scan_runs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WebsecurityscannerProjectsScanConfigsScanRunsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListScanRunsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -972,7 +1049,10 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_list(
     ApiError,
 > {
     let builder = websecurityscanner_projects_scan_configs_scan_runs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     websecurityscanner_projects_scan_configs_scan_runs_list_execute(builder)
 }
@@ -1070,6 +1150,15 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`websecurityscanner_projects_scan_configs_scan_runs_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsScanRunsStopArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StopScanRunRequest,
+}
+
 /// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}:stop
 /// Stops a ScanRun. The stopped ScanRun is returned.
 ///
@@ -1082,14 +1171,14 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_stop_execute(
 
 pub fn websecurityscanner_projects_scan_configs_scan_runs_stop(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StopScanRunRequest,
+    args: &WebsecurityscannerProjectsScanConfigsScanRunsStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ScanRun>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        websecurityscanner_projects_scan_configs_scan_runs_stop_builder(client, name, body)?;
+    let builder = websecurityscanner_projects_scan_configs_scan_runs_stop_builder(
+        client, &args.name, &args.body,
+    )?;
     websecurityscanner_projects_scan_configs_scan_runs_stop_execute(builder)
 }
 
@@ -1201,6 +1290,17 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsScanRunsCrawledUrlsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/crawledUrls
 /// List CrawledUrls under a given ScanRun.
 ///
@@ -1213,9 +1313,7 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_exec
 
 pub fn websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WebsecurityscannerProjectsScanConfigsScanRunsCrawledUrlsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCrawledUrlsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1223,7 +1321,10 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list(
     ApiError,
 > {
     let builder = websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_execute(builder)
 }
@@ -1322,6 +1423,13 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_lis
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsScanRunsFindingTypeStatsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findingTypeStats
 /// List all FindingTypeStats under a given ScanRun.
 ///
@@ -1334,7 +1442,7 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_lis
 
 pub fn websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &WebsecurityscannerProjectsScanConfigsScanRunsFindingTypeStatsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListFindingTypeStatsResponse>, ApiError>,
@@ -1345,7 +1453,8 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_lis
 > {
     let builder =
         websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_builder(
-            client, parent,
+            client,
+            &args.parent,
         )?;
     websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_list_execute(builder)
 }
@@ -1440,6 +1549,13 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`websecurityscanner_projects_scan_configs_scan_runs_findings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsScanRunsFindingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findings/{findingsId}
 /// Gets a Finding.
 ///
@@ -1452,13 +1568,14 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_get_execute(
 
 pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WebsecurityscannerProjectsScanConfigsScanRunsFindingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        websecurityscanner_projects_scan_configs_scan_runs_findings_get_builder(client, name)?;
+    let builder = websecurityscanner_projects_scan_configs_scan_runs_findings_get_builder(
+        client, &args.name,
+    )?;
     websecurityscanner_projects_scan_configs_scan_runs_findings_get_execute(builder)
 }
 
@@ -1574,6 +1691,19 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`websecurityscanner_projects_scan_configs_scan_runs_findings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebsecurityscannerProjectsScanConfigsScanRunsFindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/scanConfigs/{scanConfigsId}/scanRuns/{scanRunsId}/findings
 /// List Findings under a given ScanRun.
 ///
@@ -1586,10 +1716,7 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_list_execute(
 
 pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WebsecurityscannerProjectsScanConfigsScanRunsFindingsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFindingsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1597,7 +1724,11 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_list(
     ApiError,
 > {
     let builder = websecurityscanner_projects_scan_configs_scan_runs_findings_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     websecurityscanner_projects_scan_configs_scan_runs_findings_list_execute(builder)
 }

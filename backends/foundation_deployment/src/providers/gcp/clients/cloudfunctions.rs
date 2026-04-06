@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
@@ -132,6 +134,21 @@ pub fn cloudfunctions_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -144,11 +161,7 @@ pub fn cloudfunctions_projects_locations_list_execute(
 
 pub fn cloudfunctions_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudfunctionsProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -157,11 +170,11 @@ pub fn cloudfunctions_projects_locations_list(
 > {
     let builder = cloudfunctions_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudfunctions_projects_locations_list_execute(builder)
 }
@@ -259,6 +272,15 @@ pub fn cloudfunctions_projects_locations_functions_abort_function_upgrade_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_abort_function_upgrade`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsAbortFunctionUpgradeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AbortFunctionUpgradeRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}:abortFunctionUpgrade
 /// Aborts generation upgrade process for a function with the given name from the specified project. Deletes all 2nd Gen copy related configuration and resources which were created during the upgrade process.
 ///
@@ -271,14 +293,13 @@ pub fn cloudfunctions_projects_locations_functions_abort_function_upgrade_execut
 
 pub fn cloudfunctions_projects_locations_functions_abort_function_upgrade(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AbortFunctionUpgradeRequest,
+    args: &CloudfunctionsProjectsLocationsFunctionsAbortFunctionUpgradeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudfunctions_projects_locations_functions_abort_function_upgrade_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     cloudfunctions_projects_locations_functions_abort_function_upgrade_execute(builder)
 }
@@ -376,6 +397,15 @@ pub fn cloudfunctions_projects_locations_functions_commit_function_upgrade_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_commit_function_upgrade`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsCommitFunctionUpgradeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CommitFunctionUpgradeRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}:commitFunctionUpgrade
 /// Finalizes the upgrade after which function upgrade can not be rolled back. This is the last step of the multi step process to upgrade 1st Gen functions to 2nd Gen. Deletes all original 1st Gen related configuration and resources.
 ///
@@ -388,14 +418,13 @@ pub fn cloudfunctions_projects_locations_functions_commit_function_upgrade_execu
 
 pub fn cloudfunctions_projects_locations_functions_commit_function_upgrade(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CommitFunctionUpgradeRequest,
+    args: &CloudfunctionsProjectsLocationsFunctionsCommitFunctionUpgradeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudfunctions_projects_locations_functions_commit_function_upgrade_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     cloudfunctions_projects_locations_functions_commit_function_upgrade_execute(builder)
 }
@@ -493,6 +522,15 @@ pub fn cloudfunctions_projects_locations_functions_commit_function_upgrade_as_ge
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_commit_function_upgrade_as_gen2`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsCommitFunctionUpgradeAsGen2Args {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CommitFunctionUpgradeAsGen2Request,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}:commitFunctionUpgradeAsGen2
 /// Commits a function upgrade from GCF Gen1 to GCF Gen2. This action deletes the Gen1 function, leaving the Gen2 function active and manageable by the GCFv2 API.
 ///
@@ -505,15 +543,14 @@ pub fn cloudfunctions_projects_locations_functions_commit_function_upgrade_as_ge
 
 pub fn cloudfunctions_projects_locations_functions_commit_function_upgrade_as_gen2(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CommitFunctionUpgradeAsGen2Request,
+    args: &CloudfunctionsProjectsLocationsFunctionsCommitFunctionUpgradeAsGen2Args,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         cloudfunctions_projects_locations_functions_commit_function_upgrade_as_gen2_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     cloudfunctions_projects_locations_functions_commit_function_upgrade_as_gen2_execute(builder)
 }
@@ -623,6 +660,17 @@ pub fn cloudfunctions_projects_locations_functions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: functionId
+    pub functionId: Option<String>,
+    /// Request body.
+    pub body: Function,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions
 /// Creates a new function. If a function with the given name already exists in the specified project, the long running operation will return ALREADY_EXISTS error.
 ///
@@ -635,15 +683,16 @@ pub fn cloudfunctions_projects_locations_functions_create_execute(
 
 pub fn cloudfunctions_projects_locations_functions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    functionId: Option<&str>,
-    body: &Function,
+    args: &CloudfunctionsProjectsLocationsFunctionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudfunctions_projects_locations_functions_create_builder(
-        client, parent, functionId, body,
+        client,
+        &args.parent,
+        args.functionId.as_deref(),
+        &args.body,
     )?;
     cloudfunctions_projects_locations_functions_create_execute(builder)
 }
@@ -738,6 +787,13 @@ pub fn cloudfunctions_projects_locations_functions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}
 /// Deletes a function with the given name from the specified project. If the given function is used by some trigger, the trigger will be updated to remove this function.
 ///
@@ -750,12 +806,12 @@ pub fn cloudfunctions_projects_locations_functions_delete_execute(
 
 pub fn cloudfunctions_projects_locations_functions_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudfunctionsProjectsLocationsFunctionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudfunctions_projects_locations_functions_delete_builder(client, name)?;
+    let builder = cloudfunctions_projects_locations_functions_delete_builder(client, &args.name)?;
     cloudfunctions_projects_locations_functions_delete_execute(builder)
 }
 
@@ -852,6 +908,15 @@ pub fn cloudfunctions_projects_locations_functions_detach_function_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_detach_function`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsDetachFunctionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DetachFunctionRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}:detachFunction
 /// Detaches 2nd Gen function to Cloud Run function.
 ///
@@ -864,14 +929,14 @@ pub fn cloudfunctions_projects_locations_functions_detach_function_execute(
 
 pub fn cloudfunctions_projects_locations_functions_detach_function(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DetachFunctionRequest,
+    args: &CloudfunctionsProjectsLocationsFunctionsDetachFunctionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudfunctions_projects_locations_functions_detach_function_builder(client, name, body)?;
+    let builder = cloudfunctions_projects_locations_functions_detach_function_builder(
+        client, &args.name, &args.body,
+    )?;
     cloudfunctions_projects_locations_functions_detach_function_execute(builder)
 }
 
@@ -972,6 +1037,15 @@ pub fn cloudfunctions_projects_locations_functions_generate_download_url_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_generate_download_url`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsGenerateDownloadUrlArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GenerateDownloadUrlRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}:generateDownloadUrl
 /// Returns a signed URL for downloading deployed function source code. The URL is only valid for a limited period and should be used within 30 minutes of generation. For more information about the signed URL usage see: <https://cloud.google.`com/storage/docs/access-control/signed-urls`>
 ///
@@ -984,8 +1058,7 @@ pub fn cloudfunctions_projects_locations_functions_generate_download_url_execute
 
 pub fn cloudfunctions_projects_locations_functions_generate_download_url(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GenerateDownloadUrlRequest,
+    args: &CloudfunctionsProjectsLocationsFunctionsGenerateDownloadUrlArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateDownloadUrlResponse>, ApiError>,
@@ -995,7 +1068,7 @@ pub fn cloudfunctions_projects_locations_functions_generate_download_url(
     ApiError,
 > {
     let builder = cloudfunctions_projects_locations_functions_generate_download_url_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     cloudfunctions_projects_locations_functions_generate_download_url_execute(builder)
 }
@@ -1095,6 +1168,15 @@ pub fn cloudfunctions_projects_locations_functions_generate_upload_url_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_generate_upload_url`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsGenerateUploadUrlArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GenerateUploadUrlRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions:generateUploadUrl
 /// Returns a signed URL for uploading a function source code. For more information about the signed URL usage see: <https://cloud.google.`com/storage/docs/access-control/signed-urls`.> Once the function source code upload is complete, the used signed URL should be provided in CreateFunction or UpdateFunction request as a reference to the function source code. When uploading source code to the generated signed URL, please follow these restrictions: * Source file type should be a zip file. * No credentials should be attached - the signed URLs provide access to the target bucket using internal service identity; if credentials were attached, the identity from the credentials would be used, but that identity does not have permissions to upload files to the URL. When making a HTTP PUT request, specify this header: * content-type: `application/zip` Do not specify this header: * Authorization: Bearer YOUR_TOKEN
 ///
@@ -1107,8 +1189,7 @@ pub fn cloudfunctions_projects_locations_functions_generate_upload_url_execute(
 
 pub fn cloudfunctions_projects_locations_functions_generate_upload_url(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GenerateUploadUrlRequest,
+    args: &CloudfunctionsProjectsLocationsFunctionsGenerateUploadUrlArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GenerateUploadUrlResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1116,7 +1197,9 @@ pub fn cloudfunctions_projects_locations_functions_generate_upload_url(
     ApiError,
 > {
     let builder = cloudfunctions_projects_locations_functions_generate_upload_url_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     cloudfunctions_projects_locations_functions_generate_upload_url_execute(builder)
 }
@@ -1223,6 +1306,15 @@ pub fn cloudfunctions_projects_locations_functions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: revision
+    pub revision: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}
 /// Returns a function with the given name from the requested project.
 ///
@@ -1235,13 +1327,16 @@ pub fn cloudfunctions_projects_locations_functions_get_execute(
 
 pub fn cloudfunctions_projects_locations_functions_get(
     client: &SimpleHttpClient,
-    name: &str,
-    revision: Option<&str>,
+    args: &CloudfunctionsProjectsLocationsFunctionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Function>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudfunctions_projects_locations_functions_get_builder(client, name, revision)?;
+    let builder = cloudfunctions_projects_locations_functions_get_builder(
+        client,
+        &args.name,
+        args.revision.as_deref(),
+    )?;
     cloudfunctions_projects_locations_functions_get_execute(builder)
 }
 
@@ -1347,6 +1442,15 @@ pub fn cloudfunctions_projects_locations_functions_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1359,16 +1463,15 @@ pub fn cloudfunctions_projects_locations_functions_get_iam_policy_execute(
 
 pub fn cloudfunctions_projects_locations_functions_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &CloudfunctionsProjectsLocationsFunctionsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudfunctions_projects_locations_functions_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     cloudfunctions_projects_locations_functions_get_iam_policy_execute(builder)
 }
@@ -1489,6 +1592,21 @@ pub fn cloudfunctions_projects_locations_functions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions
 /// Returns a list of functions that belong to the requested project.
 ///
@@ -1501,11 +1619,7 @@ pub fn cloudfunctions_projects_locations_functions_list_execute(
 
 pub fn cloudfunctions_projects_locations_functions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudfunctionsProjectsLocationsFunctionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFunctionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1513,7 +1627,12 @@ pub fn cloudfunctions_projects_locations_functions_list(
     ApiError,
 > {
     let builder = cloudfunctions_projects_locations_functions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudfunctions_projects_locations_functions_list_execute(builder)
 }
@@ -1623,6 +1742,17 @@ pub fn cloudfunctions_projects_locations_functions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Function,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}
 /// Updates existing function.
 ///
@@ -1635,15 +1765,17 @@ pub fn cloudfunctions_projects_locations_functions_patch_execute(
 
 pub fn cloudfunctions_projects_locations_functions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Function,
+    args: &CloudfunctionsProjectsLocationsFunctionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudfunctions_projects_locations_functions_patch_builder(client, name, updateMask, body)?;
+    let builder = cloudfunctions_projects_locations_functions_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudfunctions_projects_locations_functions_patch_execute(builder)
 }
 
@@ -1740,6 +1872,15 @@ pub fn cloudfunctions_projects_locations_functions_redirect_function_upgrade_tra
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_redirect_function_upgrade_traffic`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsRedirectFunctionUpgradeTrafficArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RedirectFunctionUpgradeTrafficRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}:redirectFunctionUpgradeTraffic
 /// Changes the traffic target of a function from the original 1st Gen function to the 2nd Gen copy. This is the second step of the multi step process to upgrade 1st Gen functions to 2nd Gen. After this operation, all new traffic will be served by 2nd Gen copy.
 ///
@@ -1752,15 +1893,14 @@ pub fn cloudfunctions_projects_locations_functions_redirect_function_upgrade_tra
 
 pub fn cloudfunctions_projects_locations_functions_redirect_function_upgrade_traffic(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RedirectFunctionUpgradeTrafficRequest,
+    args: &CloudfunctionsProjectsLocationsFunctionsRedirectFunctionUpgradeTrafficArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         cloudfunctions_projects_locations_functions_redirect_function_upgrade_traffic_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     cloudfunctions_projects_locations_functions_redirect_function_upgrade_traffic_execute(builder)
 }
@@ -1858,6 +1998,15 @@ pub fn cloudfunctions_projects_locations_functions_rollback_function_upgrade_tra
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_rollback_function_upgrade_traffic`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsRollbackFunctionUpgradeTrafficArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RollbackFunctionUpgradeTrafficRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}:rollbackFunctionUpgradeTraffic
 /// Reverts the traffic target of a function from the 2nd Gen copy to the original 1st Gen function. After this operation, all new traffic would be served by the 1st Gen.
 ///
@@ -1870,15 +2019,14 @@ pub fn cloudfunctions_projects_locations_functions_rollback_function_upgrade_tra
 
 pub fn cloudfunctions_projects_locations_functions_rollback_function_upgrade_traffic(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RollbackFunctionUpgradeTrafficRequest,
+    args: &CloudfunctionsProjectsLocationsFunctionsRollbackFunctionUpgradeTrafficArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         cloudfunctions_projects_locations_functions_rollback_function_upgrade_traffic_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     cloudfunctions_projects_locations_functions_rollback_function_upgrade_traffic_execute(builder)
 }
@@ -1976,6 +2124,15 @@ pub fn cloudfunctions_projects_locations_functions_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1988,14 +2145,16 @@ pub fn cloudfunctions_projects_locations_functions_set_iam_policy_execute(
 
 pub fn cloudfunctions_projects_locations_functions_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &CloudfunctionsProjectsLocationsFunctionsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudfunctions_projects_locations_functions_set_iam_policy_builder(client, resource, body)?;
+    let builder = cloudfunctions_projects_locations_functions_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     cloudfunctions_projects_locations_functions_set_iam_policy_execute(builder)
 }
 
@@ -2092,6 +2251,15 @@ pub fn cloudfunctions_projects_locations_functions_setup_function_upgrade_config
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_setup_function_upgrade_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsSetupFunctionUpgradeConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SetupFunctionUpgradeConfigRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}:setupFunctionUpgradeConfig
 /// Creates a 2nd Gen copy of the function configuration based on the 1st Gen function with the given name. This is the first step of the multi step process to upgrade 1st Gen functions to 2nd Gen. Only 2nd Gen configuration is setup as part of this request and traffic continues to be served by 1st Gen.
 ///
@@ -2104,15 +2272,14 @@ pub fn cloudfunctions_projects_locations_functions_setup_function_upgrade_config
 
 pub fn cloudfunctions_projects_locations_functions_setup_function_upgrade_config(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SetupFunctionUpgradeConfigRequest,
+    args: &CloudfunctionsProjectsLocationsFunctionsSetupFunctionUpgradeConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         cloudfunctions_projects_locations_functions_setup_function_upgrade_config_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     cloudfunctions_projects_locations_functions_setup_function_upgrade_config_execute(builder)
 }
@@ -2214,6 +2381,15 @@ pub fn cloudfunctions_projects_locations_functions_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_functions_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsFunctionsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/functions/{functionsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2226,8 +2402,7 @@ pub fn cloudfunctions_projects_locations_functions_test_iam_permissions_execute(
 
 pub fn cloudfunctions_projects_locations_functions_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &CloudfunctionsProjectsLocationsFunctionsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2237,7 +2412,9 @@ pub fn cloudfunctions_projects_locations_functions_test_iam_permissions(
     ApiError,
 > {
     let builder = cloudfunctions_projects_locations_functions_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     cloudfunctions_projects_locations_functions_test_iam_permissions_execute(builder)
 }
@@ -2332,6 +2509,13 @@ pub fn cloudfunctions_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2344,12 +2528,12 @@ pub fn cloudfunctions_projects_locations_operations_get_execute(
 
 pub fn cloudfunctions_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudfunctionsProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudfunctions_projects_locations_operations_get_builder(client, name)?;
+    let builder = cloudfunctions_projects_locations_operations_get_builder(client, &args.name)?;
     cloudfunctions_projects_locations_operations_get_execute(builder)
 }
 
@@ -2469,6 +2653,21 @@ pub fn cloudfunctions_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -2481,11 +2680,7 @@ pub fn cloudfunctions_projects_locations_operations_list_execute(
 
 pub fn cloudfunctions_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &CloudfunctionsProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2494,11 +2689,11 @@ pub fn cloudfunctions_projects_locations_operations_list(
 > {
     let builder = cloudfunctions_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     cloudfunctions_projects_locations_operations_list_execute(builder)
 }
@@ -2607,6 +2802,15 @@ pub fn cloudfunctions_projects_locations_runtimes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudfunctions_projects_locations_runtimes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudfunctionsProjectsLocationsRuntimesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/runtimes
 /// Returns a list of runtimes that are supported for the requested project.
 ///
@@ -2619,14 +2823,17 @@ pub fn cloudfunctions_projects_locations_runtimes_list_execute(
 
 pub fn cloudfunctions_projects_locations_runtimes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    args: &CloudfunctionsProjectsLocationsRuntimesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRuntimesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudfunctions_projects_locations_runtimes_list_builder(client, parent, filter)?;
+    let builder = cloudfunctions_projects_locations_runtimes_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+    )?;
     cloudfunctions_projects_locations_runtimes_list_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
@@ -109,6 +111,15 @@ pub fn serviceusage_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceusage_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -121,13 +132,12 @@ pub fn serviceusage_operations_cancel_execute(
 
 pub fn serviceusage_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ServiceusageOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = serviceusage_operations_cancel_builder(client, name, body)?;
+    let builder = serviceusage_operations_cancel_builder(client, &args.name, &args.body)?;
     serviceusage_operations_cancel_execute(builder)
 }
 
@@ -218,6 +228,13 @@ pub fn serviceusage_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceusage_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -230,12 +247,12 @@ pub fn serviceusage_operations_delete_execute(
 
 pub fn serviceusage_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServiceusageOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = serviceusage_operations_delete_builder(client, name)?;
+    let builder = serviceusage_operations_delete_builder(client, &args.name)?;
     serviceusage_operations_delete_execute(builder)
 }
 
@@ -326,6 +343,13 @@ pub fn serviceusage_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceusage_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -338,12 +362,12 @@ pub fn serviceusage_operations_get_execute(
 
 pub fn serviceusage_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServiceusageOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = serviceusage_operations_get_builder(client, name)?;
+    let builder = serviceusage_operations_get_builder(client, &args.name)?;
     serviceusage_operations_get_execute(builder)
 }
 
@@ -463,6 +487,21 @@ pub fn serviceusage_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceusage_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageOperationsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -475,11 +514,7 @@ pub fn serviceusage_operations_list_execute(
 
 pub fn serviceusage_operations_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    name: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ServiceusageOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -488,11 +523,11 @@ pub fn serviceusage_operations_list(
 > {
     let builder = serviceusage_operations_list_builder(
         client,
-        filter,
-        name,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        args.filter.as_deref(),
+        args.name.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     serviceusage_operations_list_execute(builder)
 }
@@ -590,6 +625,15 @@ pub fn serviceusage_services_batch_enable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceusage_services_batch_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageServicesBatchEnableArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchEnableServicesRequest,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/services:batchEnable
 /// Enable multiple services on a project. The operation is atomic: if enabling any service fails, then the entire batch fails, and no state changes occur. To enable a single service, use the EnableService method instead.
 ///
@@ -602,13 +646,12 @@ pub fn serviceusage_services_batch_enable_execute(
 
 pub fn serviceusage_services_batch_enable(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchEnableServicesRequest,
+    args: &ServiceusageServicesBatchEnableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = serviceusage_services_batch_enable_builder(client, parent, body)?;
+    let builder = serviceusage_services_batch_enable_builder(client, &args.parent, &args.body)?;
     serviceusage_services_batch_enable_execute(builder)
 }
 
@@ -716,6 +759,15 @@ pub fn serviceusage_services_batch_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceusage_services_batch_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageServicesBatchGetArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: names
+    pub names: Option<String>,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/services:batchGet
 /// Returns the service configurations and enabled states for a given list of services.
 ///
@@ -728,15 +780,15 @@ pub fn serviceusage_services_batch_get_execute(
 
 pub fn serviceusage_services_batch_get(
     client: &SimpleHttpClient,
-    parent: &str,
-    names: Option<&str>,
+    args: &ServiceusageServicesBatchGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BatchGetServicesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = serviceusage_services_batch_get_builder(client, parent, names)?;
+    let builder =
+        serviceusage_services_batch_get_builder(client, &args.parent, args.names.as_deref())?;
     serviceusage_services_batch_get_execute(builder)
 }
 
@@ -833,6 +885,15 @@ pub fn serviceusage_services_disable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceusage_services_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageServicesDisableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DisableServiceRequest,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/services/{servicesId}:disable
 /// Disable a service so that it can no longer be used with a project. This prevents unintended usage that may cause unexpected billing charges or security leaks. It is not valid to call the disable method on a service that is not currently enabled. Callers will receive a FAILED_PRECONDITION status if the target service is not currently enabled.
 ///
@@ -845,13 +906,12 @@ pub fn serviceusage_services_disable_execute(
 
 pub fn serviceusage_services_disable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DisableServiceRequest,
+    args: &ServiceusageServicesDisableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = serviceusage_services_disable_builder(client, name, body)?;
+    let builder = serviceusage_services_disable_builder(client, &args.name, &args.body)?;
     serviceusage_services_disable_execute(builder)
 }
 
@@ -948,6 +1008,15 @@ pub fn serviceusage_services_enable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceusage_services_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageServicesEnableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EnableServiceRequest,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/services/{servicesId}:enable
 /// Enable a service so that it can be used with a project.
 ///
@@ -960,13 +1029,12 @@ pub fn serviceusage_services_enable_execute(
 
 pub fn serviceusage_services_enable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EnableServiceRequest,
+    args: &ServiceusageServicesEnableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = serviceusage_services_enable_builder(client, name, body)?;
+    let builder = serviceusage_services_enable_builder(client, &args.name, &args.body)?;
     serviceusage_services_enable_execute(builder)
 }
 
@@ -1064,6 +1132,13 @@ pub fn serviceusage_services_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceusage_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageServicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/services/{servicesId}
 /// Returns the service configuration and enabled state for a given service.
 ///
@@ -1076,7 +1151,7 @@ pub fn serviceusage_services_get_execute(
 
 pub fn serviceusage_services_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ServiceusageServicesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleApiServiceusageV1Service>, ApiError>,
@@ -1085,7 +1160,7 @@ pub fn serviceusage_services_get(
         + 'static,
     ApiError,
 > {
-    let builder = serviceusage_services_get_builder(client, name)?;
+    let builder = serviceusage_services_get_builder(client, &args.name)?;
     serviceusage_services_get_execute(builder)
 }
 
@@ -1201,6 +1276,19 @@ pub fn serviceusage_services_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`serviceusage_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ServiceusageServicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/{v1Id}/{v1Id1}/services
 /// List all services available to the specified project, and the current state of those services with respect to the project. The list includes all public services, all services for which the calling user has the servicemanagement.services.bind permission, and all services that have already been enabled on the project. The list can be filtered to only include services in a specific state, for example to only include services enabled on the project. WARNING: If you need to query enabled services frequently or across an organization, you should use [Cloud Asset Inventory API](<https://cloud.google.`com/asset-inventory/docs/apis`>), which provides higher throughput and richer filtering capability.
 ///
@@ -1213,16 +1301,19 @@ pub fn serviceusage_services_list_execute(
 
 pub fn serviceusage_services_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ServiceusageServicesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = serviceusage_services_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = serviceusage_services_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     serviceusage_services_list_execute(builder)
 }

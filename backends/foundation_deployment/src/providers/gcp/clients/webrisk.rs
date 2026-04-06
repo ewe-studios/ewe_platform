@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/hashes:search
 /// Gets the full hashes that match the requested hash prefix. This is used after a hash prefix is looked up in a `threatList` and there is a match. The client side `threatList` only holds partial hashes so the client must query this method to determine if there is a full hash match of a threat.
@@ -122,6 +124,15 @@ pub fn webrisk_hashes_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webrisk_hashes_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebriskHashesSearchArgs {
+    /// Query parameter: hashPrefix
+    pub hashPrefix: Option<String>,
+    /// Query parameter: threatTypes
+    pub threatTypes: Option<String>,
+}
+
 /// GET v1/hashes:search
 /// Gets the full hashes that match the requested hash prefix. This is used after a hash prefix is looked up in a `threatList` and there is a match. The client side `threatList` only holds partial hashes so the client must query this method to determine if there is a full hash match of a threat.
 ///
@@ -134,8 +145,7 @@ pub fn webrisk_hashes_search_execute(
 
 pub fn webrisk_hashes_search(
     client: &SimpleHttpClient,
-    hashPrefix: Option<&str>,
-    threatTypes: Option<&str>,
+    args: &WebriskHashesSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudWebriskV1SearchHashesResponse>, ApiError>,
@@ -144,7 +154,11 @@ pub fn webrisk_hashes_search(
         + 'static,
     ApiError,
 > {
-    let builder = webrisk_hashes_search_builder(client, hashPrefix, threatTypes)?;
+    let builder = webrisk_hashes_search_builder(
+        client,
+        args.hashPrefix.as_deref(),
+        args.threatTypes.as_deref(),
+    )?;
     webrisk_hashes_search_execute(builder)
 }
 
@@ -243,6 +257,15 @@ pub fn webrisk_projects_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webrisk_projects_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebriskProjectsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -255,15 +278,14 @@ pub fn webrisk_projects_operations_cancel_execute(
 
 pub fn webrisk_projects_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &WebriskProjectsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = webrisk_projects_operations_cancel_builder(client, name, body)?;
+    let builder = webrisk_projects_operations_cancel_builder(client, &args.name, &args.body)?;
     webrisk_projects_operations_cancel_execute(builder)
 }
 
@@ -359,6 +381,13 @@ pub fn webrisk_projects_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webrisk_projects_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebriskProjectsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -371,14 +400,14 @@ pub fn webrisk_projects_operations_delete_execute(
 
 pub fn webrisk_projects_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WebriskProjectsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = webrisk_projects_operations_delete_builder(client, name)?;
+    let builder = webrisk_projects_operations_delete_builder(client, &args.name)?;
     webrisk_projects_operations_delete_execute(builder)
 }
 
@@ -476,6 +505,13 @@ pub fn webrisk_projects_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webrisk_projects_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebriskProjectsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -488,7 +524,7 @@ pub fn webrisk_projects_operations_get_execute(
 
 pub fn webrisk_projects_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WebriskProjectsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -497,7 +533,7 @@ pub fn webrisk_projects_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = webrisk_projects_operations_get_builder(client, name)?;
+    let builder = webrisk_projects_operations_get_builder(client, &args.name)?;
     webrisk_projects_operations_get_execute(builder)
 }
 
@@ -620,6 +656,21 @@ pub fn webrisk_projects_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webrisk_projects_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebriskProjectsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -632,11 +683,7 @@ pub fn webrisk_projects_operations_list_execute(
 
 pub fn webrisk_projects_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &WebriskProjectsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -647,11 +694,11 @@ pub fn webrisk_projects_operations_list(
 > {
     let builder = webrisk_projects_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     webrisk_projects_operations_list_execute(builder)
 }
@@ -753,6 +800,15 @@ pub fn webrisk_projects_submissions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webrisk_projects_submissions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebriskProjectsSubmissionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudWebriskV1Submission,
+}
+
 /// GET v1/projects/{projectsId}/submissions
 /// Creates a Submission of a URI suspected of containing phishing content to be reviewed. If the result verifies the existence of malicious phishing content, the site will be added to the [Google's Social Engineering lists](<https://support.google.`com/webmasters/answer/6350487/`>) in order to protect users that could get exposed to this threat in the future. Only allowlisted projects can use this method during Early Access. Please reach out to Sales or your customer engineer to obtain access.
 ///
@@ -765,8 +821,7 @@ pub fn webrisk_projects_submissions_create_execute(
 
 pub fn webrisk_projects_submissions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudWebriskV1Submission,
+    args: &WebriskProjectsSubmissionsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudWebriskV1Submission>, ApiError>,
@@ -775,7 +830,7 @@ pub fn webrisk_projects_submissions_create(
         + 'static,
     ApiError,
 > {
-    let builder = webrisk_projects_submissions_create_builder(client, parent, body)?;
+    let builder = webrisk_projects_submissions_create_builder(client, &args.parent, &args.body)?;
     webrisk_projects_submissions_create_execute(builder)
 }
 
@@ -898,6 +953,21 @@ pub fn webrisk_threat_lists_compute_diff_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webrisk_threat_lists_compute_diff`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebriskThreatListsComputeDiffArgs {
+    /// Query parameter: constraints_maxDatabaseEntries
+    pub constraints_maxDatabaseEntries: Option<i32>,
+    /// Query parameter: constraints_maxDiffEntries
+    pub constraints_maxDiffEntries: Option<i32>,
+    /// Query parameter: constraints_supportedCompressions
+    pub constraints_supportedCompressions: Option<String>,
+    /// Query parameter: threatType
+    pub threatType: Option<String>,
+    /// Query parameter: versionToken
+    pub versionToken: Option<String>,
+}
+
 /// GET v1/threatLists:computeDiff
 /// Gets the most recent threat list diffs. These diffs should be applied to a local database of hashes to keep it up-to-date. If the local database is empty or excessively out-of-date, a complete snapshot of the database will be returned. This Method only updates a single ThreatList at a time. To update multiple ThreatList databases, this method needs to be called once for each list.
 ///
@@ -910,11 +980,7 @@ pub fn webrisk_threat_lists_compute_diff_execute(
 
 pub fn webrisk_threat_lists_compute_diff(
     client: &SimpleHttpClient,
-    constraints_maxDatabaseEntries: Option<i32>,
-    constraints_maxDiffEntries: Option<i32>,
-    constraints_supportedCompressions: Option<&str>,
-    threatType: Option<&str>,
-    versionToken: Option<&str>,
+    args: &WebriskThreatListsComputeDiffArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudWebriskV1ComputeThreatListDiffResponse>, ApiError>,
@@ -925,11 +991,11 @@ pub fn webrisk_threat_lists_compute_diff(
 > {
     let builder = webrisk_threat_lists_compute_diff_builder(
         client,
-        constraints_maxDatabaseEntries,
-        constraints_maxDiffEntries,
-        constraints_supportedCompressions,
-        threatType,
-        versionToken,
+        args.constraints_maxDatabaseEntries,
+        args.constraints_maxDiffEntries,
+        args.constraints_supportedCompressions.as_deref(),
+        args.threatType.as_deref(),
+        args.versionToken.as_deref(),
     )?;
     webrisk_threat_lists_compute_diff_execute(builder)
 }
@@ -1040,6 +1106,15 @@ pub fn webrisk_uris_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`webrisk_uris_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WebriskUrisSearchArgs {
+    /// Query parameter: threatTypes
+    pub threatTypes: Option<String>,
+    /// Query parameter: uri
+    pub uri: Option<String>,
+}
+
 /// GET v1/uris:search
 /// This method is used to check whether a URI is on a given `threatList`. Multiple `threatLists` may be searched in a single query. The response will list all requested `threatLists` the URI was found to match. If the URI is not found on any of the requested ThreatList an empty response will be returned.
 ///
@@ -1052,8 +1127,7 @@ pub fn webrisk_uris_search_execute(
 
 pub fn webrisk_uris_search(
     client: &SimpleHttpClient,
-    threatTypes: Option<&str>,
-    uri: Option<&str>,
+    args: &WebriskUrisSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudWebriskV1SearchUrisResponse>, ApiError>,
@@ -1062,6 +1136,7 @@ pub fn webrisk_uris_search(
         + 'static,
     ApiError,
 > {
-    let builder = webrisk_uris_search_builder(client, threatTypes, uri)?;
+    let builder =
+        webrisk_uris_search_builder(client, args.threatTypes.as_deref(), args.uri.as_deref())?;
     webrisk_uris_search_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/message:stream
 /// SendStreamingMessage is a streaming call that will return a stream of task update events until the Task is in an interrupted or terminal state.
@@ -107,6 +109,13 @@ pub fn workspaceevents_message_stream_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workspaceevents_message_stream`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsMessageStreamArgs {
+    /// Request body.
+    pub body: SendMessageRequest,
+}
+
 /// GET v1/message:stream
 /// SendStreamingMessage is a streaming call that will return a stream of task update events until the Task is in an interrupted or terminal state.
 ///
@@ -119,14 +128,14 @@ pub fn workspaceevents_message_stream_execute(
 
 pub fn workspaceevents_message_stream(
     client: &SimpleHttpClient,
-    body: &SendMessageRequest,
+    args: &WorkspaceeventsMessageStreamArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StreamResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_message_stream_builder(client, body)?;
+    let builder = workspaceevents_message_stream_builder(client, &args.body)?;
     workspaceevents_message_stream_execute(builder)
 }
 
@@ -220,6 +229,13 @@ pub fn workspaceevents_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workspaceevents_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -232,12 +248,12 @@ pub fn workspaceevents_operations_get_execute(
 
 pub fn workspaceevents_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkspaceeventsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_operations_get_builder(client, name)?;
+    let builder = workspaceevents_operations_get_builder(client, &args.name)?;
     workspaceevents_operations_get_execute(builder)
 }
 
@@ -342,6 +358,15 @@ pub fn workspaceevents_subscriptions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workspaceevents_subscriptions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsSubscriptionsCreateArgs {
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Subscription,
+}
+
 /// GET v1/subscriptions
 /// Creates a Google Workspace subscription. To learn how to use this method, see [Create a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/create-subscription`>). For a subscription on a [Chat target resource](<https://developers.google.`com/workspace/events/guides/events-chat`>), you can create a subscription as: - A Chat app by specifying an authorization scope that begins with chat.app and getting one-time administrator approval ([Developer Preview](<https://developers.google.`com/workspace/preview`>)). To learn more, see [Authorize as a Chat app with administrator approval](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-app`>). - A user by specifying an authorization scope that doesn't include app in its name. To learn more, see [Authorize as a Chat user](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-user`>).
 ///
@@ -354,13 +379,13 @@ pub fn workspaceevents_subscriptions_create_execute(
 
 pub fn workspaceevents_subscriptions_create(
     client: &SimpleHttpClient,
-    validateOnly: Option<bool>,
-    body: &Subscription,
+    args: &WorkspaceeventsSubscriptionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_subscriptions_create_builder(client, validateOnly, body)?;
+    let builder =
+        workspaceevents_subscriptions_create_builder(client, args.validateOnly, &args.body)?;
     workspaceevents_subscriptions_create_execute(builder)
 }
 
@@ -474,6 +499,19 @@ pub fn workspaceevents_subscriptions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workspaceevents_subscriptions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsSubscriptionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v1/subscriptions/{subscriptionsId}
 /// Deletes a Google Workspace subscription. To learn how to use this method, see [Delete a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/delete-subscription`>).
 ///
@@ -486,20 +524,17 @@ pub fn workspaceevents_subscriptions_delete_execute(
 
 pub fn workspaceevents_subscriptions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &WorkspaceeventsSubscriptionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = workspaceevents_subscriptions_delete_builder(
         client,
-        name,
-        allowMissing,
-        etag,
-        validateOnly,
+        &args.name,
+        args.allowMissing,
+        args.etag.as_deref(),
+        args.validateOnly,
     )?;
     workspaceevents_subscriptions_delete_execute(builder)
 }
@@ -596,6 +631,13 @@ pub fn workspaceevents_subscriptions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workspaceevents_subscriptions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsSubscriptionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/subscriptions/{subscriptionsId}
 /// Gets details about a Google Workspace subscription. To learn how to use this method, see [Get details about a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/get-subscription`>).
 ///
@@ -608,14 +650,14 @@ pub fn workspaceevents_subscriptions_get_execute(
 
 pub fn workspaceevents_subscriptions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkspaceeventsSubscriptionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_subscriptions_get_builder(client, name)?;
+    let builder = workspaceevents_subscriptions_get_builder(client, &args.name)?;
     workspaceevents_subscriptions_get_execute(builder)
 }
 
@@ -727,6 +769,17 @@ pub fn workspaceevents_subscriptions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workspaceevents_subscriptions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsSubscriptionsListArgs {
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/subscriptions
 /// Lists Google Workspace subscriptions. To learn how to use this method, see [List Google Workspace subscriptions](<https://developers.google.`com/workspace/events/guides/list-subscriptions`>).
 ///
@@ -739,16 +792,19 @@ pub fn workspaceevents_subscriptions_list_execute(
 
 pub fn workspaceevents_subscriptions_list(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkspaceeventsSubscriptionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSubscriptionsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_subscriptions_list_builder(client, filter, pageSize, pageToken)?;
+    let builder = workspaceevents_subscriptions_list_builder(
+        client,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     workspaceevents_subscriptions_list_execute(builder)
 }
 
@@ -861,6 +917,19 @@ pub fn workspaceevents_subscriptions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workspaceevents_subscriptions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsSubscriptionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Subscription,
+}
+
 /// GET v1/subscriptions/{subscriptionsId}
 /// Updates or renews a Google Workspace subscription. To learn how to use this method, see [Update or renew a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/update-subscription`>). For a subscription on a [Chat target resource](<https://developers.google.`com/workspace/events/guides/events-chat`>), you can update a subscription as: - A Chat app by specifying an authorization scope that begins with chat.app andgetting one-time administrator approval ([Developer Preview](<https://developers.google.`com/workspace/preview`>)). To learn more, see [Authorize as a Chat app with administrator approval](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-app`>). - A user by specifying an authorization scope that doesn't include app in its name. To learn more, see [Authorize as a Chat user](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-user`>).
 ///
@@ -873,16 +942,18 @@ pub fn workspaceevents_subscriptions_patch_execute(
 
 pub fn workspaceevents_subscriptions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Subscription,
+    args: &WorkspaceeventsSubscriptionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        workspaceevents_subscriptions_patch_builder(client, name, updateMask, validateOnly, body)?;
+    let builder = workspaceevents_subscriptions_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
+    )?;
     workspaceevents_subscriptions_patch_execute(builder)
 }
 
@@ -979,6 +1050,15 @@ pub fn workspaceevents_subscriptions_reactivate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workspaceevents_subscriptions_reactivate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsSubscriptionsReactivateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ReactivateSubscriptionRequest,
+}
+
 /// GET v1/subscriptions/{subscriptionsId}:reactivate
 /// Reactivates a suspended Google Workspace subscription. This method resets your subscription's State field to `ACTIVE`. Before you use this method, you must fix the error that suspended the subscription. This method will ignore or reject any subscription that isn't currently in a suspended state. To learn how to use this method, see [Reactivate a Google Workspace subscription](<https://developers.google.`com/workspace/events/guides/reactivate-subscription`>). For a subscription on a [Chat target resource](<https://developers.google.`com/workspace/events/guides/events-chat`>), you can reactivate a subscription as: - A Chat app by specifying an authorization scope that begins with chat.app andgetting one-time administrator approval ([Developer Preview](<https://developers.google.`com/workspace/preview`>)). To learn more, see [Authorize as a Chat app with administrator approval](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-app`>). - A user by specifying an authorization scope that doesn't include app in its name. To learn more, see [Authorize as a Chat user](<https://developers.google.`com/workspace/chat/authenticate-authorize-chat-user`>).
 ///
@@ -991,13 +1071,12 @@ pub fn workspaceevents_subscriptions_reactivate_execute(
 
 pub fn workspaceevents_subscriptions_reactivate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ReactivateSubscriptionRequest,
+    args: &WorkspaceeventsSubscriptionsReactivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_subscriptions_reactivate_builder(client, name, body)?;
+    let builder = workspaceevents_subscriptions_reactivate_builder(client, &args.name, &args.body)?;
     workspaceevents_subscriptions_reactivate_execute(builder)
 }
 
@@ -1094,6 +1173,15 @@ pub fn workspaceevents_tasks_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workspaceevents_tasks_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsTasksCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelTaskRequest,
+}
+
 /// GET v1/tasks/{tasksId}:cancel
 /// Cancel a task from the agent. If supported one should expect no more task updates for the task.
 ///
@@ -1106,13 +1194,12 @@ pub fn workspaceevents_tasks_cancel_execute(
 
 pub fn workspaceevents_tasks_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelTaskRequest,
+    args: &WorkspaceeventsTasksCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_tasks_cancel_builder(client, name, body)?;
+    let builder = workspaceevents_tasks_cancel_builder(client, &args.name, &args.body)?;
     workspaceevents_tasks_cancel_execute(builder)
 }
 
@@ -1219,6 +1306,17 @@ pub fn workspaceevents_tasks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workspaceevents_tasks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsTasksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: historyLength
+    pub historyLength: Option<i32>,
+    /// Query parameter: tenant
+    pub tenant: Option<String>,
+}
+
 /// GET v1/tasks/{tasksId}
 /// Get the current state of a task from the agent.
 ///
@@ -1231,14 +1329,17 @@ pub fn workspaceevents_tasks_get_execute(
 
 pub fn workspaceevents_tasks_get(
     client: &SimpleHttpClient,
-    name: &str,
-    historyLength: Option<i32>,
-    tenant: Option<&str>,
+    args: &WorkspaceeventsTasksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Task>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_tasks_get_builder(client, name, historyLength, tenant)?;
+    let builder = workspaceevents_tasks_get_builder(
+        client,
+        &args.name,
+        args.historyLength,
+        args.tenant.as_deref(),
+    )?;
     workspaceevents_tasks_get_execute(builder)
 }
 
@@ -1346,6 +1447,15 @@ pub fn workspaceevents_tasks_subscribe_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workspaceevents_tasks_subscribe`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsTasksSubscribeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: tenant
+    pub tenant: Option<String>,
+}
+
 /// GET v1/tasks/{tasksId}:subscribe
 /// TaskSubscription is a streaming call that will return a stream of task update events. This attaches the stream to an existing in process task. If the task is complete the stream will return the completed task (like GetTask) and close the stream.
 ///
@@ -1358,15 +1468,15 @@ pub fn workspaceevents_tasks_subscribe_execute(
 
 pub fn workspaceevents_tasks_subscribe(
     client: &SimpleHttpClient,
-    name: &str,
-    tenant: Option<&str>,
+    args: &WorkspaceeventsTasksSubscribeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StreamResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = workspaceevents_tasks_subscribe_builder(client, name, tenant)?;
+    let builder =
+        workspaceevents_tasks_subscribe_builder(client, &args.name, args.tenant.as_deref())?;
     workspaceevents_tasks_subscribe_execute(builder)
 }
 
@@ -1483,6 +1593,19 @@ pub fn workspaceevents_tasks_push_notification_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workspaceevents_tasks_push_notification_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsTasksPushNotificationConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: configId
+    pub configId: Option<String>,
+    /// Query parameter: tenant
+    pub tenant: Option<String>,
+    /// Request body.
+    pub body: TaskPushNotificationConfig,
+}
+
 /// GET v1/tasks/{tasksId}/pushNotificationConfigs
 /// Set a push notification config for a task.
 ///
@@ -1495,10 +1618,7 @@ pub fn workspaceevents_tasks_push_notification_configs_create_execute(
 
 pub fn workspaceevents_tasks_push_notification_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    configId: Option<&str>,
-    tenant: Option<&str>,
-    body: &TaskPushNotificationConfig,
+    args: &WorkspaceeventsTasksPushNotificationConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TaskPushNotificationConfig>, ApiError>,
@@ -1508,7 +1628,11 @@ pub fn workspaceevents_tasks_push_notification_configs_create(
     ApiError,
 > {
     let builder = workspaceevents_tasks_push_notification_configs_create_builder(
-        client, parent, configId, tenant, body,
+        client,
+        &args.parent,
+        args.configId.as_deref(),
+        args.tenant.as_deref(),
+        &args.body,
     )?;
     workspaceevents_tasks_push_notification_configs_create_execute(builder)
 }
@@ -1615,6 +1739,15 @@ pub fn workspaceevents_tasks_push_notification_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workspaceevents_tasks_push_notification_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsTasksPushNotificationConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: tenant
+    pub tenant: Option<String>,
+}
+
 /// GET v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}
 /// Delete a push notification config for a task.
 ///
@@ -1627,14 +1760,16 @@ pub fn workspaceevents_tasks_push_notification_configs_delete_execute(
 
 pub fn workspaceevents_tasks_push_notification_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    tenant: Option<&str>,
+    args: &WorkspaceeventsTasksPushNotificationConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        workspaceevents_tasks_push_notification_configs_delete_builder(client, name, tenant)?;
+    let builder = workspaceevents_tasks_push_notification_configs_delete_builder(
+        client,
+        &args.name,
+        args.tenant.as_deref(),
+    )?;
     workspaceevents_tasks_push_notification_configs_delete_execute(builder)
 }
 
@@ -1744,6 +1879,15 @@ pub fn workspaceevents_tasks_push_notification_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workspaceevents_tasks_push_notification_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsTasksPushNotificationConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: tenant
+    pub tenant: Option<String>,
+}
+
 /// GET v1/tasks/{tasksId}/pushNotificationConfigs/{pushNotificationConfigsId}
 /// Get a push notification config for a task.
 ///
@@ -1756,8 +1900,7 @@ pub fn workspaceevents_tasks_push_notification_configs_get_execute(
 
 pub fn workspaceevents_tasks_push_notification_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
-    tenant: Option<&str>,
+    args: &WorkspaceeventsTasksPushNotificationConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TaskPushNotificationConfig>, ApiError>,
@@ -1766,8 +1909,11 @@ pub fn workspaceevents_tasks_push_notification_configs_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        workspaceevents_tasks_push_notification_configs_get_builder(client, name, tenant)?;
+    let builder = workspaceevents_tasks_push_notification_configs_get_builder(
+        client,
+        &args.name,
+        args.tenant.as_deref(),
+    )?;
     workspaceevents_tasks_push_notification_configs_get_execute(builder)
 }
 
@@ -1885,6 +2031,19 @@ pub fn workspaceevents_tasks_push_notification_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workspaceevents_tasks_push_notification_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkspaceeventsTasksPushNotificationConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: tenant
+    pub tenant: Option<String>,
+}
+
 /// GET v1/tasks/{tasksId}/pushNotificationConfigs
 /// Get a list of push notifications configured for a task.
 ///
@@ -1897,10 +2056,7 @@ pub fn workspaceevents_tasks_push_notification_configs_list_execute(
 
 pub fn workspaceevents_tasks_push_notification_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    tenant: Option<&str>,
+    args: &WorkspaceeventsTasksPushNotificationConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTaskPushNotificationConfigResponse>, ApiError>,
@@ -1910,7 +2066,11 @@ pub fn workspaceevents_tasks_push_notification_configs_list(
     ApiError,
 > {
     let builder = workspaceevents_tasks_push_notification_configs_list_builder(
-        client, parent, pageSize, pageToken, tenant,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.tenant.as_deref(),
     )?;
     workspaceevents_tasks_push_notification_configs_list_execute(builder)
 }

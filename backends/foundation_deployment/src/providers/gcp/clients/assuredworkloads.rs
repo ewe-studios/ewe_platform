@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
@@ -110,6 +112,13 @@ pub fn assuredworkloads_organizations_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -122,7 +131,7 @@ pub fn assuredworkloads_organizations_locations_operations_get_execute(
 
 pub fn assuredworkloads_organizations_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AssuredworkloadsOrganizationsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -131,7 +140,8 @@ pub fn assuredworkloads_organizations_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = assuredworkloads_organizations_locations_operations_get_builder(client, name)?;
+    let builder =
+        assuredworkloads_organizations_locations_operations_get_builder(client, &args.name)?;
     assuredworkloads_organizations_locations_operations_get_execute(builder)
 }
 
@@ -254,6 +264,21 @@ pub fn assuredworkloads_organizations_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -266,11 +291,7 @@ pub fn assuredworkloads_organizations_locations_operations_list_execute(
 
 pub fn assuredworkloads_organizations_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &AssuredworkloadsOrganizationsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -281,11 +302,11 @@ pub fn assuredworkloads_organizations_locations_operations_list(
 > {
     let builder = assuredworkloads_organizations_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     assuredworkloads_organizations_locations_operations_list_execute(builder)
 }
@@ -412,6 +433,21 @@ pub fn assuredworkloads_organizations_locations_workloads_analyze_workload_move_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_workloads_analyze_workload_move`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsWorkloadsAnalyzeWorkloadMoveArgs {
+    /// Path parameter: target
+    pub target: String,
+    /// Query parameter: assetTypes
+    pub assetTypes: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: project
+    pub project: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}:analyzeWorkloadMove
 /// Analyzes a hypothetical move of a source resource to a target workload to surface compliance risks. The analysis is best effort and is not guaranteed to be exhaustive.
 ///
@@ -424,11 +460,7 @@ pub fn assuredworkloads_organizations_locations_workloads_analyze_workload_move_
 
 pub fn assuredworkloads_organizations_locations_workloads_analyze_workload_move(
     client: &SimpleHttpClient,
-    target: &str,
-    assetTypes: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    project: Option<&str>,
+    args: &AssuredworkloadsOrganizationsLocationsWorkloadsAnalyzeWorkloadMoveArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -441,7 +473,12 @@ pub fn assuredworkloads_organizations_locations_workloads_analyze_workload_move(
     ApiError,
 > {
     let builder = assuredworkloads_organizations_locations_workloads_analyze_workload_move_builder(
-        client, target, assetTypes, pageSize, pageToken, project,
+        client,
+        &args.target,
+        args.assetTypes.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.project.as_deref(),
     )?;
     assuredworkloads_organizations_locations_workloads_analyze_workload_move_execute(builder)
 }
@@ -555,6 +592,17 @@ pub fn assuredworkloads_organizations_locations_workloads_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_workloads_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsWorkloadsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: externalId
+    pub externalId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudAssuredworkloadsV1Workload,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads
 /// Creates Assured Workload.
 ///
@@ -567,9 +615,7 @@ pub fn assuredworkloads_organizations_locations_workloads_create_execute(
 
 pub fn assuredworkloads_organizations_locations_workloads_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    externalId: Option<&str>,
-    body: &GoogleCloudAssuredworkloadsV1Workload,
+    args: &AssuredworkloadsOrganizationsLocationsWorkloadsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -579,7 +625,10 @@ pub fn assuredworkloads_organizations_locations_workloads_create(
     ApiError,
 > {
     let builder = assuredworkloads_organizations_locations_workloads_create_builder(
-        client, parent, externalId, body,
+        client,
+        &args.parent,
+        args.externalId.as_deref(),
+        &args.body,
     )?;
     assuredworkloads_organizations_locations_workloads_create_execute(builder)
 }
@@ -688,6 +737,15 @@ pub fn assuredworkloads_organizations_locations_workloads_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_workloads_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsWorkloadsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}
 /// Deletes the workload. Make sure that workload's direct children are already in a deleted state, otherwise the request will fail with a FAILED_PRECONDITION error. In addition to assuredworkloads.workload.delete permission, the user should also have orgpolicy.policy.set permission on the deleted folder to remove Assured Workloads OrgPolicies.
 ///
@@ -700,16 +758,18 @@ pub fn assuredworkloads_organizations_locations_workloads_delete_execute(
 
 pub fn assuredworkloads_organizations_locations_workloads_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &AssuredworkloadsOrganizationsLocationsWorkloadsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        assuredworkloads_organizations_locations_workloads_delete_builder(client, name, etag)?;
+    let builder = assuredworkloads_organizations_locations_workloads_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+    )?;
     assuredworkloads_organizations_locations_workloads_delete_execute(builder)
 }
 
@@ -811,6 +871,13 @@ pub fn assuredworkloads_organizations_locations_workloads_enable_compliance_upda
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_workloads_enable_compliance_updates`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsWorkloadsEnableComplianceUpdatesArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}:enableComplianceUpdates
 /// This endpoint enables Assured Workloads service to offer compliance updates for the folder based assured workload. It sets up an Assured Workloads Service Agent, having permissions to read compliance controls (for example: Org Policies) applied on the workload. The caller must have resourcemanager.folders.`getIamPolicy` and resourcemanager.folders.`setIamPolicy` permissions on the assured workload folder.
 ///
@@ -823,7 +890,7 @@ pub fn assuredworkloads_organizations_locations_workloads_enable_compliance_upda
 
 pub fn assuredworkloads_organizations_locations_workloads_enable_compliance_updates(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AssuredworkloadsOrganizationsLocationsWorkloadsEnableComplianceUpdatesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -837,7 +904,7 @@ pub fn assuredworkloads_organizations_locations_workloads_enable_compliance_upda
 > {
     let builder =
         assuredworkloads_organizations_locations_workloads_enable_compliance_updates_builder(
-            client, name,
+            client, &args.name,
         )?;
     assuredworkloads_organizations_locations_workloads_enable_compliance_updates_execute(builder)
 }
@@ -940,6 +1007,13 @@ pub fn assuredworkloads_organizations_locations_workloads_enable_resource_monito
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_workloads_enable_resource_monitoring`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsWorkloadsEnableResourceMonitoringArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}:enableResourceMonitoring
 /// Enable resource violation monitoring for a workload.
 ///
@@ -952,7 +1026,7 @@ pub fn assuredworkloads_organizations_locations_workloads_enable_resource_monito
 
 pub fn assuredworkloads_organizations_locations_workloads_enable_resource_monitoring(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AssuredworkloadsOrganizationsLocationsWorkloadsEnableResourceMonitoringArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -966,7 +1040,7 @@ pub fn assuredworkloads_organizations_locations_workloads_enable_resource_monito
 > {
     let builder =
         assuredworkloads_organizations_locations_workloads_enable_resource_monitoring_builder(
-            client, name,
+            client, &args.name,
         )?;
     assuredworkloads_organizations_locations_workloads_enable_resource_monitoring_execute(builder)
 }
@@ -1065,6 +1139,13 @@ pub fn assuredworkloads_organizations_locations_workloads_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_workloads_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsWorkloadsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}
 /// Gets Assured Workload associated with a CRM Node
 ///
@@ -1077,7 +1158,7 @@ pub fn assuredworkloads_organizations_locations_workloads_get_execute(
 
 pub fn assuredworkloads_organizations_locations_workloads_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AssuredworkloadsOrganizationsLocationsWorkloadsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudAssuredworkloadsV1Workload>, ApiError>,
@@ -1086,7 +1167,8 @@ pub fn assuredworkloads_organizations_locations_workloads_get(
         + 'static,
     ApiError,
 > {
-    let builder = assuredworkloads_organizations_locations_workloads_get_builder(client, name)?;
+    let builder =
+        assuredworkloads_organizations_locations_workloads_get_builder(client, &args.name)?;
     assuredworkloads_organizations_locations_workloads_get_execute(builder)
 }
 
@@ -1205,6 +1287,19 @@ pub fn assuredworkloads_organizations_locations_workloads_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_workloads_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsWorkloadsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads
 /// Lists Assured Workloads under a CRM Node.
 ///
@@ -1217,10 +1312,7 @@ pub fn assuredworkloads_organizations_locations_workloads_list_execute(
 
 pub fn assuredworkloads_organizations_locations_workloads_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AssuredworkloadsOrganizationsLocationsWorkloadsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudAssuredworkloadsV1ListWorkloadsResponse>, ApiError>,
@@ -1230,7 +1322,11 @@ pub fn assuredworkloads_organizations_locations_workloads_list(
     ApiError,
 > {
     let builder = assuredworkloads_organizations_locations_workloads_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     assuredworkloads_organizations_locations_workloads_list_execute(builder)
 }
@@ -1332,6 +1428,15 @@ pub fn assuredworkloads_organizations_locations_workloads_mutate_partner_permiss
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_workloads_mutate_partner_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsWorkloadsMutatePartnerPermissionsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudAssuredworkloadsV1MutatePartnerPermissionsRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}:mutatePartnerPermissions
 /// Update the permissions settings for an existing partner workload. For force updates don't set etag field in the Workload. Only one update operation per workload can be in progress.
 ///
@@ -1344,8 +1449,7 @@ pub fn assuredworkloads_organizations_locations_workloads_mutate_partner_permiss
 
 pub fn assuredworkloads_organizations_locations_workloads_mutate_partner_permissions(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudAssuredworkloadsV1MutatePartnerPermissionsRequest,
+    args: &AssuredworkloadsOrganizationsLocationsWorkloadsMutatePartnerPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudAssuredworkloadsV1Workload>, ApiError>,
@@ -1356,7 +1460,7 @@ pub fn assuredworkloads_organizations_locations_workloads_mutate_partner_permiss
 > {
     let builder =
         assuredworkloads_organizations_locations_workloads_mutate_partner_permissions_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     assuredworkloads_organizations_locations_workloads_mutate_partner_permissions_execute(builder)
 }
@@ -1470,6 +1574,17 @@ pub fn assuredworkloads_organizations_locations_workloads_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_workloads_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsWorkloadsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudAssuredworkloadsV1Workload,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}
 /// Updates an existing workload. Currently allows updating of workload display_name and labels. For force updates don't set etag field in the Workload. Only one update operation per workload can be in progress.
 ///
@@ -1482,9 +1597,7 @@ pub fn assuredworkloads_organizations_locations_workloads_patch_execute(
 
 pub fn assuredworkloads_organizations_locations_workloads_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudAssuredworkloadsV1Workload,
+    args: &AssuredworkloadsOrganizationsLocationsWorkloadsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudAssuredworkloadsV1Workload>, ApiError>,
@@ -1494,7 +1607,10 @@ pub fn assuredworkloads_organizations_locations_workloads_patch(
     ApiError,
 > {
     let builder = assuredworkloads_organizations_locations_workloads_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     assuredworkloads_organizations_locations_workloads_patch_execute(builder)
 }
@@ -1600,6 +1716,15 @@ pub fn assuredworkloads_organizations_locations_workloads_restrict_allowed_resou
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_workloads_restrict_allowed_resources`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsWorkloadsRestrictAllowedResourcesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}:restrictAllowedResources
 /// Restrict the list of resources allowed in the Workload environment. The current list of allowed products can be found at <https://cloud.google.`com/assured-workloads/docs/supported-products`> In addition to assuredworkloads.workload.update permission, the user should also have orgpolicy.policy.set permission on the folder resource to use this functionality.
 ///
@@ -1612,8 +1737,7 @@ pub fn assuredworkloads_organizations_locations_workloads_restrict_allowed_resou
 
 pub fn assuredworkloads_organizations_locations_workloads_restrict_allowed_resources(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesRequest,
+    args: &AssuredworkloadsOrganizationsLocationsWorkloadsRestrictAllowedResourcesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1627,7 +1751,7 @@ pub fn assuredworkloads_organizations_locations_workloads_restrict_allowed_resou
 > {
     let builder =
         assuredworkloads_organizations_locations_workloads_restrict_allowed_resources_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     assuredworkloads_organizations_locations_workloads_restrict_allowed_resources_execute(builder)
 }
@@ -1729,6 +1853,15 @@ pub fn assuredworkloads_organizations_locations_workloads_updates_apply_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_workloads_updates_apply`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsWorkloadsUpdatesApplyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudAssuredworkloadsV1ApplyWorkloadUpdateRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}/updates/{updatesId}:apply
 /// This endpoint creates a new operation to apply the given update.
 ///
@@ -1741,8 +1874,7 @@ pub fn assuredworkloads_organizations_locations_workloads_updates_apply_execute(
 
 pub fn assuredworkloads_organizations_locations_workloads_updates_apply(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudAssuredworkloadsV1ApplyWorkloadUpdateRequest,
+    args: &AssuredworkloadsOrganizationsLocationsWorkloadsUpdatesApplyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1752,7 +1884,7 @@ pub fn assuredworkloads_organizations_locations_workloads_updates_apply(
     ApiError,
 > {
     let builder = assuredworkloads_organizations_locations_workloads_updates_apply_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     assuredworkloads_organizations_locations_workloads_updates_apply_execute(builder)
 }
@@ -1871,6 +2003,17 @@ pub fn assuredworkloads_organizations_locations_workloads_updates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_workloads_updates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsWorkloadsUpdatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}/updates
 /// This endpoint lists all updates for the given workload.
 ///
@@ -1883,9 +2026,7 @@ pub fn assuredworkloads_organizations_locations_workloads_updates_list_execute(
 
 pub fn assuredworkloads_organizations_locations_workloads_updates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AssuredworkloadsOrganizationsLocationsWorkloadsUpdatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1898,7 +2039,10 @@ pub fn assuredworkloads_organizations_locations_workloads_updates_list(
     ApiError,
 > {
     let builder = assuredworkloads_organizations_locations_workloads_updates_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     assuredworkloads_organizations_locations_workloads_updates_list_execute(builder)
 }
@@ -2004,6 +2148,15 @@ pub fn assuredworkloads_organizations_locations_workloads_violations_acknowledge
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_workloads_violations_acknowledge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsWorkloadsViolationsAcknowledgeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudAssuredworkloadsV1AcknowledgeViolationRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}/violations/{violationsId}:acknowledge
 /// Acknowledges an existing violation. By acknowledging a violation, users acknowledge the existence of a compliance violation in their workload and decide to ignore it due to a valid business justification. Acknowledgement is a permanent operation and it cannot be reverted.
 ///
@@ -2016,8 +2169,7 @@ pub fn assuredworkloads_organizations_locations_workloads_violations_acknowledge
 
 pub fn assuredworkloads_organizations_locations_workloads_violations_acknowledge(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudAssuredworkloadsV1AcknowledgeViolationRequest,
+    args: &AssuredworkloadsOrganizationsLocationsWorkloadsViolationsAcknowledgeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2031,7 +2183,7 @@ pub fn assuredworkloads_organizations_locations_workloads_violations_acknowledge
 > {
     let builder =
         assuredworkloads_organizations_locations_workloads_violations_acknowledge_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     assuredworkloads_organizations_locations_workloads_violations_acknowledge_execute(builder)
 }
@@ -2130,6 +2282,13 @@ pub fn assuredworkloads_organizations_locations_workloads_violations_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_workloads_violations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsWorkloadsViolationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}/violations/{violationsId}
 /// Retrieves Assured Workload Violation based on ID.
 ///
@@ -2142,7 +2301,7 @@ pub fn assuredworkloads_organizations_locations_workloads_violations_get_execute
 
 pub fn assuredworkloads_organizations_locations_workloads_violations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &AssuredworkloadsOrganizationsLocationsWorkloadsViolationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudAssuredworkloadsV1Violation>, ApiError>,
@@ -2151,8 +2310,9 @@ pub fn assuredworkloads_organizations_locations_workloads_violations_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        assuredworkloads_organizations_locations_workloads_violations_get_builder(client, name)?;
+    let builder = assuredworkloads_organizations_locations_workloads_violations_get_builder(
+        client, &args.name,
+    )?;
     assuredworkloads_organizations_locations_workloads_violations_get_execute(builder)
 }
 
@@ -2279,6 +2439,23 @@ pub fn assuredworkloads_organizations_locations_workloads_violations_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`assuredworkloads_organizations_locations_workloads_violations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct AssuredworkloadsOrganizationsLocationsWorkloadsViolationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: interval_endTime
+    pub interval_endTime: Option<String>,
+    /// Query parameter: interval_startTime
+    pub interval_startTime: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/workloads/{workloadsId}/violations
 /// Lists the Violations in the AssuredWorkload Environment. Callers may also choose to read across multiple Workloads as per [AIP-159](<https://google.aip.`dev/159`>) by using '-' (the hyphen or dash character) as a wildcard character instead of workload-id in the parent. Format `organizations/{org_id}/locations/{location}/workloads/-`
 ///
@@ -2291,12 +2468,7 @@ pub fn assuredworkloads_organizations_locations_workloads_violations_list_execut
 
 pub fn assuredworkloads_organizations_locations_workloads_violations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    interval_endTime: Option<&str>,
-    interval_startTime: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &AssuredworkloadsOrganizationsLocationsWorkloadsViolationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudAssuredworkloadsV1ListViolationsResponse>, ApiError>,
@@ -2307,12 +2479,12 @@ pub fn assuredworkloads_organizations_locations_workloads_violations_list(
 > {
     let builder = assuredworkloads_organizations_locations_workloads_violations_list_builder(
         client,
-        parent,
-        filter,
-        interval_endTime,
-        interval_startTime,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.filter.as_deref(),
+        args.interval_endTime.as_deref(),
+        args.interval_startTime.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     assuredworkloads_organizations_locations_workloads_violations_list_execute(builder)
 }

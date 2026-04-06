@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET youtube/v3/abuseReports
 /// Inserts a new resource into this collection.
@@ -109,6 +111,15 @@ pub fn youtube_abuse_reports_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_abuse_reports_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeAbuseReportsInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Request body.
+    pub body: AbuseReport,
+}
+
 /// GET youtube/v3/abuseReports
 /// Inserts a new resource into this collection.
 ///
@@ -121,13 +132,12 @@ pub fn youtube_abuse_reports_insert_execute(
 
 pub fn youtube_abuse_reports_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    body: &AbuseReport,
+    args: &YoutubeAbuseReportsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AbuseReport>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_abuse_reports_insert_builder(client, part, body)?;
+    let builder = youtube_abuse_reports_insert_builder(client, &args.part, &args.body)?;
     youtube_abuse_reports_insert_execute(builder)
 }
 
@@ -260,6 +270,29 @@ pub fn youtube_activities_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_activities_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeActivitiesListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: channelId
+    pub channelId: Option<String>,
+    /// Query parameter: home
+    pub home: Option<bool>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: mine
+    pub mine: Option<bool>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: publishedAfter
+    pub publishedAfter: Option<String>,
+    /// Query parameter: publishedBefore
+    pub publishedBefore: Option<String>,
+    /// Query parameter: regionCode
+    pub regionCode: Option<String>,
+}
+
 /// GET youtube/v3/activities
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -272,15 +305,7 @@ pub fn youtube_activities_list_execute(
 
 pub fn youtube_activities_list(
     client: &SimpleHttpClient,
-    part: &str,
-    channelId: Option<&str>,
-    home: Option<bool>,
-    maxResults: Option<i32>,
-    mine: Option<bool>,
-    pageToken: Option<&str>,
-    publishedAfter: Option<&str>,
-    publishedBefore: Option<&str>,
-    regionCode: Option<&str>,
+    args: &YoutubeActivitiesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ActivityListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -289,15 +314,15 @@ pub fn youtube_activities_list(
 > {
     let builder = youtube_activities_list_builder(
         client,
-        part,
-        channelId,
-        home,
-        maxResults,
-        mine,
-        pageToken,
-        publishedAfter,
-        publishedBefore,
-        regionCode,
+        &args.part,
+        args.channelId.as_deref(),
+        args.home,
+        args.maxResults,
+        args.mine,
+        args.pageToken.as_deref(),
+        args.publishedAfter.as_deref(),
+        args.publishedBefore.as_deref(),
+        args.regionCode.as_deref(),
     )?;
     youtube_activities_list_execute(builder)
 }
@@ -402,6 +427,17 @@ pub fn youtube_captions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_captions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCaptionsDeleteArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: onBehalfOf
+    pub onBehalfOf: Option<String>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET youtube/v3/captions
 /// Deletes a resource.
 ///
@@ -414,14 +450,17 @@ pub fn youtube_captions_delete_execute(
 
 pub fn youtube_captions_delete(
     client: &SimpleHttpClient,
-    id: &str,
-    onBehalfOf: Option<&str>,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubeCaptionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_captions_delete_builder(client, id, onBehalfOf, onBehalfOfContentOwner)?;
+    let builder = youtube_captions_delete_builder(
+        client,
+        &args.id,
+        args.onBehalfOf.as_deref(),
+        args.onBehalfOfContentOwner.as_deref(),
+    )?;
     youtube_captions_delete_execute(builder)
 }
 
@@ -533,6 +572,21 @@ pub fn youtube_captions_download_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_captions_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCaptionsDownloadArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: onBehalfOf
+    pub onBehalfOf: Option<String>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: tfmt
+    pub tfmt: Option<String>,
+    /// Query parameter: tlang
+    pub tlang: Option<String>,
+}
+
 /// GET youtube/v3/captions/{id}
 /// Downloads a caption track.
 ///
@@ -545,22 +599,18 @@ pub fn youtube_captions_download_execute(
 
 pub fn youtube_captions_download(
     client: &SimpleHttpClient,
-    id: &str,
-    onBehalfOf: Option<&str>,
-    onBehalfOfContentOwner: Option<&str>,
-    tfmt: Option<&str>,
-    tlang: Option<&str>,
+    args: &YoutubeCaptionsDownloadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = youtube_captions_download_builder(
         client,
-        id,
-        onBehalfOf,
-        onBehalfOfContentOwner,
-        tfmt,
-        tlang,
+        &args.id,
+        args.onBehalfOf.as_deref(),
+        args.onBehalfOfContentOwner.as_deref(),
+        args.tfmt.as_deref(),
+        args.tlang.as_deref(),
     )?;
     youtube_captions_download_execute(builder)
 }
@@ -675,6 +725,21 @@ pub fn youtube_captions_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_captions_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCaptionsInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOf
+    pub onBehalfOf: Option<String>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: sync
+    pub sync: Option<bool>,
+    /// Request body.
+    pub body: Caption,
+}
+
 /// GET youtube/v3/captions
 /// Inserts a new resource into this collection.
 ///
@@ -687,22 +752,18 @@ pub fn youtube_captions_insert_execute(
 
 pub fn youtube_captions_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    onBehalfOf: Option<&str>,
-    onBehalfOfContentOwner: Option<&str>,
-    sync: Option<bool>,
-    body: &Caption,
+    args: &YoutubeCaptionsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Caption>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = youtube_captions_insert_builder(
         client,
-        part,
-        onBehalfOf,
-        onBehalfOfContentOwner,
-        sync,
-        body,
+        &args.part,
+        args.onBehalfOf.as_deref(),
+        args.onBehalfOfContentOwner.as_deref(),
+        args.sync,
+        &args.body,
     )?;
     youtube_captions_insert_execute(builder)
 }
@@ -820,6 +881,21 @@ pub fn youtube_captions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_captions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCaptionsListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Path parameter: videoId
+    pub videoId: String,
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: onBehalfOf
+    pub onBehalfOf: Option<String>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET youtube/v3/captions
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -832,11 +908,7 @@ pub fn youtube_captions_list_execute(
 
 pub fn youtube_captions_list(
     client: &SimpleHttpClient,
-    part: &str,
-    videoId: &str,
-    id: Option<&str>,
-    onBehalfOf: Option<&str>,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubeCaptionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CaptionListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -845,11 +917,11 @@ pub fn youtube_captions_list(
 > {
     let builder = youtube_captions_list_builder(
         client,
-        part,
-        videoId,
-        id,
-        onBehalfOf,
-        onBehalfOfContentOwner,
+        &args.part,
+        &args.videoId,
+        args.id.as_deref(),
+        args.onBehalfOf.as_deref(),
+        args.onBehalfOfContentOwner.as_deref(),
     )?;
     youtube_captions_list_execute(builder)
 }
@@ -964,6 +1036,21 @@ pub fn youtube_captions_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_captions_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCaptionsUpdateArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOf
+    pub onBehalfOf: Option<String>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: sync
+    pub sync: Option<bool>,
+    /// Request body.
+    pub body: Caption,
+}
+
 /// GET youtube/v3/captions
 /// Updates an existing resource.
 ///
@@ -976,22 +1063,18 @@ pub fn youtube_captions_update_execute(
 
 pub fn youtube_captions_update(
     client: &SimpleHttpClient,
-    part: &str,
-    onBehalfOf: Option<&str>,
-    onBehalfOfContentOwner: Option<&str>,
-    sync: Option<bool>,
-    body: &Caption,
+    args: &YoutubeCaptionsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Caption>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = youtube_captions_update_builder(
         client,
-        part,
-        onBehalfOf,
-        onBehalfOfContentOwner,
-        sync,
-        body,
+        &args.part,
+        args.onBehalfOf.as_deref(),
+        args.onBehalfOfContentOwner.as_deref(),
+        args.sync,
+        &args.body,
     )?;
     youtube_captions_update_execute(builder)
 }
@@ -1107,6 +1190,19 @@ pub fn youtube_channel_banners_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_channel_banners_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeChannelBannersInsertArgs {
+    /// Query parameter: channelId
+    pub channelId: Option<String>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Request body.
+    pub body: ChannelBannerResource,
+}
+
 /// GET youtube/v3/channelBanners/insert
 /// Inserts a new resource into this collection.
 ///
@@ -1119,10 +1215,7 @@ pub fn youtube_channel_banners_insert_execute(
 
 pub fn youtube_channel_banners_insert(
     client: &SimpleHttpClient,
-    channelId: Option<&str>,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    body: &ChannelBannerResource,
+    args: &YoutubeChannelBannersInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ChannelBannerResource>, ApiError>, P = ApiPending>
         + Send
@@ -1131,10 +1224,10 @@ pub fn youtube_channel_banners_insert(
 > {
     let builder = youtube_channel_banners_insert_builder(
         client,
-        channelId,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        body,
+        args.channelId.as_deref(),
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        &args.body,
     )?;
     youtube_channel_banners_insert_execute(builder)
 }
@@ -1238,6 +1331,15 @@ pub fn youtube_channel_sections_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_channel_sections_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeChannelSectionsDeleteArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET youtube/v3/channelSections
 /// Deletes a resource.
 ///
@@ -1250,13 +1352,16 @@ pub fn youtube_channel_sections_delete_execute(
 
 pub fn youtube_channel_sections_delete(
     client: &SimpleHttpClient,
-    id: &str,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubeChannelSectionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_channel_sections_delete_builder(client, id, onBehalfOfContentOwner)?;
+    let builder = youtube_channel_sections_delete_builder(
+        client,
+        &args.id,
+        args.onBehalfOfContentOwner.as_deref(),
+    )?;
     youtube_channel_sections_delete_execute(builder)
 }
 
@@ -1371,6 +1476,19 @@ pub fn youtube_channel_sections_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_channel_sections_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeChannelSectionsInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Request body.
+    pub body: ChannelSection,
+}
+
 /// GET youtube/v3/channelSections
 /// Inserts a new resource into this collection.
 ///
@@ -1383,10 +1501,7 @@ pub fn youtube_channel_sections_insert_execute(
 
 pub fn youtube_channel_sections_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    body: &ChannelSection,
+    args: &YoutubeChannelSectionsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ChannelSection>, ApiError>, P = ApiPending>
         + Send
@@ -1395,10 +1510,10 @@ pub fn youtube_channel_sections_insert(
 > {
     let builder = youtube_channel_sections_insert_builder(
         client,
-        part,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        body,
+        &args.part,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        &args.body,
     )?;
     youtube_channel_sections_insert_execute(builder)
 }
@@ -1525,6 +1640,23 @@ pub fn youtube_channel_sections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_channel_sections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeChannelSectionsListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: channelId
+    pub channelId: Option<String>,
+    /// Query parameter: hl
+    pub hl: Option<String>,
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: mine
+    pub mine: Option<bool>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET youtube/v3/channelSections
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -1537,12 +1669,7 @@ pub fn youtube_channel_sections_list_execute(
 
 pub fn youtube_channel_sections_list(
     client: &SimpleHttpClient,
-    part: &str,
-    channelId: Option<&str>,
-    hl: Option<&str>,
-    id: Option<&str>,
-    mine: Option<bool>,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubeChannelSectionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ChannelSectionListResponse>, ApiError>,
@@ -1553,12 +1680,12 @@ pub fn youtube_channel_sections_list(
 > {
     let builder = youtube_channel_sections_list_builder(
         client,
-        part,
-        channelId,
-        hl,
-        id,
-        mine,
-        onBehalfOfContentOwner,
+        &args.part,
+        args.channelId.as_deref(),
+        args.hl.as_deref(),
+        args.id.as_deref(),
+        args.mine,
+        args.onBehalfOfContentOwner.as_deref(),
     )?;
     youtube_channel_sections_list_execute(builder)
 }
@@ -1670,6 +1797,17 @@ pub fn youtube_channel_sections_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_channel_sections_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeChannelSectionsUpdateArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Request body.
+    pub body: ChannelSection,
+}
+
 /// GET youtube/v3/channelSections
 /// Updates an existing resource.
 ///
@@ -1682,17 +1820,19 @@ pub fn youtube_channel_sections_update_execute(
 
 pub fn youtube_channel_sections_update(
     client: &SimpleHttpClient,
-    part: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    body: &ChannelSection,
+    args: &YoutubeChannelSectionsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ChannelSection>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        youtube_channel_sections_update_builder(client, part, onBehalfOfContentOwner, body)?;
+    let builder = youtube_channel_sections_update_builder(
+        client,
+        &args.part,
+        args.onBehalfOfContentOwner.as_deref(),
+        &args.body,
+    )?;
     youtube_channel_sections_update_execute(builder)
 }
 
@@ -1837,6 +1977,35 @@ pub fn youtube_channels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_channels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeChannelsListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: categoryId
+    pub categoryId: Option<String>,
+    /// Query parameter: forHandle
+    pub forHandle: Option<String>,
+    /// Query parameter: forUsername
+    pub forUsername: Option<String>,
+    /// Query parameter: hl
+    pub hl: Option<String>,
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: managedByMe
+    pub managedByMe: Option<bool>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: mine
+    pub mine: Option<bool>,
+    /// Query parameter: mySubscribers
+    pub mySubscribers: Option<bool>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET youtube/v3/channels
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -1849,18 +2018,7 @@ pub fn youtube_channels_list_execute(
 
 pub fn youtube_channels_list(
     client: &SimpleHttpClient,
-    part: &str,
-    categoryId: Option<&str>,
-    forHandle: Option<&str>,
-    forUsername: Option<&str>,
-    hl: Option<&str>,
-    id: Option<&str>,
-    managedByMe: Option<bool>,
-    maxResults: Option<i32>,
-    mine: Option<bool>,
-    mySubscribers: Option<bool>,
-    onBehalfOfContentOwner: Option<&str>,
-    pageToken: Option<&str>,
+    args: &YoutubeChannelsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ChannelListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1869,18 +2027,18 @@ pub fn youtube_channels_list(
 > {
     let builder = youtube_channels_list_builder(
         client,
-        part,
-        categoryId,
-        forHandle,
-        forUsername,
-        hl,
-        id,
-        managedByMe,
-        maxResults,
-        mine,
-        mySubscribers,
-        onBehalfOfContentOwner,
-        pageToken,
+        &args.part,
+        args.categoryId.as_deref(),
+        args.forHandle.as_deref(),
+        args.forUsername.as_deref(),
+        args.hl.as_deref(),
+        args.id.as_deref(),
+        args.managedByMe,
+        args.maxResults,
+        args.mine,
+        args.mySubscribers,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.pageToken.as_deref(),
     )?;
     youtube_channels_list_execute(builder)
 }
@@ -1987,6 +2145,17 @@ pub fn youtube_channels_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_channels_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeChannelsUpdateArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Request body.
+    pub body: Channel,
+}
+
 /// GET youtube/v3/channels
 /// Updates an existing resource.
 ///
@@ -1999,14 +2168,17 @@ pub fn youtube_channels_update_execute(
 
 pub fn youtube_channels_update(
     client: &SimpleHttpClient,
-    part: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    body: &Channel,
+    args: &YoutubeChannelsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Channel>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_channels_update_builder(client, part, onBehalfOfContentOwner, body)?;
+    let builder = youtube_channels_update_builder(
+        client,
+        &args.part,
+        args.onBehalfOfContentOwner.as_deref(),
+        &args.body,
+    )?;
     youtube_channels_update_execute(builder)
 }
 
@@ -2105,6 +2277,15 @@ pub fn youtube_comment_threads_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_comment_threads_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentThreadsInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Request body.
+    pub body: CommentThread,
+}
+
 /// GET youtube/v3/commentThreads
 /// Inserts a new resource into this collection.
 ///
@@ -2117,15 +2298,14 @@ pub fn youtube_comment_threads_insert_execute(
 
 pub fn youtube_comment_threads_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    body: &CommentThread,
+    args: &YoutubeCommentThreadsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CommentThread>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_comment_threads_insert_builder(client, part, body)?;
+    let builder = youtube_comment_threads_insert_builder(client, &args.part, &args.body)?;
     youtube_comment_threads_insert_execute(builder)
 }
 
@@ -2273,6 +2453,35 @@ pub fn youtube_comment_threads_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_comment_threads_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentThreadsListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: allThreadsRelatedToChannelId
+    pub allThreadsRelatedToChannelId: Option<String>,
+    /// Query parameter: channelId
+    pub channelId: Option<String>,
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: moderationStatus
+    pub moderationStatus: Option<String>,
+    /// Query parameter: order
+    pub order: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: postId
+    pub postId: Option<String>,
+    /// Query parameter: searchTerms
+    pub searchTerms: Option<String>,
+    /// Query parameter: textFormat
+    pub textFormat: Option<String>,
+    /// Query parameter: videoId
+    pub videoId: Option<String>,
+}
+
 /// GET youtube/v3/commentThreads
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -2285,18 +2494,7 @@ pub fn youtube_comment_threads_list_execute(
 
 pub fn youtube_comment_threads_list(
     client: &SimpleHttpClient,
-    part: &str,
-    allThreadsRelatedToChannelId: Option<&str>,
-    channelId: Option<&str>,
-    id: Option<&str>,
-    maxResults: Option<i32>,
-    moderationStatus: Option<&str>,
-    order: Option<&str>,
-    pageToken: Option<&str>,
-    postId: Option<&str>,
-    searchTerms: Option<&str>,
-    textFormat: Option<&str>,
-    videoId: Option<&str>,
+    args: &YoutubeCommentThreadsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CommentThreadListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2305,18 +2503,18 @@ pub fn youtube_comment_threads_list(
 > {
     let builder = youtube_comment_threads_list_builder(
         client,
-        part,
-        allThreadsRelatedToChannelId,
-        channelId,
-        id,
-        maxResults,
-        moderationStatus,
-        order,
-        pageToken,
-        postId,
-        searchTerms,
-        textFormat,
-        videoId,
+        &args.part,
+        args.allThreadsRelatedToChannelId.as_deref(),
+        args.channelId.as_deref(),
+        args.id.as_deref(),
+        args.maxResults,
+        args.moderationStatus.as_deref(),
+        args.order.as_deref(),
+        args.pageToken.as_deref(),
+        args.postId.as_deref(),
+        args.searchTerms.as_deref(),
+        args.textFormat.as_deref(),
+        args.videoId.as_deref(),
     )?;
     youtube_comment_threads_list_execute(builder)
 }
@@ -2405,6 +2603,13 @@ pub fn youtube_comments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_comments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentsDeleteArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET youtube/v3/comments
 /// Deletes a resource.
 ///
@@ -2417,12 +2622,12 @@ pub fn youtube_comments_delete_execute(
 
 pub fn youtube_comments_delete(
     client: &SimpleHttpClient,
-    id: &str,
+    args: &YoutubeCommentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_comments_delete_builder(client, id)?;
+    let builder = youtube_comments_delete_builder(client, &args.id)?;
     youtube_comments_delete_execute(builder)
 }
 
@@ -2516,6 +2721,15 @@ pub fn youtube_comments_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_comments_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentsInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Request body.
+    pub body: Comment,
+}
+
 /// GET youtube/v3/comments
 /// Inserts a new resource into this collection.
 ///
@@ -2528,13 +2742,12 @@ pub fn youtube_comments_insert_execute(
 
 pub fn youtube_comments_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    body: &Comment,
+    args: &YoutubeCommentsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_comments_insert_builder(client, part, body)?;
+    let builder = youtube_comments_insert_builder(client, &args.part, &args.body)?;
     youtube_comments_insert_execute(builder)
 }
 
@@ -2655,6 +2868,23 @@ pub fn youtube_comments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_comments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentsListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parentId
+    pub parentId: Option<String>,
+    /// Query parameter: textFormat
+    pub textFormat: Option<String>,
+}
+
 /// GET youtube/v3/comments
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -2667,12 +2897,7 @@ pub fn youtube_comments_list_execute(
 
 pub fn youtube_comments_list(
     client: &SimpleHttpClient,
-    part: &str,
-    id: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    parentId: Option<&str>,
-    textFormat: Option<&str>,
+    args: &YoutubeCommentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CommentListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2680,7 +2905,13 @@ pub fn youtube_comments_list(
     ApiError,
 > {
     let builder = youtube_comments_list_builder(
-        client, part, id, maxResults, pageToken, parentId, textFormat,
+        client,
+        &args.part,
+        args.id.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.parentId.as_deref(),
+        args.textFormat.as_deref(),
     )?;
     youtube_comments_list_execute(builder)
 }
@@ -2772,6 +3003,13 @@ pub fn youtube_comments_mark_as_spam_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_comments_mark_as_spam`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentsMarkAsSpamArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET youtube/v3/comments/markAsSpam
 /// Expresses the caller's opinion that one or more comments should be flagged as spam.
 ///
@@ -2784,12 +3022,12 @@ pub fn youtube_comments_mark_as_spam_execute(
 
 pub fn youtube_comments_mark_as_spam(
     client: &SimpleHttpClient,
-    id: &str,
+    args: &YoutubeCommentsMarkAsSpamArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_comments_mark_as_spam_builder(client, id)?;
+    let builder = youtube_comments_mark_as_spam_builder(client, &args.id)?;
     youtube_comments_mark_as_spam_execute(builder)
 }
 
@@ -2893,6 +3131,17 @@ pub fn youtube_comments_set_moderation_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_comments_set_moderation_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentsSetModerationStatusArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Path parameter: moderationStatus
+    pub moderationStatus: String,
+    /// Query parameter: banAuthor
+    pub banAuthor: Option<bool>,
+}
+
 /// GET youtube/v3/comments/setModerationStatus
 /// Sets the moderation status of one or more comments.
 ///
@@ -2905,15 +3154,17 @@ pub fn youtube_comments_set_moderation_status_execute(
 
 pub fn youtube_comments_set_moderation_status(
     client: &SimpleHttpClient,
-    id: &str,
-    moderationStatus: &str,
-    banAuthor: Option<bool>,
+    args: &YoutubeCommentsSetModerationStatusArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        youtube_comments_set_moderation_status_builder(client, id, moderationStatus, banAuthor)?;
+    let builder = youtube_comments_set_moderation_status_builder(
+        client,
+        &args.id,
+        &args.moderationStatus,
+        args.banAuthor,
+    )?;
     youtube_comments_set_moderation_status_execute(builder)
 }
 
@@ -3007,6 +3258,15 @@ pub fn youtube_comments_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_comments_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeCommentsUpdateArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Request body.
+    pub body: Comment,
+}
+
 /// GET youtube/v3/comments
 /// Updates an existing resource.
 ///
@@ -3019,13 +3279,12 @@ pub fn youtube_comments_update_execute(
 
 pub fn youtube_comments_update(
     client: &SimpleHttpClient,
-    part: &str,
-    body: &Comment,
+    args: &YoutubeCommentsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_comments_update_builder(client, part, body)?;
+    let builder = youtube_comments_update_builder(client, &args.part, &args.body)?;
     youtube_comments_update_execute(builder)
 }
 
@@ -3133,6 +3392,15 @@ pub fn youtube_i18n_languages_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_i18n_languages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeI18nLanguagesListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: hl
+    pub hl: Option<String>,
+}
+
 /// GET youtube/v3/i18nLanguages
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -3145,15 +3413,14 @@ pub fn youtube_i18n_languages_list_execute(
 
 pub fn youtube_i18n_languages_list(
     client: &SimpleHttpClient,
-    part: &str,
-    hl: Option<&str>,
+    args: &YoutubeI18nLanguagesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<I18nLanguageListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_i18n_languages_list_builder(client, part, hl)?;
+    let builder = youtube_i18n_languages_list_builder(client, &args.part, args.hl.as_deref())?;
     youtube_i18n_languages_list_execute(builder)
 }
 
@@ -3261,6 +3528,15 @@ pub fn youtube_i18n_regions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_i18n_regions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeI18nRegionsListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: hl
+    pub hl: Option<String>,
+}
+
 /// GET youtube/v3/i18nRegions
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -3273,15 +3549,14 @@ pub fn youtube_i18n_regions_list_execute(
 
 pub fn youtube_i18n_regions_list(
     client: &SimpleHttpClient,
-    part: &str,
-    hl: Option<&str>,
+    args: &YoutubeI18nRegionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<I18nRegionListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_i18n_regions_list_builder(client, part, hl)?;
+    let builder = youtube_i18n_regions_list_builder(client, &args.part, args.hl.as_deref())?;
     youtube_i18n_regions_list_execute(builder)
 }
 
@@ -3398,6 +3673,21 @@ pub fn youtube_live_broadcasts_bind_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_broadcasts_bind`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveBroadcastsBindArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Query parameter: streamId
+    pub streamId: Option<String>,
+}
+
 /// GET youtube/v3/liveBroadcasts/bind
 /// Bind a broadcast to a stream.
 ///
@@ -3410,11 +3700,7 @@ pub fn youtube_live_broadcasts_bind_execute(
 
 pub fn youtube_live_broadcasts_bind(
     client: &SimpleHttpClient,
-    id: &str,
-    part: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    streamId: Option<&str>,
+    args: &YoutubeLiveBroadcastsBindArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiveBroadcast>, ApiError>, P = ApiPending>
         + Send
@@ -3423,11 +3709,11 @@ pub fn youtube_live_broadcasts_bind(
 > {
     let builder = youtube_live_broadcasts_bind_builder(
         client,
-        id,
-        part,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        streamId,
+        &args.id,
+        &args.part,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        args.streamId.as_deref(),
     )?;
     youtube_live_broadcasts_bind_execute(builder)
 }
@@ -3535,6 +3821,17 @@ pub fn youtube_live_broadcasts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_broadcasts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveBroadcastsDeleteArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+}
+
 /// GET youtube/v3/liveBroadcasts
 /// Delete a given broadcast.
 ///
@@ -3547,18 +3844,16 @@ pub fn youtube_live_broadcasts_delete_execute(
 
 pub fn youtube_live_broadcasts_delete(
     client: &SimpleHttpClient,
-    id: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
+    args: &YoutubeLiveBroadcastsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = youtube_live_broadcasts_delete_builder(
         client,
-        id,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
+        &args.id,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
     )?;
     youtube_live_broadcasts_delete_execute(builder)
 }
@@ -3674,6 +3969,19 @@ pub fn youtube_live_broadcasts_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_broadcasts_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveBroadcastsInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Request body.
+    pub body: LiveBroadcast,
+}
+
 /// GET youtube/v3/liveBroadcasts
 /// Inserts a new stream for the authenticated user.
 ///
@@ -3686,10 +3994,7 @@ pub fn youtube_live_broadcasts_insert_execute(
 
 pub fn youtube_live_broadcasts_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    body: &LiveBroadcast,
+    args: &YoutubeLiveBroadcastsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiveBroadcast>, ApiError>, P = ApiPending>
         + Send
@@ -3698,10 +4003,10 @@ pub fn youtube_live_broadcasts_insert(
 > {
     let builder = youtube_live_broadcasts_insert_builder(
         client,
-        part,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        body,
+        &args.part,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        &args.body,
     )?;
     youtube_live_broadcasts_insert_execute(builder)
 }
@@ -3819,6 +4124,21 @@ pub fn youtube_live_broadcasts_insert_cuepoint_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_broadcasts_insert_cuepoint`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveBroadcastsInsertCuepointArgs {
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Query parameter: part
+    pub part: Option<String>,
+    /// Request body.
+    pub body: Cuepoint,
+}
+
 /// GET youtube/v3/liveBroadcasts/cuepoint
 /// Insert cuepoints in a broadcast
 ///
@@ -3831,22 +4151,18 @@ pub fn youtube_live_broadcasts_insert_cuepoint_execute(
 
 pub fn youtube_live_broadcasts_insert_cuepoint(
     client: &SimpleHttpClient,
-    id: Option<&str>,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    part: Option<&str>,
-    body: &Cuepoint,
+    args: &YoutubeLiveBroadcastsInsertCuepointArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Cuepoint>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = youtube_live_broadcasts_insert_cuepoint_builder(
         client,
-        id,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        part,
-        body,
+        args.id.as_deref(),
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        args.part.as_deref(),
+        &args.body,
     )?;
     youtube_live_broadcasts_insert_cuepoint_execute(builder)
 }
@@ -3983,6 +4299,29 @@ pub fn youtube_live_broadcasts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_broadcasts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveBroadcastsListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: broadcastStatus
+    pub broadcastStatus: Option<String>,
+    /// Query parameter: broadcastType
+    pub broadcastType: Option<String>,
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: mine
+    pub mine: Option<bool>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET youtube/v3/liveBroadcasts
 /// Retrieve the list of broadcasts associated with the given channel.
 ///
@@ -3995,15 +4334,7 @@ pub fn youtube_live_broadcasts_list_execute(
 
 pub fn youtube_live_broadcasts_list(
     client: &SimpleHttpClient,
-    part: &str,
-    broadcastStatus: Option<&str>,
-    broadcastType: Option<&str>,
-    id: Option<&str>,
-    maxResults: Option<i32>,
-    mine: Option<bool>,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    pageToken: Option<&str>,
+    args: &YoutubeLiveBroadcastsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiveBroadcastListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4012,15 +4343,15 @@ pub fn youtube_live_broadcasts_list(
 > {
     let builder = youtube_live_broadcasts_list_builder(
         client,
-        part,
-        broadcastStatus,
-        broadcastType,
-        id,
-        maxResults,
-        mine,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        pageToken,
+        &args.part,
+        args.broadcastStatus.as_deref(),
+        args.broadcastType.as_deref(),
+        args.id.as_deref(),
+        args.maxResults,
+        args.mine,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        args.pageToken.as_deref(),
     )?;
     youtube_live_broadcasts_list_execute(builder)
 }
@@ -4135,6 +4466,21 @@ pub fn youtube_live_broadcasts_transition_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_broadcasts_transition`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveBroadcastsTransitionArgs {
+    /// Path parameter: broadcastStatus
+    pub broadcastStatus: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+}
+
 /// GET youtube/v3/liveBroadcasts/transition
 /// Transition a broadcast to a given status.
 ///
@@ -4147,11 +4493,7 @@ pub fn youtube_live_broadcasts_transition_execute(
 
 pub fn youtube_live_broadcasts_transition(
     client: &SimpleHttpClient,
-    broadcastStatus: &str,
-    id: &str,
-    part: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
+    args: &YoutubeLiveBroadcastsTransitionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiveBroadcast>, ApiError>, P = ApiPending>
         + Send
@@ -4160,11 +4502,11 @@ pub fn youtube_live_broadcasts_transition(
 > {
     let builder = youtube_live_broadcasts_transition_builder(
         client,
-        broadcastStatus,
-        id,
-        part,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
+        &args.broadcastStatus,
+        &args.id,
+        &args.part,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
     )?;
     youtube_live_broadcasts_transition_execute(builder)
 }
@@ -4280,6 +4622,19 @@ pub fn youtube_live_broadcasts_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_broadcasts_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveBroadcastsUpdateArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Request body.
+    pub body: LiveBroadcast,
+}
+
 /// GET youtube/v3/liveBroadcasts
 /// Updates an existing broadcast for the authenticated user.
 ///
@@ -4292,10 +4647,7 @@ pub fn youtube_live_broadcasts_update_execute(
 
 pub fn youtube_live_broadcasts_update(
     client: &SimpleHttpClient,
-    part: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    body: &LiveBroadcast,
+    args: &YoutubeLiveBroadcastsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiveBroadcast>, ApiError>, P = ApiPending>
         + Send
@@ -4304,10 +4656,10 @@ pub fn youtube_live_broadcasts_update(
 > {
     let builder = youtube_live_broadcasts_update_builder(
         client,
-        part,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        body,
+        &args.part,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        &args.body,
     )?;
     youtube_live_broadcasts_update_execute(builder)
 }
@@ -4399,6 +4751,13 @@ pub fn youtube_live_chat_bans_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_chat_bans_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatBansDeleteArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET youtube/v3/liveChat/bans
 /// Deletes a chat ban.
 ///
@@ -4411,12 +4770,12 @@ pub fn youtube_live_chat_bans_delete_execute(
 
 pub fn youtube_live_chat_bans_delete(
     client: &SimpleHttpClient,
-    id: &str,
+    args: &YoutubeLiveChatBansDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_live_chat_bans_delete_builder(client, id)?;
+    let builder = youtube_live_chat_bans_delete_builder(client, &args.id)?;
     youtube_live_chat_bans_delete_execute(builder)
 }
 
@@ -4513,6 +4872,15 @@ pub fn youtube_live_chat_bans_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_chat_bans_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatBansInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Request body.
+    pub body: LiveChatBan,
+}
+
 /// GET youtube/v3/liveChat/bans
 /// Inserts a new resource into this collection.
 ///
@@ -4525,13 +4893,12 @@ pub fn youtube_live_chat_bans_insert_execute(
 
 pub fn youtube_live_chat_bans_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    body: &LiveChatBan,
+    args: &YoutubeLiveChatBansInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiveChatBan>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_live_chat_bans_insert_builder(client, part, body)?;
+    let builder = youtube_live_chat_bans_insert_builder(client, &args.part, &args.body)?;
     youtube_live_chat_bans_insert_execute(builder)
 }
 
@@ -4622,6 +4989,13 @@ pub fn youtube_live_chat_messages_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_chat_messages_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatMessagesDeleteArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET youtube/v3/liveChat/messages
 /// Deletes a chat message.
 ///
@@ -4634,12 +5008,12 @@ pub fn youtube_live_chat_messages_delete_execute(
 
 pub fn youtube_live_chat_messages_delete(
     client: &SimpleHttpClient,
-    id: &str,
+    args: &YoutubeLiveChatMessagesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_live_chat_messages_delete_builder(client, id)?;
+    let builder = youtube_live_chat_messages_delete_builder(client, &args.id)?;
     youtube_live_chat_messages_delete_execute(builder)
 }
 
@@ -4738,6 +5112,15 @@ pub fn youtube_live_chat_messages_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_chat_messages_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatMessagesInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Request body.
+    pub body: LiveChatMessage,
+}
+
 /// GET youtube/v3/liveChat/messages
 /// Inserts a new resource into this collection.
 ///
@@ -4750,15 +5133,14 @@ pub fn youtube_live_chat_messages_insert_execute(
 
 pub fn youtube_live_chat_messages_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    body: &LiveChatMessage,
+    args: &YoutubeLiveChatMessagesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiveChatMessage>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_live_chat_messages_insert_builder(client, part, body)?;
+    let builder = youtube_live_chat_messages_insert_builder(client, &args.part, &args.body)?;
     youtube_live_chat_messages_insert_execute(builder)
 }
 
@@ -4881,6 +5263,23 @@ pub fn youtube_live_chat_messages_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_chat_messages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatMessagesListArgs {
+    /// Path parameter: liveChatId
+    pub liveChatId: String,
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: hl
+    pub hl: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: profileImageSize
+    pub profileImageSize: Option<i32>,
+}
+
 /// GET youtube/v3/liveChat/messages
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -4893,12 +5292,7 @@ pub fn youtube_live_chat_messages_list_execute(
 
 pub fn youtube_live_chat_messages_list(
     client: &SimpleHttpClient,
-    liveChatId: &str,
-    part: &str,
-    hl: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    profileImageSize: Option<i32>,
+    args: &YoutubeLiveChatMessagesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LiveChatMessageListResponse>, ApiError>,
@@ -4909,12 +5303,12 @@ pub fn youtube_live_chat_messages_list(
 > {
     let builder = youtube_live_chat_messages_list_builder(
         client,
-        liveChatId,
-        part,
-        hl,
-        maxResults,
-        pageToken,
-        profileImageSize,
+        &args.liveChatId,
+        &args.part,
+        args.hl.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.profileImageSize,
     )?;
     youtube_live_chat_messages_list_execute(builder)
 }
@@ -5023,6 +5417,15 @@ pub fn youtube_live_chat_messages_transition_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_chat_messages_transition`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatMessagesTransitionArgs {
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: status
+    pub status: Option<String>,
+}
+
 /// GET youtube/v3/liveChat/messages/transition
 /// Transition a durable chat event.
 ///
@@ -5035,15 +5438,18 @@ pub fn youtube_live_chat_messages_transition_execute(
 
 pub fn youtube_live_chat_messages_transition(
     client: &SimpleHttpClient,
-    id: Option<&str>,
-    status: Option<&str>,
+    args: &YoutubeLiveChatMessagesTransitionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiveChatMessage>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_live_chat_messages_transition_builder(client, id, status)?;
+    let builder = youtube_live_chat_messages_transition_builder(
+        client,
+        args.id.as_deref(),
+        args.status.as_deref(),
+    )?;
     youtube_live_chat_messages_transition_execute(builder)
 }
 
@@ -5134,6 +5540,13 @@ pub fn youtube_live_chat_moderators_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_chat_moderators_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatModeratorsDeleteArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET youtube/v3/liveChat/moderators
 /// Deletes a chat moderator.
 ///
@@ -5146,12 +5559,12 @@ pub fn youtube_live_chat_moderators_delete_execute(
 
 pub fn youtube_live_chat_moderators_delete(
     client: &SimpleHttpClient,
-    id: &str,
+    args: &YoutubeLiveChatModeratorsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_live_chat_moderators_delete_builder(client, id)?;
+    let builder = youtube_live_chat_moderators_delete_builder(client, &args.id)?;
     youtube_live_chat_moderators_delete_execute(builder)
 }
 
@@ -5250,6 +5663,15 @@ pub fn youtube_live_chat_moderators_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_chat_moderators_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatModeratorsInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Request body.
+    pub body: LiveChatModerator,
+}
+
 /// GET youtube/v3/liveChat/moderators
 /// Inserts a new resource into this collection.
 ///
@@ -5262,15 +5684,14 @@ pub fn youtube_live_chat_moderators_insert_execute(
 
 pub fn youtube_live_chat_moderators_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    body: &LiveChatModerator,
+    args: &YoutubeLiveChatModeratorsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiveChatModerator>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_live_chat_moderators_insert_builder(client, part, body)?;
+    let builder = youtube_live_chat_moderators_insert_builder(client, &args.part, &args.body)?;
     youtube_live_chat_moderators_insert_execute(builder)
 }
 
@@ -5385,6 +5806,19 @@ pub fn youtube_live_chat_moderators_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_chat_moderators_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveChatModeratorsListArgs {
+    /// Path parameter: liveChatId
+    pub liveChatId: String,
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET youtube/v3/liveChat/moderators
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -5397,10 +5831,7 @@ pub fn youtube_live_chat_moderators_list_execute(
 
 pub fn youtube_live_chat_moderators_list(
     client: &SimpleHttpClient,
-    liveChatId: &str,
-    part: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &YoutubeLiveChatModeratorsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LiveChatModeratorListResponse>, ApiError>,
@@ -5409,8 +5840,13 @@ pub fn youtube_live_chat_moderators_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        youtube_live_chat_moderators_list_builder(client, liveChatId, part, maxResults, pageToken)?;
+    let builder = youtube_live_chat_moderators_list_builder(
+        client,
+        &args.liveChatId,
+        &args.part,
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     youtube_live_chat_moderators_list_execute(builder)
 }
 
@@ -5514,6 +5950,17 @@ pub fn youtube_live_streams_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_streams_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveStreamsDeleteArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+}
+
 /// GET youtube/v3/liveStreams
 /// Deletes an existing stream for the authenticated user.
 ///
@@ -5526,18 +5973,16 @@ pub fn youtube_live_streams_delete_execute(
 
 pub fn youtube_live_streams_delete(
     client: &SimpleHttpClient,
-    id: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
+    args: &YoutubeLiveStreamsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = youtube_live_streams_delete_builder(
         client,
-        id,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
+        &args.id,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
     )?;
     youtube_live_streams_delete_execute(builder)
 }
@@ -5651,6 +6096,19 @@ pub fn youtube_live_streams_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_streams_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveStreamsInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Request body.
+    pub body: LiveStream,
+}
+
 /// GET youtube/v3/liveStreams
 /// Inserts a new stream for the authenticated user.
 ///
@@ -5663,20 +6121,17 @@ pub fn youtube_live_streams_insert_execute(
 
 pub fn youtube_live_streams_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    body: &LiveStream,
+    args: &YoutubeLiveStreamsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiveStream>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = youtube_live_streams_insert_builder(
         client,
-        part,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        body,
+        &args.part,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        &args.body,
     )?;
     youtube_live_streams_insert_execute(builder)
 }
@@ -5805,6 +6260,25 @@ pub fn youtube_live_streams_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_streams_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveStreamsListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: mine
+    pub mine: Option<bool>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET youtube/v3/liveStreams
 /// Retrieve the list of streams associated with the given channel. --
 ///
@@ -5817,13 +6291,7 @@ pub fn youtube_live_streams_list_execute(
 
 pub fn youtube_live_streams_list(
     client: &SimpleHttpClient,
-    part: &str,
-    id: Option<&str>,
-    maxResults: Option<i32>,
-    mine: Option<bool>,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    pageToken: Option<&str>,
+    args: &YoutubeLiveStreamsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiveStreamListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5832,13 +6300,13 @@ pub fn youtube_live_streams_list(
 > {
     let builder = youtube_live_streams_list_builder(
         client,
-        part,
-        id,
-        maxResults,
-        mine,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        pageToken,
+        &args.part,
+        args.id.as_deref(),
+        args.maxResults,
+        args.mine,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        args.pageToken.as_deref(),
     )?;
     youtube_live_streams_list_execute(builder)
 }
@@ -5952,6 +6420,19 @@ pub fn youtube_live_streams_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_live_streams_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeLiveStreamsUpdateArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Request body.
+    pub body: LiveStream,
+}
+
 /// GET youtube/v3/liveStreams
 /// Updates an existing stream for the authenticated user.
 ///
@@ -5964,20 +6445,17 @@ pub fn youtube_live_streams_update_execute(
 
 pub fn youtube_live_streams_update(
     client: &SimpleHttpClient,
-    part: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    body: &LiveStream,
+    args: &YoutubeLiveStreamsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LiveStream>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = youtube_live_streams_update_builder(
         client,
-        part,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        body,
+        &args.part,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        &args.body,
     )?;
     youtube_live_streams_update_execute(builder)
 }
@@ -6099,6 +6577,23 @@ pub fn youtube_members_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_members_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeMembersListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: filterByMemberChannelId
+    pub filterByMemberChannelId: Option<String>,
+    /// Query parameter: hasAccessToLevel
+    pub hasAccessToLevel: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: mode
+    pub mode: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET youtube/v3/members
 /// Retrieves a list of members that match the request criteria for a channel.
 ///
@@ -6111,12 +6606,7 @@ pub fn youtube_members_list_execute(
 
 pub fn youtube_members_list(
     client: &SimpleHttpClient,
-    part: &str,
-    filterByMemberChannelId: Option<&str>,
-    hasAccessToLevel: Option<&str>,
-    maxResults: Option<i32>,
-    mode: Option<&str>,
-    pageToken: Option<&str>,
+    args: &YoutubeMembersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MemberListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6125,12 +6615,12 @@ pub fn youtube_members_list(
 > {
     let builder = youtube_members_list_builder(
         client,
-        part,
-        filterByMemberChannelId,
-        hasAccessToLevel,
-        maxResults,
-        mode,
-        pageToken,
+        &args.part,
+        args.filterByMemberChannelId.as_deref(),
+        args.hasAccessToLevel.as_deref(),
+        args.maxResults,
+        args.mode.as_deref(),
+        args.pageToken.as_deref(),
     )?;
     youtube_members_list_execute(builder)
 }
@@ -6229,6 +6719,13 @@ pub fn youtube_memberships_levels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_memberships_levels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeMembershipsLevelsListArgs {
+    /// Path parameter: part
+    pub part: String,
+}
+
 /// GET youtube/v3/membershipsLevels
 /// Retrieves a list of all pricing levels offered by a creator to the fans.
 ///
@@ -6241,7 +6738,7 @@ pub fn youtube_memberships_levels_list_execute(
 
 pub fn youtube_memberships_levels_list(
     client: &SimpleHttpClient,
-    part: &str,
+    args: &YoutubeMembershipsLevelsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<MembershipsLevelListResponse>, ApiError>,
@@ -6250,7 +6747,7 @@ pub fn youtube_memberships_levels_list(
         + 'static,
     ApiError,
 > {
-    let builder = youtube_memberships_levels_list_builder(client, part)?;
+    let builder = youtube_memberships_levels_list_builder(client, &args.part)?;
     youtube_memberships_levels_list_execute(builder)
 }
 
@@ -6353,6 +6850,15 @@ pub fn youtube_playlist_images_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_playlist_images_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistImagesDeleteArgs {
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET youtube/v3/playlistImages
 /// Deletes a resource.
 ///
@@ -6365,13 +6871,16 @@ pub fn youtube_playlist_images_delete_execute(
 
 pub fn youtube_playlist_images_delete(
     client: &SimpleHttpClient,
-    id: Option<&str>,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubePlaylistImagesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_playlist_images_delete_builder(client, id, onBehalfOfContentOwner)?;
+    let builder = youtube_playlist_images_delete_builder(
+        client,
+        args.id.as_deref(),
+        args.onBehalfOfContentOwner.as_deref(),
+    )?;
     youtube_playlist_images_delete_execute(builder)
 }
 
@@ -6486,6 +6995,19 @@ pub fn youtube_playlist_images_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_playlist_images_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistImagesInsertArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Query parameter: part
+    pub part: Option<String>,
+    /// Request body.
+    pub body: PlaylistImage,
+}
+
 /// GET youtube/v3/playlistImages
 /// Inserts a new resource into this collection.
 ///
@@ -6498,10 +7020,7 @@ pub fn youtube_playlist_images_insert_execute(
 
 pub fn youtube_playlist_images_insert(
     client: &SimpleHttpClient,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    part: Option<&str>,
-    body: &PlaylistImage,
+    args: &YoutubePlaylistImagesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlaylistImage>, ApiError>, P = ApiPending>
         + Send
@@ -6510,10 +7029,10 @@ pub fn youtube_playlist_images_insert(
 > {
     let builder = youtube_playlist_images_insert_builder(
         client,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        part,
-        body,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        args.part.as_deref(),
+        &args.body,
     )?;
     youtube_playlist_images_insert_execute(builder)
 }
@@ -6638,6 +7157,23 @@ pub fn youtube_playlist_images_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_playlist_images_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistImagesListArgs {
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: part
+    pub part: Option<String>,
+}
+
 /// GET youtube/v3/playlistImages
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -6650,12 +7186,7 @@ pub fn youtube_playlist_images_list_execute(
 
 pub fn youtube_playlist_images_list(
     client: &SimpleHttpClient,
-    maxResults: Option<i32>,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
-    part: Option<&str>,
+    args: &YoutubePlaylistImagesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlaylistImageListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6664,12 +7195,12 @@ pub fn youtube_playlist_images_list(
 > {
     let builder = youtube_playlist_images_list_builder(
         client,
-        maxResults,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        pageToken,
-        parent,
-        part,
+        args.maxResults,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
+        args.part.as_deref(),
     )?;
     youtube_playlist_images_list_execute(builder)
 }
@@ -6781,6 +7312,17 @@ pub fn youtube_playlist_images_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_playlist_images_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistImagesUpdateArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: part
+    pub part: Option<String>,
+    /// Request body.
+    pub body: PlaylistImage,
+}
+
 /// GET youtube/v3/playlistImages
 /// Updates an existing resource.
 ///
@@ -6793,17 +7335,19 @@ pub fn youtube_playlist_images_update_execute(
 
 pub fn youtube_playlist_images_update(
     client: &SimpleHttpClient,
-    onBehalfOfContentOwner: Option<&str>,
-    part: Option<&str>,
-    body: &PlaylistImage,
+    args: &YoutubePlaylistImagesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlaylistImage>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        youtube_playlist_images_update_builder(client, onBehalfOfContentOwner, part, body)?;
+    let builder = youtube_playlist_images_update_builder(
+        client,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.part.as_deref(),
+        &args.body,
+    )?;
     youtube_playlist_images_update_execute(builder)
 }
 
@@ -6906,6 +7450,15 @@ pub fn youtube_playlist_items_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_playlist_items_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistItemsDeleteArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET youtube/v3/playlistItems
 /// Deletes a resource.
 ///
@@ -6918,13 +7471,16 @@ pub fn youtube_playlist_items_delete_execute(
 
 pub fn youtube_playlist_items_delete(
     client: &SimpleHttpClient,
-    id: &str,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubePlaylistItemsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_playlist_items_delete_builder(client, id, onBehalfOfContentOwner)?;
+    let builder = youtube_playlist_items_delete_builder(
+        client,
+        &args.id,
+        args.onBehalfOfContentOwner.as_deref(),
+    )?;
     youtube_playlist_items_delete_execute(builder)
 }
 
@@ -7035,6 +7591,17 @@ pub fn youtube_playlist_items_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_playlist_items_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistItemsInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Request body.
+    pub body: PlaylistItem,
+}
+
 /// GET youtube/v3/playlistItems
 /// Inserts a new resource into this collection.
 ///
@@ -7047,17 +7614,19 @@ pub fn youtube_playlist_items_insert_execute(
 
 pub fn youtube_playlist_items_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    body: &PlaylistItem,
+    args: &YoutubePlaylistItemsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlaylistItem>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        youtube_playlist_items_insert_builder(client, part, onBehalfOfContentOwner, body)?;
+    let builder = youtube_playlist_items_insert_builder(
+        client,
+        &args.part,
+        args.onBehalfOfContentOwner.as_deref(),
+        &args.body,
+    )?;
     youtube_playlist_items_insert_execute(builder)
 }
 
@@ -7185,6 +7754,25 @@ pub fn youtube_playlist_items_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_playlist_items_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistItemsListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: playlistId
+    pub playlistId: Option<String>,
+    /// Query parameter: videoId
+    pub videoId: Option<String>,
+}
+
 /// GET youtube/v3/playlistItems
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -7197,13 +7785,7 @@ pub fn youtube_playlist_items_list_execute(
 
 pub fn youtube_playlist_items_list(
     client: &SimpleHttpClient,
-    part: &str,
-    id: Option<&str>,
-    maxResults: Option<i32>,
-    onBehalfOfContentOwner: Option<&str>,
-    pageToken: Option<&str>,
-    playlistId: Option<&str>,
-    videoId: Option<&str>,
+    args: &YoutubePlaylistItemsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlaylistItemListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7212,13 +7794,13 @@ pub fn youtube_playlist_items_list(
 > {
     let builder = youtube_playlist_items_list_builder(
         client,
-        part,
-        id,
-        maxResults,
-        onBehalfOfContentOwner,
-        pageToken,
-        playlistId,
-        videoId,
+        &args.part,
+        args.id.as_deref(),
+        args.maxResults,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.pageToken.as_deref(),
+        args.playlistId.as_deref(),
+        args.videoId.as_deref(),
     )?;
     youtube_playlist_items_list_execute(builder)
 }
@@ -7330,6 +7912,17 @@ pub fn youtube_playlist_items_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_playlist_items_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistItemsUpdateArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Request body.
+    pub body: PlaylistItem,
+}
+
 /// GET youtube/v3/playlistItems
 /// Updates an existing resource.
 ///
@@ -7342,17 +7935,19 @@ pub fn youtube_playlist_items_update_execute(
 
 pub fn youtube_playlist_items_update(
     client: &SimpleHttpClient,
-    part: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    body: &PlaylistItem,
+    args: &YoutubePlaylistItemsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlaylistItem>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        youtube_playlist_items_update_builder(client, part, onBehalfOfContentOwner, body)?;
+    let builder = youtube_playlist_items_update_builder(
+        client,
+        &args.part,
+        args.onBehalfOfContentOwner.as_deref(),
+        &args.body,
+    )?;
     youtube_playlist_items_update_execute(builder)
 }
 
@@ -7452,6 +8047,15 @@ pub fn youtube_playlists_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_playlists_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistsDeleteArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET youtube/v3/playlists
 /// Deletes a resource.
 ///
@@ -7464,13 +8068,13 @@ pub fn youtube_playlists_delete_execute(
 
 pub fn youtube_playlists_delete(
     client: &SimpleHttpClient,
-    id: &str,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubePlaylistsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_playlists_delete_builder(client, id, onBehalfOfContentOwner)?;
+    let builder =
+        youtube_playlists_delete_builder(client, &args.id, args.onBehalfOfContentOwner.as_deref())?;
     youtube_playlists_delete_execute(builder)
 }
 
@@ -7580,6 +8184,19 @@ pub fn youtube_playlists_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_playlists_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistsInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Request body.
+    pub body: Playlist,
+}
+
 /// GET youtube/v3/playlists
 /// Inserts a new resource into this collection.
 ///
@@ -7592,20 +8209,17 @@ pub fn youtube_playlists_insert_execute(
 
 pub fn youtube_playlists_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    body: &Playlist,
+    args: &YoutubePlaylistsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Playlist>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = youtube_playlists_insert_builder(
         client,
-        part,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        body,
+        &args.part,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        &args.body,
     )?;
     youtube_playlists_insert_execute(builder)
 }
@@ -7739,6 +8353,29 @@ pub fn youtube_playlists_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_playlists_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistsListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: channelId
+    pub channelId: Option<String>,
+    /// Query parameter: hl
+    pub hl: Option<String>,
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: mine
+    pub mine: Option<bool>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET youtube/v3/playlists
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -7751,15 +8388,7 @@ pub fn youtube_playlists_list_execute(
 
 pub fn youtube_playlists_list(
     client: &SimpleHttpClient,
-    part: &str,
-    channelId: Option<&str>,
-    hl: Option<&str>,
-    id: Option<&str>,
-    maxResults: Option<i32>,
-    mine: Option<bool>,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    pageToken: Option<&str>,
+    args: &YoutubePlaylistsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PlaylistListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7768,15 +8397,15 @@ pub fn youtube_playlists_list(
 > {
     let builder = youtube_playlists_list_builder(
         client,
-        part,
-        channelId,
-        hl,
-        id,
-        maxResults,
-        mine,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        pageToken,
+        &args.part,
+        args.channelId.as_deref(),
+        args.hl.as_deref(),
+        args.id.as_deref(),
+        args.maxResults,
+        args.mine,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        args.pageToken.as_deref(),
     )?;
     youtube_playlists_list_execute(builder)
 }
@@ -7883,6 +8512,17 @@ pub fn youtube_playlists_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_playlists_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubePlaylistsUpdateArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Request body.
+    pub body: Playlist,
+}
+
 /// GET youtube/v3/playlists
 /// Updates an existing resource.
 ///
@@ -7895,14 +8535,17 @@ pub fn youtube_playlists_update_execute(
 
 pub fn youtube_playlists_update(
     client: &SimpleHttpClient,
-    part: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    body: &Playlist,
+    args: &YoutubePlaylistsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Playlist>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_playlists_update_builder(client, part, onBehalfOfContentOwner, body)?;
+    let builder = youtube_playlists_update_builder(
+        client,
+        &args.part,
+        args.onBehalfOfContentOwner.as_deref(),
+        &args.body,
+    )?;
     youtube_playlists_update_execute(builder)
 }
 
@@ -8123,6 +8766,73 @@ pub fn youtube_search_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_search_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeSearchListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: channelId
+    pub channelId: Option<String>,
+    /// Query parameter: channelType
+    pub channelType: Option<String>,
+    /// Query parameter: eventType
+    pub eventType: Option<String>,
+    /// Query parameter: forContentOwner
+    pub forContentOwner: Option<bool>,
+    /// Query parameter: forDeveloper
+    pub forDeveloper: Option<bool>,
+    /// Query parameter: forMine
+    pub forMine: Option<bool>,
+    /// Query parameter: location
+    pub location: Option<String>,
+    /// Query parameter: locationRadius
+    pub locationRadius: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: order
+    pub order: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: publishedAfter
+    pub publishedAfter: Option<String>,
+    /// Query parameter: publishedBefore
+    pub publishedBefore: Option<String>,
+    /// Query parameter: q
+    pub q: Option<String>,
+    /// Query parameter: regionCode
+    pub regionCode: Option<String>,
+    /// Query parameter: relevanceLanguage
+    pub relevanceLanguage: Option<String>,
+    /// Query parameter: safeSearch
+    pub safeSearch: Option<String>,
+    /// Query parameter: topicId
+    pub topicId: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+    /// Query parameter: videoCaption
+    pub videoCaption: Option<String>,
+    /// Query parameter: videoCategoryId
+    pub videoCategoryId: Option<String>,
+    /// Query parameter: videoDefinition
+    pub videoDefinition: Option<String>,
+    /// Query parameter: videoDimension
+    pub videoDimension: Option<String>,
+    /// Query parameter: videoDuration
+    pub videoDuration: Option<String>,
+    /// Query parameter: videoEmbeddable
+    pub videoEmbeddable: Option<String>,
+    /// Query parameter: videoLicense
+    pub videoLicense: Option<String>,
+    /// Query parameter: videoPaidProductPlacement
+    pub videoPaidProductPlacement: Option<String>,
+    /// Query parameter: videoSyndicated
+    pub videoSyndicated: Option<String>,
+    /// Query parameter: videoType
+    pub videoType: Option<String>,
+}
+
 /// GET youtube/v3/search
 /// Retrieves a list of search resources
 ///
@@ -8135,37 +8845,7 @@ pub fn youtube_search_list_execute(
 
 pub fn youtube_search_list(
     client: &SimpleHttpClient,
-    part: &str,
-    channelId: Option<&str>,
-    channelType: Option<&str>,
-    eventType: Option<&str>,
-    forContentOwner: Option<bool>,
-    forDeveloper: Option<bool>,
-    forMine: Option<bool>,
-    location: Option<&str>,
-    locationRadius: Option<&str>,
-    maxResults: Option<i32>,
-    onBehalfOfContentOwner: Option<&str>,
-    order: Option<&str>,
-    pageToken: Option<&str>,
-    publishedAfter: Option<&str>,
-    publishedBefore: Option<&str>,
-    q: Option<&str>,
-    regionCode: Option<&str>,
-    relevanceLanguage: Option<&str>,
-    safeSearch: Option<&str>,
-    topicId: Option<&str>,
-    type_rs: Option<&str>,
-    videoCaption: Option<&str>,
-    videoCategoryId: Option<&str>,
-    videoDefinition: Option<&str>,
-    videoDimension: Option<&str>,
-    videoDuration: Option<&str>,
-    videoEmbeddable: Option<&str>,
-    videoLicense: Option<&str>,
-    videoPaidProductPlacement: Option<&str>,
-    videoSyndicated: Option<&str>,
-    videoType: Option<&str>,
+    args: &YoutubeSearchListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8174,37 +8854,37 @@ pub fn youtube_search_list(
 > {
     let builder = youtube_search_list_builder(
         client,
-        part,
-        channelId,
-        channelType,
-        eventType,
-        forContentOwner,
-        forDeveloper,
-        forMine,
-        location,
-        locationRadius,
-        maxResults,
-        onBehalfOfContentOwner,
-        order,
-        pageToken,
-        publishedAfter,
-        publishedBefore,
-        q,
-        regionCode,
-        relevanceLanguage,
-        safeSearch,
-        topicId,
-        type_rs,
-        videoCaption,
-        videoCategoryId,
-        videoDefinition,
-        videoDimension,
-        videoDuration,
-        videoEmbeddable,
-        videoLicense,
-        videoPaidProductPlacement,
-        videoSyndicated,
-        videoType,
+        &args.part,
+        args.channelId.as_deref(),
+        args.channelType.as_deref(),
+        args.eventType.as_deref(),
+        args.forContentOwner,
+        args.forDeveloper,
+        args.forMine,
+        args.location.as_deref(),
+        args.locationRadius.as_deref(),
+        args.maxResults,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.order.as_deref(),
+        args.pageToken.as_deref(),
+        args.publishedAfter.as_deref(),
+        args.publishedBefore.as_deref(),
+        args.q.as_deref(),
+        args.regionCode.as_deref(),
+        args.relevanceLanguage.as_deref(),
+        args.safeSearch.as_deref(),
+        args.topicId.as_deref(),
+        args.type_rs.as_deref(),
+        args.videoCaption.as_deref(),
+        args.videoCategoryId.as_deref(),
+        args.videoDefinition.as_deref(),
+        args.videoDimension.as_deref(),
+        args.videoDuration.as_deref(),
+        args.videoEmbeddable.as_deref(),
+        args.videoLicense.as_deref(),
+        args.videoPaidProductPlacement.as_deref(),
+        args.videoSyndicated.as_deref(),
+        args.videoType.as_deref(),
     )?;
     youtube_search_list_execute(builder)
 }
@@ -8296,6 +8976,13 @@ pub fn youtube_subscriptions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_subscriptions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeSubscriptionsDeleteArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET youtube/v3/subscriptions
 /// Deletes a resource.
 ///
@@ -8308,12 +8995,12 @@ pub fn youtube_subscriptions_delete_execute(
 
 pub fn youtube_subscriptions_delete(
     client: &SimpleHttpClient,
-    id: &str,
+    args: &YoutubeSubscriptionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_subscriptions_delete_builder(client, id)?;
+    let builder = youtube_subscriptions_delete_builder(client, &args.id)?;
     youtube_subscriptions_delete_execute(builder)
 }
 
@@ -8412,6 +9099,15 @@ pub fn youtube_subscriptions_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_subscriptions_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeSubscriptionsInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Request body.
+    pub body: Subscription,
+}
+
 /// GET youtube/v3/subscriptions
 /// Inserts a new resource into this collection.
 ///
@@ -8424,15 +9120,14 @@ pub fn youtube_subscriptions_insert_execute(
 
 pub fn youtube_subscriptions_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    body: &Subscription,
+    args: &YoutubeSubscriptionsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_subscriptions_insert_builder(client, part, body)?;
+    let builder = youtube_subscriptions_insert_builder(client, &args.part, &args.body)?;
     youtube_subscriptions_insert_execute(builder)
 }
 
@@ -8580,6 +9275,35 @@ pub fn youtube_subscriptions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_subscriptions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeSubscriptionsListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: channelId
+    pub channelId: Option<String>,
+    /// Query parameter: forChannelId
+    pub forChannelId: Option<String>,
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: mine
+    pub mine: Option<bool>,
+    /// Query parameter: myRecentSubscribers
+    pub myRecentSubscribers: Option<bool>,
+    /// Query parameter: mySubscribers
+    pub mySubscribers: Option<bool>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Query parameter: order
+    pub order: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET youtube/v3/subscriptions
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -8592,18 +9316,7 @@ pub fn youtube_subscriptions_list_execute(
 
 pub fn youtube_subscriptions_list(
     client: &SimpleHttpClient,
-    part: &str,
-    channelId: Option<&str>,
-    forChannelId: Option<&str>,
-    id: Option<&str>,
-    maxResults: Option<i32>,
-    mine: Option<bool>,
-    myRecentSubscribers: Option<bool>,
-    mySubscribers: Option<bool>,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    order: Option<&str>,
-    pageToken: Option<&str>,
+    args: &YoutubeSubscriptionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SubscriptionListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -8612,18 +9325,18 @@ pub fn youtube_subscriptions_list(
 > {
     let builder = youtube_subscriptions_list_builder(
         client,
-        part,
-        channelId,
-        forChannelId,
-        id,
-        maxResults,
-        mine,
-        myRecentSubscribers,
-        mySubscribers,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        order,
-        pageToken,
+        &args.part,
+        args.channelId.as_deref(),
+        args.forChannelId.as_deref(),
+        args.id.as_deref(),
+        args.maxResults,
+        args.mine,
+        args.myRecentSubscribers,
+        args.mySubscribers,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        args.order.as_deref(),
+        args.pageToken.as_deref(),
     )?;
     youtube_subscriptions_list_execute(builder)
 }
@@ -8742,6 +9455,19 @@ pub fn youtube_super_chat_events_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_super_chat_events_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeSuperChatEventsListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: hl
+    pub hl: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET youtube/v3/superChatEvents
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -8754,10 +9480,7 @@ pub fn youtube_super_chat_events_list_execute(
 
 pub fn youtube_super_chat_events_list(
     client: &SimpleHttpClient,
-    part: &str,
-    hl: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &YoutubeSuperChatEventsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SuperChatEventListResponse>, ApiError>,
@@ -8766,7 +9489,13 @@ pub fn youtube_super_chat_events_list(
         + 'static,
     ApiError,
 > {
-    let builder = youtube_super_chat_events_list_builder(client, part, hl, maxResults, pageToken)?;
+    let builder = youtube_super_chat_events_list_builder(
+        client,
+        &args.part,
+        args.hl.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+    )?;
     youtube_super_chat_events_list_execute(builder)
 }
 
@@ -8876,6 +9605,19 @@ pub fn youtube_tests_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_tests_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeTestsInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: externalChannelId
+    pub externalChannelId: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Request body.
+    pub body: TestItem,
+}
+
 /// GET youtube/v3/tests
 /// POST method.
 ///
@@ -8888,20 +9630,17 @@ pub fn youtube_tests_insert_execute(
 
 pub fn youtube_tests_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    externalChannelId: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    body: &TestItem,
+    args: &YoutubeTestsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TestItem>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = youtube_tests_insert_builder(
         client,
-        part,
-        externalChannelId,
-        onBehalfOfContentOwnerChannel,
-        body,
+        &args.part,
+        args.externalChannelId.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        &args.body,
     )?;
     youtube_tests_insert_execute(builder)
 }
@@ -9010,6 +9749,19 @@ pub fn youtube_third_party_links_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_third_party_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeThirdPartyLinksDeleteArgs {
+    /// Path parameter: linkingToken
+    pub linkingToken: String,
+    /// Path parameter: type
+    pub type_rs: String,
+    /// Query parameter: externalChannelId
+    pub externalChannelId: Option<String>,
+    /// Query parameter: part
+    pub part: Option<String>,
+}
+
 /// GET youtube/v3/thirdPartyLinks
 /// Deletes a resource.
 ///
@@ -9022,20 +9774,17 @@ pub fn youtube_third_party_links_delete_execute(
 
 pub fn youtube_third_party_links_delete(
     client: &SimpleHttpClient,
-    linkingToken: &str,
-    type_rs: &str,
-    externalChannelId: Option<&str>,
-    part: Option<&str>,
+    args: &YoutubeThirdPartyLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = youtube_third_party_links_delete_builder(
         client,
-        linkingToken,
-        type_rs,
-        externalChannelId,
-        part,
+        &args.linkingToken,
+        &args.type_rs,
+        args.externalChannelId.as_deref(),
+        args.part.as_deref(),
     )?;
     youtube_third_party_links_delete_execute(builder)
 }
@@ -9147,6 +9896,17 @@ pub fn youtube_third_party_links_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_third_party_links_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeThirdPartyLinksInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: externalChannelId
+    pub externalChannelId: Option<String>,
+    /// Request body.
+    pub body: ThirdPartyLink,
+}
+
 /// GET youtube/v3/thirdPartyLinks
 /// Inserts a new resource into this collection.
 ///
@@ -9159,16 +9919,19 @@ pub fn youtube_third_party_links_insert_execute(
 
 pub fn youtube_third_party_links_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    externalChannelId: Option<&str>,
-    body: &ThirdPartyLink,
+    args: &YoutubeThirdPartyLinksInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ThirdPartyLink>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_third_party_links_insert_builder(client, part, externalChannelId, body)?;
+    let builder = youtube_third_party_links_insert_builder(
+        client,
+        &args.part,
+        args.externalChannelId.as_deref(),
+        &args.body,
+    )?;
     youtube_third_party_links_insert_execute(builder)
 }
 
@@ -9286,6 +10049,19 @@ pub fn youtube_third_party_links_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_third_party_links_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeThirdPartyLinksListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: externalChannelId
+    pub externalChannelId: Option<String>,
+    /// Query parameter: linkingToken
+    pub linkingToken: Option<String>,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET youtube/v3/thirdPartyLinks
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -9298,10 +10074,7 @@ pub fn youtube_third_party_links_list_execute(
 
 pub fn youtube_third_party_links_list(
     client: &SimpleHttpClient,
-    part: &str,
-    externalChannelId: Option<&str>,
-    linkingToken: Option<&str>,
-    type_rs: Option<&str>,
+    args: &YoutubeThirdPartyLinksListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ThirdPartyLinkListResponse>, ApiError>,
@@ -9312,10 +10085,10 @@ pub fn youtube_third_party_links_list(
 > {
     let builder = youtube_third_party_links_list_builder(
         client,
-        part,
-        externalChannelId,
-        linkingToken,
-        type_rs,
+        &args.part,
+        args.externalChannelId.as_deref(),
+        args.linkingToken.as_deref(),
+        args.type_rs.as_deref(),
     )?;
     youtube_third_party_links_list_execute(builder)
 }
@@ -9427,6 +10200,17 @@ pub fn youtube_third_party_links_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_third_party_links_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeThirdPartyLinksUpdateArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: externalChannelId
+    pub externalChannelId: Option<String>,
+    /// Request body.
+    pub body: ThirdPartyLink,
+}
+
 /// GET youtube/v3/thirdPartyLinks
 /// Updates an existing resource.
 ///
@@ -9439,16 +10223,19 @@ pub fn youtube_third_party_links_update_execute(
 
 pub fn youtube_third_party_links_update(
     client: &SimpleHttpClient,
-    part: &str,
-    externalChannelId: Option<&str>,
-    body: &ThirdPartyLink,
+    args: &YoutubeThirdPartyLinksUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ThirdPartyLink>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_third_party_links_update_builder(client, part, externalChannelId, body)?;
+    let builder = youtube_third_party_links_update_builder(
+        client,
+        &args.part,
+        args.externalChannelId.as_deref(),
+        &args.body,
+    )?;
     youtube_third_party_links_update_execute(builder)
 }
 
@@ -9556,6 +10343,15 @@ pub fn youtube_thumbnails_set_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_thumbnails_set`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeThumbnailsSetArgs {
+    /// Path parameter: videoId
+    pub videoId: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET youtube/v3/thumbnails/set
 /// As this is not an insert in a strict sense (it supports `uploading/setting` of a thumbnail for multiple videos, which doesn't result in creation of a single resource), I use a custom verb here.
 ///
@@ -9568,15 +10364,18 @@ pub fn youtube_thumbnails_set_execute(
 
 pub fn youtube_thumbnails_set(
     client: &SimpleHttpClient,
-    videoId: &str,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubeThumbnailsSetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ThumbnailSetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_thumbnails_set_builder(client, videoId, onBehalfOfContentOwner)?;
+    let builder = youtube_thumbnails_set_builder(
+        client,
+        &args.videoId,
+        args.onBehalfOfContentOwner.as_deref(),
+    )?;
     youtube_thumbnails_set_execute(builder)
 }
 
@@ -9686,6 +10485,15 @@ pub fn youtube_video_abuse_report_reasons_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_video_abuse_report_reasons_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideoAbuseReportReasonsListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: hl
+    pub hl: Option<String>,
+}
+
 /// GET youtube/v3/videoAbuseReportReasons
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -9698,8 +10506,7 @@ pub fn youtube_video_abuse_report_reasons_list_execute(
 
 pub fn youtube_video_abuse_report_reasons_list(
     client: &SimpleHttpClient,
-    part: &str,
-    hl: Option<&str>,
+    args: &YoutubeVideoAbuseReportReasonsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<VideoAbuseReportReasonListResponse>, ApiError>,
@@ -9708,7 +10515,8 @@ pub fn youtube_video_abuse_report_reasons_list(
         + 'static,
     ApiError,
 > {
-    let builder = youtube_video_abuse_report_reasons_list_builder(client, part, hl)?;
+    let builder =
+        youtube_video_abuse_report_reasons_list_builder(client, &args.part, args.hl.as_deref())?;
     youtube_video_abuse_report_reasons_list_execute(builder)
 }
 
@@ -9824,6 +10632,19 @@ pub fn youtube_video_categories_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_video_categories_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideoCategoriesListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: hl
+    pub hl: Option<String>,
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: regionCode
+    pub regionCode: Option<String>,
+}
+
 /// GET youtube/v3/videoCategories
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -9836,17 +10657,20 @@ pub fn youtube_video_categories_list_execute(
 
 pub fn youtube_video_categories_list(
     client: &SimpleHttpClient,
-    part: &str,
-    hl: Option<&str>,
-    id: Option<&str>,
-    regionCode: Option<&str>,
+    args: &YoutubeVideoCategoriesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VideoCategoryListResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_video_categories_list_builder(client, part, hl, id, regionCode)?;
+    let builder = youtube_video_categories_list_builder(
+        client,
+        &args.part,
+        args.hl.as_deref(),
+        args.id.as_deref(),
+        args.regionCode.as_deref(),
+    )?;
     youtube_video_categories_list_execute(builder)
 }
 
@@ -9950,6 +10774,13 @@ pub fn youtube_video_trainability_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_video_trainability_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideoTrainabilityGetArgs {
+    /// Query parameter: id
+    pub id: Option<String>,
+}
+
 /// GET youtube/v3/videoTrainability
 /// Returns the trainability status of a video.
 ///
@@ -9962,14 +10793,14 @@ pub fn youtube_video_trainability_get_execute(
 
 pub fn youtube_video_trainability_get(
     client: &SimpleHttpClient,
-    id: Option<&str>,
+    args: &YoutubeVideoTrainabilityGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VideoTrainability>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_video_trainability_get_builder(client, id)?;
+    let builder = youtube_video_trainability_get_builder(client, args.id.as_deref())?;
     youtube_video_trainability_get_execute(builder)
 }
 
@@ -10069,6 +10900,15 @@ pub fn youtube_videos_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_videos_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideosDeleteArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET youtube/v3/videos
 /// Deletes a resource.
 ///
@@ -10081,13 +10921,13 @@ pub fn youtube_videos_delete_execute(
 
 pub fn youtube_videos_delete(
     client: &SimpleHttpClient,
-    id: &str,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubeVideosDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_videos_delete_builder(client, id, onBehalfOfContentOwner)?;
+    let builder =
+        youtube_videos_delete_builder(client, &args.id, args.onBehalfOfContentOwner.as_deref())?;
     youtube_videos_delete_execute(builder)
 }
 
@@ -10195,6 +11035,15 @@ pub fn youtube_videos_get_rating_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_videos_get_rating`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideosGetRatingArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET youtube/v3/videos/getRating
 /// Retrieves the ratings that the authorized user gave to a list of specified videos.
 ///
@@ -10207,15 +11056,18 @@ pub fn youtube_videos_get_rating_execute(
 
 pub fn youtube_videos_get_rating(
     client: &SimpleHttpClient,
-    id: &str,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubeVideosGetRatingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VideoGetRatingResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_videos_get_rating_builder(client, id, onBehalfOfContentOwner)?;
+    let builder = youtube_videos_get_rating_builder(
+        client,
+        &args.id,
+        args.onBehalfOfContentOwner.as_deref(),
+    )?;
     youtube_videos_get_rating_execute(builder)
 }
 
@@ -10337,6 +11189,25 @@ pub fn youtube_videos_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_videos_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideosInsertArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: autoLevels
+    pub autoLevels: Option<bool>,
+    /// Query parameter: notifySubscribers
+    pub notifySubscribers: Option<bool>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: onBehalfOfContentOwnerChannel
+    pub onBehalfOfContentOwnerChannel: Option<String>,
+    /// Query parameter: stabilize
+    pub stabilize: Option<bool>,
+    /// Request body.
+    pub body: Video,
+}
+
 /// GET youtube/v3/videos
 /// Inserts a new resource into this collection.
 ///
@@ -10349,26 +11220,20 @@ pub fn youtube_videos_insert_execute(
 
 pub fn youtube_videos_insert(
     client: &SimpleHttpClient,
-    part: &str,
-    autoLevels: Option<bool>,
-    notifySubscribers: Option<bool>,
-    onBehalfOfContentOwner: Option<&str>,
-    onBehalfOfContentOwnerChannel: Option<&str>,
-    stabilize: Option<bool>,
-    body: &Video,
+    args: &YoutubeVideosInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Video>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = youtube_videos_insert_builder(
         client,
-        part,
-        autoLevels,
-        notifySubscribers,
-        onBehalfOfContentOwner,
-        onBehalfOfContentOwnerChannel,
-        stabilize,
-        body,
+        &args.part,
+        args.autoLevels,
+        args.notifySubscribers,
+        args.onBehalfOfContentOwner.as_deref(),
+        args.onBehalfOfContentOwnerChannel.as_deref(),
+        args.stabilize,
+        &args.body,
     )?;
     youtube_videos_insert_execute(builder)
 }
@@ -10518,6 +11383,37 @@ pub fn youtube_videos_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_videos_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideosListArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: chart
+    pub chart: Option<String>,
+    /// Query parameter: hl
+    pub hl: Option<String>,
+    /// Query parameter: id
+    pub id: Option<String>,
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: maxHeight
+    pub maxHeight: Option<i32>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: maxWidth
+    pub maxWidth: Option<i32>,
+    /// Query parameter: myRating
+    pub myRating: Option<String>,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: regionCode
+    pub regionCode: Option<String>,
+    /// Query parameter: videoCategoryId
+    pub videoCategoryId: Option<String>,
+}
+
 /// GET youtube/v3/videos
 /// Retrieves a list of resources, possibly filtered.
 ///
@@ -10530,19 +11426,7 @@ pub fn youtube_videos_list_execute(
 
 pub fn youtube_videos_list(
     client: &SimpleHttpClient,
-    part: &str,
-    chart: Option<&str>,
-    hl: Option<&str>,
-    id: Option<&str>,
-    locale: Option<&str>,
-    maxHeight: Option<i32>,
-    maxResults: Option<i32>,
-    maxWidth: Option<i32>,
-    myRating: Option<&str>,
-    onBehalfOfContentOwner: Option<&str>,
-    pageToken: Option<&str>,
-    regionCode: Option<&str>,
-    videoCategoryId: Option<&str>,
+    args: &YoutubeVideosListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VideoListResponse>, ApiError>, P = ApiPending>
         + Send
@@ -10551,19 +11435,19 @@ pub fn youtube_videos_list(
 > {
     let builder = youtube_videos_list_builder(
         client,
-        part,
-        chart,
-        hl,
-        id,
-        locale,
-        maxHeight,
-        maxResults,
-        maxWidth,
-        myRating,
-        onBehalfOfContentOwner,
-        pageToken,
-        regionCode,
-        videoCategoryId,
+        &args.part,
+        args.chart.as_deref(),
+        args.hl.as_deref(),
+        args.id.as_deref(),
+        args.locale.as_deref(),
+        args.maxHeight,
+        args.maxResults,
+        args.maxWidth,
+        args.myRating.as_deref(),
+        args.onBehalfOfContentOwner.as_deref(),
+        args.pageToken.as_deref(),
+        args.regionCode.as_deref(),
+        args.videoCategoryId.as_deref(),
     )?;
     youtube_videos_list_execute(builder)
 }
@@ -10656,6 +11540,15 @@ pub fn youtube_videos_rate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_videos_rate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideosRateArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Path parameter: rating
+    pub rating: String,
+}
+
 /// GET youtube/v3/videos/rate
 /// Adds a like or dislike rating to a video or removes a rating from a video.
 ///
@@ -10668,13 +11561,12 @@ pub fn youtube_videos_rate_execute(
 
 pub fn youtube_videos_rate(
     client: &SimpleHttpClient,
-    id: &str,
-    rating: &str,
+    args: &YoutubeVideosRateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_videos_rate_builder(client, id, rating)?;
+    let builder = youtube_videos_rate_builder(client, &args.id, &args.rating)?;
     youtube_videos_rate_execute(builder)
 }
 
@@ -10776,6 +11668,15 @@ pub fn youtube_videos_report_abuse_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_videos_report_abuse`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideosReportAbuseArgs {
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Request body.
+    pub body: VideoAbuseReport,
+}
+
 /// GET youtube/v3/videos/reportAbuse
 /// Report abuse for a video.
 ///
@@ -10788,13 +11689,16 @@ pub fn youtube_videos_report_abuse_execute(
 
 pub fn youtube_videos_report_abuse(
     client: &SimpleHttpClient,
-    onBehalfOfContentOwner: Option<&str>,
-    body: &VideoAbuseReport,
+    args: &YoutubeVideosReportAbuseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_videos_report_abuse_builder(client, onBehalfOfContentOwner, body)?;
+    let builder = youtube_videos_report_abuse_builder(
+        client,
+        args.onBehalfOfContentOwner.as_deref(),
+        &args.body,
+    )?;
     youtube_videos_report_abuse_execute(builder)
 }
 
@@ -10900,6 +11804,17 @@ pub fn youtube_videos_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_videos_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeVideosUpdateArgs {
+    /// Path parameter: part
+    pub part: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Request body.
+    pub body: Video,
+}
+
 /// GET youtube/v3/videos
 /// Updates an existing resource.
 ///
@@ -10912,14 +11827,17 @@ pub fn youtube_videos_update_execute(
 
 pub fn youtube_videos_update(
     client: &SimpleHttpClient,
-    part: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    body: &Video,
+    args: &YoutubeVideosUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Video>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_videos_update_builder(client, part, onBehalfOfContentOwner, body)?;
+    let builder = youtube_videos_update_builder(
+        client,
+        &args.part,
+        args.onBehalfOfContentOwner.as_deref(),
+        &args.body,
+    )?;
     youtube_videos_update_execute(builder)
 }
 
@@ -11025,6 +11943,17 @@ pub fn youtube_watermarks_set_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_watermarks_set`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeWatermarksSetArgs {
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+    /// Request body.
+    pub body: InvideoBranding,
+}
+
 /// GET youtube/v3/watermarks/set
 /// Allows upload of watermark image and setting it for a channel.
 ///
@@ -11037,14 +11966,17 @@ pub fn youtube_watermarks_set_execute(
 
 pub fn youtube_watermarks_set(
     client: &SimpleHttpClient,
-    channelId: &str,
-    onBehalfOfContentOwner: Option<&str>,
-    body: &InvideoBranding,
+    args: &YoutubeWatermarksSetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_watermarks_set_builder(client, channelId, onBehalfOfContentOwner, body)?;
+    let builder = youtube_watermarks_set_builder(
+        client,
+        &args.channelId,
+        args.onBehalfOfContentOwner.as_deref(),
+        &args.body,
+    )?;
     youtube_watermarks_set_execute(builder)
 }
 
@@ -11147,6 +12079,15 @@ pub fn youtube_watermarks_unset_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_watermarks_unset`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeWatermarksUnsetArgs {
+    /// Path parameter: channelId
+    pub channelId: String,
+    /// Query parameter: onBehalfOfContentOwner
+    pub onBehalfOfContentOwner: Option<String>,
+}
+
 /// GET youtube/v3/watermarks/unset
 /// Allows removal of channel watermark.
 ///
@@ -11159,13 +12100,16 @@ pub fn youtube_watermarks_unset_execute(
 
 pub fn youtube_watermarks_unset(
     client: &SimpleHttpClient,
-    channelId: &str,
-    onBehalfOfContentOwner: Option<&str>,
+    args: &YoutubeWatermarksUnsetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = youtube_watermarks_unset_builder(client, channelId, onBehalfOfContentOwner)?;
+    let builder = youtube_watermarks_unset_builder(
+        client,
+        &args.channelId,
+        args.onBehalfOfContentOwner.as_deref(),
+    )?;
     youtube_watermarks_unset_execute(builder)
 }
 
@@ -11272,6 +12216,15 @@ pub fn youtube_youtube_v3_update_comment_threads_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_youtube_v3_update_comment_threads`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeYoutubeV3UpdateCommentThreadsArgs {
+    /// Query parameter: part
+    pub part: Option<String>,
+    /// Request body.
+    pub body: CommentThread,
+}
+
 /// GET youtube/v3/commentThreads
 /// Updates an existing resource.
 ///
@@ -11284,15 +12237,18 @@ pub fn youtube_youtube_v3_update_comment_threads_execute(
 
 pub fn youtube_youtube_v3_update_comment_threads(
     client: &SimpleHttpClient,
-    part: Option<&str>,
-    body: &CommentThread,
+    args: &YoutubeYoutubeV3UpdateCommentThreadsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CommentThread>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = youtube_youtube_v3_update_comment_threads_builder(client, part, body)?;
+    let builder = youtube_youtube_v3_update_comment_threads_builder(
+        client,
+        args.part.as_deref(),
+        &args.body,
+    )?;
     youtube_youtube_v3_update_comment_threads_execute(builder)
 }
 
@@ -11418,6 +12374,23 @@ pub fn youtube_youtube_v3_live_chat_messages_stream_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`youtube_youtube_v3_live_chat_messages_stream`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct YoutubeYoutubeV3LiveChatMessagesStreamArgs {
+    /// Query parameter: hl
+    pub hl: Option<String>,
+    /// Query parameter: liveChatId
+    pub liveChatId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: part
+    pub part: Option<String>,
+    /// Query parameter: profileImageSize
+    pub profileImageSize: Option<i32>,
+}
+
 /// GET youtube/v3/liveChat/messages/stream
 /// Allows a user to load live chat through a server-streamed RPC.
 ///
@@ -11430,12 +12403,7 @@ pub fn youtube_youtube_v3_live_chat_messages_stream_execute(
 
 pub fn youtube_youtube_v3_live_chat_messages_stream(
     client: &SimpleHttpClient,
-    hl: Option<&str>,
-    liveChatId: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    part: Option<&str>,
-    profileImageSize: Option<i32>,
+    args: &YoutubeYoutubeV3LiveChatMessagesStreamArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LiveChatMessageListResponse>, ApiError>,
@@ -11446,12 +12414,12 @@ pub fn youtube_youtube_v3_live_chat_messages_stream(
 > {
     let builder = youtube_youtube_v3_live_chat_messages_stream_builder(
         client,
-        hl,
-        liveChatId,
-        maxResults,
-        pageToken,
-        part,
-        profileImageSize,
+        args.hl.as_deref(),
+        args.liveChatId.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.part.as_deref(),
+        args.profileImageSize,
     )?;
     youtube_youtube_v3_live_chat_messages_stream_execute(builder)
 }

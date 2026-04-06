@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn networkmanagement_organizations_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_organizations_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementOrganizationsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn networkmanagement_organizations_locations_get_execute(
 
 pub fn networkmanagement_organizations_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkmanagementOrganizationsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkmanagement_organizations_locations_get_builder(client, name)?;
+    let builder = networkmanagement_organizations_locations_get_builder(client, &args.name)?;
     networkmanagement_organizations_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn networkmanagement_organizations_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_organizations_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementOrganizationsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn networkmanagement_organizations_locations_list_execute(
 
 pub fn networkmanagement_organizations_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkmanagementOrganizationsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn networkmanagement_organizations_locations_list(
 > {
     let builder = networkmanagement_organizations_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkmanagement_organizations_locations_list_execute(builder)
 }
@@ -370,6 +390,15 @@ pub fn networkmanagement_organizations_locations_global_operations_cancel_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_organizations_locations_global_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementOrganizationsLocationsGlobalOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/global/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -382,14 +411,13 @@ pub fn networkmanagement_organizations_locations_global_operations_cancel_execut
 
 pub fn networkmanagement_organizations_locations_global_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &NetworkmanagementOrganizationsLocationsGlobalOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkmanagement_organizations_locations_global_operations_cancel_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     networkmanagement_organizations_locations_global_operations_cancel_execute(builder)
 }
@@ -484,6 +512,13 @@ pub fn networkmanagement_organizations_locations_global_operations_delete_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_organizations_locations_global_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementOrganizationsLocationsGlobalOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/global/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -496,13 +531,14 @@ pub fn networkmanagement_organizations_locations_global_operations_delete_execut
 
 pub fn networkmanagement_organizations_locations_global_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkmanagementOrganizationsLocationsGlobalOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networkmanagement_organizations_locations_global_operations_delete_builder(client, name)?;
+    let builder = networkmanagement_organizations_locations_global_operations_delete_builder(
+        client, &args.name,
+    )?;
     networkmanagement_organizations_locations_global_operations_delete_execute(builder)
 }
 
@@ -596,6 +632,13 @@ pub fn networkmanagement_organizations_locations_global_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_organizations_locations_global_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementOrganizationsLocationsGlobalOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/global/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -608,13 +651,14 @@ pub fn networkmanagement_organizations_locations_global_operations_get_execute(
 
 pub fn networkmanagement_organizations_locations_global_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkmanagementOrganizationsLocationsGlobalOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networkmanagement_organizations_locations_global_operations_get_builder(client, name)?;
+    let builder = networkmanagement_organizations_locations_global_operations_get_builder(
+        client, &args.name,
+    )?;
     networkmanagement_organizations_locations_global_operations_get_execute(builder)
 }
 
@@ -734,6 +778,21 @@ pub fn networkmanagement_organizations_locations_global_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_organizations_locations_global_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementOrganizationsLocationsGlobalOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/global/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -746,11 +805,7 @@ pub fn networkmanagement_organizations_locations_global_operations_list_execute(
 
 pub fn networkmanagement_organizations_locations_global_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworkmanagementOrganizationsLocationsGlobalOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -759,11 +814,11 @@ pub fn networkmanagement_organizations_locations_global_operations_list(
 > {
     let builder = networkmanagement_organizations_locations_global_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     networkmanagement_organizations_locations_global_operations_list_execute(builder)
 }
@@ -873,6 +928,17 @@ pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_create_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_organizations_locations_vpc_flow_logs_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementOrganizationsLocationsVpcFlowLogsConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: vpcFlowLogsConfigId
+    pub vpcFlowLogsConfigId: Option<String>,
+    /// Request body.
+    pub body: VpcFlowLogsConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/vpcFlowLogsConfigs
 /// Creates a new VpcFlowLogsConfig. If a configuration with the exact same settings already exists (even if the ID is different), the creation fails. Notes: 1. Creating a configuration with state=DISABLED will fail 2. The following fields are not considered as settings for the purpose of the check mentioned above, therefore - creating another configuration with the same fields but different values for the following fields will fail as well: * name * create_time * update_time * labels * description
 ///
@@ -885,18 +951,16 @@ pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_create_ex
 
 pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    vpcFlowLogsConfigId: Option<&str>,
-    body: &VpcFlowLogsConfig,
+    args: &NetworkmanagementOrganizationsLocationsVpcFlowLogsConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkmanagement_organizations_locations_vpc_flow_logs_configs_create_builder(
         client,
-        parent,
-        vpcFlowLogsConfigId,
-        body,
+        &args.parent,
+        args.vpcFlowLogsConfigId.as_deref(),
+        &args.body,
     )?;
     networkmanagement_organizations_locations_vpc_flow_logs_configs_create_execute(builder)
 }
@@ -991,6 +1055,13 @@ pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_delete_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_organizations_locations_vpc_flow_logs_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementOrganizationsLocationsVpcFlowLogsConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/vpcFlowLogsConfigs/{vpcFlowLogsConfigsId}
 /// Deletes a specific VpcFlowLogsConfig.
 ///
@@ -1003,13 +1074,13 @@ pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_delete_ex
 
 pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkmanagementOrganizationsLocationsVpcFlowLogsConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkmanagement_organizations_locations_vpc_flow_logs_configs_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     networkmanagement_organizations_locations_vpc_flow_logs_configs_delete_execute(builder)
 }
@@ -1106,6 +1177,13 @@ pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_get_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_organizations_locations_vpc_flow_logs_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementOrganizationsLocationsVpcFlowLogsConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/vpcFlowLogsConfigs/{vpcFlowLogsConfigsId}
 /// Gets the details of a specific VpcFlowLogsConfig.
 ///
@@ -1118,15 +1196,16 @@ pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_get_execu
 
 pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkmanagementOrganizationsLocationsVpcFlowLogsConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VpcFlowLogsConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        networkmanagement_organizations_locations_vpc_flow_logs_configs_get_builder(client, name)?;
+    let builder = networkmanagement_organizations_locations_vpc_flow_logs_configs_get_builder(
+        client, &args.name,
+    )?;
     networkmanagement_organizations_locations_vpc_flow_logs_configs_get_execute(builder)
 }
 
@@ -1248,6 +1327,21 @@ pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_organizations_locations_vpc_flow_logs_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementOrganizationsLocationsVpcFlowLogsConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/vpcFlowLogsConfigs
 /// Lists all VpcFlowLogsConfigs in a given organization.
 ///
@@ -1260,11 +1354,7 @@ pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_list_exec
 
 pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkmanagementOrganizationsLocationsVpcFlowLogsConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListVpcFlowLogsConfigsResponse>, ApiError>,
@@ -1274,7 +1364,12 @@ pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_list(
     ApiError,
 > {
     let builder = networkmanagement_organizations_locations_vpc_flow_logs_configs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkmanagement_organizations_locations_vpc_flow_logs_configs_list_execute(builder)
 }
@@ -1384,6 +1479,17 @@ pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_patch_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_organizations_locations_vpc_flow_logs_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementOrganizationsLocationsVpcFlowLogsConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: VpcFlowLogsConfig,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/vpcFlowLogsConfigs/{vpcFlowLogsConfigsId}
 /// Updates an existing VpcFlowLogsConfig. If a configuration with the exact same settings already exists (even if the ID is different), the creation fails. Notes: 1. Updating a configuration with state=DISABLED will fail 2. The following fields are not considered as settings for the purpose of the check mentioned above, therefore - updating another configuration with the same fields but different values for the following fields will fail as well: * name * create_time * update_time * labels * description
 ///
@@ -1396,15 +1502,16 @@ pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_patch_exe
 
 pub fn networkmanagement_organizations_locations_vpc_flow_logs_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &VpcFlowLogsConfig,
+    args: &NetworkmanagementOrganizationsLocationsVpcFlowLogsConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkmanagement_organizations_locations_vpc_flow_logs_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkmanagement_organizations_locations_vpc_flow_logs_configs_patch_execute(builder)
 }
@@ -1499,6 +1606,13 @@ pub fn networkmanagement_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -1511,12 +1625,12 @@ pub fn networkmanagement_projects_locations_get_execute(
 
 pub fn networkmanagement_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkmanagementProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkmanagement_projects_locations_get_builder(client, name)?;
+    let builder = networkmanagement_projects_locations_get_builder(client, &args.name)?;
     networkmanagement_projects_locations_get_execute(builder)
 }
 
@@ -1636,6 +1750,21 @@ pub fn networkmanagement_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -1648,11 +1777,7 @@ pub fn networkmanagement_projects_locations_list_execute(
 
 pub fn networkmanagement_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkmanagementProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1661,11 +1786,11 @@ pub fn networkmanagement_projects_locations_list(
 > {
     let builder = networkmanagement_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkmanagement_projects_locations_list_execute(builder)
 }
@@ -1775,6 +1900,17 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_create_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_global_connectivity_tests_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsGlobalConnectivityTestsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: testId
+    pub testId: Option<String>,
+    /// Request body.
+    pub body: ConnectivityTest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/connectivityTests
 /// Creates a new Connectivity Test. After you create a test, the reachability analysis is performed as part of the long running operation, which completes when the analysis completes. If the endpoint specifications in ConnectivityTest are invalid (for example, containing non-existent resources in the network, or you don't have read permissions to the network configurations of listed projects), then the reachability result returns a value of UNKNOWN. If the endpoint specifications in ConnectivityTest are incomplete, the reachability result returns a value of AMBIGUOUS. For more information, see the Connectivity Test documentation.
 ///
@@ -1787,15 +1923,16 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_create_exe
 
 pub fn networkmanagement_projects_locations_global_connectivity_tests_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    testId: Option<&str>,
-    body: &ConnectivityTest,
+    args: &NetworkmanagementProjectsLocationsGlobalConnectivityTestsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkmanagement_projects_locations_global_connectivity_tests_create_builder(
-        client, parent, testId, body,
+        client,
+        &args.parent,
+        args.testId.as_deref(),
+        &args.body,
     )?;
     networkmanagement_projects_locations_global_connectivity_tests_create_execute(builder)
 }
@@ -1890,6 +2027,13 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_delete_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_global_connectivity_tests_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsGlobalConnectivityTestsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/connectivityTests/{connectivityTestsId}
 /// Deletes a specific ConnectivityTest.
 ///
@@ -1902,13 +2046,13 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_delete_exe
 
 pub fn networkmanagement_projects_locations_global_connectivity_tests_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkmanagementProjectsLocationsGlobalConnectivityTestsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkmanagement_projects_locations_global_connectivity_tests_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     networkmanagement_projects_locations_global_connectivity_tests_delete_execute(builder)
 }
@@ -2005,6 +2149,13 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_global_connectivity_tests_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsGlobalConnectivityTestsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/connectivityTests/{connectivityTestsId}
 /// Gets the details of a specific Connectivity Test.
 ///
@@ -2017,15 +2168,16 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_get_execut
 
 pub fn networkmanagement_projects_locations_global_connectivity_tests_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkmanagementProjectsLocationsGlobalConnectivityTestsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConnectivityTest>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        networkmanagement_projects_locations_global_connectivity_tests_get_builder(client, name)?;
+    let builder = networkmanagement_projects_locations_global_connectivity_tests_get_builder(
+        client, &args.name,
+    )?;
     networkmanagement_projects_locations_global_connectivity_tests_get_execute(builder)
 }
 
@@ -2131,6 +2283,15 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_get_iam_po
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_global_connectivity_tests_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsGlobalConnectivityTestsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/connectivityTests/{connectivityTestsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2143,8 +2304,7 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_get_iam_po
 
 pub fn networkmanagement_projects_locations_global_connectivity_tests_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &NetworkmanagementProjectsLocationsGlobalConnectivityTestsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -2152,8 +2312,8 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_get_iam_po
     let builder =
         networkmanagement_projects_locations_global_connectivity_tests_get_iam_policy_builder(
             client,
-            resource,
-            options_requestedPolicyVersion,
+            &args.resource,
+            args.options_requestedPolicyVersion,
         )?;
     networkmanagement_projects_locations_global_connectivity_tests_get_iam_policy_execute(builder)
 }
@@ -2276,6 +2436,21 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_global_connectivity_tests_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsGlobalConnectivityTestsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/connectivityTests
 /// Lists all Connectivity Tests owned by a project.
 ///
@@ -2288,11 +2463,7 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_list_execu
 
 pub fn networkmanagement_projects_locations_global_connectivity_tests_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkmanagementProjectsLocationsGlobalConnectivityTestsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListConnectivityTestsResponse>, ApiError>,
@@ -2302,7 +2473,12 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_list(
     ApiError,
 > {
     let builder = networkmanagement_projects_locations_global_connectivity_tests_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkmanagement_projects_locations_global_connectivity_tests_list_execute(builder)
 }
@@ -2412,6 +2588,17 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_global_connectivity_tests_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsGlobalConnectivityTestsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ConnectivityTest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/connectivityTests/{connectivityTestsId}
 /// Updates the configuration of an existing ConnectivityTest. After you update a test, the reachability analysis is performed as part of the long running operation, which completes when the analysis completes. The Reachability state in the test resource is updated with the new result. If the endpoint specifications in ConnectivityTest are invalid (for example, they contain non-existent resources in the network, or the user does not have read permissions to the network configurations of listed projects), then the reachability result returns a value of UNKNOWN. If the endpoint specifications in ConnectivityTest are incomplete, the reachability result returns a value of AMBIGUOUS. See the documentation in ConnectivityTest for more details.
 ///
@@ -2424,15 +2611,16 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_patch_exec
 
 pub fn networkmanagement_projects_locations_global_connectivity_tests_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ConnectivityTest,
+    args: &NetworkmanagementProjectsLocationsGlobalConnectivityTestsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkmanagement_projects_locations_global_connectivity_tests_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkmanagement_projects_locations_global_connectivity_tests_patch_execute(builder)
 }
@@ -2530,6 +2718,15 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_rerun_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_global_connectivity_tests_rerun`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsGlobalConnectivityTestsRerunArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RerunConnectivityTestRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/connectivityTests/{connectivityTestsId}:rerun
 /// Rerun an existing ConnectivityTest. After the user triggers the rerun, the reachability analysis is performed as part of the long running operation, which completes when the analysis completes. Even though the test configuration remains the same, the reachability result may change due to underlying network configuration changes. If the endpoint specifications in ConnectivityTest become invalid (for example, specified resources are deleted in the network, or you lost read permissions to the network configurations of listed projects), then the reachability result returns a value of UNKNOWN.
 ///
@@ -2542,14 +2739,13 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_rerun_exec
 
 pub fn networkmanagement_projects_locations_global_connectivity_tests_rerun(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RerunConnectivityTestRequest,
+    args: &NetworkmanagementProjectsLocationsGlobalConnectivityTestsRerunArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkmanagement_projects_locations_global_connectivity_tests_rerun_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     networkmanagement_projects_locations_global_connectivity_tests_rerun_execute(builder)
 }
@@ -2647,6 +2843,15 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_set_iam_po
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_global_connectivity_tests_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsGlobalConnectivityTestsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/connectivityTests/{connectivityTestsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -2659,15 +2864,16 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_set_iam_po
 
 pub fn networkmanagement_projects_locations_global_connectivity_tests_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &NetworkmanagementProjectsLocationsGlobalConnectivityTestsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         networkmanagement_projects_locations_global_connectivity_tests_set_iam_policy_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     networkmanagement_projects_locations_global_connectivity_tests_set_iam_policy_execute(builder)
 }
@@ -2769,6 +2975,15 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_test_iam_p
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_global_connectivity_tests_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsGlobalConnectivityTestsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/connectivityTests/{connectivityTestsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2781,8 +2996,7 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_test_iam_p
 
 pub fn networkmanagement_projects_locations_global_connectivity_tests_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &NetworkmanagementProjectsLocationsGlobalConnectivityTestsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2791,7 +3005,7 @@ pub fn networkmanagement_projects_locations_global_connectivity_tests_test_iam_p
         + 'static,
     ApiError,
 > {
-    let builder = networkmanagement_projects_locations_global_connectivity_tests_test_iam_permissions_builder(client, resource, body)?;
+    let builder = networkmanagement_projects_locations_global_connectivity_tests_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     networkmanagement_projects_locations_global_connectivity_tests_test_iam_permissions_execute(
         builder,
     )
@@ -2890,6 +3104,15 @@ pub fn networkmanagement_projects_locations_global_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_global_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsGlobalOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -2902,14 +3125,14 @@ pub fn networkmanagement_projects_locations_global_operations_cancel_execute(
 
 pub fn networkmanagement_projects_locations_global_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &NetworkmanagementProjectsLocationsGlobalOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networkmanagement_projects_locations_global_operations_cancel_builder(client, name, body)?;
+    let builder = networkmanagement_projects_locations_global_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     networkmanagement_projects_locations_global_operations_cancel_execute(builder)
 }
 
@@ -3003,6 +3226,13 @@ pub fn networkmanagement_projects_locations_global_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_global_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsGlobalOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -3015,13 +3245,13 @@ pub fn networkmanagement_projects_locations_global_operations_delete_execute(
 
 pub fn networkmanagement_projects_locations_global_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkmanagementProjectsLocationsGlobalOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        networkmanagement_projects_locations_global_operations_delete_builder(client, name)?;
+        networkmanagement_projects_locations_global_operations_delete_builder(client, &args.name)?;
     networkmanagement_projects_locations_global_operations_delete_execute(builder)
 }
 
@@ -3115,6 +3345,13 @@ pub fn networkmanagement_projects_locations_global_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_global_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsGlobalOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3127,12 +3364,13 @@ pub fn networkmanagement_projects_locations_global_operations_get_execute(
 
 pub fn networkmanagement_projects_locations_global_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkmanagementProjectsLocationsGlobalOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkmanagement_projects_locations_global_operations_get_builder(client, name)?;
+    let builder =
+        networkmanagement_projects_locations_global_operations_get_builder(client, &args.name)?;
     networkmanagement_projects_locations_global_operations_get_execute(builder)
 }
 
@@ -3252,6 +3490,21 @@ pub fn networkmanagement_projects_locations_global_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_global_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsGlobalOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -3264,11 +3517,7 @@ pub fn networkmanagement_projects_locations_global_operations_list_execute(
 
 pub fn networkmanagement_projects_locations_global_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworkmanagementProjectsLocationsGlobalOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3277,11 +3526,11 @@ pub fn networkmanagement_projects_locations_global_operations_list(
 > {
     let builder = networkmanagement_projects_locations_global_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     networkmanagement_projects_locations_global_operations_list_execute(builder)
 }
@@ -3391,6 +3640,17 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_vpc_flow_logs_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsVpcFlowLogsConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: vpcFlowLogsConfigId
+    pub vpcFlowLogsConfigId: Option<String>,
+    /// Request body.
+    pub body: VpcFlowLogsConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vpcFlowLogsConfigs
 /// Creates a new VpcFlowLogsConfig. If a configuration with the exact same settings already exists (even if the ID is different), the creation fails. Notes: 1. Creating a configuration with state=DISABLED will fail 2. The following fields are not considered as settings for the purpose of the check mentioned above, therefore - creating another configuration with the same fields but different values for the following fields will fail as well: * name * create_time * update_time * labels * description
 ///
@@ -3403,18 +3663,16 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_create_execute
 
 pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    vpcFlowLogsConfigId: Option<&str>,
-    body: &VpcFlowLogsConfig,
+    args: &NetworkmanagementProjectsLocationsVpcFlowLogsConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkmanagement_projects_locations_vpc_flow_logs_configs_create_builder(
         client,
-        parent,
-        vpcFlowLogsConfigId,
-        body,
+        &args.parent,
+        args.vpcFlowLogsConfigId.as_deref(),
+        &args.body,
     )?;
     networkmanagement_projects_locations_vpc_flow_logs_configs_create_execute(builder)
 }
@@ -3509,6 +3767,13 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_vpc_flow_logs_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsVpcFlowLogsConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vpcFlowLogsConfigs/{vpcFlowLogsConfigsId}
 /// Deletes a specific VpcFlowLogsConfig.
 ///
@@ -3521,13 +3786,14 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_delete_execute
 
 pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkmanagementProjectsLocationsVpcFlowLogsConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networkmanagement_projects_locations_vpc_flow_logs_configs_delete_builder(client, name)?;
+    let builder = networkmanagement_projects_locations_vpc_flow_logs_configs_delete_builder(
+        client, &args.name,
+    )?;
     networkmanagement_projects_locations_vpc_flow_logs_configs_delete_execute(builder)
 }
 
@@ -3623,6 +3889,13 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_vpc_flow_logs_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsVpcFlowLogsConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vpcFlowLogsConfigs/{vpcFlowLogsConfigsId}
 /// Gets the details of a specific VpcFlowLogsConfig.
 ///
@@ -3635,7 +3908,7 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_get_execute(
 
 pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkmanagementProjectsLocationsVpcFlowLogsConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VpcFlowLogsConfig>, ApiError>, P = ApiPending>
         + Send
@@ -3643,7 +3916,7 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_get(
     ApiError,
 > {
     let builder =
-        networkmanagement_projects_locations_vpc_flow_logs_configs_get_builder(client, name)?;
+        networkmanagement_projects_locations_vpc_flow_logs_configs_get_builder(client, &args.name)?;
     networkmanagement_projects_locations_vpc_flow_logs_configs_get_execute(builder)
 }
 
@@ -3765,6 +4038,21 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_vpc_flow_logs_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsVpcFlowLogsConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vpcFlowLogsConfigs
 /// Lists all VpcFlowLogsConfigs in a given project.
 ///
@@ -3777,11 +4065,7 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_list_execute(
 
 pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkmanagementProjectsLocationsVpcFlowLogsConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListVpcFlowLogsConfigsResponse>, ApiError>,
@@ -3791,7 +4075,12 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_list(
     ApiError,
 > {
     let builder = networkmanagement_projects_locations_vpc_flow_logs_configs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkmanagement_projects_locations_vpc_flow_logs_configs_list_execute(builder)
 }
@@ -3901,6 +4190,17 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_vpc_flow_logs_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsVpcFlowLogsConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: VpcFlowLogsConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vpcFlowLogsConfigs/{vpcFlowLogsConfigsId}
 /// Updates an existing VpcFlowLogsConfig. If a configuration with the exact same settings already exists (even if the ID is different), the creation fails. Notes: 1. Updating a configuration with state=DISABLED will fail. 2. The following fields are not considered as settings for the purpose of the check mentioned above, therefore - updating another configuration with the same fields but different values for the following fields will fail as well: * name * create_time * update_time * labels * description
 ///
@@ -3913,15 +4213,16 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_patch_execute(
 
 pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &VpcFlowLogsConfig,
+    args: &NetworkmanagementProjectsLocationsVpcFlowLogsConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkmanagement_projects_locations_vpc_flow_logs_configs_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkmanagement_projects_locations_vpc_flow_logs_configs_patch_execute(builder)
 }
@@ -4040,6 +4341,19 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_query_org_vpc_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_vpc_flow_logs_configs_query_org_vpc_flow_logs_configs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsVpcFlowLogsConfigsQueryOrgVpcFlowLogsConfigsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vpcFlowLogsConfigs:queryOrgVpcFlowLogsConfigs
 /// QueryOrgVpcFlowLogsConfigs returns a list of all organization-level VPC Flow Logs configurations applicable to the specified project.
 ///
@@ -4052,10 +4366,7 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_query_org_vpc_
 
 pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_query_org_vpc_flow_logs_configs(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkmanagementProjectsLocationsVpcFlowLogsConfigsQueryOrgVpcFlowLogsConfigsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<QueryOrgVpcFlowLogsConfigsResponse>, ApiError>,
@@ -4064,7 +4375,7 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_query_org_vpc_
         + 'static,
     ApiError,
 > {
-    let builder = networkmanagement_projects_locations_vpc_flow_logs_configs_query_org_vpc_flow_logs_configs_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = networkmanagement_projects_locations_vpc_flow_logs_configs_query_org_vpc_flow_logs_configs_builder(client, &args.parent, args.filter.as_deref(), args.pageSize, args.pageToken.as_deref())?;
     networkmanagement_projects_locations_vpc_flow_logs_configs_query_org_vpc_flow_logs_configs_execute(builder)
 }
 
@@ -4186,6 +4497,21 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_show_effective
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkmanagement_projects_locations_vpc_flow_logs_configs_show_effective_flow_logs_configs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkmanagementProjectsLocationsVpcFlowLogsConfigsShowEffectiveFlowLogsConfigsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: resource
+    pub resource: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/vpcFlowLogsConfigs:showEffectiveFlowLogsConfigs
 /// ShowEffectiveFlowLogsConfigs returns a list of all VPC Flow Logs configurations applicable to a specified resource.
 ///
@@ -4198,11 +4524,7 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_show_effective
 
 pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_show_effective_flow_logs_configs(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    resource: Option<&str>,
+    args: &NetworkmanagementProjectsLocationsVpcFlowLogsConfigsShowEffectiveFlowLogsConfigsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ShowEffectiveFlowLogsConfigsResponse>, ApiError>,
@@ -4211,6 +4533,6 @@ pub fn networkmanagement_projects_locations_vpc_flow_logs_configs_show_effective
         + 'static,
     ApiError,
 > {
-    let builder = networkmanagement_projects_locations_vpc_flow_logs_configs_show_effective_flow_logs_configs_builder(client, parent, filter, pageSize, pageToken, resource)?;
+    let builder = networkmanagement_projects_locations_vpc_flow_logs_configs_show_effective_flow_logs_configs_builder(client, &args.parent, args.filter.as_deref(), args.pageSize, args.pageToken.as_deref(), args.resource.as_deref())?;
     networkmanagement_projects_locations_vpc_flow_logs_configs_show_effective_flow_logs_configs_execute(builder)
 }

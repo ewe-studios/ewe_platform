@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET apis/{api}/{version}/rest
 /// Retrieve the description of a particular version of an api.
@@ -109,6 +111,15 @@ pub fn discovery_apis_get_rest_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discovery_apis_get_rest`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryApisGetRestArgs {
+    /// Path parameter: api
+    pub api: String,
+    /// Path parameter: version
+    pub version: String,
+}
+
 /// GET apis/{api}/{version}/rest
 /// Retrieve the description of a particular version of an api.
 ///
@@ -121,15 +132,14 @@ pub fn discovery_apis_get_rest_execute(
 
 pub fn discovery_apis_get_rest(
     client: &SimpleHttpClient,
-    api: &str,
-    version: &str,
+    args: &DiscoveryApisGetRestArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RestDescription>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = discovery_apis_get_rest_builder(client, api, version)?;
+    let builder = discovery_apis_get_rest_builder(client, &args.api, &args.version)?;
     discovery_apis_get_rest_execute(builder)
 }
 
@@ -237,6 +247,15 @@ pub fn discovery_apis_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`discovery_apis_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DiscoveryApisListArgs {
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: preferred
+    pub preferred: Option<bool>,
+}
+
 /// GET apis
 /// Retrieve the list of APIs supported at this endpoint.
 ///
@@ -249,14 +268,13 @@ pub fn discovery_apis_list_execute(
 
 pub fn discovery_apis_list(
     client: &SimpleHttpClient,
-    name: Option<&str>,
-    preferred: Option<bool>,
+    args: &DiscoveryApisListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DirectoryList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = discovery_apis_list_builder(client, name, preferred)?;
+    let builder = discovery_apis_list_builder(client, args.name.as_deref(), args.preferred)?;
     discovery_apis_list_execute(builder)
 }

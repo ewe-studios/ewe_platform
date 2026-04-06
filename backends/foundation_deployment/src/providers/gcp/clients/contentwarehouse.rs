@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}:fetchAcl
 /// Gets the access control policy for a resource. Returns NOT_FOUND error if the resource does not exist. Returns an empty policy if the resource exists but does not have a policy set.
@@ -114,6 +116,15 @@ pub fn contentwarehouse_projects_fetch_acl_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_fetch_acl`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsFetchAclArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1FetchAclRequest,
+}
+
 /// GET v1/projects/{projectsId}:fetchAcl
 /// Gets the access control policy for a resource. Returns NOT_FOUND error if the resource does not exist. Returns an empty policy if the resource exists but does not have a policy set.
 ///
@@ -126,8 +137,7 @@ pub fn contentwarehouse_projects_fetch_acl_execute(
 
 pub fn contentwarehouse_projects_fetch_acl(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleCloudContentwarehouseV1FetchAclRequest,
+    args: &ContentwarehouseProjectsFetchAclArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1FetchAclResponse>, ApiError>,
@@ -136,7 +146,7 @@ pub fn contentwarehouse_projects_fetch_acl(
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_fetch_acl_builder(client, resource, body)?;
+    let builder = contentwarehouse_projects_fetch_acl_builder(client, &args.resource, &args.body)?;
     contentwarehouse_projects_fetch_acl_execute(builder)
 }
 
@@ -238,6 +248,15 @@ pub fn contentwarehouse_projects_set_acl_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_set_acl`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsSetAclArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1SetAclRequest,
+}
+
 /// GET v1/projects/{projectsId}:setAcl
 /// Sets the access control policy for a resource. Replaces any existing policy.
 ///
@@ -250,8 +269,7 @@ pub fn contentwarehouse_projects_set_acl_execute(
 
 pub fn contentwarehouse_projects_set_acl(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleCloudContentwarehouseV1SetAclRequest,
+    args: &ContentwarehouseProjectsSetAclArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1SetAclResponse>, ApiError>,
@@ -260,7 +278,7 @@ pub fn contentwarehouse_projects_set_acl(
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_set_acl_builder(client, resource, body)?;
+    let builder = contentwarehouse_projects_set_acl_builder(client, &args.resource, &args.body)?;
     contentwarehouse_projects_set_acl_execute(builder)
 }
 
@@ -359,6 +377,13 @@ pub fn contentwarehouse_projects_locations_get_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_get_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsGetStatusArgs {
+    /// Path parameter: location
+    pub location: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:getStatus
 /// Get the project status.
 ///
@@ -371,7 +396,7 @@ pub fn contentwarehouse_projects_locations_get_status_execute(
 
 pub fn contentwarehouse_projects_locations_get_status(
     client: &SimpleHttpClient,
-    location: &str,
+    args: &ContentwarehouseProjectsLocationsGetStatusArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1ProjectStatus>, ApiError>,
@@ -380,7 +405,7 @@ pub fn contentwarehouse_projects_locations_get_status(
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_locations_get_status_builder(client, location)?;
+    let builder = contentwarehouse_projects_locations_get_status_builder(client, &args.location)?;
     contentwarehouse_projects_locations_get_status_execute(builder)
 }
 
@@ -481,6 +506,15 @@ pub fn contentwarehouse_projects_locations_initialize_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_initialize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsInitializeArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1InitializeProjectRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:initialize
 /// Provisions resources for given tenant project. Returns a long running operation.
 ///
@@ -493,8 +527,7 @@ pub fn contentwarehouse_projects_locations_initialize_execute(
 
 pub fn contentwarehouse_projects_locations_initialize(
     client: &SimpleHttpClient,
-    location: &str,
-    body: &GoogleCloudContentwarehouseV1InitializeProjectRequest,
+    args: &ContentwarehouseProjectsLocationsInitializeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -503,7 +536,8 @@ pub fn contentwarehouse_projects_locations_initialize(
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_locations_initialize_builder(client, location, body)?;
+    let builder =
+        contentwarehouse_projects_locations_initialize_builder(client, &args.location, &args.body)?;
     contentwarehouse_projects_locations_initialize_execute(builder)
 }
 
@@ -604,6 +638,15 @@ pub fn contentwarehouse_projects_locations_run_pipeline_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_run_pipeline`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsRunPipelineArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1RunPipelineRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:runPipeline
 /// Run a predefined pipeline.
 ///
@@ -616,8 +659,7 @@ pub fn contentwarehouse_projects_locations_run_pipeline_execute(
 
 pub fn contentwarehouse_projects_locations_run_pipeline(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContentwarehouseV1RunPipelineRequest,
+    args: &ContentwarehouseProjectsLocationsRunPipelineArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -626,7 +668,8 @@ pub fn contentwarehouse_projects_locations_run_pipeline(
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_locations_run_pipeline_builder(client, name, body)?;
+    let builder =
+        contentwarehouse_projects_locations_run_pipeline_builder(client, &args.name, &args.body)?;
     contentwarehouse_projects_locations_run_pipeline_execute(builder)
 }
 
@@ -728,6 +771,15 @@ pub fn contentwarehouse_projects_locations_document_schemas_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_document_schemas_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentSchemasCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1DocumentSchema,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documentSchemas
 /// Creates a document schema.
 ///
@@ -740,8 +792,7 @@ pub fn contentwarehouse_projects_locations_document_schemas_create_execute(
 
 pub fn contentwarehouse_projects_locations_document_schemas_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContentwarehouseV1DocumentSchema,
+    args: &ContentwarehouseProjectsLocationsDocumentSchemasCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentSchema>, ApiError>,
@@ -750,8 +801,11 @@ pub fn contentwarehouse_projects_locations_document_schemas_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contentwarehouse_projects_locations_document_schemas_create_builder(client, parent, body)?;
+    let builder = contentwarehouse_projects_locations_document_schemas_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     contentwarehouse_projects_locations_document_schemas_create_execute(builder)
 }
 
@@ -847,6 +901,13 @@ pub fn contentwarehouse_projects_locations_document_schemas_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_document_schemas_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentSchemasDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documentSchemas/{documentSchemasId}
 /// Deletes a document schema. Returns NOT_FOUND if the document schema does not exist. Returns BAD_REQUEST if the document schema has documents depending on it.
 ///
@@ -859,7 +920,7 @@ pub fn contentwarehouse_projects_locations_document_schemas_delete_execute(
 
 pub fn contentwarehouse_projects_locations_document_schemas_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContentwarehouseProjectsLocationsDocumentSchemasDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -867,7 +928,7 @@ pub fn contentwarehouse_projects_locations_document_schemas_delete(
     ApiError,
 > {
     let builder =
-        contentwarehouse_projects_locations_document_schemas_delete_builder(client, name)?;
+        contentwarehouse_projects_locations_document_schemas_delete_builder(client, &args.name)?;
     contentwarehouse_projects_locations_document_schemas_delete_execute(builder)
 }
 
@@ -966,6 +1027,13 @@ pub fn contentwarehouse_projects_locations_document_schemas_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_document_schemas_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentSchemasGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documentSchemas/{documentSchemasId}
 /// Gets a document schema. Returns NOT_FOUND if the document schema does not exist.
 ///
@@ -978,7 +1046,7 @@ pub fn contentwarehouse_projects_locations_document_schemas_get_execute(
 
 pub fn contentwarehouse_projects_locations_document_schemas_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContentwarehouseProjectsLocationsDocumentSchemasGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentSchema>, ApiError>,
@@ -987,7 +1055,8 @@ pub fn contentwarehouse_projects_locations_document_schemas_get(
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_locations_document_schemas_get_builder(client, name)?;
+    let builder =
+        contentwarehouse_projects_locations_document_schemas_get_builder(client, &args.name)?;
     contentwarehouse_projects_locations_document_schemas_get_execute(builder)
 }
 
@@ -1105,6 +1174,17 @@ pub fn contentwarehouse_projects_locations_document_schemas_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_document_schemas_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentSchemasListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documentSchemas
 /// Lists document schemas.
 ///
@@ -1117,9 +1197,7 @@ pub fn contentwarehouse_projects_locations_document_schemas_list_execute(
 
 pub fn contentwarehouse_projects_locations_document_schemas_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentwarehouseProjectsLocationsDocumentSchemasListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1132,7 +1210,10 @@ pub fn contentwarehouse_projects_locations_document_schemas_list(
     ApiError,
 > {
     let builder = contentwarehouse_projects_locations_document_schemas_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contentwarehouse_projects_locations_document_schemas_list_execute(builder)
 }
@@ -1235,6 +1316,15 @@ pub fn contentwarehouse_projects_locations_document_schemas_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_document_schemas_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentSchemasPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1UpdateDocumentSchemaRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documentSchemas/{documentSchemasId}
 /// Updates a Document Schema. Returns INVALID_ARGUMENT if the name of the Document Schema is non-empty and does not equal the existing name. Supports only appending new properties, adding new ENUM possible values, and updating the EnumTypeOptions.validation_check_disabled flag for ENUM possible values. Updating existing properties will result into INVALID_ARGUMENT.
 ///
@@ -1247,8 +1337,7 @@ pub fn contentwarehouse_projects_locations_document_schemas_patch_execute(
 
 pub fn contentwarehouse_projects_locations_document_schemas_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContentwarehouseV1UpdateDocumentSchemaRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentSchemasPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentSchema>, ApiError>,
@@ -1257,8 +1346,9 @@ pub fn contentwarehouse_projects_locations_document_schemas_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contentwarehouse_projects_locations_document_schemas_patch_builder(client, name, body)?;
+    let builder = contentwarehouse_projects_locations_document_schemas_patch_builder(
+        client, &args.name, &args.body,
+    )?;
     contentwarehouse_projects_locations_document_schemas_patch_execute(builder)
 }
 
@@ -1360,6 +1450,15 @@ pub fn contentwarehouse_projects_locations_documents_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_documents_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1CreateDocumentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents
 /// Creates a document.
 ///
@@ -1372,8 +1471,7 @@ pub fn contentwarehouse_projects_locations_documents_create_execute(
 
 pub fn contentwarehouse_projects_locations_documents_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContentwarehouseV1CreateDocumentRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1CreateDocumentResponse>, ApiError>,
@@ -1382,8 +1480,11 @@ pub fn contentwarehouse_projects_locations_documents_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contentwarehouse_projects_locations_documents_create_builder(client, parent, body)?;
+    let builder = contentwarehouse_projects_locations_documents_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     contentwarehouse_projects_locations_documents_create_execute(builder)
 }
 
@@ -1482,6 +1583,15 @@ pub fn contentwarehouse_projects_locations_documents_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_documents_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1DeleteDocumentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:delete
 /// Deletes a document. Returns NOT_FOUND if the document does not exist.
 ///
@@ -1494,15 +1604,16 @@ pub fn contentwarehouse_projects_locations_documents_delete_execute(
 
 pub fn contentwarehouse_projects_locations_documents_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContentwarehouseV1DeleteDocumentRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_locations_documents_delete_builder(client, name, body)?;
+    let builder = contentwarehouse_projects_locations_documents_delete_builder(
+        client, &args.name, &args.body,
+    )?;
     contentwarehouse_projects_locations_documents_delete_execute(builder)
 }
 
@@ -1604,6 +1715,15 @@ pub fn contentwarehouse_projects_locations_documents_fetch_acl_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_documents_fetch_acl`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsFetchAclArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1FetchAclRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:fetchAcl
 /// Gets the access control policy for a resource. Returns NOT_FOUND error if the resource does not exist. Returns an empty policy if the resource exists but does not have a policy set.
 ///
@@ -1616,8 +1736,7 @@ pub fn contentwarehouse_projects_locations_documents_fetch_acl_execute(
 
 pub fn contentwarehouse_projects_locations_documents_fetch_acl(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleCloudContentwarehouseV1FetchAclRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentsFetchAclArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1FetchAclResponse>, ApiError>,
@@ -1626,8 +1745,11 @@ pub fn contentwarehouse_projects_locations_documents_fetch_acl(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contentwarehouse_projects_locations_documents_fetch_acl_builder(client, resource, body)?;
+    let builder = contentwarehouse_projects_locations_documents_fetch_acl_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     contentwarehouse_projects_locations_documents_fetch_acl_execute(builder)
 }
 
@@ -1728,6 +1850,15 @@ pub fn contentwarehouse_projects_locations_documents_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_documents_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1GetDocumentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:get
 /// Gets a document. Returns NOT_FOUND if the document does not exist.
 ///
@@ -1740,8 +1871,7 @@ pub fn contentwarehouse_projects_locations_documents_get_execute(
 
 pub fn contentwarehouse_projects_locations_documents_get(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContentwarehouseV1GetDocumentRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1Document>, ApiError>,
@@ -1750,7 +1880,8 @@ pub fn contentwarehouse_projects_locations_documents_get(
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_locations_documents_get_builder(client, name, body)?;
+    let builder =
+        contentwarehouse_projects_locations_documents_get_builder(client, &args.name, &args.body)?;
     contentwarehouse_projects_locations_documents_get_execute(builder)
 }
 
@@ -1855,6 +1986,15 @@ pub fn contentwarehouse_projects_locations_documents_linked_sources_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_documents_linked_sources`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsLinkedSourcesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1ListLinkedSourcesRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/linkedSources
 /// Return all source document-links from the document.
 ///
@@ -1867,8 +2007,7 @@ pub fn contentwarehouse_projects_locations_documents_linked_sources_execute(
 
 pub fn contentwarehouse_projects_locations_documents_linked_sources(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContentwarehouseV1ListLinkedSourcesRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentsLinkedSourcesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1880,8 +2019,11 @@ pub fn contentwarehouse_projects_locations_documents_linked_sources(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contentwarehouse_projects_locations_documents_linked_sources_builder(client, parent, body)?;
+    let builder = contentwarehouse_projects_locations_documents_linked_sources_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     contentwarehouse_projects_locations_documents_linked_sources_execute(builder)
 }
 
@@ -1986,6 +2128,15 @@ pub fn contentwarehouse_projects_locations_documents_linked_targets_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_documents_linked_targets`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsLinkedTargetsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1ListLinkedTargetsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/linkedTargets
 /// Return all target document-links from the document.
 ///
@@ -1998,8 +2149,7 @@ pub fn contentwarehouse_projects_locations_documents_linked_targets_execute(
 
 pub fn contentwarehouse_projects_locations_documents_linked_targets(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContentwarehouseV1ListLinkedTargetsRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentsLinkedTargetsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2011,8 +2161,11 @@ pub fn contentwarehouse_projects_locations_documents_linked_targets(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contentwarehouse_projects_locations_documents_linked_targets_builder(client, parent, body)?;
+    let builder = contentwarehouse_projects_locations_documents_linked_targets_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     contentwarehouse_projects_locations_documents_linked_targets_execute(builder)
 }
 
@@ -2113,6 +2266,15 @@ pub fn contentwarehouse_projects_locations_documents_lock_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_documents_lock`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsLockArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1LockDocumentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:lock
 /// Lock the document so the document cannot be updated by other users.
 ///
@@ -2125,8 +2287,7 @@ pub fn contentwarehouse_projects_locations_documents_lock_execute(
 
 pub fn contentwarehouse_projects_locations_documents_lock(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContentwarehouseV1LockDocumentRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentsLockArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1Document>, ApiError>,
@@ -2135,7 +2296,8 @@ pub fn contentwarehouse_projects_locations_documents_lock(
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_locations_documents_lock_builder(client, name, body)?;
+    let builder =
+        contentwarehouse_projects_locations_documents_lock_builder(client, &args.name, &args.body)?;
     contentwarehouse_projects_locations_documents_lock_execute(builder)
 }
 
@@ -2237,6 +2399,15 @@ pub fn contentwarehouse_projects_locations_documents_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_documents_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1UpdateDocumentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}
 /// Updates a document. Returns INVALID_ARGUMENT if the name of the document is non-empty and does not equal the existing name.
 ///
@@ -2249,8 +2420,7 @@ pub fn contentwarehouse_projects_locations_documents_patch_execute(
 
 pub fn contentwarehouse_projects_locations_documents_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContentwarehouseV1UpdateDocumentRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1UpdateDocumentResponse>, ApiError>,
@@ -2259,7 +2429,9 @@ pub fn contentwarehouse_projects_locations_documents_patch(
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_locations_documents_patch_builder(client, name, body)?;
+    let builder = contentwarehouse_projects_locations_documents_patch_builder(
+        client, &args.name, &args.body,
+    )?;
     contentwarehouse_projects_locations_documents_patch_execute(builder)
 }
 
@@ -2361,6 +2533,15 @@ pub fn contentwarehouse_projects_locations_documents_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_documents_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1SearchDocumentsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents:search
 /// Searches for documents using provided SearchDocumentsRequest. This call only returns documents that the caller has permission to search against.
 ///
@@ -2373,8 +2554,7 @@ pub fn contentwarehouse_projects_locations_documents_search_execute(
 
 pub fn contentwarehouse_projects_locations_documents_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContentwarehouseV1SearchDocumentsRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1SearchDocumentsResponse>, ApiError>,
@@ -2383,8 +2563,11 @@ pub fn contentwarehouse_projects_locations_documents_search(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contentwarehouse_projects_locations_documents_search_builder(client, parent, body)?;
+    let builder = contentwarehouse_projects_locations_documents_search_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     contentwarehouse_projects_locations_documents_search_execute(builder)
 }
 
@@ -2486,6 +2669,15 @@ pub fn contentwarehouse_projects_locations_documents_set_acl_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_documents_set_acl`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsSetAclArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1SetAclRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}:setAcl
 /// Sets the access control policy for a resource. Replaces any existing policy.
 ///
@@ -2498,8 +2690,7 @@ pub fn contentwarehouse_projects_locations_documents_set_acl_execute(
 
 pub fn contentwarehouse_projects_locations_documents_set_acl(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleCloudContentwarehouseV1SetAclRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentsSetAclArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1SetAclResponse>, ApiError>,
@@ -2508,8 +2699,11 @@ pub fn contentwarehouse_projects_locations_documents_set_acl(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contentwarehouse_projects_locations_documents_set_acl_builder(client, resource, body)?;
+    let builder = contentwarehouse_projects_locations_documents_set_acl_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     contentwarehouse_projects_locations_documents_set_acl_execute(builder)
 }
 
@@ -2610,6 +2804,15 @@ pub fn contentwarehouse_projects_locations_documents_document_links_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_documents_document_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsDocumentLinksCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1CreateDocumentLinkRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/documentLinks
 /// Create a link between a source document and a target document.
 ///
@@ -2622,8 +2825,7 @@ pub fn contentwarehouse_projects_locations_documents_document_links_create_execu
 
 pub fn contentwarehouse_projects_locations_documents_document_links_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContentwarehouseV1CreateDocumentLinkRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentsDocumentLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1DocumentLink>, ApiError>,
@@ -2633,7 +2835,9 @@ pub fn contentwarehouse_projects_locations_documents_document_links_create(
     ApiError,
 > {
     let builder = contentwarehouse_projects_locations_documents_document_links_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     contentwarehouse_projects_locations_documents_document_links_create_execute(builder)
 }
@@ -2733,6 +2937,15 @@ pub fn contentwarehouse_projects_locations_documents_document_links_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_documents_document_links_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsDocumentLinksDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1DeleteDocumentLinkRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents/{documentsId}/documentLinks/{documentLinksId}:delete
 /// Remove the link between the source and target documents.
 ///
@@ -2745,8 +2958,7 @@ pub fn contentwarehouse_projects_locations_documents_document_links_delete_execu
 
 pub fn contentwarehouse_projects_locations_documents_document_links_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContentwarehouseV1DeleteDocumentLinkRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentsDocumentLinksDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -2754,7 +2966,7 @@ pub fn contentwarehouse_projects_locations_documents_document_links_delete(
     ApiError,
 > {
     let builder = contentwarehouse_projects_locations_documents_document_links_delete_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     contentwarehouse_projects_locations_documents_document_links_delete_execute(builder)
 }
@@ -2854,6 +3066,15 @@ pub fn contentwarehouse_projects_locations_documents_reference_id_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_documents_reference_id_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsReferenceIdDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1DeleteDocumentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents/referenceId/{referenceIdId}:delete
 /// Deletes a document. Returns NOT_FOUND if the document does not exist.
 ///
@@ -2866,8 +3087,7 @@ pub fn contentwarehouse_projects_locations_documents_reference_id_delete_execute
 
 pub fn contentwarehouse_projects_locations_documents_reference_id_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContentwarehouseV1DeleteDocumentRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentsReferenceIdDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
@@ -2875,7 +3095,7 @@ pub fn contentwarehouse_projects_locations_documents_reference_id_delete(
     ApiError,
 > {
     let builder = contentwarehouse_projects_locations_documents_reference_id_delete_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     contentwarehouse_projects_locations_documents_reference_id_delete_execute(builder)
 }
@@ -2977,6 +3197,15 @@ pub fn contentwarehouse_projects_locations_documents_reference_id_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_documents_reference_id_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsReferenceIdGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1GetDocumentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents/referenceId/{referenceIdId}:get
 /// Gets a document. Returns NOT_FOUND if the document does not exist.
 ///
@@ -2989,8 +3218,7 @@ pub fn contentwarehouse_projects_locations_documents_reference_id_get_execute(
 
 pub fn contentwarehouse_projects_locations_documents_reference_id_get(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContentwarehouseV1GetDocumentRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentsReferenceIdGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1Document>, ApiError>,
@@ -2999,8 +3227,9 @@ pub fn contentwarehouse_projects_locations_documents_reference_id_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contentwarehouse_projects_locations_documents_reference_id_get_builder(client, name, body)?;
+    let builder = contentwarehouse_projects_locations_documents_reference_id_get_builder(
+        client, &args.name, &args.body,
+    )?;
     contentwarehouse_projects_locations_documents_reference_id_get_execute(builder)
 }
 
@@ -3102,6 +3331,15 @@ pub fn contentwarehouse_projects_locations_documents_reference_id_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_documents_reference_id_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsDocumentsReferenceIdPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1UpdateDocumentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents/referenceId/{referenceIdId}
 /// Updates a document. Returns INVALID_ARGUMENT if the name of the document is non-empty and does not equal the existing name.
 ///
@@ -3114,8 +3352,7 @@ pub fn contentwarehouse_projects_locations_documents_reference_id_patch_execute(
 
 pub fn contentwarehouse_projects_locations_documents_reference_id_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContentwarehouseV1UpdateDocumentRequest,
+    args: &ContentwarehouseProjectsLocationsDocumentsReferenceIdPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1UpdateDocumentResponse>, ApiError>,
@@ -3125,7 +3362,7 @@ pub fn contentwarehouse_projects_locations_documents_reference_id_patch(
     ApiError,
 > {
     let builder = contentwarehouse_projects_locations_documents_reference_id_patch_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     contentwarehouse_projects_locations_documents_reference_id_patch_execute(builder)
 }
@@ -3224,6 +3461,13 @@ pub fn contentwarehouse_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3236,7 +3480,7 @@ pub fn contentwarehouse_projects_locations_operations_get_execute(
 
 pub fn contentwarehouse_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContentwarehouseProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3245,7 +3489,7 @@ pub fn contentwarehouse_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_locations_operations_get_builder(client, name)?;
+    let builder = contentwarehouse_projects_locations_operations_get_builder(client, &args.name)?;
     contentwarehouse_projects_locations_operations_get_execute(builder)
 }
 
@@ -3346,6 +3590,15 @@ pub fn contentwarehouse_projects_locations_rule_sets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_rule_sets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsRuleSetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1RuleSet,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ruleSets
 /// Creates a ruleset.
 ///
@@ -3358,8 +3611,7 @@ pub fn contentwarehouse_projects_locations_rule_sets_create_execute(
 
 pub fn contentwarehouse_projects_locations_rule_sets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContentwarehouseV1RuleSet,
+    args: &ContentwarehouseProjectsLocationsRuleSetsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1RuleSet>, ApiError>,
@@ -3368,8 +3620,11 @@ pub fn contentwarehouse_projects_locations_rule_sets_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contentwarehouse_projects_locations_rule_sets_create_builder(client, parent, body)?;
+    let builder = contentwarehouse_projects_locations_rule_sets_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     contentwarehouse_projects_locations_rule_sets_create_execute(builder)
 }
 
@@ -3465,6 +3720,13 @@ pub fn contentwarehouse_projects_locations_rule_sets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_rule_sets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsRuleSetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ruleSets/{ruleSetsId}
 /// Deletes a ruleset. Returns NOT_FOUND if the document does not exist.
 ///
@@ -3477,14 +3739,14 @@ pub fn contentwarehouse_projects_locations_rule_sets_delete_execute(
 
 pub fn contentwarehouse_projects_locations_rule_sets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContentwarehouseProjectsLocationsRuleSetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_locations_rule_sets_delete_builder(client, name)?;
+    let builder = contentwarehouse_projects_locations_rule_sets_delete_builder(client, &args.name)?;
     contentwarehouse_projects_locations_rule_sets_delete_execute(builder)
 }
 
@@ -3582,6 +3844,13 @@ pub fn contentwarehouse_projects_locations_rule_sets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_rule_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsRuleSetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ruleSets/{ruleSetsId}
 /// Gets a ruleset. Returns NOT_FOUND if the ruleset does not exist.
 ///
@@ -3594,7 +3863,7 @@ pub fn contentwarehouse_projects_locations_rule_sets_get_execute(
 
 pub fn contentwarehouse_projects_locations_rule_sets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContentwarehouseProjectsLocationsRuleSetsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1RuleSet>, ApiError>,
@@ -3603,7 +3872,7 @@ pub fn contentwarehouse_projects_locations_rule_sets_get(
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_locations_rule_sets_get_builder(client, name)?;
+    let builder = contentwarehouse_projects_locations_rule_sets_get_builder(client, &args.name)?;
     contentwarehouse_projects_locations_rule_sets_get_execute(builder)
 }
 
@@ -3718,6 +3987,17 @@ pub fn contentwarehouse_projects_locations_rule_sets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_rule_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsRuleSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ruleSets
 /// Lists rulesets.
 ///
@@ -3730,9 +4010,7 @@ pub fn contentwarehouse_projects_locations_rule_sets_list_execute(
 
 pub fn contentwarehouse_projects_locations_rule_sets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentwarehouseProjectsLocationsRuleSetsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1ListRuleSetsResponse>, ApiError>,
@@ -3742,7 +4020,10 @@ pub fn contentwarehouse_projects_locations_rule_sets_list(
     ApiError,
 > {
     let builder = contentwarehouse_projects_locations_rule_sets_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contentwarehouse_projects_locations_rule_sets_list_execute(builder)
 }
@@ -3844,6 +4125,15 @@ pub fn contentwarehouse_projects_locations_rule_sets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_rule_sets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsRuleSetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1UpdateRuleSetRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/ruleSets/{ruleSetsId}
 /// Updates a ruleset. Returns INVALID_ARGUMENT if the name of the ruleset is non-empty and does not equal the existing name.
 ///
@@ -3856,8 +4146,7 @@ pub fn contentwarehouse_projects_locations_rule_sets_patch_execute(
 
 pub fn contentwarehouse_projects_locations_rule_sets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContentwarehouseV1UpdateRuleSetRequest,
+    args: &ContentwarehouseProjectsLocationsRuleSetsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1RuleSet>, ApiError>,
@@ -3866,7 +4155,9 @@ pub fn contentwarehouse_projects_locations_rule_sets_patch(
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_locations_rule_sets_patch_builder(client, name, body)?;
+    let builder = contentwarehouse_projects_locations_rule_sets_patch_builder(
+        client, &args.name, &args.body,
+    )?;
     contentwarehouse_projects_locations_rule_sets_patch_execute(builder)
 }
 
@@ -3968,6 +4259,15 @@ pub fn contentwarehouse_projects_locations_synonym_sets_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_synonym_sets_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsSynonymSetsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1SynonymSet,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/synonymSets
 /// Creates a SynonymSet for a single context. Throws an ALREADY_EXISTS exception if a synonymset already exists for the context.
 ///
@@ -3980,8 +4280,7 @@ pub fn contentwarehouse_projects_locations_synonym_sets_create_execute(
 
 pub fn contentwarehouse_projects_locations_synonym_sets_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudContentwarehouseV1SynonymSet,
+    args: &ContentwarehouseProjectsLocationsSynonymSetsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1SynonymSet>, ApiError>,
@@ -3990,8 +4289,11 @@ pub fn contentwarehouse_projects_locations_synonym_sets_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contentwarehouse_projects_locations_synonym_sets_create_builder(client, parent, body)?;
+    let builder = contentwarehouse_projects_locations_synonym_sets_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     contentwarehouse_projects_locations_synonym_sets_create_execute(builder)
 }
 
@@ -4087,6 +4389,13 @@ pub fn contentwarehouse_projects_locations_synonym_sets_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_synonym_sets_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsSynonymSetsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/synonymSets/{synonymSetsId}
 /// Deletes a SynonymSet for a given context. Throws a NOT_FOUND exception if the SynonymSet is not found.
 ///
@@ -4099,14 +4408,15 @@ pub fn contentwarehouse_projects_locations_synonym_sets_delete_execute(
 
 pub fn contentwarehouse_projects_locations_synonym_sets_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContentwarehouseProjectsLocationsSynonymSetsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_locations_synonym_sets_delete_builder(client, name)?;
+    let builder =
+        contentwarehouse_projects_locations_synonym_sets_delete_builder(client, &args.name)?;
     contentwarehouse_projects_locations_synonym_sets_delete_execute(builder)
 }
 
@@ -4205,6 +4515,13 @@ pub fn contentwarehouse_projects_locations_synonym_sets_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_synonym_sets_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsSynonymSetsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/synonymSets/{synonymSetsId}
 /// Gets a SynonymSet for a particular context. Throws a NOT_FOUND exception if the Synonymset does not exist
 ///
@@ -4217,7 +4534,7 @@ pub fn contentwarehouse_projects_locations_synonym_sets_get_execute(
 
 pub fn contentwarehouse_projects_locations_synonym_sets_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContentwarehouseProjectsLocationsSynonymSetsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1SynonymSet>, ApiError>,
@@ -4226,7 +4543,7 @@ pub fn contentwarehouse_projects_locations_synonym_sets_get(
         + 'static,
     ApiError,
 > {
-    let builder = contentwarehouse_projects_locations_synonym_sets_get_builder(client, name)?;
+    let builder = contentwarehouse_projects_locations_synonym_sets_get_builder(client, &args.name)?;
     contentwarehouse_projects_locations_synonym_sets_get_execute(builder)
 }
 
@@ -4341,6 +4658,17 @@ pub fn contentwarehouse_projects_locations_synonym_sets_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_synonym_sets_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsSynonymSetsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/synonymSets
 /// Returns all SynonymSets (for all contexts) for the specified location.
 ///
@@ -4353,9 +4681,7 @@ pub fn contentwarehouse_projects_locations_synonym_sets_list_execute(
 
 pub fn contentwarehouse_projects_locations_synonym_sets_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContentwarehouseProjectsLocationsSynonymSetsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1ListSynonymSetsResponse>, ApiError>,
@@ -4365,7 +4691,10 @@ pub fn contentwarehouse_projects_locations_synonym_sets_list(
     ApiError,
 > {
     let builder = contentwarehouse_projects_locations_synonym_sets_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contentwarehouse_projects_locations_synonym_sets_list_execute(builder)
 }
@@ -4468,6 +4797,15 @@ pub fn contentwarehouse_projects_locations_synonym_sets_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contentwarehouse_projects_locations_synonym_sets_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContentwarehouseProjectsLocationsSynonymSetsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudContentwarehouseV1SynonymSet,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/synonymSets/{synonymSetsId}
 /// Remove the existing SynonymSet for the context and replaces it with a new one. Throws a NOT_FOUND exception if the SynonymSet is not found.
 ///
@@ -4480,8 +4818,7 @@ pub fn contentwarehouse_projects_locations_synonym_sets_patch_execute(
 
 pub fn contentwarehouse_projects_locations_synonym_sets_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudContentwarehouseV1SynonymSet,
+    args: &ContentwarehouseProjectsLocationsSynonymSetsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudContentwarehouseV1SynonymSet>, ApiError>,
@@ -4490,7 +4827,8 @@ pub fn contentwarehouse_projects_locations_synonym_sets_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        contentwarehouse_projects_locations_synonym_sets_patch_builder(client, name, body)?;
+    let builder = contentwarehouse_projects_locations_synonym_sets_patch_builder(
+        client, &args.name, &args.body,
+    )?;
     contentwarehouse_projects_locations_synonym_sets_patch_execute(builder)
 }

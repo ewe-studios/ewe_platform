@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/folders/{foldersId}/constraints
 /// Lists constraints that could be applied on the specified resource.
@@ -127,6 +129,17 @@ pub fn orgpolicy_folders_constraints_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_folders_constraints_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyFoldersConstraintsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/constraints
 /// Lists constraints that could be applied on the specified resource.
 ///
@@ -139,9 +152,7 @@ pub fn orgpolicy_folders_constraints_list_execute(
 
 pub fn orgpolicy_folders_constraints_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OrgpolicyFoldersConstraintsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2ListConstraintsResponse>, ApiError>,
@@ -150,7 +161,12 @@ pub fn orgpolicy_folders_constraints_list(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_folders_constraints_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = orgpolicy_folders_constraints_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     orgpolicy_folders_constraints_list_execute(builder)
 }
 
@@ -251,6 +267,15 @@ pub fn orgpolicy_folders_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_folders_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyFoldersPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudOrgpolicyV2Policy,
+}
+
 /// GET v2/folders/{foldersId}/policies
 /// Creates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the policy already exists on the given Google Cloud resource.
 ///
@@ -263,8 +288,7 @@ pub fn orgpolicy_folders_policies_create_execute(
 
 pub fn orgpolicy_folders_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudOrgpolicyV2Policy,
+    args: &OrgpolicyFoldersPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
@@ -273,7 +297,7 @@ pub fn orgpolicy_folders_policies_create(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_folders_policies_create_builder(client, parent, body)?;
+    let builder = orgpolicy_folders_policies_create_builder(client, &args.parent, &args.body)?;
     orgpolicy_folders_policies_create_execute(builder)
 }
 
@@ -381,6 +405,15 @@ pub fn orgpolicy_folders_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_folders_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyFoldersPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/policies/{policiesId}
 /// Deletes a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or organization policy does not exist.
 ///
@@ -393,15 +426,15 @@ pub fn orgpolicy_folders_policies_delete_execute(
 
 pub fn orgpolicy_folders_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &OrgpolicyFoldersPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_folders_policies_delete_builder(client, name, etag)?;
+    let builder =
+        orgpolicy_folders_policies_delete_builder(client, &args.name, args.etag.as_deref())?;
     orgpolicy_folders_policies_delete_execute(builder)
 }
 
@@ -499,6 +532,13 @@ pub fn orgpolicy_folders_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_folders_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyFoldersPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/policies/{policiesId}
 /// Gets a policy on a resource. If no policy is set on the resource, NOT_FOUND is returned. The entity tag (ETag) can be used with UpdatePolicy() to update a policy during read-modify-write.
 ///
@@ -511,7 +551,7 @@ pub fn orgpolicy_folders_policies_get_execute(
 
 pub fn orgpolicy_folders_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OrgpolicyFoldersPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
@@ -520,7 +560,7 @@ pub fn orgpolicy_folders_policies_get(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_folders_policies_get_builder(client, name)?;
+    let builder = orgpolicy_folders_policies_get_builder(client, &args.name)?;
     orgpolicy_folders_policies_get_execute(builder)
 }
 
@@ -618,6 +658,13 @@ pub fn orgpolicy_folders_policies_get_effective_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_folders_policies_get_effective_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyFoldersPoliciesGetEffectivePolicyArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/folders/{foldersId}/policies/{policiesId}:getEffectivePolicy
 /// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
 ///
@@ -630,7 +677,7 @@ pub fn orgpolicy_folders_policies_get_effective_policy_execute(
 
 pub fn orgpolicy_folders_policies_get_effective_policy(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OrgpolicyFoldersPoliciesGetEffectivePolicyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
@@ -639,7 +686,7 @@ pub fn orgpolicy_folders_policies_get_effective_policy(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_folders_policies_get_effective_policy_builder(client, name)?;
+    let builder = orgpolicy_folders_policies_get_effective_policy_builder(client, &args.name)?;
     orgpolicy_folders_policies_get_effective_policy_execute(builder)
 }
 
@@ -754,6 +801,17 @@ pub fn orgpolicy_folders_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_folders_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyFoldersPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/folders/{foldersId}/policies
 /// Retrieves all of the policies that exist on a particular resource.
 ///
@@ -766,9 +824,7 @@ pub fn orgpolicy_folders_policies_list_execute(
 
 pub fn orgpolicy_folders_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OrgpolicyFoldersPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2ListPoliciesResponse>, ApiError>,
@@ -777,7 +833,12 @@ pub fn orgpolicy_folders_policies_list(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_folders_policies_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = orgpolicy_folders_policies_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     orgpolicy_folders_policies_list_execute(builder)
 }
 
@@ -890,6 +951,17 @@ pub fn orgpolicy_folders_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_folders_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyFoldersPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudOrgpolicyV2Policy,
+}
+
 /// GET v2/folders/{foldersId}/policies/{policiesId}
 /// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
 ///
@@ -902,9 +974,7 @@ pub fn orgpolicy_folders_policies_patch_execute(
 
 pub fn orgpolicy_folders_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudOrgpolicyV2Policy,
+    args: &OrgpolicyFoldersPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
@@ -913,7 +983,12 @@ pub fn orgpolicy_folders_policies_patch(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_folders_policies_patch_builder(client, name, updateMask, body)?;
+    let builder = orgpolicy_folders_policies_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     orgpolicy_folders_policies_patch_execute(builder)
 }
 
@@ -1028,6 +1103,17 @@ pub fn orgpolicy_organizations_constraints_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_organizations_constraints_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsConstraintsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/constraints
 /// Lists constraints that could be applied on the specified resource.
 ///
@@ -1040,9 +1126,7 @@ pub fn orgpolicy_organizations_constraints_list_execute(
 
 pub fn orgpolicy_organizations_constraints_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OrgpolicyOrganizationsConstraintsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2ListConstraintsResponse>, ApiError>,
@@ -1051,8 +1135,12 @@ pub fn orgpolicy_organizations_constraints_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        orgpolicy_organizations_constraints_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = orgpolicy_organizations_constraints_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     orgpolicy_organizations_constraints_list_execute(builder)
 }
 
@@ -1153,6 +1241,15 @@ pub fn orgpolicy_organizations_custom_constraints_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_organizations_custom_constraints_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsCustomConstraintsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudOrgpolicyV2CustomConstraint,
+}
+
 /// GET v2/organizations/{organizationsId}/customConstraints
 /// Creates a custom constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the organization does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the constraint already exists on the given organization.
 ///
@@ -1165,8 +1262,7 @@ pub fn orgpolicy_organizations_custom_constraints_create_execute(
 
 pub fn orgpolicy_organizations_custom_constraints_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudOrgpolicyV2CustomConstraint,
+    args: &OrgpolicyOrganizationsCustomConstraintsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2CustomConstraint>, ApiError>,
@@ -1175,7 +1271,11 @@ pub fn orgpolicy_organizations_custom_constraints_create(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_organizations_custom_constraints_create_builder(client, parent, body)?;
+    let builder = orgpolicy_organizations_custom_constraints_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     orgpolicy_organizations_custom_constraints_create_execute(builder)
 }
 
@@ -1271,6 +1371,13 @@ pub fn orgpolicy_organizations_custom_constraints_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_organizations_custom_constraints_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsCustomConstraintsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/customConstraints/{customConstraintsId}
 /// Deletes a custom constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist.
 ///
@@ -1283,14 +1390,14 @@ pub fn orgpolicy_organizations_custom_constraints_delete_execute(
 
 pub fn orgpolicy_organizations_custom_constraints_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OrgpolicyOrganizationsCustomConstraintsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_organizations_custom_constraints_delete_builder(client, name)?;
+    let builder = orgpolicy_organizations_custom_constraints_delete_builder(client, &args.name)?;
     orgpolicy_organizations_custom_constraints_delete_execute(builder)
 }
 
@@ -1388,6 +1495,13 @@ pub fn orgpolicy_organizations_custom_constraints_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_organizations_custom_constraints_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsCustomConstraintsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/customConstraints/{customConstraintsId}
 /// Gets a custom or managed constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the custom or managed constraint does not exist.
 ///
@@ -1400,7 +1514,7 @@ pub fn orgpolicy_organizations_custom_constraints_get_execute(
 
 pub fn orgpolicy_organizations_custom_constraints_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OrgpolicyOrganizationsCustomConstraintsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2CustomConstraint>, ApiError>,
@@ -1409,7 +1523,7 @@ pub fn orgpolicy_organizations_custom_constraints_get(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_organizations_custom_constraints_get_builder(client, name)?;
+    let builder = orgpolicy_organizations_custom_constraints_get_builder(client, &args.name)?;
     orgpolicy_organizations_custom_constraints_get_execute(builder)
 }
 
@@ -1524,6 +1638,17 @@ pub fn orgpolicy_organizations_custom_constraints_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_organizations_custom_constraints_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsCustomConstraintsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/customConstraints
 /// Retrieves all of the custom constraints that exist on a particular organization resource.
 ///
@@ -1536,9 +1661,7 @@ pub fn orgpolicy_organizations_custom_constraints_list_execute(
 
 pub fn orgpolicy_organizations_custom_constraints_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OrgpolicyOrganizationsCustomConstraintsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2ListCustomConstraintsResponse>, ApiError>,
@@ -1548,7 +1671,10 @@ pub fn orgpolicy_organizations_custom_constraints_list(
     ApiError,
 > {
     let builder = orgpolicy_organizations_custom_constraints_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     orgpolicy_organizations_custom_constraints_list_execute(builder)
 }
@@ -1650,6 +1776,15 @@ pub fn orgpolicy_organizations_custom_constraints_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_organizations_custom_constraints_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsCustomConstraintsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudOrgpolicyV2CustomConstraint,
+}
+
 /// GET v2/organizations/{organizationsId}/customConstraints/{customConstraintsId}
 /// Updates a custom constraint. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Note: the supplied policy will perform a full overwrite of all fields.
 ///
@@ -1662,8 +1797,7 @@ pub fn orgpolicy_organizations_custom_constraints_patch_execute(
 
 pub fn orgpolicy_organizations_custom_constraints_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudOrgpolicyV2CustomConstraint,
+    args: &OrgpolicyOrganizationsCustomConstraintsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2CustomConstraint>, ApiError>,
@@ -1672,7 +1806,8 @@ pub fn orgpolicy_organizations_custom_constraints_patch(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_organizations_custom_constraints_patch_builder(client, name, body)?;
+    let builder =
+        orgpolicy_organizations_custom_constraints_patch_builder(client, &args.name, &args.body)?;
     orgpolicy_organizations_custom_constraints_patch_execute(builder)
 }
 
@@ -1773,6 +1908,15 @@ pub fn orgpolicy_organizations_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_organizations_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudOrgpolicyV2Policy,
+}
+
 /// GET v2/organizations/{organizationsId}/policies
 /// Creates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the policy already exists on the given Google Cloud resource.
 ///
@@ -1785,8 +1929,7 @@ pub fn orgpolicy_organizations_policies_create_execute(
 
 pub fn orgpolicy_organizations_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudOrgpolicyV2Policy,
+    args: &OrgpolicyOrganizationsPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
@@ -1795,7 +1938,8 @@ pub fn orgpolicy_organizations_policies_create(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_organizations_policies_create_builder(client, parent, body)?;
+    let builder =
+        orgpolicy_organizations_policies_create_builder(client, &args.parent, &args.body)?;
     orgpolicy_organizations_policies_create_execute(builder)
 }
 
@@ -1903,6 +2047,15 @@ pub fn orgpolicy_organizations_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_organizations_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/policies/{policiesId}
 /// Deletes a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or organization policy does not exist.
 ///
@@ -1915,15 +2068,15 @@ pub fn orgpolicy_organizations_policies_delete_execute(
 
 pub fn orgpolicy_organizations_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &OrgpolicyOrganizationsPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_organizations_policies_delete_builder(client, name, etag)?;
+    let builder =
+        orgpolicy_organizations_policies_delete_builder(client, &args.name, args.etag.as_deref())?;
     orgpolicy_organizations_policies_delete_execute(builder)
 }
 
@@ -2021,6 +2174,13 @@ pub fn orgpolicy_organizations_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_organizations_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/policies/{policiesId}
 /// Gets a policy on a resource. If no policy is set on the resource, NOT_FOUND is returned. The entity tag (ETag) can be used with UpdatePolicy() to update a policy during read-modify-write.
 ///
@@ -2033,7 +2193,7 @@ pub fn orgpolicy_organizations_policies_get_execute(
 
 pub fn orgpolicy_organizations_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OrgpolicyOrganizationsPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
@@ -2042,7 +2202,7 @@ pub fn orgpolicy_organizations_policies_get(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_organizations_policies_get_builder(client, name)?;
+    let builder = orgpolicy_organizations_policies_get_builder(client, &args.name)?;
     orgpolicy_organizations_policies_get_execute(builder)
 }
 
@@ -2140,6 +2300,13 @@ pub fn orgpolicy_organizations_policies_get_effective_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_organizations_policies_get_effective_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsPoliciesGetEffectivePolicyArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/organizations/{organizationsId}/policies/{policiesId}:getEffectivePolicy
 /// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
 ///
@@ -2152,7 +2319,7 @@ pub fn orgpolicy_organizations_policies_get_effective_policy_execute(
 
 pub fn orgpolicy_organizations_policies_get_effective_policy(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OrgpolicyOrganizationsPoliciesGetEffectivePolicyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
@@ -2161,7 +2328,8 @@ pub fn orgpolicy_organizations_policies_get_effective_policy(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_organizations_policies_get_effective_policy_builder(client, name)?;
+    let builder =
+        orgpolicy_organizations_policies_get_effective_policy_builder(client, &args.name)?;
     orgpolicy_organizations_policies_get_effective_policy_execute(builder)
 }
 
@@ -2276,6 +2444,17 @@ pub fn orgpolicy_organizations_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_organizations_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/organizations/{organizationsId}/policies
 /// Retrieves all of the policies that exist on a particular resource.
 ///
@@ -2288,9 +2467,7 @@ pub fn orgpolicy_organizations_policies_list_execute(
 
 pub fn orgpolicy_organizations_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OrgpolicyOrganizationsPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2ListPoliciesResponse>, ApiError>,
@@ -2299,8 +2476,12 @@ pub fn orgpolicy_organizations_policies_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        orgpolicy_organizations_policies_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = orgpolicy_organizations_policies_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     orgpolicy_organizations_policies_list_execute(builder)
 }
 
@@ -2413,6 +2594,17 @@ pub fn orgpolicy_organizations_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_organizations_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyOrganizationsPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudOrgpolicyV2Policy,
+}
+
 /// GET v2/organizations/{organizationsId}/policies/{policiesId}
 /// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
 ///
@@ -2425,9 +2617,7 @@ pub fn orgpolicy_organizations_policies_patch_execute(
 
 pub fn orgpolicy_organizations_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudOrgpolicyV2Policy,
+    args: &OrgpolicyOrganizationsPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
@@ -2436,7 +2626,12 @@ pub fn orgpolicy_organizations_policies_patch(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_organizations_policies_patch_builder(client, name, updateMask, body)?;
+    let builder = orgpolicy_organizations_policies_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     orgpolicy_organizations_policies_patch_execute(builder)
 }
 
@@ -2551,6 +2746,17 @@ pub fn orgpolicy_projects_constraints_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_projects_constraints_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyProjectsConstraintsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/constraints
 /// Lists constraints that could be applied on the specified resource.
 ///
@@ -2563,9 +2769,7 @@ pub fn orgpolicy_projects_constraints_list_execute(
 
 pub fn orgpolicy_projects_constraints_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OrgpolicyProjectsConstraintsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2ListConstraintsResponse>, ApiError>,
@@ -2574,7 +2778,12 @@ pub fn orgpolicy_projects_constraints_list(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_projects_constraints_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = orgpolicy_projects_constraints_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     orgpolicy_projects_constraints_list_execute(builder)
 }
 
@@ -2675,6 +2884,15 @@ pub fn orgpolicy_projects_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_projects_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyProjectsPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudOrgpolicyV2Policy,
+}
+
 /// GET v2/projects/{projectsId}/policies
 /// Creates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint does not exist. Returns a google.rpc.Status with google.rpc.Code.ALREADY_EXISTS if the policy already exists on the given Google Cloud resource.
 ///
@@ -2687,8 +2905,7 @@ pub fn orgpolicy_projects_policies_create_execute(
 
 pub fn orgpolicy_projects_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudOrgpolicyV2Policy,
+    args: &OrgpolicyProjectsPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
@@ -2697,7 +2914,7 @@ pub fn orgpolicy_projects_policies_create(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_projects_policies_create_builder(client, parent, body)?;
+    let builder = orgpolicy_projects_policies_create_builder(client, &args.parent, &args.body)?;
     orgpolicy_projects_policies_create_execute(builder)
 }
 
@@ -2805,6 +3022,15 @@ pub fn orgpolicy_projects_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_projects_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyProjectsPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/policies/{policiesId}
 /// Deletes a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or organization policy does not exist.
 ///
@@ -2817,15 +3043,15 @@ pub fn orgpolicy_projects_policies_delete_execute(
 
 pub fn orgpolicy_projects_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &OrgpolicyProjectsPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_projects_policies_delete_builder(client, name, etag)?;
+    let builder =
+        orgpolicy_projects_policies_delete_builder(client, &args.name, args.etag.as_deref())?;
     orgpolicy_projects_policies_delete_execute(builder)
 }
 
@@ -2923,6 +3149,13 @@ pub fn orgpolicy_projects_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_projects_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyProjectsPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/policies/{policiesId}
 /// Gets a policy on a resource. If no policy is set on the resource, NOT_FOUND is returned. The entity tag (ETag) can be used with UpdatePolicy() to update a policy during read-modify-write.
 ///
@@ -2935,7 +3168,7 @@ pub fn orgpolicy_projects_policies_get_execute(
 
 pub fn orgpolicy_projects_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OrgpolicyProjectsPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
@@ -2944,7 +3177,7 @@ pub fn orgpolicy_projects_policies_get(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_projects_policies_get_builder(client, name)?;
+    let builder = orgpolicy_projects_policies_get_builder(client, &args.name)?;
     orgpolicy_projects_policies_get_execute(builder)
 }
 
@@ -3042,6 +3275,13 @@ pub fn orgpolicy_projects_policies_get_effective_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_projects_policies_get_effective_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyProjectsPoliciesGetEffectivePolicyArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/policies/{policiesId}:getEffectivePolicy
 /// Gets the effective policy on a resource. This is the result of merging policies in the resource hierarchy and evaluating conditions. The returned policy will not have an ETag or condition set because it is an evaluated policy across multiple resources. Subtrees of Resource Manager resource hierarchy with 'under:' prefix will not be expanded.
 ///
@@ -3054,7 +3294,7 @@ pub fn orgpolicy_projects_policies_get_effective_policy_execute(
 
 pub fn orgpolicy_projects_policies_get_effective_policy(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OrgpolicyProjectsPoliciesGetEffectivePolicyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
@@ -3063,7 +3303,7 @@ pub fn orgpolicy_projects_policies_get_effective_policy(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_projects_policies_get_effective_policy_builder(client, name)?;
+    let builder = orgpolicy_projects_policies_get_effective_policy_builder(client, &args.name)?;
     orgpolicy_projects_policies_get_effective_policy_execute(builder)
 }
 
@@ -3178,6 +3418,17 @@ pub fn orgpolicy_projects_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_projects_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyProjectsPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/policies
 /// Retrieves all of the policies that exist on a particular resource.
 ///
@@ -3190,9 +3441,7 @@ pub fn orgpolicy_projects_policies_list_execute(
 
 pub fn orgpolicy_projects_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OrgpolicyProjectsPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2ListPoliciesResponse>, ApiError>,
@@ -3201,7 +3450,12 @@ pub fn orgpolicy_projects_policies_list(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_projects_policies_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = orgpolicy_projects_policies_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     orgpolicy_projects_policies_list_execute(builder)
 }
 
@@ -3314,6 +3568,17 @@ pub fn orgpolicy_projects_policies_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`orgpolicy_projects_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OrgpolicyProjectsPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudOrgpolicyV2Policy,
+}
+
 /// GET v2/projects/{projectsId}/policies/{policiesId}
 /// Updates a policy. Returns a google.rpc.Status with google.rpc.Code.NOT_FOUND if the constraint or the policy doesn't exist. Returns a google.rpc.Status with google.rpc.Code.ABORTED if the ETag supplied in the request doesn't match the persisted ETag of the policy. Note: the supplied policy will perform a full overwrite of all fields.
 ///
@@ -3326,9 +3591,7 @@ pub fn orgpolicy_projects_policies_patch_execute(
 
 pub fn orgpolicy_projects_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudOrgpolicyV2Policy,
+    args: &OrgpolicyProjectsPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudOrgpolicyV2Policy>, ApiError>,
@@ -3337,6 +3600,11 @@ pub fn orgpolicy_projects_policies_patch(
         + 'static,
     ApiError,
 > {
-    let builder = orgpolicy_projects_policies_patch_builder(client, name, updateMask, body)?;
+    let builder = orgpolicy_projects_policies_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     orgpolicy_projects_policies_patch_execute(builder)
 }

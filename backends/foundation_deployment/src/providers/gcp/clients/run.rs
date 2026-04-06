@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}/{locationsId1}:exportImage
 /// Export image for a given resource.
@@ -113,6 +115,15 @@ pub fn run_projects_locations_export_image_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_export_image`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsExportImageArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRunV2ExportImageRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/{locationsId1}:exportImage
 /// Export image for a given resource.
 ///
@@ -125,8 +136,7 @@ pub fn run_projects_locations_export_image_execute(
 
 pub fn run_projects_locations_export_image(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRunV2ExportImageRequest,
+    args: &RunProjectsLocationsExportImageArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRunV2ExportImageResponse>, ApiError>,
@@ -135,7 +145,7 @@ pub fn run_projects_locations_export_image(
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_export_image_builder(client, name, body)?;
+    let builder = run_projects_locations_export_image_builder(client, &args.name, &args.body)?;
     run_projects_locations_export_image_execute(builder)
 }
 
@@ -231,6 +241,13 @@ pub fn run_projects_locations_export_image_metadata_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_export_image_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsExportImageMetadataArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/{locationsId1}:exportImageMetadata
 /// Export image metadata for a given resource.
 ///
@@ -243,14 +260,14 @@ pub fn run_projects_locations_export_image_metadata_execute(
 
 pub fn run_projects_locations_export_image_metadata(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RunProjectsLocationsExportImageMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudRunV2Metadata>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_export_image_metadata_builder(client, name)?;
+    let builder = run_projects_locations_export_image_metadata_builder(client, &args.name)?;
     run_projects_locations_export_image_metadata_execute(builder)
 }
 
@@ -346,6 +363,13 @@ pub fn run_projects_locations_export_metadata_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_export_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsExportMetadataArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/{locationsId1}:exportMetadata
 /// Export generated customer metadata for a given resource.
 ///
@@ -358,14 +382,14 @@ pub fn run_projects_locations_export_metadata_execute(
 
 pub fn run_projects_locations_export_metadata(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RunProjectsLocationsExportMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudRunV2Metadata>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_export_metadata_builder(client, name)?;
+    let builder = run_projects_locations_export_metadata_builder(client, &args.name)?;
     run_projects_locations_export_metadata_execute(builder)
 }
 
@@ -461,6 +485,13 @@ pub fn run_projects_locations_export_project_metadata_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_export_project_metadata`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsExportProjectMetadataArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}:exportProjectMetadata
 /// Export generated customer metadata for a given project.
 ///
@@ -473,14 +504,14 @@ pub fn run_projects_locations_export_project_metadata_execute(
 
 pub fn run_projects_locations_export_project_metadata(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RunProjectsLocationsExportProjectMetadataArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudRunV2Metadata>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_export_project_metadata_builder(client, name)?;
+    let builder = run_projects_locations_export_project_metadata_builder(client, &args.name)?;
     run_projects_locations_export_project_metadata_execute(builder)
 }
 
@@ -581,6 +612,15 @@ pub fn run_projects_locations_builds_submit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_builds_submit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsBuildsSubmitArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudRunV2SubmitBuildRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/builds:submit
 /// Submits a build in a given project.
 ///
@@ -593,8 +633,7 @@ pub fn run_projects_locations_builds_submit_execute(
 
 pub fn run_projects_locations_builds_submit(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudRunV2SubmitBuildRequest,
+    args: &RunProjectsLocationsBuildsSubmitArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRunV2SubmitBuildResponse>, ApiError>,
@@ -603,7 +642,7 @@ pub fn run_projects_locations_builds_submit(
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_builds_submit_builder(client, parent, body)?;
+    let builder = run_projects_locations_builds_submit_builder(client, &args.parent, &args.body)?;
     run_projects_locations_builds_submit_execute(builder)
 }
 
@@ -720,6 +759,19 @@ pub fn run_projects_locations_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: instanceId
+    pub instanceId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudRunV2Instance,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances
 /// Creates an Instance.
 ///
@@ -732,10 +784,7 @@ pub fn run_projects_locations_instances_create_execute(
 
 pub fn run_projects_locations_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    instanceId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudRunV2Instance,
+    args: &RunProjectsLocationsInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -746,10 +795,10 @@ pub fn run_projects_locations_instances_create(
 > {
     let builder = run_projects_locations_instances_create_builder(
         client,
-        parent,
-        instanceId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.instanceId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     run_projects_locations_instances_create_execute(builder)
 }
@@ -864,6 +913,17 @@ pub fn run_projects_locations_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Deletes a Instance
 ///
@@ -876,9 +936,7 @@ pub fn run_projects_locations_instances_delete_execute(
 
 pub fn run_projects_locations_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &RunProjectsLocationsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -887,8 +945,12 @@ pub fn run_projects_locations_instances_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        run_projects_locations_instances_delete_builder(client, name, etag, validateOnly)?;
+    let builder = run_projects_locations_instances_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.validateOnly,
+    )?;
     run_projects_locations_instances_delete_execute(builder)
 }
 
@@ -984,6 +1046,13 @@ pub fn run_projects_locations_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Gets a Instance
 ///
@@ -996,14 +1065,14 @@ pub fn run_projects_locations_instances_get_execute(
 
 pub fn run_projects_locations_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RunProjectsLocationsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudRunV2Instance>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_instances_get_builder(client, name)?;
+    let builder = run_projects_locations_instances_get_builder(client, &args.name)?;
     run_projects_locations_instances_get_execute(builder)
 }
 
@@ -1121,6 +1190,19 @@ pub fn run_projects_locations_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances
 /// Lists Instances. Results are sorted by creation time, descending.
 ///
@@ -1133,10 +1215,7 @@ pub fn run_projects_locations_instances_list_execute(
 
 pub fn run_projects_locations_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &RunProjectsLocationsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRunV2ListInstancesResponse>, ApiError>,
@@ -1147,10 +1226,10 @@ pub fn run_projects_locations_instances_list(
 > {
     let builder = run_projects_locations_instances_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     run_projects_locations_instances_list_execute(builder)
 }
@@ -1252,6 +1331,15 @@ pub fn run_projects_locations_instances_start_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_instances_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsInstancesStartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRunV2StartInstanceRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:start
 /// Starts an Instance.
 ///
@@ -1264,8 +1352,7 @@ pub fn run_projects_locations_instances_start_execute(
 
 pub fn run_projects_locations_instances_start(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRunV2StartInstanceRequest,
+    args: &RunProjectsLocationsInstancesStartArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1274,7 +1361,7 @@ pub fn run_projects_locations_instances_start(
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_instances_start_builder(client, name, body)?;
+    let builder = run_projects_locations_instances_start_builder(client, &args.name, &args.body)?;
     run_projects_locations_instances_start_execute(builder)
 }
 
@@ -1375,6 +1462,15 @@ pub fn run_projects_locations_instances_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_instances_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsInstancesStopArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRunV2StopInstanceRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:stop
 /// Stops an Instance.
 ///
@@ -1387,8 +1483,7 @@ pub fn run_projects_locations_instances_stop_execute(
 
 pub fn run_projects_locations_instances_stop(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRunV2StopInstanceRequest,
+    args: &RunProjectsLocationsInstancesStopArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1397,7 +1492,7 @@ pub fn run_projects_locations_instances_stop(
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_instances_stop_builder(client, name, body)?;
+    let builder = run_projects_locations_instances_stop_builder(client, &args.name, &args.body)?;
     run_projects_locations_instances_stop_execute(builder)
 }
 
@@ -1514,6 +1609,19 @@ pub fn run_projects_locations_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: jobId
+    pub jobId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudRunV2Job,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs
 /// Creates a Job.
 ///
@@ -1526,10 +1634,7 @@ pub fn run_projects_locations_jobs_create_execute(
 
 pub fn run_projects_locations_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    jobId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudRunV2Job,
+    args: &RunProjectsLocationsJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1538,8 +1643,13 @@ pub fn run_projects_locations_jobs_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        run_projects_locations_jobs_create_builder(client, parent, jobId, validateOnly, body)?;
+    let builder = run_projects_locations_jobs_create_builder(
+        client,
+        &args.parent,
+        args.jobId.as_deref(),
+        args.validateOnly,
+        &args.body,
+    )?;
     run_projects_locations_jobs_create_execute(builder)
 }
 
@@ -1653,6 +1763,17 @@ pub fn run_projects_locations_jobs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
 /// Deletes a Job.
 ///
@@ -1665,9 +1786,7 @@ pub fn run_projects_locations_jobs_delete_execute(
 
 pub fn run_projects_locations_jobs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &RunProjectsLocationsJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1676,7 +1795,12 @@ pub fn run_projects_locations_jobs_delete(
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_jobs_delete_builder(client, name, etag, validateOnly)?;
+    let builder = run_projects_locations_jobs_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.validateOnly,
+    )?;
     run_projects_locations_jobs_delete_execute(builder)
 }
 
@@ -1772,6 +1896,13 @@ pub fn run_projects_locations_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
 /// Gets information about a Job.
 ///
@@ -1784,14 +1915,14 @@ pub fn run_projects_locations_jobs_get_execute(
 
 pub fn run_projects_locations_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RunProjectsLocationsJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudRunV2Job>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_jobs_get_builder(client, name)?;
+    let builder = run_projects_locations_jobs_get_builder(client, &args.name)?;
     run_projects_locations_jobs_get_execute(builder)
 }
 
@@ -1899,6 +2030,15 @@ pub fn run_projects_locations_jobs_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}:getIamPolicy
 /// Gets the IAM Access Control policy currently in effect for the given Job. This result does not include any inherited policies.
 ///
@@ -1911,8 +2051,7 @@ pub fn run_projects_locations_jobs_get_iam_policy_execute(
 
 pub fn run_projects_locations_jobs_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &RunProjectsLocationsJobsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -1921,8 +2060,8 @@ pub fn run_projects_locations_jobs_get_iam_policy(
 > {
     let builder = run_projects_locations_jobs_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     run_projects_locations_jobs_get_iam_policy_execute(builder)
 }
@@ -2041,6 +2180,19 @@ pub fn run_projects_locations_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs
 /// Lists Jobs. Results are sorted by creation time, descending.
 ///
@@ -2053,10 +2205,7 @@ pub fn run_projects_locations_jobs_list_execute(
 
 pub fn run_projects_locations_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &RunProjectsLocationsJobsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRunV2ListJobsResponse>, ApiError>,
@@ -2065,8 +2214,13 @@ pub fn run_projects_locations_jobs_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        run_projects_locations_jobs_list_builder(client, parent, pageSize, pageToken, showDeleted)?;
+    let builder = run_projects_locations_jobs_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
+    )?;
     run_projects_locations_jobs_list_execute(builder)
 }
 
@@ -2183,6 +2337,19 @@ pub fn run_projects_locations_jobs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudRunV2Job,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
 /// Updates a Job.
 ///
@@ -2195,10 +2362,7 @@ pub fn run_projects_locations_jobs_patch_execute(
 
 pub fn run_projects_locations_jobs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudRunV2Job,
+    args: &RunProjectsLocationsJobsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2207,8 +2371,13 @@ pub fn run_projects_locations_jobs_patch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        run_projects_locations_jobs_patch_builder(client, name, allowMissing, validateOnly, body)?;
+    let builder = run_projects_locations_jobs_patch_builder(
+        client,
+        &args.name,
+        args.allowMissing,
+        args.validateOnly,
+        &args.body,
+    )?;
     run_projects_locations_jobs_patch_execute(builder)
 }
 
@@ -2309,6 +2478,15 @@ pub fn run_projects_locations_jobs_run_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_run`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsRunArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRunV2RunJobRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}:run
 /// Triggers creation of a new Execution of this Job.
 ///
@@ -2321,8 +2499,7 @@ pub fn run_projects_locations_jobs_run_execute(
 
 pub fn run_projects_locations_jobs_run(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRunV2RunJobRequest,
+    args: &RunProjectsLocationsJobsRunArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2331,7 +2508,7 @@ pub fn run_projects_locations_jobs_run(
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_jobs_run_builder(client, name, body)?;
+    let builder = run_projects_locations_jobs_run_builder(client, &args.name, &args.body)?;
     run_projects_locations_jobs_run_execute(builder)
 }
 
@@ -2430,6 +2607,15 @@ pub fn run_projects_locations_jobs_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}:setIamPolicy
 /// Sets the IAM Access control policy for the specified Job. Overwrites any existing policy.
 ///
@@ -2442,15 +2628,15 @@ pub fn run_projects_locations_jobs_set_iam_policy_execute(
 
 pub fn run_projects_locations_jobs_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &RunProjectsLocationsJobsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_jobs_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        run_projects_locations_jobs_set_iam_policy_builder(client, &args.resource, &args.body)?;
     run_projects_locations_jobs_set_iam_policy_execute(builder)
 }
 
@@ -2551,6 +2737,15 @@ pub fn run_projects_locations_jobs_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified Project. There are no permissions required for making this API call.
 ///
@@ -2563,8 +2758,7 @@ pub fn run_projects_locations_jobs_test_iam_permissions_execute(
 
 pub fn run_projects_locations_jobs_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &RunProjectsLocationsJobsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -2573,7 +2767,11 @@ pub fn run_projects_locations_jobs_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_jobs_test_iam_permissions_builder(client, resource, body)?;
+    let builder = run_projects_locations_jobs_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     run_projects_locations_jobs_test_iam_permissions_execute(builder)
 }
 
@@ -2674,6 +2872,15 @@ pub fn run_projects_locations_jobs_executions_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_executions_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsExecutionsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleCloudRunV2CancelExecutionRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/executions/{executionsId}:cancel
 /// Cancels an Execution.
 ///
@@ -2686,8 +2893,7 @@ pub fn run_projects_locations_jobs_executions_cancel_execute(
 
 pub fn run_projects_locations_jobs_executions_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleCloudRunV2CancelExecutionRequest,
+    args: &RunProjectsLocationsJobsExecutionsCancelArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2696,7 +2902,8 @@ pub fn run_projects_locations_jobs_executions_cancel(
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_jobs_executions_cancel_builder(client, name, body)?;
+    let builder =
+        run_projects_locations_jobs_executions_cancel_builder(client, &args.name, &args.body)?;
     run_projects_locations_jobs_executions_cancel_execute(builder)
 }
 
@@ -2810,6 +3017,17 @@ pub fn run_projects_locations_jobs_executions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_executions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsExecutionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/executions/{executionsId}
 /// Deletes an Execution.
 ///
@@ -2822,9 +3040,7 @@ pub fn run_projects_locations_jobs_executions_delete_execute(
 
 pub fn run_projects_locations_jobs_executions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &RunProjectsLocationsJobsExecutionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2833,8 +3049,12 @@ pub fn run_projects_locations_jobs_executions_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        run_projects_locations_jobs_executions_delete_builder(client, name, etag, validateOnly)?;
+    let builder = run_projects_locations_jobs_executions_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.validateOnly,
+    )?;
     run_projects_locations_jobs_executions_delete_execute(builder)
 }
 
@@ -2934,6 +3154,15 @@ pub fn run_projects_locations_jobs_executions_export_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_executions_export_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsExecutionsExportStatusArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Path parameter: operationId
+    pub operationId: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/executions/{executionsId}/{executionsId1}:exportStatus
 /// Read the status of an image export operation.
 ///
@@ -2946,8 +3175,7 @@ pub fn run_projects_locations_jobs_executions_export_status_execute(
 
 pub fn run_projects_locations_jobs_executions_export_status(
     client: &SimpleHttpClient,
-    name: &str,
-    operationId: &str,
+    args: &RunProjectsLocationsJobsExecutionsExportStatusArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRunV2ExportStatusResponse>, ApiError>,
@@ -2956,8 +3184,11 @@ pub fn run_projects_locations_jobs_executions_export_status(
         + 'static,
     ApiError,
 > {
-    let builder =
-        run_projects_locations_jobs_executions_export_status_builder(client, name, operationId)?;
+    let builder = run_projects_locations_jobs_executions_export_status_builder(
+        client,
+        &args.name,
+        &args.operationId,
+    )?;
     run_projects_locations_jobs_executions_export_status_execute(builder)
 }
 
@@ -3053,6 +3284,13 @@ pub fn run_projects_locations_jobs_executions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_executions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsExecutionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/executions/{executionsId}
 /// Gets information about an Execution.
 ///
@@ -3065,14 +3303,14 @@ pub fn run_projects_locations_jobs_executions_get_execute(
 
 pub fn run_projects_locations_jobs_executions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RunProjectsLocationsJobsExecutionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudRunV2Execution>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_jobs_executions_get_builder(client, name)?;
+    let builder = run_projects_locations_jobs_executions_get_builder(client, &args.name)?;
     run_projects_locations_jobs_executions_get_execute(builder)
 }
 
@@ -3190,6 +3428,19 @@ pub fn run_projects_locations_jobs_executions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_executions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsExecutionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/executions
 /// Lists Executions from a Job. Results are sorted by creation time, descending.
 ///
@@ -3202,10 +3453,7 @@ pub fn run_projects_locations_jobs_executions_list_execute(
 
 pub fn run_projects_locations_jobs_executions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &RunProjectsLocationsJobsExecutionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRunV2ListExecutionsResponse>, ApiError>,
@@ -3216,10 +3464,10 @@ pub fn run_projects_locations_jobs_executions_list(
 > {
     let builder = run_projects_locations_jobs_executions_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     run_projects_locations_jobs_executions_list_execute(builder)
 }
@@ -3316,6 +3564,13 @@ pub fn run_projects_locations_jobs_executions_tasks_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_executions_tasks_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsExecutionsTasksGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/executions/{executionsId}/tasks/{tasksId}
 /// Gets information about a Task.
 ///
@@ -3328,14 +3583,14 @@ pub fn run_projects_locations_jobs_executions_tasks_get_execute(
 
 pub fn run_projects_locations_jobs_executions_tasks_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RunProjectsLocationsJobsExecutionsTasksGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudRunV2Task>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_jobs_executions_tasks_get_builder(client, name)?;
+    let builder = run_projects_locations_jobs_executions_tasks_get_builder(client, &args.name)?;
     run_projects_locations_jobs_executions_tasks_get_execute(builder)
 }
 
@@ -3453,6 +3708,19 @@ pub fn run_projects_locations_jobs_executions_tasks_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_jobs_executions_tasks_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsJobsExecutionsTasksListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}/executions/{executionsId}/tasks
 /// Lists Tasks from an Execution of a Job.
 ///
@@ -3465,10 +3733,7 @@ pub fn run_projects_locations_jobs_executions_tasks_list_execute(
 
 pub fn run_projects_locations_jobs_executions_tasks_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &RunProjectsLocationsJobsExecutionsTasksListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRunV2ListTasksResponse>, ApiError>,
@@ -3479,10 +3744,10 @@ pub fn run_projects_locations_jobs_executions_tasks_list(
 > {
     let builder = run_projects_locations_jobs_executions_tasks_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     run_projects_locations_jobs_executions_tasks_list_execute(builder)
 }
@@ -3579,6 +3844,13 @@ pub fn run_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -3591,14 +3863,14 @@ pub fn run_projects_locations_operations_delete_execute(
 
 pub fn run_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RunProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_operations_delete_builder(client, name)?;
+    let builder = run_projects_locations_operations_delete_builder(client, &args.name)?;
     run_projects_locations_operations_delete_execute(builder)
 }
 
@@ -3696,6 +3968,13 @@ pub fn run_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3708,7 +3987,7 @@ pub fn run_projects_locations_operations_get_execute(
 
 pub fn run_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RunProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3717,7 +3996,7 @@ pub fn run_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_operations_get_builder(client, name)?;
+    let builder = run_projects_locations_operations_get_builder(client, &args.name)?;
     run_projects_locations_operations_get_execute(builder)
 }
 
@@ -3840,6 +4119,21 @@ pub fn run_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -3852,11 +4146,7 @@ pub fn run_projects_locations_operations_list_execute(
 
 pub fn run_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &RunProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -3867,11 +4157,11 @@ pub fn run_projects_locations_operations_list(
 > {
     let builder = run_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     run_projects_locations_operations_list_execute(builder)
 }
@@ -3973,6 +4263,15 @@ pub fn run_projects_locations_operations_wait_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_operations_wait`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsOperationsWaitArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningWaitOperationRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:wait
 /// Waits until the specified long-running operation is done or reaches at most a specified timeout, returning the latest state. If the operation is already done, the latest state is immediately returned. If the timeout specified is greater than the default HTTP/RPC timeout, the HTTP/RPC timeout is used. If the server does not support this method, it returns google.rpc.Code.UNIMPLEMENTED. Note that this method is on a best-effort basis. It may return the latest state before the specified timeout (including immediately), meaning even an immediate response is no guarantee that the operation is done.
 ///
@@ -3985,8 +4284,7 @@ pub fn run_projects_locations_operations_wait_execute(
 
 pub fn run_projects_locations_operations_wait(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningWaitOperationRequest,
+    args: &RunProjectsLocationsOperationsWaitArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3995,7 +4293,7 @@ pub fn run_projects_locations_operations_wait(
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_operations_wait_builder(client, name, body)?;
+    let builder = run_projects_locations_operations_wait_builder(client, &args.name, &args.body)?;
     run_projects_locations_operations_wait_execute(builder)
 }
 
@@ -4112,6 +4410,19 @@ pub fn run_projects_locations_services_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_services_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsServicesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: serviceId
+    pub serviceId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudRunV2Service,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/services
 /// Creates a new Service in a given project and location.
 ///
@@ -4124,10 +4435,7 @@ pub fn run_projects_locations_services_create_execute(
 
 pub fn run_projects_locations_services_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    serviceId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudRunV2Service,
+    args: &RunProjectsLocationsServicesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4138,10 +4446,10 @@ pub fn run_projects_locations_services_create(
 > {
     let builder = run_projects_locations_services_create_builder(
         client,
-        parent,
-        serviceId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.serviceId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     run_projects_locations_services_create_execute(builder)
 }
@@ -4256,6 +4564,17 @@ pub fn run_projects_locations_services_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_services_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsServicesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/services/{servicesId}
 /// Deletes a Service. This will cause the Service to stop serving traffic and will delete all revisions.
 ///
@@ -4268,9 +4587,7 @@ pub fn run_projects_locations_services_delete_execute(
 
 pub fn run_projects_locations_services_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &RunProjectsLocationsServicesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4279,7 +4596,12 @@ pub fn run_projects_locations_services_delete(
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_services_delete_builder(client, name, etag, validateOnly)?;
+    let builder = run_projects_locations_services_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.validateOnly,
+    )?;
     run_projects_locations_services_delete_execute(builder)
 }
 
@@ -4375,6 +4697,13 @@ pub fn run_projects_locations_services_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsServicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/services/{servicesId}
 /// Gets information about a Service.
 ///
@@ -4387,14 +4716,14 @@ pub fn run_projects_locations_services_get_execute(
 
 pub fn run_projects_locations_services_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RunProjectsLocationsServicesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudRunV2Service>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_services_get_builder(client, name)?;
+    let builder = run_projects_locations_services_get_builder(client, &args.name)?;
     run_projects_locations_services_get_execute(builder)
 }
 
@@ -4502,6 +4831,15 @@ pub fn run_projects_locations_services_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_services_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsServicesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:getIamPolicy
 /// Gets the IAM Access Control policy currently in effect for the given Cloud Run Service. This result does not include any inherited policies.
 ///
@@ -4514,8 +4852,7 @@ pub fn run_projects_locations_services_get_iam_policy_execute(
 
 pub fn run_projects_locations_services_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &RunProjectsLocationsServicesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -4524,8 +4861,8 @@ pub fn run_projects_locations_services_get_iam_policy(
 > {
     let builder = run_projects_locations_services_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     run_projects_locations_services_get_iam_policy_execute(builder)
 }
@@ -4644,6 +4981,19 @@ pub fn run_projects_locations_services_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsServicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/services
 /// Lists Services. Results are sorted by creation time, descending.
 ///
@@ -4656,10 +5006,7 @@ pub fn run_projects_locations_services_list_execute(
 
 pub fn run_projects_locations_services_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &RunProjectsLocationsServicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRunV2ListServicesResponse>, ApiError>,
@@ -4670,10 +5017,10 @@ pub fn run_projects_locations_services_list(
 > {
     let builder = run_projects_locations_services_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     run_projects_locations_services_list_execute(builder)
 }
@@ -4799,6 +5146,23 @@ pub fn run_projects_locations_services_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_services_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsServicesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: forceNewRevision
+    pub forceNewRevision: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudRunV2Service,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/services/{servicesId}
 /// Updates a Service.
 ///
@@ -4811,12 +5175,7 @@ pub fn run_projects_locations_services_patch_execute(
 
 pub fn run_projects_locations_services_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    forceNewRevision: Option<bool>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudRunV2Service,
+    args: &RunProjectsLocationsServicesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4827,12 +5186,12 @@ pub fn run_projects_locations_services_patch(
 > {
     let builder = run_projects_locations_services_patch_builder(
         client,
-        name,
-        allowMissing,
-        forceNewRevision,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.forceNewRevision,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     run_projects_locations_services_patch_execute(builder)
 }
@@ -4932,6 +5291,15 @@ pub fn run_projects_locations_services_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_services_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsServicesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:setIamPolicy
 /// Sets the IAM Access control policy for the specified Service. Overwrites any existing policy.
 ///
@@ -4944,15 +5312,15 @@ pub fn run_projects_locations_services_set_iam_policy_execute(
 
 pub fn run_projects_locations_services_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &RunProjectsLocationsServicesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_services_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        run_projects_locations_services_set_iam_policy_builder(client, &args.resource, &args.body)?;
     run_projects_locations_services_set_iam_policy_execute(builder)
 }
 
@@ -5053,6 +5421,15 @@ pub fn run_projects_locations_services_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_services_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsServicesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/services/{servicesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified Project. There are no permissions required for making this API call.
 ///
@@ -5065,8 +5442,7 @@ pub fn run_projects_locations_services_test_iam_permissions_execute(
 
 pub fn run_projects_locations_services_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &RunProjectsLocationsServicesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -5075,8 +5451,11 @@ pub fn run_projects_locations_services_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        run_projects_locations_services_test_iam_permissions_builder(client, resource, body)?;
+    let builder = run_projects_locations_services_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     run_projects_locations_services_test_iam_permissions_execute(builder)
 }
 
@@ -5190,6 +5569,17 @@ pub fn run_projects_locations_services_revisions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_services_revisions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsServicesRevisionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/revisions/{revisionsId}
 /// Deletes a Revision.
 ///
@@ -5202,9 +5592,7 @@ pub fn run_projects_locations_services_revisions_delete_execute(
 
 pub fn run_projects_locations_services_revisions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &RunProjectsLocationsServicesRevisionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5213,8 +5601,12 @@ pub fn run_projects_locations_services_revisions_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        run_projects_locations_services_revisions_delete_builder(client, name, etag, validateOnly)?;
+    let builder = run_projects_locations_services_revisions_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.validateOnly,
+    )?;
     run_projects_locations_services_revisions_delete_execute(builder)
 }
 
@@ -5314,6 +5706,15 @@ pub fn run_projects_locations_services_revisions_export_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_services_revisions_export_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsServicesRevisionsExportStatusArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Path parameter: operationId
+    pub operationId: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/revisions/{revisionsId}/{revisionsId1}:exportStatus
 /// Read the status of an image export operation.
 ///
@@ -5326,8 +5727,7 @@ pub fn run_projects_locations_services_revisions_export_status_execute(
 
 pub fn run_projects_locations_services_revisions_export_status(
     client: &SimpleHttpClient,
-    name: &str,
-    operationId: &str,
+    args: &RunProjectsLocationsServicesRevisionsExportStatusArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRunV2ExportStatusResponse>, ApiError>,
@@ -5336,8 +5736,11 @@ pub fn run_projects_locations_services_revisions_export_status(
         + 'static,
     ApiError,
 > {
-    let builder =
-        run_projects_locations_services_revisions_export_status_builder(client, name, operationId)?;
+    let builder = run_projects_locations_services_revisions_export_status_builder(
+        client,
+        &args.name,
+        &args.operationId,
+    )?;
     run_projects_locations_services_revisions_export_status_execute(builder)
 }
 
@@ -5433,6 +5836,13 @@ pub fn run_projects_locations_services_revisions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_services_revisions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsServicesRevisionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/revisions/{revisionsId}
 /// Gets information about a Revision.
 ///
@@ -5445,14 +5855,14 @@ pub fn run_projects_locations_services_revisions_get_execute(
 
 pub fn run_projects_locations_services_revisions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RunProjectsLocationsServicesRevisionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudRunV2Revision>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_services_revisions_get_builder(client, name)?;
+    let builder = run_projects_locations_services_revisions_get_builder(client, &args.name)?;
     run_projects_locations_services_revisions_get_execute(builder)
 }
 
@@ -5570,6 +5980,19 @@ pub fn run_projects_locations_services_revisions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_services_revisions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsServicesRevisionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/services/{servicesId}/revisions
 /// Lists Revisions from a given Service, or from a given location. Results are sorted by creation time, descending.
 ///
@@ -5582,10 +6005,7 @@ pub fn run_projects_locations_services_revisions_list_execute(
 
 pub fn run_projects_locations_services_revisions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &RunProjectsLocationsServicesRevisionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRunV2ListRevisionsResponse>, ApiError>,
@@ -5596,10 +6016,10 @@ pub fn run_projects_locations_services_revisions_list(
 > {
     let builder = run_projects_locations_services_revisions_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     run_projects_locations_services_revisions_list_execute(builder)
 }
@@ -5717,6 +6137,19 @@ pub fn run_projects_locations_worker_pools_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_worker_pools_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsWorkerPoolsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Query parameter: workerPoolId
+    pub workerPoolId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudRunV2WorkerPool,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/workerPools
 /// Creates a new WorkerPool in a given project and location.
 ///
@@ -5729,10 +6162,7 @@ pub fn run_projects_locations_worker_pools_create_execute(
 
 pub fn run_projects_locations_worker_pools_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    validateOnly: Option<bool>,
-    workerPoolId: Option<&str>,
-    body: &GoogleCloudRunV2WorkerPool,
+    args: &RunProjectsLocationsWorkerPoolsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5743,10 +6173,10 @@ pub fn run_projects_locations_worker_pools_create(
 > {
     let builder = run_projects_locations_worker_pools_create_builder(
         client,
-        parent,
-        validateOnly,
-        workerPoolId,
-        body,
+        &args.parent,
+        args.validateOnly,
+        args.workerPoolId.as_deref(),
+        &args.body,
     )?;
     run_projects_locations_worker_pools_create_execute(builder)
 }
@@ -5861,6 +6291,17 @@ pub fn run_projects_locations_worker_pools_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_worker_pools_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsWorkerPoolsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/workerPools/{workerPoolsId}
 /// Deletes a WorkerPool.
 ///
@@ -5873,9 +6314,7 @@ pub fn run_projects_locations_worker_pools_delete_execute(
 
 pub fn run_projects_locations_worker_pools_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &RunProjectsLocationsWorkerPoolsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5884,8 +6323,12 @@ pub fn run_projects_locations_worker_pools_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        run_projects_locations_worker_pools_delete_builder(client, name, etag, validateOnly)?;
+    let builder = run_projects_locations_worker_pools_delete_builder(
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.validateOnly,
+    )?;
     run_projects_locations_worker_pools_delete_execute(builder)
 }
 
@@ -5983,6 +6426,13 @@ pub fn run_projects_locations_worker_pools_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_worker_pools_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsWorkerPoolsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/workerPools/{workerPoolsId}
 /// Gets information about a WorkerPool.
 ///
@@ -5995,7 +6445,7 @@ pub fn run_projects_locations_worker_pools_get_execute(
 
 pub fn run_projects_locations_worker_pools_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RunProjectsLocationsWorkerPoolsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRunV2WorkerPool>, ApiError>,
@@ -6004,7 +6454,7 @@ pub fn run_projects_locations_worker_pools_get(
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_worker_pools_get_builder(client, name)?;
+    let builder = run_projects_locations_worker_pools_get_builder(client, &args.name)?;
     run_projects_locations_worker_pools_get_execute(builder)
 }
 
@@ -6112,6 +6562,15 @@ pub fn run_projects_locations_worker_pools_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_worker_pools_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsWorkerPoolsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/workerPools/{workerPoolsId}:getIamPolicy
 /// Gets the IAM Access Control policy currently in effect for the given Cloud Run WorkerPool. This result does not include any inherited policies.
 ///
@@ -6124,8 +6583,7 @@ pub fn run_projects_locations_worker_pools_get_iam_policy_execute(
 
 pub fn run_projects_locations_worker_pools_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &RunProjectsLocationsWorkerPoolsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
@@ -6134,8 +6592,8 @@ pub fn run_projects_locations_worker_pools_get_iam_policy(
 > {
     let builder = run_projects_locations_worker_pools_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     run_projects_locations_worker_pools_get_iam_policy_execute(builder)
 }
@@ -6255,6 +6713,19 @@ pub fn run_projects_locations_worker_pools_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_worker_pools_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsWorkerPoolsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/workerPools
 /// Lists WorkerPools. Results are sorted by creation time, descending.
 ///
@@ -6267,10 +6738,7 @@ pub fn run_projects_locations_worker_pools_list_execute(
 
 pub fn run_projects_locations_worker_pools_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &RunProjectsLocationsWorkerPoolsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRunV2ListWorkerPoolsResponse>, ApiError>,
@@ -6281,10 +6749,10 @@ pub fn run_projects_locations_worker_pools_list(
 > {
     let builder = run_projects_locations_worker_pools_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     run_projects_locations_worker_pools_list_execute(builder)
 }
@@ -6410,6 +6878,23 @@ pub fn run_projects_locations_worker_pools_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_worker_pools_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsWorkerPoolsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: forceNewRevision
+    pub forceNewRevision: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: GoogleCloudRunV2WorkerPool,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/workerPools/{workerPoolsId}
 /// Updates a WorkerPool.
 ///
@@ -6422,12 +6907,7 @@ pub fn run_projects_locations_worker_pools_patch_execute(
 
 pub fn run_projects_locations_worker_pools_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    forceNewRevision: Option<bool>,
-    updateMask: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &GoogleCloudRunV2WorkerPool,
+    args: &RunProjectsLocationsWorkerPoolsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6438,12 +6918,12 @@ pub fn run_projects_locations_worker_pools_patch(
 > {
     let builder = run_projects_locations_worker_pools_patch_builder(
         client,
-        name,
-        allowMissing,
-        forceNewRevision,
-        updateMask,
-        validateOnly,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.forceNewRevision,
+        args.updateMask.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     run_projects_locations_worker_pools_patch_execute(builder)
 }
@@ -6543,6 +7023,15 @@ pub fn run_projects_locations_worker_pools_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_worker_pools_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsWorkerPoolsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/workerPools/{workerPoolsId}:setIamPolicy
 /// Sets the IAM Access control policy for the specified WorkerPool. Overwrites any existing policy.
 ///
@@ -6555,16 +7044,18 @@ pub fn run_projects_locations_worker_pools_set_iam_policy_execute(
 
 pub fn run_projects_locations_worker_pools_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1SetIamPolicyRequest,
+    args: &RunProjectsLocationsWorkerPoolsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV1Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        run_projects_locations_worker_pools_set_iam_policy_builder(client, resource, body)?;
+    let builder = run_projects_locations_worker_pools_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     run_projects_locations_worker_pools_set_iam_policy_execute(builder)
 }
 
@@ -6665,6 +7156,15 @@ pub fn run_projects_locations_worker_pools_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_worker_pools_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsWorkerPoolsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GoogleIamV1TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/workerPools/{workerPoolsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified Project. There are no permissions required for making this API call.
 ///
@@ -6677,8 +7177,7 @@ pub fn run_projects_locations_worker_pools_test_iam_permissions_execute(
 
 pub fn run_projects_locations_worker_pools_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GoogleIamV1TestIamPermissionsRequest,
+    args: &RunProjectsLocationsWorkerPoolsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV1TestIamPermissionsResponse>, ApiError>,
@@ -6687,8 +7186,11 @@ pub fn run_projects_locations_worker_pools_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        run_projects_locations_worker_pools_test_iam_permissions_builder(client, resource, body)?;
+    let builder = run_projects_locations_worker_pools_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     run_projects_locations_worker_pools_test_iam_permissions_execute(builder)
 }
 
@@ -6802,6 +7304,17 @@ pub fn run_projects_locations_worker_pools_revisions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_worker_pools_revisions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsWorkerPoolsRevisionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/workerPools/{workerPoolsId}/revisions/{revisionsId}
 /// Deletes a Revision.
 ///
@@ -6814,9 +7327,7 @@ pub fn run_projects_locations_worker_pools_revisions_delete_execute(
 
 pub fn run_projects_locations_worker_pools_revisions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    validateOnly: Option<bool>,
+    args: &RunProjectsLocationsWorkerPoolsRevisionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6827,9 +7338,9 @@ pub fn run_projects_locations_worker_pools_revisions_delete(
 > {
     let builder = run_projects_locations_worker_pools_revisions_delete_builder(
         client,
-        name,
-        etag,
-        validateOnly,
+        &args.name,
+        args.etag.as_deref(),
+        args.validateOnly,
     )?;
     run_projects_locations_worker_pools_revisions_delete_execute(builder)
 }
@@ -6926,6 +7437,13 @@ pub fn run_projects_locations_worker_pools_revisions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_worker_pools_revisions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsWorkerPoolsRevisionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/workerPools/{workerPoolsId}/revisions/{revisionsId}
 /// Gets information about a Revision.
 ///
@@ -6938,14 +7456,14 @@ pub fn run_projects_locations_worker_pools_revisions_get_execute(
 
 pub fn run_projects_locations_worker_pools_revisions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RunProjectsLocationsWorkerPoolsRevisionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleCloudRunV2Revision>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = run_projects_locations_worker_pools_revisions_get_builder(client, name)?;
+    let builder = run_projects_locations_worker_pools_revisions_get_builder(client, &args.name)?;
     run_projects_locations_worker_pools_revisions_get_execute(builder)
 }
 
@@ -7063,6 +7581,19 @@ pub fn run_projects_locations_worker_pools_revisions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`run_projects_locations_worker_pools_revisions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RunProjectsLocationsWorkerPoolsRevisionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: showDeleted
+    pub showDeleted: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/workerPools/{workerPoolsId}/revisions
 /// Lists Revisions from a given Service, or from a given location. Results are sorted by creation time, descending.
 ///
@@ -7075,10 +7606,7 @@ pub fn run_projects_locations_worker_pools_revisions_list_execute(
 
 pub fn run_projects_locations_worker_pools_revisions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
+    args: &RunProjectsLocationsWorkerPoolsRevisionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudRunV2ListRevisionsResponse>, ApiError>,
@@ -7089,10 +7617,10 @@ pub fn run_projects_locations_worker_pools_revisions_list(
 > {
     let builder = run_projects_locations_worker_pools_revisions_list_builder(
         client,
-        parent,
-        pageSize,
-        pageToken,
-        showDeleted,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.showDeleted,
     )?;
     run_projects_locations_worker_pools_revisions_list_execute(builder)
 }

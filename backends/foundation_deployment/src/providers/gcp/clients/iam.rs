@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/policies/{policiesId}/{policiesId1}
 /// Creates a policy.
@@ -122,6 +124,17 @@ pub fn iam_policies_create_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iam_policies_create_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IamPoliciesCreatePolicyArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: policyId
+    pub policyId: Option<String>,
+    /// Request body.
+    pub body: GoogleIamV2Policy,
+}
+
 /// GET v2/policies/{policiesId}/{policiesId1}
 /// Creates a policy.
 ///
@@ -134,9 +147,7 @@ pub fn iam_policies_create_policy_execute(
 
 pub fn iam_policies_create_policy(
     client: &SimpleHttpClient,
-    parent: &str,
-    policyId: Option<&str>,
-    body: &GoogleIamV2Policy,
+    args: &IamPoliciesCreatePolicyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -145,7 +156,12 @@ pub fn iam_policies_create_policy(
         + 'static,
     ApiError,
 > {
-    let builder = iam_policies_create_policy_builder(client, parent, policyId, body)?;
+    let builder = iam_policies_create_policy_builder(
+        client,
+        &args.parent,
+        args.policyId.as_deref(),
+        &args.body,
+    )?;
     iam_policies_create_policy_execute(builder)
 }
 
@@ -252,6 +268,15 @@ pub fn iam_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iam_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IamPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+}
+
 /// GET v2/policies/{policiesId}/{policiesId1}/{policiesId2}
 /// Deletes a policy. This action is permanent.
 ///
@@ -264,8 +289,7 @@ pub fn iam_policies_delete_execute(
 
 pub fn iam_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
+    args: &IamPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -274,7 +298,7 @@ pub fn iam_policies_delete(
         + 'static,
     ApiError,
 > {
-    let builder = iam_policies_delete_builder(client, name, etag)?;
+    let builder = iam_policies_delete_builder(client, &args.name, args.etag.as_deref())?;
     iam_policies_delete_execute(builder)
 }
 
@@ -367,6 +391,13 @@ pub fn iam_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iam_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IamPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/policies/{policiesId}/{policiesId1}/{policiesId2}
 /// Gets a policy.
 ///
@@ -379,14 +410,14 @@ pub fn iam_policies_get_execute(
 
 pub fn iam_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IamPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleIamV2Policy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = iam_policies_get_builder(client, name)?;
+    let builder = iam_policies_get_builder(client, &args.name)?;
     iam_policies_get_execute(builder)
 }
 
@@ -497,6 +528,17 @@ pub fn iam_policies_list_policies_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iam_policies_list_policies`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IamPoliciesListPoliciesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/policies/{policiesId}/{policiesId1}
 /// Retrieves the policies of the specified kind that are attached to a resource. The response lists only policy metadata. In particular, policy rules are omitted.
 ///
@@ -509,9 +551,7 @@ pub fn iam_policies_list_policies_execute(
 
 pub fn iam_policies_list_policies(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &IamPoliciesListPoliciesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIamV2ListPoliciesResponse>, ApiError>,
@@ -520,7 +560,12 @@ pub fn iam_policies_list_policies(
         + 'static,
     ApiError,
 > {
-    let builder = iam_policies_list_policies_builder(client, parent, pageSize, pageToken)?;
+    let builder = iam_policies_list_policies_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     iam_policies_list_policies_execute(builder)
 }
 
@@ -618,6 +663,15 @@ pub fn iam_policies_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iam_policies_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IamPoliciesUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleIamV2Policy,
+}
+
 /// GET v2/policies/{policiesId}/{policiesId1}/{policiesId2}
 /// Updates the specified policy. You can update only the rules and the display name for the policy. To update a policy, you should use a read-modify-write loop: 1. Use GetPolicy to read the current version of the policy. 2. Modify the policy as needed. 3. Use UpdatePolicy to write the updated policy. This pattern helps prevent conflicts between concurrent updates.
 ///
@@ -630,8 +684,7 @@ pub fn iam_policies_update_execute(
 
 pub fn iam_policies_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleIamV2Policy,
+    args: &IamPoliciesUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -640,7 +693,7 @@ pub fn iam_policies_update(
         + 'static,
     ApiError,
 > {
-    let builder = iam_policies_update_builder(client, name, body)?;
+    let builder = iam_policies_update_builder(client, &args.name, &args.body)?;
     iam_policies_update_execute(builder)
 }
 
@@ -738,6 +791,13 @@ pub fn iam_policies_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`iam_policies_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IamPoliciesOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/policies/{policiesId}/{policiesId1}/{policiesId2}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -750,7 +810,7 @@ pub fn iam_policies_operations_get_execute(
 
 pub fn iam_policies_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &IamPoliciesOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -759,6 +819,6 @@ pub fn iam_policies_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = iam_policies_operations_get_builder(client, name)?;
+    let builder = iam_policies_operations_get_builder(client, &args.name)?;
     iam_policies_operations_get_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET pagespeedonline/v5/runPagespeed
 /// Runs PageSpeed analysis on the page at the specified URL, and returns PageSpeed scores, a list of suggestions to make that page faster, and other information.
@@ -142,6 +144,25 @@ pub fn pagespeedonline_pagespeedapi_runpagespeed_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pagespeedonline_pagespeedapi_runpagespeed`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PagespeedonlinePagespeedapiRunpagespeedArgs {
+    /// Path parameter: url
+    pub url: String,
+    /// Query parameter: captchaToken
+    pub captchaToken: Option<String>,
+    /// Query parameter: category
+    pub category: Option<String>,
+    /// Query parameter: locale
+    pub locale: Option<String>,
+    /// Query parameter: strategy
+    pub strategy: Option<String>,
+    /// Query parameter: utm_campaign
+    pub utm_campaign: Option<String>,
+    /// Query parameter: utm_source
+    pub utm_source: Option<String>,
+}
+
 /// GET pagespeedonline/v5/runPagespeed
 /// Runs PageSpeed analysis on the page at the specified URL, and returns PageSpeed scores, a list of suggestions to make that page faster, and other information.
 ///
@@ -154,13 +175,7 @@ pub fn pagespeedonline_pagespeedapi_runpagespeed_execute(
 
 pub fn pagespeedonline_pagespeedapi_runpagespeed(
     client: &SimpleHttpClient,
-    url: &str,
-    captchaToken: Option<&str>,
-    category: Option<&str>,
-    locale: Option<&str>,
-    strategy: Option<&str>,
-    utm_campaign: Option<&str>,
-    utm_source: Option<&str>,
+    args: &PagespeedonlinePagespeedapiRunpagespeedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<PagespeedApiPagespeedResponseV5>, ApiError>,
@@ -171,13 +186,13 @@ pub fn pagespeedonline_pagespeedapi_runpagespeed(
 > {
     let builder = pagespeedonline_pagespeedapi_runpagespeed_builder(
         client,
-        url,
-        captchaToken,
-        category,
-        locale,
-        strategy,
-        utm_campaign,
-        utm_source,
+        &args.url,
+        args.captchaToken.as_deref(),
+        args.category.as_deref(),
+        args.locale.as_deref(),
+        args.strategy.as_deref(),
+        args.utm_campaign.as_deref(),
+        args.utm_source.as_deref(),
     )?;
     pagespeedonline_pagespeedapi_runpagespeed_execute(builder)
 }

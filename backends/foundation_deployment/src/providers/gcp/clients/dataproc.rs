@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoscalingPolicies
 /// Creates new autoscaling policy.
@@ -111,6 +113,15 @@ pub fn dataproc_projects_locations_autoscaling_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_autoscaling_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsAutoscalingPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AutoscalingPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoscalingPolicies
 /// Creates new autoscaling policy.
 ///
@@ -123,16 +134,18 @@ pub fn dataproc_projects_locations_autoscaling_policies_create_execute(
 
 pub fn dataproc_projects_locations_autoscaling_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AutoscalingPolicy,
+    args: &DataprocProjectsLocationsAutoscalingPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutoscalingPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_locations_autoscaling_policies_create_builder(client, parent, body)?;
+    let builder = dataproc_projects_locations_autoscaling_policies_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dataproc_projects_locations_autoscaling_policies_create_execute(builder)
 }
 
@@ -226,6 +239,13 @@ pub fn dataproc_projects_locations_autoscaling_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_autoscaling_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsAutoscalingPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoscalingPolicies/{autoscalingPoliciesId}
 /// Deletes an autoscaling policy. It is an error to delete an autoscaling policy that is in use by one or more clusters.
 ///
@@ -238,12 +258,13 @@ pub fn dataproc_projects_locations_autoscaling_policies_delete_execute(
 
 pub fn dataproc_projects_locations_autoscaling_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsLocationsAutoscalingPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_autoscaling_policies_delete_builder(client, name)?;
+    let builder =
+        dataproc_projects_locations_autoscaling_policies_delete_builder(client, &args.name)?;
     dataproc_projects_locations_autoscaling_policies_delete_execute(builder)
 }
 
@@ -339,6 +360,13 @@ pub fn dataproc_projects_locations_autoscaling_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_autoscaling_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsAutoscalingPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoscalingPolicies/{autoscalingPoliciesId}
 /// Retrieves autoscaling policy.
 ///
@@ -351,14 +379,14 @@ pub fn dataproc_projects_locations_autoscaling_policies_get_execute(
 
 pub fn dataproc_projects_locations_autoscaling_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsLocationsAutoscalingPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutoscalingPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_autoscaling_policies_get_builder(client, name)?;
+    let builder = dataproc_projects_locations_autoscaling_policies_get_builder(client, &args.name)?;
     dataproc_projects_locations_autoscaling_policies_get_execute(builder)
 }
 
@@ -455,6 +483,15 @@ pub fn dataproc_projects_locations_autoscaling_policies_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_autoscaling_policies_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsAutoscalingPoliciesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoscalingPolicies/{autoscalingPoliciesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -467,14 +504,15 @@ pub fn dataproc_projects_locations_autoscaling_policies_get_iam_policy_execute(
 
 pub fn dataproc_projects_locations_autoscaling_policies_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &DataprocProjectsLocationsAutoscalingPoliciesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_locations_autoscaling_policies_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataproc_projects_locations_autoscaling_policies_get_iam_policy_execute(builder)
 }
@@ -589,6 +627,17 @@ pub fn dataproc_projects_locations_autoscaling_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_autoscaling_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsAutoscalingPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoscalingPolicies
 /// Lists autoscaling policies in the project.
 ///
@@ -601,9 +650,7 @@ pub fn dataproc_projects_locations_autoscaling_policies_list_execute(
 
 pub fn dataproc_projects_locations_autoscaling_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataprocProjectsLocationsAutoscalingPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAutoscalingPoliciesResponse>, ApiError>,
@@ -613,7 +660,10 @@ pub fn dataproc_projects_locations_autoscaling_policies_list(
     ApiError,
 > {
     let builder = dataproc_projects_locations_autoscaling_policies_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataproc_projects_locations_autoscaling_policies_list_execute(builder)
 }
@@ -711,6 +761,15 @@ pub fn dataproc_projects_locations_autoscaling_policies_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_autoscaling_policies_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsAutoscalingPoliciesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoscalingPolicies/{autoscalingPoliciesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -723,14 +782,15 @@ pub fn dataproc_projects_locations_autoscaling_policies_set_iam_policy_execute(
 
 pub fn dataproc_projects_locations_autoscaling_policies_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DataprocProjectsLocationsAutoscalingPoliciesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_locations_autoscaling_policies_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataproc_projects_locations_autoscaling_policies_set_iam_policy_execute(builder)
 }
@@ -832,6 +892,15 @@ pub fn dataproc_projects_locations_autoscaling_policies_test_iam_permissions_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_autoscaling_policies_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsAutoscalingPoliciesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoscalingPolicies/{autoscalingPoliciesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -844,8 +913,7 @@ pub fn dataproc_projects_locations_autoscaling_policies_test_iam_permissions_exe
 
 pub fn dataproc_projects_locations_autoscaling_policies_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DataprocProjectsLocationsAutoscalingPoliciesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -855,7 +923,9 @@ pub fn dataproc_projects_locations_autoscaling_policies_test_iam_permissions(
     ApiError,
 > {
     let builder = dataproc_projects_locations_autoscaling_policies_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataproc_projects_locations_autoscaling_policies_test_iam_permissions_execute(builder)
 }
@@ -955,6 +1025,15 @@ pub fn dataproc_projects_locations_autoscaling_policies_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_autoscaling_policies_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsAutoscalingPoliciesUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AutoscalingPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/autoscalingPolicies/{autoscalingPoliciesId}
 /// Updates (replaces) autoscaling policy.Disabled check for update_mask, because all updates will be full replacements.
 ///
@@ -967,16 +1046,16 @@ pub fn dataproc_projects_locations_autoscaling_policies_update_execute(
 
 pub fn dataproc_projects_locations_autoscaling_policies_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AutoscalingPolicy,
+    args: &DataprocProjectsLocationsAutoscalingPoliciesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutoscalingPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_locations_autoscaling_policies_update_builder(client, name, body)?;
+    let builder = dataproc_projects_locations_autoscaling_policies_update_builder(
+        client, &args.name, &args.body,
+    )?;
     dataproc_projects_locations_autoscaling_policies_update_execute(builder)
 }
 
@@ -1073,6 +1152,15 @@ pub fn dataproc_projects_locations_batches_analyze_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_analyze`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesAnalyzeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AnalyzeBatchRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}:analyze
 /// Analyze a Batch for possible recommendations and insights.
 ///
@@ -1085,13 +1173,13 @@ pub fn dataproc_projects_locations_batches_analyze_execute(
 
 pub fn dataproc_projects_locations_batches_analyze(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AnalyzeBatchRequest,
+    args: &DataprocProjectsLocationsBatchesAnalyzeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_batches_analyze_builder(client, name, body)?;
+    let builder =
+        dataproc_projects_locations_batches_analyze_builder(client, &args.name, &args.body)?;
     dataproc_projects_locations_batches_analyze_execute(builder)
 }
 
@@ -1204,6 +1292,19 @@ pub fn dataproc_projects_locations_batches_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: batchId
+    pub batchId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Batch,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches
 /// Creates a batch workload that executes asynchronously.
 ///
@@ -1216,16 +1317,17 @@ pub fn dataproc_projects_locations_batches_create_execute(
 
 pub fn dataproc_projects_locations_batches_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    batchId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Batch,
+    args: &DataprocProjectsLocationsBatchesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_locations_batches_create_builder(
-        client, parent, batchId, requestId, body,
+        client,
+        &args.parent,
+        args.batchId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     dataproc_projects_locations_batches_create_execute(builder)
 }
@@ -1320,6 +1422,13 @@ pub fn dataproc_projects_locations_batches_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}
 /// Deletes the batch workload resource. If the batch is not in a CANCELLED, SUCCEEDED or FAILED State, the delete operation fails and the response returns FAILED_PRECONDITION.
 ///
@@ -1332,12 +1441,12 @@ pub fn dataproc_projects_locations_batches_delete_execute(
 
 pub fn dataproc_projects_locations_batches_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsLocationsBatchesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_batches_delete_builder(client, name)?;
+    let builder = dataproc_projects_locations_batches_delete_builder(client, &args.name)?;
     dataproc_projects_locations_batches_delete_execute(builder)
 }
 
@@ -1431,6 +1540,13 @@ pub fn dataproc_projects_locations_batches_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}
 /// Gets the batch workload resource representation.
 ///
@@ -1443,12 +1559,12 @@ pub fn dataproc_projects_locations_batches_get_execute(
 
 pub fn dataproc_projects_locations_batches_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsLocationsBatchesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Batch>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_batches_get_builder(client, name)?;
+    let builder = dataproc_projects_locations_batches_get_builder(client, &args.name)?;
     dataproc_projects_locations_batches_get_execute(builder)
 }
 
@@ -1568,6 +1684,21 @@ pub fn dataproc_projects_locations_batches_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches
 /// Lists batch workloads.
 ///
@@ -1580,11 +1711,7 @@ pub fn dataproc_projects_locations_batches_list_execute(
 
 pub fn dataproc_projects_locations_batches_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBatchesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1592,7 +1719,12 @@ pub fn dataproc_projects_locations_batches_list(
     ApiError,
 > {
     let builder = dataproc_projects_locations_batches_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataproc_projects_locations_batches_list_execute(builder)
 }
@@ -1703,6 +1835,15 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsAccessArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:access
 /// Obtain high level information corresponding to a single Spark Application.
 ///
@@ -1715,8 +1856,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_execute(
 
 pub fn dataproc_projects_locations_batches_spark_applications_access(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsAccessArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessSparkApplicationResponse>, ApiError>,
@@ -1726,7 +1866,9 @@ pub fn dataproc_projects_locations_batches_spark_applications_access(
     ApiError,
 > {
     let builder = dataproc_projects_locations_batches_spark_applications_access_builder(
-        client, name, parent,
+        client,
+        &args.name,
+        args.parent.as_deref(),
     )?;
     dataproc_projects_locations_batches_spark_applications_access_execute(builder)
 }
@@ -1838,6 +1980,15 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_environment
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_access_environment_info`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsAccessEnvironmentInfoArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessEnvironmentInfo
 /// Obtain environment details for a Spark Application
 ///
@@ -1850,8 +2001,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_environment
 
 pub fn dataproc_projects_locations_batches_spark_applications_access_environment_info(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsAccessEnvironmentInfoArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessSparkApplicationEnvironmentInfoResponse>, ApiError>,
@@ -1862,7 +2012,9 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_environment
 > {
     let builder =
         dataproc_projects_locations_batches_spark_applications_access_environment_info_builder(
-            client, name, parent,
+            client,
+            &args.name,
+            args.parent.as_deref(),
         )?;
     dataproc_projects_locations_batches_spark_applications_access_environment_info_execute(builder)
 }
@@ -1977,6 +2129,17 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_job_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_access_job`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsAccessJobArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: jobId
+    pub jobId: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessJob
 /// Obtain data corresponding to a spark job for a Spark Application.
 ///
@@ -1989,9 +2152,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_job_execute
 
 pub fn dataproc_projects_locations_batches_spark_applications_access_job(
     client: &SimpleHttpClient,
-    name: &str,
-    jobId: Option<&str>,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsAccessJobArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessSparkApplicationJobResponse>, ApiError>,
@@ -2001,7 +2162,10 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_job(
     ApiError,
 > {
     let builder = dataproc_projects_locations_batches_spark_applications_access_job_builder(
-        client, name, jobId, parent,
+        client,
+        &args.name,
+        args.jobId.as_deref(),
+        args.parent.as_deref(),
     )?;
     dataproc_projects_locations_batches_spark_applications_access_job_execute(builder)
 }
@@ -2117,6 +2281,17 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_sql_plan_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_access_sql_plan`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsAccessSqlPlanArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: executionId
+    pub executionId: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessSqlPlan
 /// Obtain Spark Plan Graph for a Spark Application SQL execution. Limits the number of clusters returned as part of the graph to 10000.
 ///
@@ -2129,9 +2304,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_sql_plan_ex
 
 pub fn dataproc_projects_locations_batches_spark_applications_access_sql_plan(
     client: &SimpleHttpClient,
-    name: &str,
-    executionId: Option<&str>,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsAccessSqlPlanArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessSparkApplicationSqlSparkPlanGraphResponse>, ApiError>,
@@ -2142,9 +2315,9 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_sql_plan(
 > {
     let builder = dataproc_projects_locations_batches_spark_applications_access_sql_plan_builder(
         client,
-        name,
-        executionId,
-        parent,
+        &args.name,
+        args.executionId.as_deref(),
+        args.parent.as_deref(),
     )?;
     dataproc_projects_locations_batches_spark_applications_access_sql_plan_execute(builder)
 }
@@ -2267,6 +2440,21 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_sql_query_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_access_sql_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsAccessSqlQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: details
+    pub details: Option<bool>,
+    /// Query parameter: executionId
+    pub executionId: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: planDescription
+    pub planDescription: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessSqlQuery
 /// Obtain data corresponding to a particular SQL Query for a Spark Application.
 ///
@@ -2279,11 +2467,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_sql_query_e
 
 pub fn dataproc_projects_locations_batches_spark_applications_access_sql_query(
     client: &SimpleHttpClient,
-    name: &str,
-    details: Option<bool>,
-    executionId: Option<&str>,
-    parent: Option<&str>,
-    planDescription: Option<bool>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsAccessSqlQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessSparkApplicationSqlQueryResponse>, ApiError>,
@@ -2294,11 +2478,11 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_sql_query(
 > {
     let builder = dataproc_projects_locations_batches_spark_applications_access_sql_query_builder(
         client,
-        name,
-        details,
-        executionId,
-        parent,
-        planDescription,
+        &args.name,
+        args.details,
+        args.executionId.as_deref(),
+        args.parent.as_deref(),
+        args.planDescription,
     )?;
     dataproc_projects_locations_batches_spark_applications_access_sql_query_execute(builder)
 }
@@ -2422,6 +2606,21 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_stage_attem
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_access_stage_attempt`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsAccessStageAttemptArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: stageAttemptId
+    pub stageAttemptId: Option<i32>,
+    /// Query parameter: stageId
+    pub stageId: Option<String>,
+    /// Query parameter: summaryMetricsMask
+    pub summaryMetricsMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessStageAttempt
 /// Obtain data corresponding to a spark stage attempt for a Spark Application.
 ///
@@ -2434,11 +2633,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_stage_attem
 
 pub fn dataproc_projects_locations_batches_spark_applications_access_stage_attempt(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
-    stageAttemptId: Option<i32>,
-    stageId: Option<&str>,
-    summaryMetricsMask: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsAccessStageAttemptArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessSparkApplicationStageAttemptResponse>, ApiError>,
@@ -2450,11 +2645,11 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_stage_attem
     let builder =
         dataproc_projects_locations_batches_spark_applications_access_stage_attempt_builder(
             client,
-            name,
-            parent,
-            stageAttemptId,
-            stageId,
-            summaryMetricsMask,
+            &args.name,
+            args.parent.as_deref(),
+            args.stageAttemptId,
+            args.stageId.as_deref(),
+            args.summaryMetricsMask.as_deref(),
         )?;
     dataproc_projects_locations_batches_spark_applications_access_stage_attempt_execute(builder)
 }
@@ -2570,6 +2765,17 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_stage_rdd_g
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_access_stage_rdd_graph`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsAccessStageRddGraphArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: stageId
+    pub stageId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:accessStageRddGraph
 /// Obtain RDD operation graph for a Spark Application Stage. Limits the number of clusters returned as part of the graph to 10000.
 ///
@@ -2582,9 +2788,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_stage_rdd_g
 
 pub fn dataproc_projects_locations_batches_spark_applications_access_stage_rdd_graph(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
-    stageId: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsAccessStageRddGraphArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessSparkApplicationStageRddOperationGraphResponse>, ApiError>,
@@ -2595,7 +2799,10 @@ pub fn dataproc_projects_locations_batches_spark_applications_access_stage_rdd_g
 > {
     let builder =
         dataproc_projects_locations_batches_spark_applications_access_stage_rdd_graph_builder(
-            client, name, parent, stageId,
+            client,
+            &args.name,
+            args.parent.as_deref(),
+            args.stageId.as_deref(),
         )?;
     dataproc_projects_locations_batches_spark_applications_access_stage_rdd_graph_execute(builder)
 }
@@ -2730,6 +2937,27 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: applicationStatus
+    pub applicationStatus: Option<String>,
+    /// Query parameter: maxEndTime
+    pub maxEndTime: Option<String>,
+    /// Query parameter: maxTime
+    pub maxTime: Option<String>,
+    /// Query parameter: minEndTime
+    pub minEndTime: Option<String>,
+    /// Query parameter: minTime
+    pub minTime: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications:search
 /// Obtain high level information and list of Spark Applications corresponding to a batch
 ///
@@ -2742,14 +2970,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_execute(
 
 pub fn dataproc_projects_locations_batches_spark_applications_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    applicationStatus: Option<&str>,
-    maxEndTime: Option<&str>,
-    maxTime: Option<&str>,
-    minEndTime: Option<&str>,
-    minTime: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchSparkApplicationsResponse>, ApiError>,
@@ -2760,14 +2981,14 @@ pub fn dataproc_projects_locations_batches_spark_applications_search(
 > {
     let builder = dataproc_projects_locations_batches_spark_applications_search_builder(
         client,
-        parent,
-        applicationStatus,
-        maxEndTime,
-        maxTime,
-        minEndTime,
-        minTime,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.applicationStatus.as_deref(),
+        args.maxEndTime.as_deref(),
+        args.maxTime.as_deref(),
+        args.minEndTime.as_deref(),
+        args.minTime.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataproc_projects_locations_batches_spark_applications_search_execute(builder)
 }
@@ -2895,6 +3116,23 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_executor_st
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_search_executor_stage_summary`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchExecutorStageSummaryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: stageAttemptId
+    pub stageAttemptId: Option<i32>,
+    /// Query parameter: stageId
+    pub stageId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchExecutorStageSummary
 /// Obtain executor summary with respect to a spark stage attempt.
 ///
@@ -2907,12 +3145,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_executor_st
 
 pub fn dataproc_projects_locations_batches_spark_applications_search_executor_stage_summary(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
-    stageAttemptId: Option<i32>,
-    stageId: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsSearchExecutorStageSummaryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchSparkApplicationExecutorStageSummaryResponse>, ApiError>,
@@ -2921,7 +3154,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_executor_st
         + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_batches_spark_applications_search_executor_stage_summary_builder(client, name, pageSize, pageToken, parent, stageAttemptId, stageId)?;
+    let builder = dataproc_projects_locations_batches_spark_applications_search_executor_stage_summary_builder(client, &args.name, args.pageSize, args.pageToken.as_deref(), args.parent.as_deref(), args.stageAttemptId, args.stageId.as_deref())?;
     dataproc_projects_locations_batches_spark_applications_search_executor_stage_summary_execute(
         builder,
     )
@@ -3046,6 +3279,21 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_executors_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_search_executors`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchExecutorsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: executorStatus
+    pub executorStatus: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchExecutors
 /// Obtain data corresponding to executors for a Spark Application.
 ///
@@ -3058,11 +3306,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_executors_e
 
 pub fn dataproc_projects_locations_batches_spark_applications_search_executors(
     client: &SimpleHttpClient,
-    name: &str,
-    executorStatus: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsSearchExecutorsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchSparkApplicationExecutorsResponse>, ApiError>,
@@ -3073,11 +3317,11 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_executors(
 > {
     let builder = dataproc_projects_locations_batches_spark_applications_search_executors_builder(
         client,
-        name,
-        executorStatus,
-        pageSize,
-        pageToken,
-        parent,
+        &args.name,
+        args.executorStatus.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
     )?;
     dataproc_projects_locations_batches_spark_applications_search_executors_execute(builder)
 }
@@ -3200,6 +3444,21 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_jobs_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_search_jobs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchJobsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: jobStatus
+    pub jobStatus: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchJobs
 /// Obtain list of spark jobs corresponding to a Spark Application.
 ///
@@ -3212,11 +3471,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_jobs_execut
 
 pub fn dataproc_projects_locations_batches_spark_applications_search_jobs(
     client: &SimpleHttpClient,
-    name: &str,
-    jobStatus: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsSearchJobsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchSparkApplicationJobsResponse>, ApiError>,
@@ -3226,7 +3481,12 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_jobs(
     ApiError,
 > {
     let builder = dataproc_projects_locations_batches_spark_applications_search_jobs_builder(
-        client, name, jobStatus, pageSize, pageToken, parent,
+        client,
+        &args.name,
+        args.jobStatus.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
     )?;
     dataproc_projects_locations_batches_spark_applications_search_jobs_execute(builder)
 }
@@ -3353,6 +3613,23 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_sql_queries
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_search_sql_queries`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchSqlQueriesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: details
+    pub details: Option<bool>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: planDescription
+    pub planDescription: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchSqlQueries
 /// Obtain data corresponding to SQL Queries for a Spark Application.
 ///
@@ -3365,12 +3642,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_sql_queries
 
 pub fn dataproc_projects_locations_batches_spark_applications_search_sql_queries(
     client: &SimpleHttpClient,
-    name: &str,
-    details: Option<bool>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
-    planDescription: Option<bool>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsSearchSqlQueriesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchSparkApplicationSqlQueriesResponse>, ApiError>,
@@ -3382,12 +3654,12 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_sql_queries
     let builder =
         dataproc_projects_locations_batches_spark_applications_search_sql_queries_builder(
             client,
-            name,
-            details,
-            pageSize,
-            pageToken,
-            parent,
-            planDescription,
+            &args.name,
+            args.details,
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.parent.as_deref(),
+            args.planDescription,
         )?;
     dataproc_projects_locations_batches_spark_applications_search_sql_queries_execute(builder)
 }
@@ -3523,6 +3795,27 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attem
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_search_stage_attempt_tasks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchStageAttemptTasksArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: sortRuntime
+    pub sortRuntime: Option<bool>,
+    /// Query parameter: stageAttemptId
+    pub stageAttemptId: Option<i32>,
+    /// Query parameter: stageId
+    pub stageId: Option<String>,
+    /// Query parameter: taskStatus
+    pub taskStatus: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchStageAttemptTasks
 /// Obtain data corresponding to tasks for a spark stage attempt for a Spark Application.
 ///
@@ -3535,14 +3828,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attem
 
 pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attempt_tasks(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
-    sortRuntime: Option<bool>,
-    stageAttemptId: Option<i32>,
-    stageId: Option<&str>,
-    taskStatus: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsSearchStageAttemptTasksArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchSparkApplicationStageAttemptTasksResponse>, ApiError>,
@@ -3554,14 +3840,14 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attem
     let builder =
         dataproc_projects_locations_batches_spark_applications_search_stage_attempt_tasks_builder(
             client,
-            name,
-            pageSize,
-            pageToken,
-            parent,
-            sortRuntime,
-            stageAttemptId,
-            stageId,
-            taskStatus,
+            &args.name,
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.parent.as_deref(),
+            args.sortRuntime,
+            args.stageAttemptId,
+            args.stageId.as_deref(),
+            args.taskStatus.as_deref(),
         )?;
     dataproc_projects_locations_batches_spark_applications_search_stage_attempt_tasks_execute(
         builder,
@@ -3691,6 +3977,23 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attem
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_search_stage_attempts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchStageAttemptsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: stageId
+    pub stageId: Option<String>,
+    /// Query parameter: summaryMetricsMask
+    pub summaryMetricsMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchStageAttempts
 /// Obtain data corresponding to a spark stage attempts for a Spark Application.
 ///
@@ -3703,12 +4006,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attem
 
 pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attempts(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
-    stageId: Option<&str>,
-    summaryMetricsMask: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsSearchStageAttemptsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchSparkApplicationStageAttemptsResponse>, ApiError>,
@@ -3720,12 +4018,12 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stage_attem
     let builder =
         dataproc_projects_locations_batches_spark_applications_search_stage_attempts_builder(
             client,
-            name,
-            pageSize,
-            pageToken,
-            parent,
-            stageId,
-            summaryMetricsMask,
+            &args.name,
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.parent.as_deref(),
+            args.stageId.as_deref(),
+            args.summaryMetricsMask.as_deref(),
         )?;
     dataproc_projects_locations_batches_spark_applications_search_stage_attempts_execute(builder)
 }
@@ -3852,6 +4150,23 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stages_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_search_stages`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsSearchStagesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: stageStatus
+    pub stageStatus: Option<String>,
+    /// Query parameter: summaryMetricsMask
+    pub summaryMetricsMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:searchStages
 /// Obtain data corresponding to stages for a Spark Application.
 ///
@@ -3864,12 +4179,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stages_exec
 
 pub fn dataproc_projects_locations_batches_spark_applications_search_stages(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
-    stageStatus: Option<&str>,
-    summaryMetricsMask: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsSearchStagesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchSparkApplicationStagesResponse>, ApiError>,
@@ -3880,12 +4190,12 @@ pub fn dataproc_projects_locations_batches_spark_applications_search_stages(
 > {
     let builder = dataproc_projects_locations_batches_spark_applications_search_stages_builder(
         client,
-        name,
-        pageSize,
-        pageToken,
-        parent,
-        stageStatus,
-        summaryMetricsMask,
+        &args.name,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
+        args.stageStatus.as_deref(),
+        args.summaryMetricsMask.as_deref(),
     )?;
     dataproc_projects_locations_batches_spark_applications_search_stages_execute(builder)
 }
@@ -3997,6 +4307,15 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_executor
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_summarize_executors`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsSummarizeExecutorsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:summarizeExecutors
 /// Obtain summary of Executor Summary for a Spark Application
 ///
@@ -4009,8 +4328,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_executor
 
 pub fn dataproc_projects_locations_batches_spark_applications_summarize_executors(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsSummarizeExecutorsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SummarizeSparkApplicationExecutorsResponse>, ApiError>,
@@ -4021,7 +4339,9 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_executor
 > {
     let builder =
         dataproc_projects_locations_batches_spark_applications_summarize_executors_builder(
-            client, name, parent,
+            client,
+            &args.name,
+            args.parent.as_deref(),
         )?;
     dataproc_projects_locations_batches_spark_applications_summarize_executors_execute(builder)
 }
@@ -4132,6 +4452,15 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_jobs_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_summarize_jobs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsSummarizeJobsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:summarizeJobs
 /// Obtain summary of Jobs for a Spark Application
 ///
@@ -4144,8 +4473,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_jobs_exe
 
 pub fn dataproc_projects_locations_batches_spark_applications_summarize_jobs(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsSummarizeJobsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SummarizeSparkApplicationJobsResponse>, ApiError>,
@@ -4155,7 +4483,9 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_jobs(
     ApiError,
 > {
     let builder = dataproc_projects_locations_batches_spark_applications_summarize_jobs_builder(
-        client, name, parent,
+        client,
+        &args.name,
+        args.parent.as_deref(),
     )?;
     dataproc_projects_locations_batches_spark_applications_summarize_jobs_execute(builder)
 }
@@ -4275,6 +4605,19 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_stage_at
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_summarize_stage_attempt_tasks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsSummarizeStageAttemptTasksArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: stageAttemptId
+    pub stageAttemptId: Option<i32>,
+    /// Query parameter: stageId
+    pub stageId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:summarizeStageAttemptTasks
 /// Obtain summary of Tasks for a Spark Application Stage Attempt
 ///
@@ -4287,10 +4630,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_stage_at
 
 pub fn dataproc_projects_locations_batches_spark_applications_summarize_stage_attempt_tasks(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
-    stageAttemptId: Option<i32>,
-    stageId: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsSummarizeStageAttemptTasksArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SummarizeSparkApplicationStageAttemptTasksResponse>, ApiError>,
@@ -4299,7 +4639,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_stage_at
         + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_batches_spark_applications_summarize_stage_attempt_tasks_builder(client, name, parent, stageAttemptId, stageId)?;
+    let builder = dataproc_projects_locations_batches_spark_applications_summarize_stage_attempt_tasks_builder(client, &args.name, args.parent.as_deref(), args.stageAttemptId, args.stageId.as_deref())?;
     dataproc_projects_locations_batches_spark_applications_summarize_stage_attempt_tasks_execute(
         builder,
     )
@@ -4412,6 +4752,15 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_stages_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_summarize_stages`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsSummarizeStagesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:summarizeStages
 /// Obtain summary of Stages for a Spark Application
 ///
@@ -4424,8 +4773,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_stages_e
 
 pub fn dataproc_projects_locations_batches_spark_applications_summarize_stages(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsSummarizeStagesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SummarizeSparkApplicationStagesResponse>, ApiError>,
@@ -4435,7 +4783,9 @@ pub fn dataproc_projects_locations_batches_spark_applications_summarize_stages(
     ApiError,
 > {
     let builder = dataproc_projects_locations_batches_spark_applications_summarize_stages_builder(
-        client, name, parent,
+        client,
+        &args.name,
+        args.parent.as_deref(),
     )?;
     dataproc_projects_locations_batches_spark_applications_summarize_stages_execute(builder)
 }
@@ -4537,6 +4887,15 @@ pub fn dataproc_projects_locations_batches_spark_applications_write_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_batches_spark_applications_write`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsBatchesSparkApplicationsWriteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: WriteSparkApplicationContextRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/batches/{batchesId}/sparkApplications/{sparkApplicationsId}:write
 /// Write wrapper objects from dataplane to spanner
 ///
@@ -4549,8 +4908,7 @@ pub fn dataproc_projects_locations_batches_spark_applications_write_execute(
 
 pub fn dataproc_projects_locations_batches_spark_applications_write(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &WriteSparkApplicationContextRequest,
+    args: &DataprocProjectsLocationsBatchesSparkApplicationsWriteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<WriteSparkApplicationContextResponse>, ApiError>,
@@ -4559,8 +4917,9 @@ pub fn dataproc_projects_locations_batches_spark_applications_write(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_locations_batches_spark_applications_write_builder(client, name, body)?;
+    let builder = dataproc_projects_locations_batches_spark_applications_write_builder(
+        client, &args.name, &args.body,
+    )?;
     dataproc_projects_locations_batches_spark_applications_write_execute(builder)
 }
 
@@ -4654,6 +5013,13 @@ pub fn dataproc_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -4666,12 +5032,12 @@ pub fn dataproc_projects_locations_operations_cancel_execute(
 
 pub fn dataproc_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_operations_cancel_builder(client, name)?;
+    let builder = dataproc_projects_locations_operations_cancel_builder(client, &args.name)?;
     dataproc_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -4765,6 +5131,13 @@ pub fn dataproc_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -4777,12 +5150,12 @@ pub fn dataproc_projects_locations_operations_delete_execute(
 
 pub fn dataproc_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_operations_delete_builder(client, name)?;
+    let builder = dataproc_projects_locations_operations_delete_builder(client, &args.name)?;
     dataproc_projects_locations_operations_delete_execute(builder)
 }
 
@@ -4876,6 +5249,13 @@ pub fn dataproc_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -4888,12 +5268,12 @@ pub fn dataproc_projects_locations_operations_get_execute(
 
 pub fn dataproc_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_operations_get_builder(client, name)?;
+    let builder = dataproc_projects_locations_operations_get_builder(client, &args.name)?;
     dataproc_projects_locations_operations_get_execute(builder)
 }
 
@@ -5013,6 +5393,21 @@ pub fn dataproc_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -5025,11 +5420,7 @@ pub fn dataproc_projects_locations_operations_list_execute(
 
 pub fn dataproc_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DataprocProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5038,11 +5429,11 @@ pub fn dataproc_projects_locations_operations_list(
 > {
     let builder = dataproc_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     dataproc_projects_locations_operations_list_execute(builder)
 }
@@ -5142,6 +5533,15 @@ pub fn dataproc_projects_locations_session_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_session_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: SessionTemplate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessionTemplates
 /// Create a session template synchronously.
 ///
@@ -5154,16 +5554,18 @@ pub fn dataproc_projects_locations_session_templates_create_execute(
 
 pub fn dataproc_projects_locations_session_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &SessionTemplate,
+    args: &DataprocProjectsLocationsSessionTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SessionTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_locations_session_templates_create_builder(client, parent, body)?;
+    let builder = dataproc_projects_locations_session_templates_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dataproc_projects_locations_session_templates_create_execute(builder)
 }
 
@@ -5257,6 +5659,13 @@ pub fn dataproc_projects_locations_session_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_session_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessionTemplates/{sessionTemplatesId}
 /// Deletes a session template.
 ///
@@ -5269,12 +5678,12 @@ pub fn dataproc_projects_locations_session_templates_delete_execute(
 
 pub fn dataproc_projects_locations_session_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsLocationsSessionTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_session_templates_delete_builder(client, name)?;
+    let builder = dataproc_projects_locations_session_templates_delete_builder(client, &args.name)?;
     dataproc_projects_locations_session_templates_delete_execute(builder)
 }
 
@@ -5370,6 +5779,13 @@ pub fn dataproc_projects_locations_session_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_session_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessionTemplates/{sessionTemplatesId}
 /// Gets the resource representation for a session template.
 ///
@@ -5382,14 +5798,14 @@ pub fn dataproc_projects_locations_session_templates_get_execute(
 
 pub fn dataproc_projects_locations_session_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsLocationsSessionTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SessionTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_session_templates_get_builder(client, name)?;
+    let builder = dataproc_projects_locations_session_templates_get_builder(client, &args.name)?;
     dataproc_projects_locations_session_templates_get_execute(builder)
 }
 
@@ -5507,6 +5923,19 @@ pub fn dataproc_projects_locations_session_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_session_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessionTemplates
 /// Lists session templates.
 ///
@@ -5519,10 +5948,7 @@ pub fn dataproc_projects_locations_session_templates_list_execute(
 
 pub fn dataproc_projects_locations_session_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataprocProjectsLocationsSessionTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListSessionTemplatesResponse>, ApiError>,
@@ -5532,7 +5958,11 @@ pub fn dataproc_projects_locations_session_templates_list(
     ApiError,
 > {
     let builder = dataproc_projects_locations_session_templates_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataproc_projects_locations_session_templates_list_execute(builder)
 }
@@ -5632,6 +6062,15 @@ pub fn dataproc_projects_locations_session_templates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_session_templates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionTemplatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SessionTemplate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessionTemplates/{sessionTemplatesId}
 /// Updates the session template synchronously.
 ///
@@ -5644,15 +6083,16 @@ pub fn dataproc_projects_locations_session_templates_patch_execute(
 
 pub fn dataproc_projects_locations_session_templates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SessionTemplate,
+    args: &DataprocProjectsLocationsSessionTemplatesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SessionTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_session_templates_patch_builder(client, name, body)?;
+    let builder = dataproc_projects_locations_session_templates_patch_builder(
+        client, &args.name, &args.body,
+    )?;
     dataproc_projects_locations_session_templates_patch_execute(builder)
 }
 
@@ -5765,6 +6205,19 @@ pub fn dataproc_projects_locations_sessions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: sessionId
+    pub sessionId: Option<String>,
+    /// Request body.
+    pub body: Session,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions
 /// Create an interactive session asynchronously.
 ///
@@ -5777,16 +6230,17 @@ pub fn dataproc_projects_locations_sessions_create_execute(
 
 pub fn dataproc_projects_locations_sessions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    sessionId: Option<&str>,
-    body: &Session,
+    args: &DataprocProjectsLocationsSessionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_locations_sessions_create_builder(
-        client, parent, requestId, sessionId, body,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.sessionId.as_deref(),
+        &args.body,
     )?;
     dataproc_projects_locations_sessions_create_execute(builder)
 }
@@ -5893,6 +6347,15 @@ pub fn dataproc_projects_locations_sessions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}
 /// Deletes the interactive session resource. If the session is not in terminal state, it is terminated, and then deleted.
 ///
@@ -5905,13 +6368,16 @@ pub fn dataproc_projects_locations_sessions_delete_execute(
 
 pub fn dataproc_projects_locations_sessions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_sessions_delete_builder(client, name, requestId)?;
+    let builder = dataproc_projects_locations_sessions_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     dataproc_projects_locations_sessions_delete_execute(builder)
 }
 
@@ -6005,6 +6471,13 @@ pub fn dataproc_projects_locations_sessions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}
 /// Gets the resource representation for an interactive session.
 ///
@@ -6017,12 +6490,12 @@ pub fn dataproc_projects_locations_sessions_get_execute(
 
 pub fn dataproc_projects_locations_sessions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsLocationsSessionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Session>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_sessions_get_builder(client, name)?;
+    let builder = dataproc_projects_locations_sessions_get_builder(client, &args.name)?;
     dataproc_projects_locations_sessions_get_execute(builder)
 }
 
@@ -6138,6 +6611,19 @@ pub fn dataproc_projects_locations_sessions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions
 /// Lists interactive sessions.
 ///
@@ -6150,10 +6636,7 @@ pub fn dataproc_projects_locations_sessions_list_execute(
 
 pub fn dataproc_projects_locations_sessions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSessionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6161,7 +6644,11 @@ pub fn dataproc_projects_locations_sessions_list(
     ApiError,
 > {
     let builder = dataproc_projects_locations_sessions_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataproc_projects_locations_sessions_list_execute(builder)
 }
@@ -6259,6 +6746,15 @@ pub fn dataproc_projects_locations_sessions_terminate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_terminate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsTerminateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: TerminateSessionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}:terminate
 /// Terminates the interactive session.
 ///
@@ -6271,13 +6767,13 @@ pub fn dataproc_projects_locations_sessions_terminate_execute(
 
 pub fn dataproc_projects_locations_sessions_terminate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &TerminateSessionRequest,
+    args: &DataprocProjectsLocationsSessionsTerminateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_sessions_terminate_builder(client, name, body)?;
+    let builder =
+        dataproc_projects_locations_sessions_terminate_builder(client, &args.name, &args.body)?;
     dataproc_projects_locations_sessions_terminate_execute(builder)
 }
 
@@ -6387,6 +6883,15 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsAccessArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:access
 /// Obtain high level information corresponding to a single Spark Application.
 ///
@@ -6399,8 +6904,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_execute(
 
 pub fn dataproc_projects_locations_sessions_spark_applications_access(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsAccessArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessSessionSparkApplicationResponse>, ApiError>,
@@ -6410,7 +6914,9 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access(
     ApiError,
 > {
     let builder = dataproc_projects_locations_sessions_spark_applications_access_builder(
-        client, name, parent,
+        client,
+        &args.name,
+        args.parent.as_deref(),
     )?;
     dataproc_projects_locations_sessions_spark_applications_access_execute(builder)
 }
@@ -6522,6 +7028,15 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_environmen
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_access_environment_info`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsAccessEnvironmentInfoArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessEnvironmentInfo
 /// Obtain environment details for a Spark Application
 ///
@@ -6534,8 +7049,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_environmen
 
 pub fn dataproc_projects_locations_sessions_spark_applications_access_environment_info(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsAccessEnvironmentInfoArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessSessionSparkApplicationEnvironmentInfoResponse>, ApiError>,
@@ -6546,7 +7060,9 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_environmen
 > {
     let builder =
         dataproc_projects_locations_sessions_spark_applications_access_environment_info_builder(
-            client, name, parent,
+            client,
+            &args.name,
+            args.parent.as_deref(),
         )?;
     dataproc_projects_locations_sessions_spark_applications_access_environment_info_execute(builder)
 }
@@ -6661,6 +7177,17 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_job_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_access_job`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsAccessJobArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: jobId
+    pub jobId: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessJob
 /// Obtain data corresponding to a spark job for a Spark Application.
 ///
@@ -6673,9 +7200,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_job_execut
 
 pub fn dataproc_projects_locations_sessions_spark_applications_access_job(
     client: &SimpleHttpClient,
-    name: &str,
-    jobId: Option<&str>,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsAccessJobArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessSessionSparkApplicationJobResponse>, ApiError>,
@@ -6685,7 +7210,10 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_job(
     ApiError,
 > {
     let builder = dataproc_projects_locations_sessions_spark_applications_access_job_builder(
-        client, name, jobId, parent,
+        client,
+        &args.name,
+        args.jobId.as_deref(),
+        args.parent.as_deref(),
     )?;
     dataproc_projects_locations_sessions_spark_applications_access_job_execute(builder)
 }
@@ -6804,6 +7332,17 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_plan_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_access_sql_plan`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsAccessSqlPlanArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: executionId
+    pub executionId: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessSqlPlan
 /// Obtain Spark Plan Graph for a Spark Application SQL execution. Limits the number of clusters returned as part of the graph to 10000.
 ///
@@ -6816,9 +7355,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_plan_e
 
 pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_plan(
     client: &SimpleHttpClient,
-    name: &str,
-    executionId: Option<&str>,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsAccessSqlPlanArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -6832,9 +7369,9 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_plan(
 > {
     let builder = dataproc_projects_locations_sessions_spark_applications_access_sql_plan_builder(
         client,
-        name,
-        executionId,
-        parent,
+        &args.name,
+        args.executionId.as_deref(),
+        args.parent.as_deref(),
     )?;
     dataproc_projects_locations_sessions_spark_applications_access_sql_plan_execute(builder)
 }
@@ -6958,6 +7495,21 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_query_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_access_sql_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsAccessSqlQueryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: details
+    pub details: Option<bool>,
+    /// Query parameter: executionId
+    pub executionId: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: planDescription
+    pub planDescription: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessSqlQuery
 /// Obtain data corresponding to a particular SQL Query for a Spark Application.
 ///
@@ -6970,11 +7522,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_query_
 
 pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_query(
     client: &SimpleHttpClient,
-    name: &str,
-    details: Option<bool>,
-    executionId: Option<&str>,
-    parent: Option<&str>,
-    planDescription: Option<bool>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsAccessSqlQueryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessSessionSparkApplicationSqlQueryResponse>, ApiError>,
@@ -6985,11 +7533,11 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_sql_query(
 > {
     let builder = dataproc_projects_locations_sessions_spark_applications_access_sql_query_builder(
         client,
-        name,
-        details,
-        executionId,
-        parent,
-        planDescription,
+        &args.name,
+        args.details,
+        args.executionId.as_deref(),
+        args.parent.as_deref(),
+        args.planDescription,
     )?;
     dataproc_projects_locations_sessions_spark_applications_access_sql_query_execute(builder)
 }
@@ -7113,6 +7661,21 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_atte
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_access_stage_attempt`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsAccessStageAttemptArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: stageAttemptId
+    pub stageAttemptId: Option<i32>,
+    /// Query parameter: stageId
+    pub stageId: Option<String>,
+    /// Query parameter: summaryMetricsMask
+    pub summaryMetricsMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessStageAttempt
 /// Obtain data corresponding to a spark stage attempt for a Spark Application.
 ///
@@ -7125,11 +7688,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_atte
 
 pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_attempt(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
-    stageAttemptId: Option<i32>,
-    stageId: Option<&str>,
-    summaryMetricsMask: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsAccessStageAttemptArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AccessSessionSparkApplicationStageAttemptResponse>, ApiError>,
@@ -7141,11 +7700,11 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_atte
     let builder =
         dataproc_projects_locations_sessions_spark_applications_access_stage_attempt_builder(
             client,
-            name,
-            parent,
-            stageAttemptId,
-            stageId,
-            summaryMetricsMask,
+            &args.name,
+            args.parent.as_deref(),
+            args.stageAttemptId,
+            args.stageId.as_deref(),
+            args.summaryMetricsMask.as_deref(),
         )?;
     dataproc_projects_locations_sessions_spark_applications_access_stage_attempt_execute(builder)
 }
@@ -7264,6 +7823,17 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_rdd_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_access_stage_rdd_graph`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsAccessStageRddGraphArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: stageId
+    pub stageId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:accessStageRddGraph
 /// Obtain RDD operation graph for a Spark Application Stage. Limits the number of clusters returned as part of the graph to 10000.
 ///
@@ -7276,9 +7846,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_rdd_
 
 pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_rdd_graph(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
-    stageId: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsAccessStageRddGraphArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -7292,7 +7860,10 @@ pub fn dataproc_projects_locations_sessions_spark_applications_access_stage_rdd_
 > {
     let builder =
         dataproc_projects_locations_sessions_spark_applications_access_stage_rdd_graph_builder(
-            client, name, parent, stageId,
+            client,
+            &args.name,
+            args.parent.as_deref(),
+            args.stageId.as_deref(),
         )?;
     dataproc_projects_locations_sessions_spark_applications_access_stage_rdd_graph_execute(builder)
 }
@@ -7427,6 +7998,27 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: applicationStatus
+    pub applicationStatus: Option<String>,
+    /// Query parameter: maxEndTime
+    pub maxEndTime: Option<String>,
+    /// Query parameter: maxTime
+    pub maxTime: Option<String>,
+    /// Query parameter: minEndTime
+    pub minEndTime: Option<String>,
+    /// Query parameter: minTime
+    pub minTime: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications:search
 /// Obtain high level information and list of Spark Applications corresponding to a batch
 ///
@@ -7439,14 +8031,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_execute(
 
 pub fn dataproc_projects_locations_sessions_spark_applications_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    applicationStatus: Option<&str>,
-    maxEndTime: Option<&str>,
-    maxTime: Option<&str>,
-    minEndTime: Option<&str>,
-    minTime: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchSessionSparkApplicationsResponse>, ApiError>,
@@ -7457,14 +8042,14 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search(
 > {
     let builder = dataproc_projects_locations_sessions_spark_applications_search_builder(
         client,
-        parent,
-        applicationStatus,
-        maxEndTime,
-        maxTime,
-        minEndTime,
-        minTime,
-        pageSize,
-        pageToken,
+        &args.parent,
+        args.applicationStatus.as_deref(),
+        args.maxEndTime.as_deref(),
+        args.maxTime.as_deref(),
+        args.minEndTime.as_deref(),
+        args.minTime.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataproc_projects_locations_sessions_spark_applications_search_execute(builder)
 }
@@ -7595,6 +8180,23 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_executor_s
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_search_executor_stage_summary`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchExecutorStageSummaryArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: stageAttemptId
+    pub stageAttemptId: Option<i32>,
+    /// Query parameter: stageId
+    pub stageId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchExecutorStageSummary
 /// Obtain executor summary with respect to a spark stage attempt.
 ///
@@ -7607,12 +8209,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_executor_s
 
 pub fn dataproc_projects_locations_sessions_spark_applications_search_executor_stage_summary(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
-    stageAttemptId: Option<i32>,
-    stageId: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsSearchExecutorStageSummaryArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -7624,7 +8221,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_executor_s
         + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_sessions_spark_applications_search_executor_stage_summary_builder(client, name, pageSize, pageToken, parent, stageAttemptId, stageId)?;
+    let builder = dataproc_projects_locations_sessions_spark_applications_search_executor_stage_summary_builder(client, &args.name, args.pageSize, args.pageToken.as_deref(), args.parent.as_deref(), args.stageAttemptId, args.stageId.as_deref())?;
     dataproc_projects_locations_sessions_spark_applications_search_executor_stage_summary_execute(
         builder,
     )
@@ -7749,6 +8346,21 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_executors_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_search_executors`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchExecutorsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: executorStatus
+    pub executorStatus: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchExecutors
 /// Obtain data corresponding to executors for a Spark Application.
 ///
@@ -7761,11 +8373,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_executors_
 
 pub fn dataproc_projects_locations_sessions_spark_applications_search_executors(
     client: &SimpleHttpClient,
-    name: &str,
-    executorStatus: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsSearchExecutorsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchSessionSparkApplicationExecutorsResponse>, ApiError>,
@@ -7776,11 +8384,11 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_executors(
 > {
     let builder = dataproc_projects_locations_sessions_spark_applications_search_executors_builder(
         client,
-        name,
-        executorStatus,
-        pageSize,
-        pageToken,
-        parent,
+        &args.name,
+        args.executorStatus.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
     )?;
     dataproc_projects_locations_sessions_spark_applications_search_executors_execute(builder)
 }
@@ -7907,6 +8515,23 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_jobs_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_search_jobs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchJobsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: jobIds
+    pub jobIds: Option<String>,
+    /// Query parameter: jobStatus
+    pub jobStatus: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchJobs
 /// Obtain list of spark jobs corresponding to a Spark Application.
 ///
@@ -7919,12 +8544,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_jobs_execu
 
 pub fn dataproc_projects_locations_sessions_spark_applications_search_jobs(
     client: &SimpleHttpClient,
-    name: &str,
-    jobIds: Option<&str>,
-    jobStatus: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsSearchJobsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchSessionSparkApplicationJobsResponse>, ApiError>,
@@ -7934,7 +8554,13 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_jobs(
     ApiError,
 > {
     let builder = dataproc_projects_locations_sessions_spark_applications_search_jobs_builder(
-        client, name, jobIds, jobStatus, pageSize, pageToken, parent,
+        client,
+        &args.name,
+        args.jobIds.as_deref(),
+        args.jobStatus.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
     )?;
     dataproc_projects_locations_sessions_spark_applications_search_jobs_execute(builder)
 }
@@ -8066,6 +8692,25 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_sql_querie
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_search_sql_queries`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchSqlQueriesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: details
+    pub details: Option<bool>,
+    /// Query parameter: operationIds
+    pub operationIds: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: planDescription
+    pub planDescription: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchSqlQueries
 /// Obtain data corresponding to SQL Queries for a Spark Application.
 ///
@@ -8078,13 +8723,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_sql_querie
 
 pub fn dataproc_projects_locations_sessions_spark_applications_search_sql_queries(
     client: &SimpleHttpClient,
-    name: &str,
-    details: Option<bool>,
-    operationIds: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
-    planDescription: Option<bool>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsSearchSqlQueriesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchSessionSparkApplicationSqlQueriesResponse>, ApiError>,
@@ -8096,13 +8735,13 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_sql_querie
     let builder =
         dataproc_projects_locations_sessions_spark_applications_search_sql_queries_builder(
             client,
-            name,
-            details,
-            operationIds,
-            pageSize,
-            pageToken,
-            parent,
-            planDescription,
+            &args.name,
+            args.details,
+            args.operationIds.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.parent.as_deref(),
+            args.planDescription,
         )?;
     dataproc_projects_locations_sessions_spark_applications_search_sql_queries_execute(builder)
 }
@@ -8241,6 +8880,27 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_atte
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_search_stage_attempt_tasks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchStageAttemptTasksArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: sortRuntime
+    pub sortRuntime: Option<bool>,
+    /// Query parameter: stageAttemptId
+    pub stageAttemptId: Option<i32>,
+    /// Query parameter: stageId
+    pub stageId: Option<String>,
+    /// Query parameter: taskStatus
+    pub taskStatus: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchStageAttemptTasks
 /// Obtain data corresponding to tasks for a spark stage attempt for a Spark Application.
 ///
@@ -8253,14 +8913,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_atte
 
 pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_attempt_tasks(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
-    sortRuntime: Option<bool>,
-    stageAttemptId: Option<i32>,
-    stageId: Option<&str>,
-    taskStatus: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsSearchStageAttemptTasksArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -8275,14 +8928,14 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_atte
     let builder =
         dataproc_projects_locations_sessions_spark_applications_search_stage_attempt_tasks_builder(
             client,
-            name,
-            pageSize,
-            pageToken,
-            parent,
-            sortRuntime,
-            stageAttemptId,
-            stageId,
-            taskStatus,
+            &args.name,
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.parent.as_deref(),
+            args.sortRuntime,
+            args.stageAttemptId,
+            args.stageId.as_deref(),
+            args.taskStatus.as_deref(),
         )?;
     dataproc_projects_locations_sessions_spark_applications_search_stage_attempt_tasks_execute(
         builder,
@@ -8412,6 +9065,23 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_atte
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_search_stage_attempts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchStageAttemptsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: stageId
+    pub stageId: Option<String>,
+    /// Query parameter: summaryMetricsMask
+    pub summaryMetricsMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchStageAttempts
 /// Obtain data corresponding to a spark stage attempts for a Spark Application.
 ///
@@ -8424,12 +9094,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_atte
 
 pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_attempts(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
-    stageId: Option<&str>,
-    summaryMetricsMask: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsSearchStageAttemptsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchSessionSparkApplicationStageAttemptsResponse>, ApiError>,
@@ -8441,12 +9106,12 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stage_atte
     let builder =
         dataproc_projects_locations_sessions_spark_applications_search_stage_attempts_builder(
             client,
-            name,
-            pageSize,
-            pageToken,
-            parent,
-            stageId,
-            summaryMetricsMask,
+            &args.name,
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.parent.as_deref(),
+            args.stageId.as_deref(),
+            args.summaryMetricsMask.as_deref(),
         )?;
     dataproc_projects_locations_sessions_spark_applications_search_stage_attempts_execute(builder)
 }
@@ -8578,6 +9243,25 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stages_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_search_stages`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsSearchStagesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: stageIds
+    pub stageIds: Option<String>,
+    /// Query parameter: stageStatus
+    pub stageStatus: Option<String>,
+    /// Query parameter: summaryMetricsMask
+    pub summaryMetricsMask: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:searchStages
 /// Obtain data corresponding to stages for a Spark Application.
 ///
@@ -8590,13 +9274,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stages_exe
 
 pub fn dataproc_projects_locations_sessions_spark_applications_search_stages(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    parent: Option<&str>,
-    stageIds: Option<&str>,
-    stageStatus: Option<&str>,
-    summaryMetricsMask: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsSearchStagesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchSessionSparkApplicationStagesResponse>, ApiError>,
@@ -8607,13 +9285,13 @@ pub fn dataproc_projects_locations_sessions_spark_applications_search_stages(
 > {
     let builder = dataproc_projects_locations_sessions_spark_applications_search_stages_builder(
         client,
-        name,
-        pageSize,
-        pageToken,
-        parent,
-        stageIds,
-        stageStatus,
-        summaryMetricsMask,
+        &args.name,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.parent.as_deref(),
+        args.stageIds.as_deref(),
+        args.stageStatus.as_deref(),
+        args.summaryMetricsMask.as_deref(),
     )?;
     dataproc_projects_locations_sessions_spark_applications_search_stages_execute(builder)
 }
@@ -8725,6 +9403,15 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_executo
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_summarize_executors`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsSummarizeExecutorsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:summarizeExecutors
 /// Obtain summary of Executor Summary for a Spark Application
 ///
@@ -8737,8 +9424,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_executo
 
 pub fn dataproc_projects_locations_sessions_spark_applications_summarize_executors(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsSummarizeExecutorsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SummarizeSessionSparkApplicationExecutorsResponse>, ApiError>,
@@ -8749,7 +9435,9 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_executo
 > {
     let builder =
         dataproc_projects_locations_sessions_spark_applications_summarize_executors_builder(
-            client, name, parent,
+            client,
+            &args.name,
+            args.parent.as_deref(),
         )?;
     dataproc_projects_locations_sessions_spark_applications_summarize_executors_execute(builder)
 }
@@ -8865,6 +9553,17 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_jobs_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_summarize_jobs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsSummarizeJobsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: jobIds
+    pub jobIds: Option<String>,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:summarizeJobs
 /// Obtain summary of Jobs for a Spark Application
 ///
@@ -8877,9 +9576,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_jobs_ex
 
 pub fn dataproc_projects_locations_sessions_spark_applications_summarize_jobs(
     client: &SimpleHttpClient,
-    name: &str,
-    jobIds: Option<&str>,
-    parent: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsSummarizeJobsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SummarizeSessionSparkApplicationJobsResponse>, ApiError>,
@@ -8889,7 +9586,10 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_jobs(
     ApiError,
 > {
     let builder = dataproc_projects_locations_sessions_spark_applications_summarize_jobs_builder(
-        client, name, jobIds, parent,
+        client,
+        &args.name,
+        args.jobIds.as_deref(),
+        args.parent.as_deref(),
     )?;
     dataproc_projects_locations_sessions_spark_applications_summarize_jobs_execute(builder)
 }
@@ -9012,6 +9712,19 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stage_a
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_summarize_stage_attempt_tasks`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsSummarizeStageAttemptTasksArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: stageAttemptId
+    pub stageAttemptId: Option<i32>,
+    /// Query parameter: stageId
+    pub stageId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:summarizeStageAttemptTasks
 /// Obtain summary of Tasks for a Spark Application Stage Attempt
 ///
@@ -9024,10 +9737,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stage_a
 
 pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stage_attempt_tasks(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
-    stageAttemptId: Option<i32>,
-    stageId: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsSummarizeStageAttemptTasksArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -9039,7 +9749,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stage_a
         + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_locations_sessions_spark_applications_summarize_stage_attempt_tasks_builder(client, name, parent, stageAttemptId, stageId)?;
+    let builder = dataproc_projects_locations_sessions_spark_applications_summarize_stage_attempt_tasks_builder(client, &args.name, args.parent.as_deref(), args.stageAttemptId, args.stageId.as_deref())?;
     dataproc_projects_locations_sessions_spark_applications_summarize_stage_attempt_tasks_execute(
         builder,
     )
@@ -9156,6 +9866,17 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stages_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_summarize_stages`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsSummarizeStagesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: parent
+    pub parent: Option<String>,
+    /// Query parameter: stageIds
+    pub stageIds: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:summarizeStages
 /// Obtain summary of Stages for a Spark Application
 ///
@@ -9168,9 +9889,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stages_
 
 pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stages(
     client: &SimpleHttpClient,
-    name: &str,
-    parent: Option<&str>,
-    stageIds: Option<&str>,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsSummarizeStagesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SummarizeSessionSparkApplicationStagesResponse>, ApiError>,
@@ -9180,7 +9899,10 @@ pub fn dataproc_projects_locations_sessions_spark_applications_summarize_stages(
     ApiError,
 > {
     let builder = dataproc_projects_locations_sessions_spark_applications_summarize_stages_builder(
-        client, name, parent, stageIds,
+        client,
+        &args.name,
+        args.parent.as_deref(),
+        args.stageIds.as_deref(),
     )?;
     dataproc_projects_locations_sessions_spark_applications_summarize_stages_execute(builder)
 }
@@ -9283,6 +10005,15 @@ pub fn dataproc_projects_locations_sessions_spark_applications_write_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_sessions_spark_applications_write`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsSessionsSparkApplicationsWriteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: WriteSessionSparkApplicationContextRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/sessions/{sessionsId}/sparkApplications/{sparkApplicationsId}:write
 /// Write wrapper objects from dataplane to spanner
 ///
@@ -9295,8 +10026,7 @@ pub fn dataproc_projects_locations_sessions_spark_applications_write_execute(
 
 pub fn dataproc_projects_locations_sessions_spark_applications_write(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &WriteSessionSparkApplicationContextRequest,
+    args: &DataprocProjectsLocationsSessionsSparkApplicationsWriteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<WriteSessionSparkApplicationContextResponse>, ApiError>,
@@ -9305,8 +10035,9 @@ pub fn dataproc_projects_locations_sessions_spark_applications_write(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_locations_sessions_spark_applications_write_builder(client, name, body)?;
+    let builder = dataproc_projects_locations_sessions_spark_applications_write_builder(
+        client, &args.name, &args.body,
+    )?;
     dataproc_projects_locations_sessions_spark_applications_write_execute(builder)
 }
 
@@ -9405,6 +10136,15 @@ pub fn dataproc_projects_locations_workflow_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_workflow_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsWorkflowTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: WorkflowTemplate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflowTemplates
 /// Creates new workflow template.
 ///
@@ -9417,16 +10157,18 @@ pub fn dataproc_projects_locations_workflow_templates_create_execute(
 
 pub fn dataproc_projects_locations_workflow_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &WorkflowTemplate,
+    args: &DataprocProjectsLocationsWorkflowTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkflowTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_locations_workflow_templates_create_builder(client, parent, body)?;
+    let builder = dataproc_projects_locations_workflow_templates_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dataproc_projects_locations_workflow_templates_create_execute(builder)
 }
 
@@ -9532,6 +10274,15 @@ pub fn dataproc_projects_locations_workflow_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_workflow_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsWorkflowTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: version
+    pub version: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}
 /// Deletes a workflow template. It does not cancel in-progress workflows.
 ///
@@ -9544,14 +10295,16 @@ pub fn dataproc_projects_locations_workflow_templates_delete_execute(
 
 pub fn dataproc_projects_locations_workflow_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    version: Option<i32>,
+    args: &DataprocProjectsLocationsWorkflowTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_locations_workflow_templates_delete_builder(client, name, version)?;
+    let builder = dataproc_projects_locations_workflow_templates_delete_builder(
+        client,
+        &args.name,
+        args.version,
+    )?;
     dataproc_projects_locations_workflow_templates_delete_execute(builder)
 }
 
@@ -9659,6 +10412,15 @@ pub fn dataproc_projects_locations_workflow_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_workflow_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsWorkflowTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: version
+    pub version: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}
 /// Retrieves the latest workflow template.Can retrieve previously instantiated template by specifying optional version parameter.
 ///
@@ -9671,16 +10433,18 @@ pub fn dataproc_projects_locations_workflow_templates_get_execute(
 
 pub fn dataproc_projects_locations_workflow_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
-    version: Option<i32>,
+    args: &DataprocProjectsLocationsWorkflowTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkflowTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_locations_workflow_templates_get_builder(client, name, version)?;
+    let builder = dataproc_projects_locations_workflow_templates_get_builder(
+        client,
+        &args.name,
+        args.version,
+    )?;
     dataproc_projects_locations_workflow_templates_get_execute(builder)
 }
 
@@ -9777,6 +10541,15 @@ pub fn dataproc_projects_locations_workflow_templates_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_workflow_templates_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsWorkflowTemplatesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -9789,14 +10562,15 @@ pub fn dataproc_projects_locations_workflow_templates_get_iam_policy_execute(
 
 pub fn dataproc_projects_locations_workflow_templates_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &DataprocProjectsLocationsWorkflowTemplatesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_locations_workflow_templates_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataproc_projects_locations_workflow_templates_get_iam_policy_execute(builder)
 }
@@ -9894,6 +10668,15 @@ pub fn dataproc_projects_locations_workflow_templates_instantiate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_workflow_templates_instantiate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsWorkflowTemplatesInstantiateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: InstantiateWorkflowTemplateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}:instantiate
 /// Instantiates a template and begins execution.The returned Operation can be used to track execution of workflow by polling operations.get. The Operation will complete when entire workflow is finished.The running workflow can be aborted via operations.cancel. This will cause any inflight jobs to be cancelled and workflow-owned clusters to be deleted.The Operation.metadata will be WorkflowMetadata (<https://cloud.google.`com/dataproc/docs/reference/rpc/google`.cloud.dataproc.v1#workflowmetadata>). Also see Using WorkflowMetadata (<https://cloud.google.`com/dataproc/docs/concepts/workflows/debugging`#using_workflowmetadata>).On successful completion, Operation.response will be Empty.
 ///
@@ -9906,14 +10689,14 @@ pub fn dataproc_projects_locations_workflow_templates_instantiate_execute(
 
 pub fn dataproc_projects_locations_workflow_templates_instantiate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &InstantiateWorkflowTemplateRequest,
+    args: &DataprocProjectsLocationsWorkflowTemplatesInstantiateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_locations_workflow_templates_instantiate_builder(client, name, body)?;
+    let builder = dataproc_projects_locations_workflow_templates_instantiate_builder(
+        client, &args.name, &args.body,
+    )?;
     dataproc_projects_locations_workflow_templates_instantiate_execute(builder)
 }
 
@@ -10022,6 +10805,17 @@ pub fn dataproc_projects_locations_workflow_templates_instantiate_inline_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_workflow_templates_instantiate_inline`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsWorkflowTemplatesInstantiateInlineArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: WorkflowTemplate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflowTemplates:instantiateInline
 /// Instantiates a template and begins execution.This method is equivalent to executing the sequence CreateWorkflowTemplate, InstantiateWorkflowTemplate, DeleteWorkflowTemplate.The returned Operation can be used to track execution of workflow by polling operations.get. The Operation will complete when entire workflow is finished.The running workflow can be aborted via operations.cancel. This will cause any inflight jobs to be cancelled and workflow-owned clusters to be deleted.The Operation.metadata will be WorkflowMetadata (<https://cloud.google.`com/dataproc/docs/reference/rpc/google`.cloud.dataproc.v1#workflowmetadata>). Also see Using WorkflowMetadata (<https://cloud.google.`com/dataproc/docs/concepts/workflows/debugging`#using_workflowmetadata>).On successful completion, Operation.response will be Empty.
 ///
@@ -10034,15 +10828,16 @@ pub fn dataproc_projects_locations_workflow_templates_instantiate_inline_execute
 
 pub fn dataproc_projects_locations_workflow_templates_instantiate_inline(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    body: &WorkflowTemplate,
+    args: &DataprocProjectsLocationsWorkflowTemplatesInstantiateInlineArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_locations_workflow_templates_instantiate_inline_builder(
-        client, parent, requestId, body,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     dataproc_projects_locations_workflow_templates_instantiate_inline_execute(builder)
 }
@@ -10157,6 +10952,17 @@ pub fn dataproc_projects_locations_workflow_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_workflow_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsWorkflowTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflowTemplates
 /// Lists workflows that match the specified filter in the request.
 ///
@@ -10169,9 +10975,7 @@ pub fn dataproc_projects_locations_workflow_templates_list_execute(
 
 pub fn dataproc_projects_locations_workflow_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataprocProjectsLocationsWorkflowTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListWorkflowTemplatesResponse>, ApiError>,
@@ -10181,7 +10985,10 @@ pub fn dataproc_projects_locations_workflow_templates_list(
     ApiError,
 > {
     let builder = dataproc_projects_locations_workflow_templates_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataproc_projects_locations_workflow_templates_list_execute(builder)
 }
@@ -10279,6 +11086,15 @@ pub fn dataproc_projects_locations_workflow_templates_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_workflow_templates_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsWorkflowTemplatesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -10291,14 +11107,15 @@ pub fn dataproc_projects_locations_workflow_templates_set_iam_policy_execute(
 
 pub fn dataproc_projects_locations_workflow_templates_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DataprocProjectsLocationsWorkflowTemplatesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_locations_workflow_templates_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataproc_projects_locations_workflow_templates_set_iam_policy_execute(builder)
 }
@@ -10400,6 +11217,15 @@ pub fn dataproc_projects_locations_workflow_templates_test_iam_permissions_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_workflow_templates_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsWorkflowTemplatesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -10412,8 +11238,7 @@ pub fn dataproc_projects_locations_workflow_templates_test_iam_permissions_execu
 
 pub fn dataproc_projects_locations_workflow_templates_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DataprocProjectsLocationsWorkflowTemplatesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -10423,7 +11248,9 @@ pub fn dataproc_projects_locations_workflow_templates_test_iam_permissions(
     ApiError,
 > {
     let builder = dataproc_projects_locations_workflow_templates_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataproc_projects_locations_workflow_templates_test_iam_permissions_execute(builder)
 }
@@ -10523,6 +11350,15 @@ pub fn dataproc_projects_locations_workflow_templates_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_locations_workflow_templates_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsLocationsWorkflowTemplatesUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: WorkflowTemplate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflowTemplates/{workflowTemplatesId}
 /// Updates (replaces) workflow template. The updated template must contain version that matches the current server version.
 ///
@@ -10535,16 +11371,16 @@ pub fn dataproc_projects_locations_workflow_templates_update_execute(
 
 pub fn dataproc_projects_locations_workflow_templates_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &WorkflowTemplate,
+    args: &DataprocProjectsLocationsWorkflowTemplatesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkflowTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_locations_workflow_templates_update_builder(client, name, body)?;
+    let builder = dataproc_projects_locations_workflow_templates_update_builder(
+        client, &args.name, &args.body,
+    )?;
     dataproc_projects_locations_workflow_templates_update_execute(builder)
 }
 
@@ -10643,6 +11479,15 @@ pub fn dataproc_projects_regions_autoscaling_policies_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_autoscaling_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsAutoscalingPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AutoscalingPolicy,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/autoscalingPolicies
 /// Creates new autoscaling policy.
 ///
@@ -10655,16 +11500,18 @@ pub fn dataproc_projects_regions_autoscaling_policies_create_execute(
 
 pub fn dataproc_projects_regions_autoscaling_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AutoscalingPolicy,
+    args: &DataprocProjectsRegionsAutoscalingPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutoscalingPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_autoscaling_policies_create_builder(client, parent, body)?;
+    let builder = dataproc_projects_regions_autoscaling_policies_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dataproc_projects_regions_autoscaling_policies_create_execute(builder)
 }
 
@@ -10758,6 +11605,13 @@ pub fn dataproc_projects_regions_autoscaling_policies_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_autoscaling_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsAutoscalingPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/autoscalingPolicies/{autoscalingPoliciesId}
 /// Deletes an autoscaling policy. It is an error to delete an autoscaling policy that is in use by one or more clusters.
 ///
@@ -10770,12 +11624,13 @@ pub fn dataproc_projects_regions_autoscaling_policies_delete_execute(
 
 pub fn dataproc_projects_regions_autoscaling_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsRegionsAutoscalingPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_regions_autoscaling_policies_delete_builder(client, name)?;
+    let builder =
+        dataproc_projects_regions_autoscaling_policies_delete_builder(client, &args.name)?;
     dataproc_projects_regions_autoscaling_policies_delete_execute(builder)
 }
 
@@ -10871,6 +11726,13 @@ pub fn dataproc_projects_regions_autoscaling_policies_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_autoscaling_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsAutoscalingPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/autoscalingPolicies/{autoscalingPoliciesId}
 /// Retrieves autoscaling policy.
 ///
@@ -10883,14 +11745,14 @@ pub fn dataproc_projects_regions_autoscaling_policies_get_execute(
 
 pub fn dataproc_projects_regions_autoscaling_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsRegionsAutoscalingPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutoscalingPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_regions_autoscaling_policies_get_builder(client, name)?;
+    let builder = dataproc_projects_regions_autoscaling_policies_get_builder(client, &args.name)?;
     dataproc_projects_regions_autoscaling_policies_get_execute(builder)
 }
 
@@ -10987,6 +11849,15 @@ pub fn dataproc_projects_regions_autoscaling_policies_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_autoscaling_policies_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsAutoscalingPoliciesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/autoscalingPolicies/{autoscalingPoliciesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -10999,14 +11870,15 @@ pub fn dataproc_projects_regions_autoscaling_policies_get_iam_policy_execute(
 
 pub fn dataproc_projects_regions_autoscaling_policies_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &DataprocProjectsRegionsAutoscalingPoliciesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_autoscaling_policies_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataproc_projects_regions_autoscaling_policies_get_iam_policy_execute(builder)
 }
@@ -11121,6 +11993,17 @@ pub fn dataproc_projects_regions_autoscaling_policies_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_autoscaling_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsAutoscalingPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/autoscalingPolicies
 /// Lists autoscaling policies in the project.
 ///
@@ -11133,9 +12016,7 @@ pub fn dataproc_projects_regions_autoscaling_policies_list_execute(
 
 pub fn dataproc_projects_regions_autoscaling_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataprocProjectsRegionsAutoscalingPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAutoscalingPoliciesResponse>, ApiError>,
@@ -11145,7 +12026,10 @@ pub fn dataproc_projects_regions_autoscaling_policies_list(
     ApiError,
 > {
     let builder = dataproc_projects_regions_autoscaling_policies_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataproc_projects_regions_autoscaling_policies_list_execute(builder)
 }
@@ -11243,6 +12127,15 @@ pub fn dataproc_projects_regions_autoscaling_policies_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_autoscaling_policies_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsAutoscalingPoliciesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/autoscalingPolicies/{autoscalingPoliciesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -11255,14 +12148,15 @@ pub fn dataproc_projects_regions_autoscaling_policies_set_iam_policy_execute(
 
 pub fn dataproc_projects_regions_autoscaling_policies_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DataprocProjectsRegionsAutoscalingPoliciesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_autoscaling_policies_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataproc_projects_regions_autoscaling_policies_set_iam_policy_execute(builder)
 }
@@ -11364,6 +12258,15 @@ pub fn dataproc_projects_regions_autoscaling_policies_test_iam_permissions_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_autoscaling_policies_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsAutoscalingPoliciesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/autoscalingPolicies/{autoscalingPoliciesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -11376,8 +12279,7 @@ pub fn dataproc_projects_regions_autoscaling_policies_test_iam_permissions_execu
 
 pub fn dataproc_projects_regions_autoscaling_policies_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DataprocProjectsRegionsAutoscalingPoliciesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -11387,7 +12289,9 @@ pub fn dataproc_projects_regions_autoscaling_policies_test_iam_permissions(
     ApiError,
 > {
     let builder = dataproc_projects_regions_autoscaling_policies_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataproc_projects_regions_autoscaling_policies_test_iam_permissions_execute(builder)
 }
@@ -11487,6 +12391,15 @@ pub fn dataproc_projects_regions_autoscaling_policies_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_autoscaling_policies_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsAutoscalingPoliciesUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AutoscalingPolicy,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/autoscalingPolicies/{autoscalingPoliciesId}
 /// Updates (replaces) autoscaling policy.Disabled check for update_mask, because all updates will be full replacements.
 ///
@@ -11499,16 +12412,16 @@ pub fn dataproc_projects_regions_autoscaling_policies_update_execute(
 
 pub fn dataproc_projects_regions_autoscaling_policies_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AutoscalingPolicy,
+    args: &DataprocProjectsRegionsAutoscalingPoliciesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutoscalingPolicy>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_autoscaling_policies_update_builder(client, name, body)?;
+    let builder = dataproc_projects_regions_autoscaling_policies_update_builder(
+        client, &args.name, &args.body,
+    )?;
     dataproc_projects_regions_autoscaling_policies_update_execute(builder)
 }
 
@@ -11622,6 +12535,21 @@ pub fn dataproc_projects_regions_clusters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersCreateArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Query parameter: actionOnFailedPrimaryWorkers
+    pub actionOnFailedPrimaryWorkers: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/clusters
 /// Creates a cluster in a project. The returned Operation.metadata will be ClusterOperationMetadata (<https://cloud.google.`com/dataproc/docs/reference/rpc/google`.cloud.dataproc.v1#clusteroperationmetadata>).
 ///
@@ -11634,22 +12562,18 @@ pub fn dataproc_projects_regions_clusters_create_execute(
 
 pub fn dataproc_projects_regions_clusters_create(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    actionOnFailedPrimaryWorkers: Option<&str>,
-    requestId: Option<&str>,
-    body: &Cluster,
+    args: &DataprocProjectsRegionsClustersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_clusters_create_builder(
         client,
-        projectId,
-        region,
-        actionOnFailedPrimaryWorkers,
-        requestId,
-        body,
+        &args.projectId,
+        &args.region,
+        args.actionOnFailedPrimaryWorkers.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     dataproc_projects_regions_clusters_create_execute(builder)
 }
@@ -11766,6 +12690,23 @@ pub fn dataproc_projects_regions_clusters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersDeleteArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Path parameter: clusterName
+    pub clusterName: String,
+    /// Query parameter: clusterUuid
+    pub clusterUuid: Option<String>,
+    /// Query parameter: gracefulTerminationTimeout
+    pub gracefulTerminationTimeout: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/clusters/{clusterName}
 /// Deletes a cluster in a project. The returned Operation.metadata will be ClusterOperationMetadata (<https://cloud.google.`com/dataproc/docs/reference/rpc/google`.cloud.dataproc.v1#clusteroperationmetadata>).
 ///
@@ -11778,24 +12719,19 @@ pub fn dataproc_projects_regions_clusters_delete_execute(
 
 pub fn dataproc_projects_regions_clusters_delete(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    clusterName: &str,
-    clusterUuid: Option<&str>,
-    gracefulTerminationTimeout: Option<&str>,
-    requestId: Option<&str>,
+    args: &DataprocProjectsRegionsClustersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_clusters_delete_builder(
         client,
-        projectId,
-        region,
-        clusterName,
-        clusterUuid,
-        gracefulTerminationTimeout,
-        requestId,
+        &args.projectId,
+        &args.region,
+        &args.clusterName,
+        args.clusterUuid.as_deref(),
+        args.gracefulTerminationTimeout.as_deref(),
+        args.requestId.as_deref(),
     )?;
     dataproc_projects_regions_clusters_delete_execute(builder)
 }
@@ -11895,6 +12831,19 @@ pub fn dataproc_projects_regions_clusters_diagnose_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_diagnose`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersDiagnoseArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Path parameter: clusterName
+    pub clusterName: String,
+    /// Request body.
+    pub body: DiagnoseClusterRequest,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/clusters/{clusterName}:diagnose
 /// Gets cluster diagnostic information. The returned Operation.metadata will be ClusterOperationMetadata (<https://cloud.google.`com/dataproc/docs/reference/rpc/google`.cloud.dataproc.v1#clusteroperationmetadata>). After the operation completes, Operation.response contains DiagnoseClusterResults (<https://cloud.google.`com/dataproc/docs/reference/rpc/google`.cloud.dataproc.v1#diagnoseclusterresults>).
 ///
@@ -11907,20 +12856,17 @@ pub fn dataproc_projects_regions_clusters_diagnose_execute(
 
 pub fn dataproc_projects_regions_clusters_diagnose(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    clusterName: &str,
-    body: &DiagnoseClusterRequest,
+    args: &DataprocProjectsRegionsClustersDiagnoseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_clusters_diagnose_builder(
         client,
-        projectId,
-        region,
-        clusterName,
-        body,
+        &args.projectId,
+        &args.region,
+        &args.clusterName,
+        &args.body,
     )?;
     dataproc_projects_regions_clusters_diagnose_execute(builder)
 }
@@ -12017,6 +12963,17 @@ pub fn dataproc_projects_regions_clusters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Path parameter: clusterName
+    pub clusterName: String,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/clusters/{clusterName}
 /// Gets the resource representation for a cluster in a project.
 ///
@@ -12029,15 +12986,17 @@ pub fn dataproc_projects_regions_clusters_get_execute(
 
 pub fn dataproc_projects_regions_clusters_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    clusterName: &str,
+    args: &DataprocProjectsRegionsClustersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Cluster>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_clusters_get_builder(client, projectId, region, clusterName)?;
+    let builder = dataproc_projects_regions_clusters_get_builder(
+        client,
+        &args.projectId,
+        &args.region,
+        &args.clusterName,
+    )?;
     dataproc_projects_regions_clusters_get_execute(builder)
 }
 
@@ -12134,6 +13093,15 @@ pub fn dataproc_projects_regions_clusters_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/clusters/{clustersId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -12146,14 +13114,16 @@ pub fn dataproc_projects_regions_clusters_get_iam_policy_execute(
 
 pub fn dataproc_projects_regions_clusters_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &DataprocProjectsRegionsClustersGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_clusters_get_iam_policy_builder(client, resource, body)?;
+    let builder = dataproc_projects_regions_clusters_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataproc_projects_regions_clusters_get_iam_policy_execute(builder)
 }
 
@@ -12252,6 +13222,19 @@ pub fn dataproc_projects_regions_clusters_inject_credentials_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_inject_credentials`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersInjectCredentialsArgs {
+    /// Path parameter: project
+    pub project: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Path parameter: cluster
+    pub cluster: String,
+    /// Request body.
+    pub body: InjectCredentialsRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/clusters/{clustersId}:injectCredentials
 /// Inject encrypted credentials into all of the VMs in a cluster.The target cluster must be a personal auth cluster assigned to the user who is issuing the RPC.
 ///
@@ -12264,16 +13247,17 @@ pub fn dataproc_projects_regions_clusters_inject_credentials_execute(
 
 pub fn dataproc_projects_regions_clusters_inject_credentials(
     client: &SimpleHttpClient,
-    project: &str,
-    region: &str,
-    cluster: &str,
-    body: &InjectCredentialsRequest,
+    args: &DataprocProjectsRegionsClustersInjectCredentialsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_clusters_inject_credentials_builder(
-        client, project, region, cluster, body,
+        client,
+        &args.project,
+        &args.region,
+        &args.cluster,
+        &args.body,
     )?;
     dataproc_projects_regions_clusters_inject_credentials_execute(builder)
 }
@@ -12391,6 +13375,21 @@ pub fn dataproc_projects_regions_clusters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/clusters
 /// Lists all `regions/{region}/clusters` in a project alphabetically.
 ///
@@ -12403,11 +13402,7 @@ pub fn dataproc_projects_regions_clusters_list_execute(
 
 pub fn dataproc_projects_regions_clusters_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataprocProjectsRegionsClustersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListClustersResponse>, ApiError>, P = ApiPending>
         + Send
@@ -12415,7 +13410,12 @@ pub fn dataproc_projects_regions_clusters_list(
     ApiError,
 > {
     let builder = dataproc_projects_regions_clusters_list_builder(
-        client, projectId, region, filter, pageSize, pageToken,
+        client,
+        &args.projectId,
+        &args.region,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataproc_projects_regions_clusters_list_execute(builder)
 }
@@ -12535,6 +13535,25 @@ pub fn dataproc_projects_regions_clusters_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersPatchArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Path parameter: clusterName
+    pub clusterName: String,
+    /// Query parameter: gracefulDecommissionTimeout
+    pub gracefulDecommissionTimeout: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Cluster,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/clusters/{clusterName}
 /// Updates a cluster in a project. The returned Operation.metadata will be ClusterOperationMetadata (<https://cloud.google.`com/dataproc/docs/reference/rpc/google`.cloud.dataproc.v1#clusteroperationmetadata>). The cluster must be in a RUNNING state or an error is returned.
 ///
@@ -12547,26 +13566,20 @@ pub fn dataproc_projects_regions_clusters_patch_execute(
 
 pub fn dataproc_projects_regions_clusters_patch(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    clusterName: &str,
-    gracefulDecommissionTimeout: Option<&str>,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Cluster,
+    args: &DataprocProjectsRegionsClustersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_clusters_patch_builder(
         client,
-        projectId,
-        region,
-        clusterName,
-        gracefulDecommissionTimeout,
-        requestId,
-        updateMask,
-        body,
+        &args.projectId,
+        &args.region,
+        &args.clusterName,
+        args.gracefulDecommissionTimeout.as_deref(),
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dataproc_projects_regions_clusters_patch_execute(builder)
 }
@@ -12666,6 +13679,19 @@ pub fn dataproc_projects_regions_clusters_repair_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_repair`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersRepairArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Path parameter: clusterName
+    pub clusterName: String,
+    /// Request body.
+    pub body: RepairClusterRequest,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/clusters/{clusterName}:repair
 /// Repairs a cluster.
 ///
@@ -12678,20 +13704,17 @@ pub fn dataproc_projects_regions_clusters_repair_execute(
 
 pub fn dataproc_projects_regions_clusters_repair(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    clusterName: &str,
-    body: &RepairClusterRequest,
+    args: &DataprocProjectsRegionsClustersRepairArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_clusters_repair_builder(
         client,
-        projectId,
-        region,
-        clusterName,
-        body,
+        &args.projectId,
+        &args.region,
+        &args.clusterName,
+        &args.body,
     )?;
     dataproc_projects_regions_clusters_repair_execute(builder)
 }
@@ -12789,6 +13812,15 @@ pub fn dataproc_projects_regions_clusters_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/clusters/{clustersId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -12801,14 +13833,16 @@ pub fn dataproc_projects_regions_clusters_set_iam_policy_execute(
 
 pub fn dataproc_projects_regions_clusters_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DataprocProjectsRegionsClustersSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_clusters_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataproc_projects_regions_clusters_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataproc_projects_regions_clusters_set_iam_policy_execute(builder)
 }
 
@@ -12907,6 +13941,19 @@ pub fn dataproc_projects_regions_clusters_start_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersStartArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Path parameter: clusterName
+    pub clusterName: String,
+    /// Request body.
+    pub body: StartClusterRequest,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/clusters/{clusterName}:start
 /// Starts a cluster in a project.
 ///
@@ -12919,20 +13966,17 @@ pub fn dataproc_projects_regions_clusters_start_execute(
 
 pub fn dataproc_projects_regions_clusters_start(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    clusterName: &str,
-    body: &StartClusterRequest,
+    args: &DataprocProjectsRegionsClustersStartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_clusters_start_builder(
         client,
-        projectId,
-        region,
-        clusterName,
-        body,
+        &args.projectId,
+        &args.region,
+        &args.clusterName,
+        &args.body,
     )?;
     dataproc_projects_regions_clusters_start_execute(builder)
 }
@@ -13032,6 +14076,19 @@ pub fn dataproc_projects_regions_clusters_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersStopArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Path parameter: clusterName
+    pub clusterName: String,
+    /// Request body.
+    pub body: StopClusterRequest,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/clusters/{clusterName}:stop
 /// Stops a cluster in a project.
 ///
@@ -13044,20 +14101,17 @@ pub fn dataproc_projects_regions_clusters_stop_execute(
 
 pub fn dataproc_projects_regions_clusters_stop(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    clusterName: &str,
-    body: &StopClusterRequest,
+    args: &DataprocProjectsRegionsClustersStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_clusters_stop_builder(
         client,
-        projectId,
-        region,
-        clusterName,
-        body,
+        &args.projectId,
+        &args.region,
+        &args.clusterName,
+        &args.body,
     )?;
     dataproc_projects_regions_clusters_stop_execute(builder)
 }
@@ -13159,6 +14213,15 @@ pub fn dataproc_projects_regions_clusters_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/clusters/{clustersId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -13171,8 +14234,7 @@ pub fn dataproc_projects_regions_clusters_test_iam_permissions_execute(
 
 pub fn dataproc_projects_regions_clusters_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DataprocProjectsRegionsClustersTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -13181,8 +14243,11 @@ pub fn dataproc_projects_regions_clusters_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_clusters_test_iam_permissions_builder(client, resource, body)?;
+    let builder = dataproc_projects_regions_clusters_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataproc_projects_regions_clusters_test_iam_permissions_execute(builder)
 }
 
@@ -13299,6 +14364,21 @@ pub fn dataproc_projects_regions_clusters_node_groups_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_node_groups_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersNodeGroupsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: nodeGroupId
+    pub nodeGroupId: Option<String>,
+    /// Query parameter: parentOperationId
+    pub parentOperationId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: NodeGroup,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/clusters/{clustersId}/nodeGroups
 /// Creates a node group in a cluster. The returned Operation.metadata is NodeGroupOperationMetadata (<https://cloud.google.`com/dataproc/docs/reference/rpc/google`.cloud.dataproc.v1#nodegroupoperationmetadata>).
 ///
@@ -13311,22 +14391,18 @@ pub fn dataproc_projects_regions_clusters_node_groups_create_execute(
 
 pub fn dataproc_projects_regions_clusters_node_groups_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    nodeGroupId: Option<&str>,
-    parentOperationId: Option<&str>,
-    requestId: Option<&str>,
-    body: &NodeGroup,
+    args: &DataprocProjectsRegionsClustersNodeGroupsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_clusters_node_groups_create_builder(
         client,
-        parent,
-        nodeGroupId,
-        parentOperationId,
-        requestId,
-        body,
+        &args.parent,
+        args.nodeGroupId.as_deref(),
+        args.parentOperationId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     dataproc_projects_regions_clusters_node_groups_create_execute(builder)
 }
@@ -13421,6 +14497,13 @@ pub fn dataproc_projects_regions_clusters_node_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_node_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersNodeGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/clusters/{clustersId}/nodeGroups/{nodeGroupsId}
 /// Gets the resource representation for a node group in a cluster.
 ///
@@ -13433,12 +14516,12 @@ pub fn dataproc_projects_regions_clusters_node_groups_get_execute(
 
 pub fn dataproc_projects_regions_clusters_node_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsRegionsClustersNodeGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NodeGroup>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_regions_clusters_node_groups_get_builder(client, name)?;
+    let builder = dataproc_projects_regions_clusters_node_groups_get_builder(client, &args.name)?;
     dataproc_projects_regions_clusters_node_groups_get_execute(builder)
 }
 
@@ -13535,6 +14618,15 @@ pub fn dataproc_projects_regions_clusters_node_groups_repair_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_node_groups_repair`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersNodeGroupsRepairArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RepairNodeGroupRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/clusters/{clustersId}/nodeGroups/{nodeGroupsId}:repair
 /// Repair nodes in a node group.
 ///
@@ -13547,14 +14639,14 @@ pub fn dataproc_projects_regions_clusters_node_groups_repair_execute(
 
 pub fn dataproc_projects_regions_clusters_node_groups_repair(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RepairNodeGroupRequest,
+    args: &DataprocProjectsRegionsClustersNodeGroupsRepairArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_clusters_node_groups_repair_builder(client, name, body)?;
+    let builder = dataproc_projects_regions_clusters_node_groups_repair_builder(
+        client, &args.name, &args.body,
+    )?;
     dataproc_projects_regions_clusters_node_groups_repair_execute(builder)
 }
 
@@ -13651,6 +14743,15 @@ pub fn dataproc_projects_regions_clusters_node_groups_resize_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_clusters_node_groups_resize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsClustersNodeGroupsResizeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResizeNodeGroupRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/clusters/{clustersId}/nodeGroups/{nodeGroupsId}:resize
 /// Resizes a node group in a cluster. The returned Operation.metadata is NodeGroupOperationMetadata (<https://cloud.google.`com/dataproc/docs/reference/rpc/google`.cloud.dataproc.v1#nodegroupoperationmetadata>).
 ///
@@ -13663,14 +14764,14 @@ pub fn dataproc_projects_regions_clusters_node_groups_resize_execute(
 
 pub fn dataproc_projects_regions_clusters_node_groups_resize(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResizeNodeGroupRequest,
+    args: &DataprocProjectsRegionsClustersNodeGroupsResizeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_clusters_node_groups_resize_builder(client, name, body)?;
+    let builder = dataproc_projects_regions_clusters_node_groups_resize_builder(
+        client, &args.name, &args.body,
+    )?;
     dataproc_projects_regions_clusters_node_groups_resize_execute(builder)
 }
 
@@ -13769,6 +14870,19 @@ pub fn dataproc_projects_regions_jobs_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_jobs_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsJobsCancelArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Path parameter: jobId
+    pub jobId: String,
+    /// Request body.
+    pub body: CancelJobRequest,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/jobs/{jobId}:cancel
 /// Starts a job cancellation request. To access the job resource after cancellation, call `regions/{region}/jobs`.list (<https://cloud.google.`com/dataproc/docs/reference/rest/v1/projects`.regions.`jobs/list`>) or `regions/{region}/jobs`.get (<https://cloud.google.`com/dataproc/docs/reference/rest/v1/projects`.regions.`jobs/get`>).
 ///
@@ -13781,16 +14895,18 @@ pub fn dataproc_projects_regions_jobs_cancel_execute(
 
 pub fn dataproc_projects_regions_jobs_cancel(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    jobId: &str,
-    body: &CancelJobRequest,
+    args: &DataprocProjectsRegionsJobsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_jobs_cancel_builder(client, projectId, region, jobId, body)?;
+    let builder = dataproc_projects_regions_jobs_cancel_builder(
+        client,
+        &args.projectId,
+        &args.region,
+        &args.jobId,
+        &args.body,
+    )?;
     dataproc_projects_regions_jobs_cancel_execute(builder)
 }
 
@@ -13886,6 +15002,17 @@ pub fn dataproc_projects_regions_jobs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsJobsDeleteArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Path parameter: jobId
+    pub jobId: String,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/jobs/{jobId}
 /// Deletes the job from the project. If the job is active, the delete fails, and the response returns FAILED_PRECONDITION.
 ///
@@ -13898,14 +15025,17 @@ pub fn dataproc_projects_regions_jobs_delete_execute(
 
 pub fn dataproc_projects_regions_jobs_delete(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    jobId: &str,
+    args: &DataprocProjectsRegionsJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_regions_jobs_delete_builder(client, projectId, region, jobId)?;
+    let builder = dataproc_projects_regions_jobs_delete_builder(
+        client,
+        &args.projectId,
+        &args.region,
+        &args.jobId,
+    )?;
     dataproc_projects_regions_jobs_delete_execute(builder)
 }
 
@@ -14001,6 +15131,17 @@ pub fn dataproc_projects_regions_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsJobsGetArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Path parameter: jobId
+    pub jobId: String,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/jobs/{jobId}
 /// Gets the resource representation for a job in a project.
 ///
@@ -14013,14 +15154,17 @@ pub fn dataproc_projects_regions_jobs_get_execute(
 
 pub fn dataproc_projects_regions_jobs_get(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    jobId: &str,
+    args: &DataprocProjectsRegionsJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_regions_jobs_get_builder(client, projectId, region, jobId)?;
+    let builder = dataproc_projects_regions_jobs_get_builder(
+        client,
+        &args.projectId,
+        &args.region,
+        &args.jobId,
+    )?;
     dataproc_projects_regions_jobs_get_execute(builder)
 }
 
@@ -14117,6 +15261,15 @@ pub fn dataproc_projects_regions_jobs_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_jobs_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsJobsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/jobs/{jobsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -14129,13 +15282,13 @@ pub fn dataproc_projects_regions_jobs_get_iam_policy_execute(
 
 pub fn dataproc_projects_regions_jobs_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &DataprocProjectsRegionsJobsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_regions_jobs_get_iam_policy_builder(client, resource, body)?;
+    let builder =
+        dataproc_projects_regions_jobs_get_iam_policy_builder(client, &args.resource, &args.body)?;
     dataproc_projects_regions_jobs_get_iam_policy_execute(builder)
 }
 
@@ -14260,6 +15413,25 @@ pub fn dataproc_projects_regions_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsJobsListArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Query parameter: clusterName
+    pub clusterName: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: jobStateMatcher
+    pub jobStateMatcher: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/jobs
 /// Lists `regions/{region}/jobs` in a project.
 ///
@@ -14272,13 +15444,7 @@ pub fn dataproc_projects_regions_jobs_list_execute(
 
 pub fn dataproc_projects_regions_jobs_list(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    clusterName: Option<&str>,
-    filter: Option<&str>,
-    jobStateMatcher: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataprocProjectsRegionsJobsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -14287,13 +15453,13 @@ pub fn dataproc_projects_regions_jobs_list(
 > {
     let builder = dataproc_projects_regions_jobs_list_builder(
         client,
-        projectId,
-        region,
-        clusterName,
-        filter,
-        jobStateMatcher,
-        pageSize,
-        pageToken,
+        &args.projectId,
+        &args.region,
+        args.clusterName.as_deref(),
+        args.filter.as_deref(),
+        args.jobStateMatcher.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataproc_projects_regions_jobs_list_execute(builder)
 }
@@ -14405,6 +15571,21 @@ pub fn dataproc_projects_regions_jobs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_jobs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsJobsPatchArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Path parameter: jobId
+    pub jobId: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Job,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/jobs/{jobId}
 /// Updates a job in a project.
 ///
@@ -14417,17 +15598,18 @@ pub fn dataproc_projects_regions_jobs_patch_execute(
 
 pub fn dataproc_projects_regions_jobs_patch(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    jobId: &str,
-    updateMask: Option<&str>,
-    body: &Job,
+    args: &DataprocProjectsRegionsJobsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_jobs_patch_builder(
-        client, projectId, region, jobId, updateMask, body,
+        client,
+        &args.projectId,
+        &args.region,
+        &args.jobId,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     dataproc_projects_regions_jobs_patch_execute(builder)
 }
@@ -14525,6 +15707,15 @@ pub fn dataproc_projects_regions_jobs_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_jobs_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsJobsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/jobs/{jobsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -14537,13 +15728,13 @@ pub fn dataproc_projects_regions_jobs_set_iam_policy_execute(
 
 pub fn dataproc_projects_regions_jobs_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DataprocProjectsRegionsJobsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_regions_jobs_set_iam_policy_builder(client, resource, body)?;
+    let builder =
+        dataproc_projects_regions_jobs_set_iam_policy_builder(client, &args.resource, &args.body)?;
     dataproc_projects_regions_jobs_set_iam_policy_execute(builder)
 }
 
@@ -14641,6 +15832,17 @@ pub fn dataproc_projects_regions_jobs_submit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_jobs_submit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsJobsSubmitArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Request body.
+    pub body: SubmitJobRequest,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/jobs:submit
 /// Submits a job to a cluster.
 ///
@@ -14653,14 +15855,17 @@ pub fn dataproc_projects_regions_jobs_submit_execute(
 
 pub fn dataproc_projects_regions_jobs_submit(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    body: &SubmitJobRequest,
+    args: &DataprocProjectsRegionsJobsSubmitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_regions_jobs_submit_builder(client, projectId, region, body)?;
+    let builder = dataproc_projects_regions_jobs_submit_builder(
+        client,
+        &args.projectId,
+        &args.region,
+        &args.body,
+    )?;
     dataproc_projects_regions_jobs_submit_execute(builder)
 }
 
@@ -14758,6 +15963,17 @@ pub fn dataproc_projects_regions_jobs_submit_as_operation_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_jobs_submit_as_operation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsJobsSubmitAsOperationArgs {
+    /// Path parameter: projectId
+    pub projectId: String,
+    /// Path parameter: region
+    pub region: String,
+    /// Request body.
+    pub body: SubmitJobRequest,
+}
+
 /// GET v1/projects/{projectId}/regions/{region}/jobs:submitAsOperation
 /// Submits job to a cluster.
 ///
@@ -14770,15 +15986,16 @@ pub fn dataproc_projects_regions_jobs_submit_as_operation_execute(
 
 pub fn dataproc_projects_regions_jobs_submit_as_operation(
     client: &SimpleHttpClient,
-    projectId: &str,
-    region: &str,
-    body: &SubmitJobRequest,
+    args: &DataprocProjectsRegionsJobsSubmitAsOperationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_jobs_submit_as_operation_builder(
-        client, projectId, region, body,
+        client,
+        &args.projectId,
+        &args.region,
+        &args.body,
     )?;
     dataproc_projects_regions_jobs_submit_as_operation_execute(builder)
 }
@@ -14880,6 +16097,15 @@ pub fn dataproc_projects_regions_jobs_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_jobs_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsJobsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/jobs/{jobsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -14892,8 +16118,7 @@ pub fn dataproc_projects_regions_jobs_test_iam_permissions_execute(
 
 pub fn dataproc_projects_regions_jobs_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DataprocProjectsRegionsJobsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -14902,8 +16127,11 @@ pub fn dataproc_projects_regions_jobs_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_jobs_test_iam_permissions_builder(client, resource, body)?;
+    let builder = dataproc_projects_regions_jobs_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataproc_projects_regions_jobs_test_iam_permissions_execute(builder)
 }
 
@@ -14997,6 +16225,13 @@ pub fn dataproc_projects_regions_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -15009,12 +16244,12 @@ pub fn dataproc_projects_regions_operations_cancel_execute(
 
 pub fn dataproc_projects_regions_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsRegionsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_regions_operations_cancel_builder(client, name)?;
+    let builder = dataproc_projects_regions_operations_cancel_builder(client, &args.name)?;
     dataproc_projects_regions_operations_cancel_execute(builder)
 }
 
@@ -15108,6 +16343,13 @@ pub fn dataproc_projects_regions_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -15120,12 +16362,12 @@ pub fn dataproc_projects_regions_operations_delete_execute(
 
 pub fn dataproc_projects_regions_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsRegionsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_regions_operations_delete_builder(client, name)?;
+    let builder = dataproc_projects_regions_operations_delete_builder(client, &args.name)?;
     dataproc_projects_regions_operations_delete_execute(builder)
 }
 
@@ -15219,6 +16461,13 @@ pub fn dataproc_projects_regions_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -15231,12 +16480,12 @@ pub fn dataproc_projects_regions_operations_get_execute(
 
 pub fn dataproc_projects_regions_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DataprocProjectsRegionsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_regions_operations_get_builder(client, name)?;
+    let builder = dataproc_projects_regions_operations_get_builder(client, &args.name)?;
     dataproc_projects_regions_operations_get_execute(builder)
 }
 
@@ -15333,6 +16582,15 @@ pub fn dataproc_projects_regions_operations_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_operations_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsOperationsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/operations/{operationsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -15345,14 +16603,16 @@ pub fn dataproc_projects_regions_operations_get_iam_policy_execute(
 
 pub fn dataproc_projects_regions_operations_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &DataprocProjectsRegionsOperationsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_operations_get_iam_policy_builder(client, resource, body)?;
+    let builder = dataproc_projects_regions_operations_get_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataproc_projects_regions_operations_get_iam_policy_execute(builder)
 }
 
@@ -15472,6 +16732,21 @@ pub fn dataproc_projects_regions_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -15484,11 +16759,7 @@ pub fn dataproc_projects_regions_operations_list_execute(
 
 pub fn dataproc_projects_regions_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DataprocProjectsRegionsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -15497,11 +16768,11 @@ pub fn dataproc_projects_regions_operations_list(
 > {
     let builder = dataproc_projects_regions_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     dataproc_projects_regions_operations_list_execute(builder)
 }
@@ -15599,6 +16870,15 @@ pub fn dataproc_projects_regions_operations_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_operations_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsOperationsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/operations/{operationsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -15611,14 +16891,16 @@ pub fn dataproc_projects_regions_operations_set_iam_policy_execute(
 
 pub fn dataproc_projects_regions_operations_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DataprocProjectsRegionsOperationsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_operations_set_iam_policy_builder(client, resource, body)?;
+    let builder = dataproc_projects_regions_operations_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataproc_projects_regions_operations_set_iam_policy_execute(builder)
 }
 
@@ -15719,6 +17001,15 @@ pub fn dataproc_projects_regions_operations_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_operations_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsOperationsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/operations/{operationsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -15731,8 +17022,7 @@ pub fn dataproc_projects_regions_operations_test_iam_permissions_execute(
 
 pub fn dataproc_projects_regions_operations_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DataprocProjectsRegionsOperationsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -15741,8 +17031,11 @@ pub fn dataproc_projects_regions_operations_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_operations_test_iam_permissions_builder(client, resource, body)?;
+    let builder = dataproc_projects_regions_operations_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     dataproc_projects_regions_operations_test_iam_permissions_execute(builder)
 }
 
@@ -15841,6 +17134,15 @@ pub fn dataproc_projects_regions_workflow_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_workflow_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsWorkflowTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: WorkflowTemplate,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/workflowTemplates
 /// Creates new workflow template.
 ///
@@ -15853,16 +17155,18 @@ pub fn dataproc_projects_regions_workflow_templates_create_execute(
 
 pub fn dataproc_projects_regions_workflow_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &WorkflowTemplate,
+    args: &DataprocProjectsRegionsWorkflowTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkflowTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_workflow_templates_create_builder(client, parent, body)?;
+    let builder = dataproc_projects_regions_workflow_templates_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     dataproc_projects_regions_workflow_templates_create_execute(builder)
 }
 
@@ -15968,6 +17272,15 @@ pub fn dataproc_projects_regions_workflow_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_workflow_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsWorkflowTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: version
+    pub version: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}
 /// Deletes a workflow template. It does not cancel in-progress workflows.
 ///
@@ -15980,14 +17293,16 @@ pub fn dataproc_projects_regions_workflow_templates_delete_execute(
 
 pub fn dataproc_projects_regions_workflow_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    version: Option<i32>,
+    args: &DataprocProjectsRegionsWorkflowTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_workflow_templates_delete_builder(client, name, version)?;
+    let builder = dataproc_projects_regions_workflow_templates_delete_builder(
+        client,
+        &args.name,
+        args.version,
+    )?;
     dataproc_projects_regions_workflow_templates_delete_execute(builder)
 }
 
@@ -16095,6 +17410,15 @@ pub fn dataproc_projects_regions_workflow_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_workflow_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsWorkflowTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: version
+    pub version: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}
 /// Retrieves the latest workflow template.Can retrieve previously instantiated template by specifying optional version parameter.
 ///
@@ -16107,15 +17431,15 @@ pub fn dataproc_projects_regions_workflow_templates_get_execute(
 
 pub fn dataproc_projects_regions_workflow_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
-    version: Option<i32>,
+    args: &DataprocProjectsRegionsWorkflowTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkflowTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_regions_workflow_templates_get_builder(client, name, version)?;
+    let builder =
+        dataproc_projects_regions_workflow_templates_get_builder(client, &args.name, args.version)?;
     dataproc_projects_regions_workflow_templates_get_execute(builder)
 }
 
@@ -16212,6 +17536,15 @@ pub fn dataproc_projects_regions_workflow_templates_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_workflow_templates_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsWorkflowTemplatesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: GetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -16224,14 +17557,15 @@ pub fn dataproc_projects_regions_workflow_templates_get_iam_policy_execute(
 
 pub fn dataproc_projects_regions_workflow_templates_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
+    args: &DataprocProjectsRegionsWorkflowTemplatesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_workflow_templates_get_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataproc_projects_regions_workflow_templates_get_iam_policy_execute(builder)
 }
@@ -16329,6 +17663,15 @@ pub fn dataproc_projects_regions_workflow_templates_instantiate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_workflow_templates_instantiate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsWorkflowTemplatesInstantiateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: InstantiateWorkflowTemplateRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}:instantiate
 /// Instantiates a template and begins execution.The returned Operation can be used to track execution of workflow by polling operations.get. The Operation will complete when entire workflow is finished.The running workflow can be aborted via operations.cancel. This will cause any inflight jobs to be cancelled and workflow-owned clusters to be deleted.The Operation.metadata will be WorkflowMetadata (<https://cloud.google.`com/dataproc/docs/reference/rpc/google`.cloud.dataproc.v1#workflowmetadata>). Also see Using WorkflowMetadata (<https://cloud.google.`com/dataproc/docs/concepts/workflows/debugging`#using_workflowmetadata>).On successful completion, Operation.response will be Empty.
 ///
@@ -16341,14 +17684,14 @@ pub fn dataproc_projects_regions_workflow_templates_instantiate_execute(
 
 pub fn dataproc_projects_regions_workflow_templates_instantiate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &InstantiateWorkflowTemplateRequest,
+    args: &DataprocProjectsRegionsWorkflowTemplatesInstantiateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataproc_projects_regions_workflow_templates_instantiate_builder(client, name, body)?;
+    let builder = dataproc_projects_regions_workflow_templates_instantiate_builder(
+        client, &args.name, &args.body,
+    )?;
     dataproc_projects_regions_workflow_templates_instantiate_execute(builder)
 }
 
@@ -16457,6 +17800,17 @@ pub fn dataproc_projects_regions_workflow_templates_instantiate_inline_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_workflow_templates_instantiate_inline`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsWorkflowTemplatesInstantiateInlineArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: WorkflowTemplate,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/workflowTemplates:instantiateInline
 /// Instantiates a template and begins execution.This method is equivalent to executing the sequence CreateWorkflowTemplate, InstantiateWorkflowTemplate, DeleteWorkflowTemplate.The returned Operation can be used to track execution of workflow by polling operations.get. The Operation will complete when entire workflow is finished.The running workflow can be aborted via operations.cancel. This will cause any inflight jobs to be cancelled and workflow-owned clusters to be deleted.The Operation.metadata will be WorkflowMetadata (<https://cloud.google.`com/dataproc/docs/reference/rpc/google`.cloud.dataproc.v1#workflowmetadata>). Also see Using WorkflowMetadata (<https://cloud.google.`com/dataproc/docs/concepts/workflows/debugging`#using_workflowmetadata>).On successful completion, Operation.response will be Empty.
 ///
@@ -16469,15 +17823,16 @@ pub fn dataproc_projects_regions_workflow_templates_instantiate_inline_execute(
 
 pub fn dataproc_projects_regions_workflow_templates_instantiate_inline(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    body: &WorkflowTemplate,
+    args: &DataprocProjectsRegionsWorkflowTemplatesInstantiateInlineArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_workflow_templates_instantiate_inline_builder(
-        client, parent, requestId, body,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     dataproc_projects_regions_workflow_templates_instantiate_inline_execute(builder)
 }
@@ -16592,6 +17947,17 @@ pub fn dataproc_projects_regions_workflow_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_workflow_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsWorkflowTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/workflowTemplates
 /// Lists workflows that match the specified filter in the request.
 ///
@@ -16604,9 +17970,7 @@ pub fn dataproc_projects_regions_workflow_templates_list_execute(
 
 pub fn dataproc_projects_regions_workflow_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DataprocProjectsRegionsWorkflowTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListWorkflowTemplatesResponse>, ApiError>,
@@ -16616,7 +17980,10 @@ pub fn dataproc_projects_regions_workflow_templates_list(
     ApiError,
 > {
     let builder = dataproc_projects_regions_workflow_templates_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     dataproc_projects_regions_workflow_templates_list_execute(builder)
 }
@@ -16714,6 +18081,15 @@ pub fn dataproc_projects_regions_workflow_templates_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_workflow_templates_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsWorkflowTemplatesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy.Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -16726,14 +18102,15 @@ pub fn dataproc_projects_regions_workflow_templates_set_iam_policy_execute(
 
 pub fn dataproc_projects_regions_workflow_templates_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DataprocProjectsRegionsWorkflowTemplatesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = dataproc_projects_regions_workflow_templates_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataproc_projects_regions_workflow_templates_set_iam_policy_execute(builder)
 }
@@ -16835,6 +18212,15 @@ pub fn dataproc_projects_regions_workflow_templates_test_iam_permissions_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_workflow_templates_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsWorkflowTemplatesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error.Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -16847,8 +18233,7 @@ pub fn dataproc_projects_regions_workflow_templates_test_iam_permissions_execute
 
 pub fn dataproc_projects_regions_workflow_templates_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DataprocProjectsRegionsWorkflowTemplatesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -16858,7 +18243,9 @@ pub fn dataproc_projects_regions_workflow_templates_test_iam_permissions(
     ApiError,
 > {
     let builder = dataproc_projects_regions_workflow_templates_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     dataproc_projects_regions_workflow_templates_test_iam_permissions_execute(builder)
 }
@@ -16958,6 +18345,15 @@ pub fn dataproc_projects_regions_workflow_templates_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`dataproc_projects_regions_workflow_templates_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DataprocProjectsRegionsWorkflowTemplatesUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: WorkflowTemplate,
+}
+
 /// GET v1/projects/{projectsId}/regions/{regionsId}/workflowTemplates/{workflowTemplatesId}
 /// Updates (replaces) workflow template. The updated template must contain version that matches the current server version.
 ///
@@ -16970,14 +18366,15 @@ pub fn dataproc_projects_regions_workflow_templates_update_execute(
 
 pub fn dataproc_projects_regions_workflow_templates_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &WorkflowTemplate,
+    args: &DataprocProjectsRegionsWorkflowTemplatesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WorkflowTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = dataproc_projects_regions_workflow_templates_update_builder(client, name, body)?;
+    let builder = dataproc_projects_regions_workflow_templates_update_builder(
+        client, &args.name, &args.body,
+    )?;
     dataproc_projects_regions_workflow_templates_update_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}:checkConsumerConfig
 /// CheckConsumerConfig validates the consumer network and project for potential PSC connection creation. This method performs several checks, including: - Validating the existence and permissions of the service class. - Ensuring the consumer network exists and is accessible. - Verifying XPN relationships if applicable. - Checking for compatible IP versions between the consumer network and the requested version. This method performs a dynamic IAM check for the networkconnectivity.`serviceClasses`.use permission on the service class resource in the Prepare phase.
@@ -113,6 +115,15 @@ pub fn networkconnectivity_projects_locations_check_consumer_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_check_consumer_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsCheckConsumerConfigArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Request body.
+    pub body: CheckConsumerConfigRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}:checkConsumerConfig
 /// CheckConsumerConfig validates the consumer network and project for potential PSC connection creation. This method performs several checks, including: - Validating the existence and permissions of the service class. - Ensuring the consumer network exists and is accessible. - Verifying XPN relationships if applicable. - Checking for compatible IP versions between the consumer network and the requested version. This method performs a dynamic IAM check for the networkconnectivity.`serviceClasses`.use permission on the service class resource in the Prepare phase.
 ///
@@ -125,8 +136,7 @@ pub fn networkconnectivity_projects_locations_check_consumer_config_execute(
 
 pub fn networkconnectivity_projects_locations_check_consumer_config(
     client: &SimpleHttpClient,
-    location: &str,
-    body: &CheckConsumerConfigRequest,
+    args: &NetworkconnectivityProjectsLocationsCheckConsumerConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CheckConsumerConfigResponse>, ApiError>,
@@ -136,7 +146,9 @@ pub fn networkconnectivity_projects_locations_check_consumer_config(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_check_consumer_config_builder(
-        client, location, body,
+        client,
+        &args.location,
+        &args.body,
     )?;
     networkconnectivity_projects_locations_check_consumer_config_execute(builder)
 }
@@ -231,6 +243,13 @@ pub fn networkconnectivity_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -243,12 +262,12 @@ pub fn networkconnectivity_projects_locations_get_execute(
 
 pub fn networkconnectivity_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_get_builder(client, name)?;
+    let builder = networkconnectivity_projects_locations_get_builder(client, &args.name)?;
     networkconnectivity_projects_locations_get_execute(builder)
 }
 
@@ -368,6 +387,21 @@ pub fn networkconnectivity_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -380,11 +414,7 @@ pub fn networkconnectivity_projects_locations_list_execute(
 
 pub fn networkconnectivity_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -393,11 +423,11 @@ pub fn networkconnectivity_projects_locations_list(
 > {
     let builder = networkconnectivity_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_list_execute(builder)
 }
@@ -519,6 +549,21 @@ pub fn networkconnectivity_projects_locations_automated_dns_records_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_automated_dns_records_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsAutomatedDnsRecordsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: automatedDnsRecordId
+    pub automatedDnsRecordId: Option<String>,
+    /// Query parameter: insertMode
+    pub insertMode: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: AutomatedDnsRecord,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/automatedDnsRecords
 /// Creates a new AutomatedDnsRecord in a given project and location.
 ///
@@ -531,11 +576,7 @@ pub fn networkconnectivity_projects_locations_automated_dns_records_create_execu
 
 pub fn networkconnectivity_projects_locations_automated_dns_records_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    automatedDnsRecordId: Option<&str>,
-    insertMode: Option<&str>,
-    requestId: Option<&str>,
-    body: &AutomatedDnsRecord,
+    args: &NetworkconnectivityProjectsLocationsAutomatedDnsRecordsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -546,11 +587,11 @@ pub fn networkconnectivity_projects_locations_automated_dns_records_create(
 > {
     let builder = networkconnectivity_projects_locations_automated_dns_records_create_builder(
         client,
-        parent,
-        automatedDnsRecordId,
-        insertMode,
-        requestId,
-        body,
+        &args.parent,
+        args.automatedDnsRecordId.as_deref(),
+        args.insertMode.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_automated_dns_records_create_execute(builder)
 }
@@ -669,6 +710,19 @@ pub fn networkconnectivity_projects_locations_automated_dns_records_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_automated_dns_records_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsAutomatedDnsRecordsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: deleteMode
+    pub deleteMode: Option<String>,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/automatedDnsRecords/{automatedDnsRecordsId}
 /// Deletes a single AutomatedDnsRecord.
 ///
@@ -681,10 +735,7 @@ pub fn networkconnectivity_projects_locations_automated_dns_records_delete_execu
 
 pub fn networkconnectivity_projects_locations_automated_dns_records_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    deleteMode: Option<&str>,
-    etag: Option<&str>,
-    requestId: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsAutomatedDnsRecordsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -694,7 +745,11 @@ pub fn networkconnectivity_projects_locations_automated_dns_records_delete(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_automated_dns_records_delete_builder(
-        client, name, deleteMode, etag, requestId,
+        client,
+        &args.name,
+        args.deleteMode.as_deref(),
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
     )?;
     networkconnectivity_projects_locations_automated_dns_records_delete_execute(builder)
 }
@@ -791,6 +846,13 @@ pub fn networkconnectivity_projects_locations_automated_dns_records_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_automated_dns_records_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsAutomatedDnsRecordsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/automatedDnsRecords/{automatedDnsRecordsId}
 /// Gets details of a single AutomatedDnsRecord.
 ///
@@ -803,15 +865,16 @@ pub fn networkconnectivity_projects_locations_automated_dns_records_get_execute(
 
 pub fn networkconnectivity_projects_locations_automated_dns_records_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsAutomatedDnsRecordsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutomatedDnsRecord>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        networkconnectivity_projects_locations_automated_dns_records_get_builder(client, name)?;
+    let builder = networkconnectivity_projects_locations_automated_dns_records_get_builder(
+        client, &args.name,
+    )?;
     networkconnectivity_projects_locations_automated_dns_records_get_execute(builder)
 }
 
@@ -933,6 +996,21 @@ pub fn networkconnectivity_projects_locations_automated_dns_records_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_automated_dns_records_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsAutomatedDnsRecordsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/automatedDnsRecords
 /// Lists AutomatedDnsRecords in a given project and location.
 ///
@@ -945,11 +1023,7 @@ pub fn networkconnectivity_projects_locations_automated_dns_records_list_execute
 
 pub fn networkconnectivity_projects_locations_automated_dns_records_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsAutomatedDnsRecordsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAutomatedDnsRecordsResponse>, ApiError>,
@@ -959,7 +1033,12 @@ pub fn networkconnectivity_projects_locations_automated_dns_records_list(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_automated_dns_records_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_automated_dns_records_list_execute(builder)
 }
@@ -1061,6 +1140,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_accept_spoke_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_accept_spoke`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsAcceptSpokeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AcceptHubSpokeRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}:acceptSpoke
 /// Accepts a proposal to attach a Network Connectivity Center spoke to a hub.
 ///
@@ -1073,8 +1161,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_accept_spoke_execute(
 
 pub fn networkconnectivity_projects_locations_global_hubs_accept_spoke(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AcceptHubSpokeRequest,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsAcceptSpokeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1084,7 +1171,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_accept_spoke(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_accept_spoke_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     networkconnectivity_projects_locations_global_hubs_accept_spoke_execute(builder)
 }
@@ -1186,6 +1273,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_accept_spoke_update_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_accept_spoke_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsAcceptSpokeUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: AcceptSpokeUpdateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}:acceptSpokeUpdate
 /// Accepts a proposal to update a Network Connectivity Center spoke in a hub.
 ///
@@ -1198,8 +1294,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_accept_spoke_update_ex
 
 pub fn networkconnectivity_projects_locations_global_hubs_accept_spoke_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &AcceptSpokeUpdateRequest,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsAcceptSpokeUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1209,7 +1304,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_accept_spoke_update(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_accept_spoke_update_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     networkconnectivity_projects_locations_global_hubs_accept_spoke_update_execute(builder)
 }
@@ -1327,6 +1422,19 @@ pub fn networkconnectivity_projects_locations_global_hubs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: hubId
+    pub hubId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Hub,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs
 /// Creates a new Network Connectivity Center hub in the specified project.
 ///
@@ -1339,10 +1447,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_create_execute(
 
 pub fn networkconnectivity_projects_locations_global_hubs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    hubId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Hub,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1352,7 +1457,11 @@ pub fn networkconnectivity_projects_locations_global_hubs_create(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_create_builder(
-        client, parent, hubId, requestId, body,
+        client,
+        &args.parent,
+        args.hubId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_global_hubs_create_execute(builder)
 }
@@ -1463,6 +1572,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}
 /// Deletes a Network Connectivity Center hub.
 ///
@@ -1475,8 +1593,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_delete_execute(
 
 pub fn networkconnectivity_projects_locations_global_hubs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1485,8 +1602,11 @@ pub fn networkconnectivity_projects_locations_global_hubs_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        networkconnectivity_projects_locations_global_hubs_delete_builder(client, name, requestId)?;
+    let builder = networkconnectivity_projects_locations_global_hubs_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     networkconnectivity_projects_locations_global_hubs_delete_execute(builder)
 }
 
@@ -1580,6 +1700,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}
 /// Gets details about a Network Connectivity Center hub.
 ///
@@ -1592,12 +1719,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_get_execute(
 
 pub fn networkconnectivity_projects_locations_global_hubs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Hub>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_global_hubs_get_builder(client, name)?;
+    let builder =
+        networkconnectivity_projects_locations_global_hubs_get_builder(client, &args.name)?;
     networkconnectivity_projects_locations_global_hubs_get_execute(builder)
 }
 
@@ -1703,6 +1831,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_get_iam_policy_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1715,16 +1852,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_get_iam_policy_execute
 
 pub fn networkconnectivity_projects_locations_global_hubs_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     networkconnectivity_projects_locations_global_hubs_get_iam_policy_execute(builder)
 }
@@ -1845,6 +1981,21 @@ pub fn networkconnectivity_projects_locations_global_hubs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs
 /// Lists the Network Connectivity Center hubs associated with a given project.
 ///
@@ -1857,11 +2008,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_list_execute(
 
 pub fn networkconnectivity_projects_locations_global_hubs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListHubsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1869,7 +2016,12 @@ pub fn networkconnectivity_projects_locations_global_hubs_list(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_global_hubs_list_execute(builder)
 }
@@ -1998,6 +2150,25 @@ pub fn networkconnectivity_projects_locations_global_hubs_list_spokes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_list_spokes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsListSpokesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: spokeLocations
+    pub spokeLocations: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}:listSpokes
 /// Lists the Network Connectivity Center spokes associated with a specified hub and location. The list includes both spokes that are attached to the hub and spokes that have been proposed but not yet accepted.
 ///
@@ -2010,13 +2181,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_list_spokes_execute(
 
 pub fn networkconnectivity_projects_locations_global_hubs_list_spokes(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    spokeLocations: Option<&str>,
-    view: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsListSpokesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListHubSpokesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2025,13 +2190,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_list_spokes(
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_list_spokes_builder(
         client,
-        name,
-        filter,
-        orderBy,
-        pageSize,
-        pageToken,
-        spokeLocations,
-        view,
+        &args.name,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.spokeLocations.as_deref(),
+        args.view.as_deref(),
     )?;
     networkconnectivity_projects_locations_global_hubs_list_spokes_execute(builder)
 }
@@ -2149,6 +2314,19 @@ pub fn networkconnectivity_projects_locations_global_hubs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Hub,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}
 /// Updates the description `and/or` labels of a Network Connectivity Center hub.
 ///
@@ -2161,10 +2339,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_patch_execute(
 
 pub fn networkconnectivity_projects_locations_global_hubs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Hub,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2174,7 +2349,11 @@ pub fn networkconnectivity_projects_locations_global_hubs_patch(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_global_hubs_patch_execute(builder)
 }
@@ -2299,6 +2478,23 @@ pub fn networkconnectivity_projects_locations_global_hubs_query_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_query_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsQueryStatusArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: groupBy
+    pub groupBy: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}:queryStatus
 /// Query the Private Service Connect propagation status of a Network Connectivity Center hub.
 ///
@@ -2311,12 +2507,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_query_status_execute(
 
 pub fn networkconnectivity_projects_locations_global_hubs_query_status(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    groupBy: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsQueryStatusArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueryHubStatusResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2324,7 +2515,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_query_status(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_query_status_builder(
-        client, name, filter, groupBy, orderBy, pageSize, pageToken,
+        client,
+        &args.name,
+        args.filter.as_deref(),
+        args.groupBy.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_global_hubs_query_status_execute(builder)
 }
@@ -2426,6 +2623,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_reject_spoke_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_reject_spoke`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsRejectSpokeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RejectHubSpokeRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}:rejectSpoke
 /// Rejects a Network Connectivity Center spoke from being attached to a hub. If the spoke was previously in the `ACTIVE` state, it transitions to the `INACTIVE` state and is no longer able to connect to other spokes that are attached to the hub.
 ///
@@ -2438,8 +2644,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_reject_spoke_execute(
 
 pub fn networkconnectivity_projects_locations_global_hubs_reject_spoke(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RejectHubSpokeRequest,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsRejectSpokeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2449,7 +2654,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_reject_spoke(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_reject_spoke_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     networkconnectivity_projects_locations_global_hubs_reject_spoke_execute(builder)
 }
@@ -2551,6 +2756,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_reject_spoke_update_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_reject_spoke_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsRejectSpokeUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RejectSpokeUpdateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}:rejectSpokeUpdate
 /// Rejects a proposal to update a Network Connectivity Center spoke in a hub.
 ///
@@ -2563,8 +2777,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_reject_spoke_update_ex
 
 pub fn networkconnectivity_projects_locations_global_hubs_reject_spoke_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RejectSpokeUpdateRequest,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsRejectSpokeUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2574,7 +2787,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_reject_spoke_update(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_reject_spoke_update_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     networkconnectivity_projects_locations_global_hubs_reject_spoke_update_execute(builder)
 }
@@ -2672,6 +2885,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_set_iam_policy_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -2684,14 +2906,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_set_iam_policy_execute
 
 pub fn networkconnectivity_projects_locations_global_hubs_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networkconnectivity_projects_locations_global_hubs_set_iam_policy_execute(builder)
 }
@@ -2793,6 +3016,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_test_iam_permissions_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2805,8 +3037,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_test_iam_permissions_e
 
 pub fn networkconnectivity_projects_locations_global_hubs_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2816,7 +3047,9 @@ pub fn networkconnectivity_projects_locations_global_hubs_test_iam_permissions(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networkconnectivity_projects_locations_global_hubs_test_iam_permissions_execute(builder)
 }
@@ -2911,6 +3144,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_groups_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsGroupsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}/groups/{groupsId}
 /// Gets details about a Network Connectivity Center group.
 ///
@@ -2923,13 +3163,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_get_execute(
 
 pub fn networkconnectivity_projects_locations_global_hubs_groups_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsGroupsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        networkconnectivity_projects_locations_global_hubs_groups_get_builder(client, name)?;
+        networkconnectivity_projects_locations_global_hubs_groups_get_builder(client, &args.name)?;
     networkconnectivity_projects_locations_global_hubs_groups_get_execute(builder)
 }
 
@@ -3035,6 +3275,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_get_iam_policy_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_groups_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsGroupsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}/groups/{groupsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -3047,16 +3296,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_get_iam_policy_
 
 pub fn networkconnectivity_projects_locations_global_hubs_groups_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsGroupsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_groups_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     networkconnectivity_projects_locations_global_hubs_groups_get_iam_policy_execute(builder)
 }
@@ -3177,6 +3425,21 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_groups_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsGroupsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}/groups
 /// Lists groups in a given hub.
 ///
@@ -3189,11 +3452,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_list_execute(
 
 pub fn networkconnectivity_projects_locations_global_hubs_groups_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsGroupsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGroupsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3201,7 +3460,12 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_list(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_groups_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_global_hubs_groups_list_execute(builder)
 }
@@ -3319,6 +3583,19 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_groups_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsGroupsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Group,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}/groups/{groupsId}
 /// Updates the parameters of a Network Connectivity Center group.
 ///
@@ -3331,10 +3608,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_patch_execute(
 
 pub fn networkconnectivity_projects_locations_global_hubs_groups_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Group,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsGroupsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3344,7 +3618,11 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_patch(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_groups_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_global_hubs_groups_patch_execute(builder)
 }
@@ -3442,6 +3720,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_set_iam_policy_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_groups_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsGroupsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}/groups/{groupsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3454,14 +3741,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_set_iam_policy_
 
 pub fn networkconnectivity_projects_locations_global_hubs_groups_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsGroupsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_groups_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networkconnectivity_projects_locations_global_hubs_groups_set_iam_policy_execute(builder)
 }
@@ -3563,6 +3851,15 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_test_iam_permis
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_groups_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsGroupsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}/groups/{groupsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3575,8 +3872,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_test_iam_permis
 
 pub fn networkconnectivity_projects_locations_global_hubs_groups_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsGroupsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3587,7 +3883,9 @@ pub fn networkconnectivity_projects_locations_global_hubs_groups_test_iam_permis
 > {
     let builder =
         networkconnectivity_projects_locations_global_hubs_groups_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     networkconnectivity_projects_locations_global_hubs_groups_test_iam_permissions_execute(builder)
 }
@@ -3682,6 +3980,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_route_tables_get_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_route_tables_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsRouteTablesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}/routeTables/{routeTablesId}
 /// Gets details about a Network Connectivity Center route table.
 ///
@@ -3694,13 +3999,14 @@ pub fn networkconnectivity_projects_locations_global_hubs_route_tables_get_execu
 
 pub fn networkconnectivity_projects_locations_global_hubs_route_tables_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsRouteTablesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RouteTable>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networkconnectivity_projects_locations_global_hubs_route_tables_get_builder(client, name)?;
+    let builder = networkconnectivity_projects_locations_global_hubs_route_tables_get_builder(
+        client, &args.name,
+    )?;
     networkconnectivity_projects_locations_global_hubs_route_tables_get_execute(builder)
 }
 
@@ -3820,6 +4126,21 @@ pub fn networkconnectivity_projects_locations_global_hubs_route_tables_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_route_tables_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsRouteTablesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}/routeTables
 /// Lists route tables in a given hub.
 ///
@@ -3832,11 +4153,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_route_tables_list_exec
 
 pub fn networkconnectivity_projects_locations_global_hubs_route_tables_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsRouteTablesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRouteTablesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3844,7 +4161,12 @@ pub fn networkconnectivity_projects_locations_global_hubs_route_tables_list(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_hubs_route_tables_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_global_hubs_route_tables_list_execute(builder)
 }
@@ -3939,6 +4261,13 @@ pub fn networkconnectivity_projects_locations_global_hubs_route_tables_routes_ge
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_route_tables_routes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsRouteTablesRoutesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}/routeTables/{routeTablesId}/routes/{routesId}
 /// Gets details about the specified route.
 ///
@@ -3951,14 +4280,14 @@ pub fn networkconnectivity_projects_locations_global_hubs_route_tables_routes_ge
 
 pub fn networkconnectivity_projects_locations_global_hubs_route_tables_routes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsRouteTablesRoutesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Route>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         networkconnectivity_projects_locations_global_hubs_route_tables_routes_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     networkconnectivity_projects_locations_global_hubs_route_tables_routes_get_execute(builder)
 }
@@ -4079,6 +4408,21 @@ pub fn networkconnectivity_projects_locations_global_hubs_route_tables_routes_li
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_hubs_route_tables_routes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalHubsRouteTablesRoutesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/hubs/{hubsId}/routeTables/{routeTablesId}/routes
 /// Lists routes in a given route table.
 ///
@@ -4091,11 +4435,7 @@ pub fn networkconnectivity_projects_locations_global_hubs_route_tables_routes_li
 
 pub fn networkconnectivity_projects_locations_global_hubs_route_tables_routes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsGlobalHubsRouteTablesRoutesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRoutesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4104,7 +4444,12 @@ pub fn networkconnectivity_projects_locations_global_hubs_route_tables_routes_li
 > {
     let builder =
         networkconnectivity_projects_locations_global_hubs_route_tables_routes_list_builder(
-            client, parent, filter, orderBy, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     networkconnectivity_projects_locations_global_hubs_route_tables_routes_list_execute(builder)
 }
@@ -4222,6 +4567,19 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_create_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_policy_based_routes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalPolicyBasedRoutesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: policyBasedRouteId
+    pub policyBasedRouteId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: PolicyBasedRoute,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/policyBasedRoutes
 /// Creates a new policy-based route in a given project and location.
 ///
@@ -4234,10 +4592,7 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_create_
 
 pub fn networkconnectivity_projects_locations_global_policy_based_routes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    policyBasedRouteId: Option<&str>,
-    requestId: Option<&str>,
-    body: &PolicyBasedRoute,
+    args: &NetworkconnectivityProjectsLocationsGlobalPolicyBasedRoutesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4248,10 +4603,10 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_create(
 > {
     let builder = networkconnectivity_projects_locations_global_policy_based_routes_create_builder(
         client,
-        parent,
-        policyBasedRouteId,
-        requestId,
-        body,
+        &args.parent,
+        args.policyBasedRouteId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_global_policy_based_routes_create_execute(builder)
 }
@@ -4362,6 +4717,15 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_delete_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_policy_based_routes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalPolicyBasedRoutesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/policyBasedRoutes/{policyBasedRoutesId}
 /// Deletes a single policy-based route.
 ///
@@ -4374,8 +4738,7 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_delete_
 
 pub fn networkconnectivity_projects_locations_global_policy_based_routes_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsGlobalPolicyBasedRoutesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -4385,7 +4748,9 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_delete(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_policy_based_routes_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networkconnectivity_projects_locations_global_policy_based_routes_delete_execute(builder)
 }
@@ -4482,6 +4847,13 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_get_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_policy_based_routes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalPolicyBasedRoutesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/policyBasedRoutes/{policyBasedRoutesId}
 /// Gets details of a single policy-based route.
 ///
@@ -4494,7 +4866,7 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_get_exe
 
 pub fn networkconnectivity_projects_locations_global_policy_based_routes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsGlobalPolicyBasedRoutesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PolicyBasedRoute>, ApiError>, P = ApiPending>
         + Send
@@ -4502,7 +4874,7 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_get(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_policy_based_routes_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     networkconnectivity_projects_locations_global_policy_based_routes_get_execute(builder)
 }
@@ -4609,6 +4981,15 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_get_iam
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_policy_based_routes_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalPolicyBasedRoutesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/policyBasedRoutes/{policyBasedRoutesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -4621,8 +5002,7 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_get_iam
 
 pub fn networkconnectivity_projects_locations_global_policy_based_routes_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &NetworkconnectivityProjectsLocationsGlobalPolicyBasedRoutesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -4630,8 +5010,8 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_get_iam
     let builder =
         networkconnectivity_projects_locations_global_policy_based_routes_get_iam_policy_builder(
             client,
-            resource,
-            options_requestedPolicyVersion,
+            &args.resource,
+            args.options_requestedPolicyVersion,
         )?;
     networkconnectivity_projects_locations_global_policy_based_routes_get_iam_policy_execute(
         builder,
@@ -4756,6 +5136,21 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_list_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_policy_based_routes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalPolicyBasedRoutesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/policyBasedRoutes
 /// Lists policy-based routes in a given project and location.
 ///
@@ -4768,11 +5163,7 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_list_ex
 
 pub fn networkconnectivity_projects_locations_global_policy_based_routes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsGlobalPolicyBasedRoutesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPolicyBasedRoutesResponse>, ApiError>,
@@ -4782,7 +5173,12 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_list(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_global_policy_based_routes_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_global_policy_based_routes_list_execute(builder)
 }
@@ -4880,6 +5276,15 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_set_iam
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_policy_based_routes_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalPolicyBasedRoutesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/policyBasedRoutes/{policyBasedRoutesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -4892,15 +5297,16 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_set_iam
 
 pub fn networkconnectivity_projects_locations_global_policy_based_routes_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &NetworkconnectivityProjectsLocationsGlobalPolicyBasedRoutesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         networkconnectivity_projects_locations_global_policy_based_routes_set_iam_policy_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     networkconnectivity_projects_locations_global_policy_based_routes_set_iam_policy_execute(
         builder,
@@ -5004,6 +5410,15 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_test_ia
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_global_policy_based_routes_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsGlobalPolicyBasedRoutesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/global/policyBasedRoutes/{policyBasedRoutesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -5016,8 +5431,7 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_test_ia
 
 pub fn networkconnectivity_projects_locations_global_policy_based_routes_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &NetworkconnectivityProjectsLocationsGlobalPolicyBasedRoutesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -5026,7 +5440,7 @@ pub fn networkconnectivity_projects_locations_global_policy_based_routes_test_ia
         + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_global_policy_based_routes_test_iam_permissions_builder(client, resource, body)?;
+    let builder = networkconnectivity_projects_locations_global_policy_based_routes_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     networkconnectivity_projects_locations_global_policy_based_routes_test_iam_permissions_execute(
         builder,
     )
@@ -5145,6 +5559,19 @@ pub fn networkconnectivity_projects_locations_internal_ranges_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_internal_ranges_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsInternalRangesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: internalRangeId
+    pub internalRangeId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: InternalRange,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/internalRanges
 /// Creates a new internal range in a given project and location.
 ///
@@ -5157,10 +5584,7 @@ pub fn networkconnectivity_projects_locations_internal_ranges_create_execute(
 
 pub fn networkconnectivity_projects_locations_internal_ranges_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    internalRangeId: Option<&str>,
-    requestId: Option<&str>,
-    body: &InternalRange,
+    args: &NetworkconnectivityProjectsLocationsInternalRangesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5171,10 +5595,10 @@ pub fn networkconnectivity_projects_locations_internal_ranges_create(
 > {
     let builder = networkconnectivity_projects_locations_internal_ranges_create_builder(
         client,
-        parent,
-        internalRangeId,
-        requestId,
-        body,
+        &args.parent,
+        args.internalRangeId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_internal_ranges_create_execute(builder)
 }
@@ -5285,6 +5709,15 @@ pub fn networkconnectivity_projects_locations_internal_ranges_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_internal_ranges_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsInternalRangesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/internalRanges/{internalRangesId}
 /// Deletes a single internal range.
 ///
@@ -5297,8 +5730,7 @@ pub fn networkconnectivity_projects_locations_internal_ranges_delete_execute(
 
 pub fn networkconnectivity_projects_locations_internal_ranges_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsInternalRangesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5308,7 +5740,9 @@ pub fn networkconnectivity_projects_locations_internal_ranges_delete(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_internal_ranges_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networkconnectivity_projects_locations_internal_ranges_delete_execute(builder)
 }
@@ -5405,6 +5839,13 @@ pub fn networkconnectivity_projects_locations_internal_ranges_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_internal_ranges_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsInternalRangesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/internalRanges/{internalRangesId}
 /// Gets details of a single internal range.
 ///
@@ -5417,14 +5858,15 @@ pub fn networkconnectivity_projects_locations_internal_ranges_get_execute(
 
 pub fn networkconnectivity_projects_locations_internal_ranges_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsInternalRangesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<InternalRange>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_internal_ranges_get_builder(client, name)?;
+    let builder =
+        networkconnectivity_projects_locations_internal_ranges_get_builder(client, &args.name)?;
     networkconnectivity_projects_locations_internal_ranges_get_execute(builder)
 }
 
@@ -5530,6 +5972,15 @@ pub fn networkconnectivity_projects_locations_internal_ranges_get_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_internal_ranges_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsInternalRangesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/internalRanges/{internalRangesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -5542,16 +5993,15 @@ pub fn networkconnectivity_projects_locations_internal_ranges_get_iam_policy_exe
 
 pub fn networkconnectivity_projects_locations_internal_ranges_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &NetworkconnectivityProjectsLocationsInternalRangesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_internal_ranges_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     networkconnectivity_projects_locations_internal_ranges_get_iam_policy_execute(builder)
 }
@@ -5674,6 +6124,21 @@ pub fn networkconnectivity_projects_locations_internal_ranges_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_internal_ranges_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsInternalRangesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/internalRanges
 /// Lists internal ranges in a given project and location.
 ///
@@ -5686,11 +6151,7 @@ pub fn networkconnectivity_projects_locations_internal_ranges_list_execute(
 
 pub fn networkconnectivity_projects_locations_internal_ranges_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsInternalRangesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListInternalRangesResponse>, ApiError>,
@@ -5700,7 +6161,12 @@ pub fn networkconnectivity_projects_locations_internal_ranges_list(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_internal_ranges_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_internal_ranges_list_execute(builder)
 }
@@ -5818,6 +6284,19 @@ pub fn networkconnectivity_projects_locations_internal_ranges_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_internal_ranges_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsInternalRangesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: InternalRange,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/internalRanges/{internalRangesId}
 /// Updates the parameters of a single internal range.
 ///
@@ -5830,10 +6309,7 @@ pub fn networkconnectivity_projects_locations_internal_ranges_patch_execute(
 
 pub fn networkconnectivity_projects_locations_internal_ranges_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &InternalRange,
+    args: &NetworkconnectivityProjectsLocationsInternalRangesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -5843,7 +6319,11 @@ pub fn networkconnectivity_projects_locations_internal_ranges_patch(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_internal_ranges_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_internal_ranges_patch_execute(builder)
 }
@@ -5941,6 +6421,15 @@ pub fn networkconnectivity_projects_locations_internal_ranges_set_iam_policy_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_internal_ranges_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsInternalRangesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/internalRanges/{internalRangesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -5953,14 +6442,15 @@ pub fn networkconnectivity_projects_locations_internal_ranges_set_iam_policy_exe
 
 pub fn networkconnectivity_projects_locations_internal_ranges_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &NetworkconnectivityProjectsLocationsInternalRangesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_internal_ranges_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networkconnectivity_projects_locations_internal_ranges_set_iam_policy_execute(builder)
 }
@@ -6062,6 +6552,15 @@ pub fn networkconnectivity_projects_locations_internal_ranges_test_iam_permissio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_internal_ranges_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsInternalRangesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/internalRanges/{internalRangesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -6074,8 +6573,7 @@ pub fn networkconnectivity_projects_locations_internal_ranges_test_iam_permissio
 
 pub fn networkconnectivity_projects_locations_internal_ranges_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &NetworkconnectivityProjectsLocationsInternalRangesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -6086,7 +6584,9 @@ pub fn networkconnectivity_projects_locations_internal_ranges_test_iam_permissio
 > {
     let builder =
         networkconnectivity_projects_locations_internal_ranges_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     networkconnectivity_projects_locations_internal_ranges_test_iam_permissions_execute(builder)
 }
@@ -6204,6 +6704,19 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_c
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_multicloud_data_transfer_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: multicloudDataTransferConfigId
+    pub multicloudDataTransferConfigId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: MulticloudDataTransferConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/multicloudDataTransferConfigs
 /// Creates a MulticloudDataTransferConfig resource in a specified project and location.
 ///
@@ -6216,10 +6729,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_c
 
 pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    multicloudDataTransferConfigId: Option<&str>,
-    requestId: Option<&str>,
-    body: &MulticloudDataTransferConfig,
+    args: &NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6231,10 +6741,10 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_c
     let builder =
         networkconnectivity_projects_locations_multicloud_data_transfer_configs_create_builder(
             client,
-            parent,
-            multicloudDataTransferConfigId,
-            requestId,
-            body,
+            &args.parent,
+            args.multicloudDataTransferConfigId.as_deref(),
+            args.requestId.as_deref(),
+            &args.body,
         )?;
     networkconnectivity_projects_locations_multicloud_data_transfer_configs_create_execute(builder)
 }
@@ -6349,6 +6859,17 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_multicloud_data_transfer_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}
 /// Deletes a MulticloudDataTransferConfig resource.
 ///
@@ -6361,9 +6882,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
 
 pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6374,7 +6893,10 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
 > {
     let builder =
         networkconnectivity_projects_locations_multicloud_data_transfer_configs_delete_builder(
-            client, name, etag, requestId,
+            client,
+            &args.name,
+            args.etag.as_deref(),
+            args.requestId.as_deref(),
         )?;
     networkconnectivity_projects_locations_multicloud_data_transfer_configs_delete_execute(builder)
 }
@@ -6473,6 +6995,13 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_g
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_multicloud_data_transfer_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}
 /// Gets the details of a MulticloudDataTransferConfig resource.
 ///
@@ -6485,7 +7014,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_g
 
 pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<MulticloudDataTransferConfig>, ApiError>,
@@ -6496,7 +7025,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_g
 > {
     let builder =
         networkconnectivity_projects_locations_multicloud_data_transfer_configs_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     networkconnectivity_projects_locations_multicloud_data_transfer_configs_get_execute(builder)
 }
@@ -6623,6 +7152,23 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_l
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_multicloud_data_transfer_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/multicloudDataTransferConfigs
 /// Lists the MulticloudDataTransferConfig resources in a specified project and location.
 ///
@@ -6635,12 +7181,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_l
 
 pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMulticloudDataTransferConfigsResponse>, ApiError>,
@@ -6652,12 +7193,12 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_l
     let builder =
         networkconnectivity_projects_locations_multicloud_data_transfer_configs_list_builder(
             client,
-            parent,
-            filter,
-            orderBy,
-            pageSize,
-            pageToken,
-            returnPartialSuccess,
+            &args.parent,
+            args.filter.as_deref(),
+            args.orderBy.as_deref(),
+            args.pageSize,
+            args.pageToken.as_deref(),
+            args.returnPartialSuccess,
         )?;
     networkconnectivity_projects_locations_multicloud_data_transfer_configs_list_execute(builder)
 }
@@ -6775,6 +7316,19 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_p
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_multicloud_data_transfer_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: MulticloudDataTransferConfig,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}
 /// Updates a MulticloudDataTransferConfig resource in a specified project and location.
 ///
@@ -6787,10 +7341,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_p
 
 pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &MulticloudDataTransferConfig,
+    args: &NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6801,7 +7352,11 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_p
 > {
     let builder =
         networkconnectivity_projects_locations_multicloud_data_transfer_configs_patch_builder(
-            client, name, requestId, updateMask, body,
+            client,
+            &args.name,
+            args.requestId.as_deref(),
+            args.updateMask.as_deref(),
+            &args.body,
         )?;
     networkconnectivity_projects_locations_multicloud_data_transfer_configs_patch_execute(builder)
 }
@@ -6919,6 +7474,19 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsDestinationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: destinationId
+    pub destinationId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Destination,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}/destinations
 /// Creates a Destination resource in a specified project and location.
 ///
@@ -6931,10 +7499,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
 
 pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    destinationId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Destination,
+    args: &NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsDestinationsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -6943,7 +7508,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
         + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_create_builder(client, parent, destinationId, requestId, body)?;
+    let builder = networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_create_builder(client, &args.parent, args.destinationId.as_deref(), args.requestId.as_deref(), &args.body)?;
     networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_create_execute(builder)
 }
 
@@ -7057,6 +7622,17 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsDestinationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}/destinations/{destinationsId}
 /// Deletes a Destination resource.
 ///
@@ -7069,9 +7645,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
 
 pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsDestinationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7080,7 +7654,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
         + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_delete_builder(client, name, etag, requestId)?;
+    let builder = networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_delete_builder(client, &args.name, args.etag.as_deref(), args.requestId.as_deref())?;
     networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_delete_execute(builder)
 }
 
@@ -7174,6 +7748,13 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsDestinationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}/destinations/{destinationsId}
 /// Gets the details of a Destination resource.
 ///
@@ -7186,12 +7767,12 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
 
 pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsDestinationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Destination>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_get_builder(client, name)?;
+    let builder = networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_get_builder(client, &args.name)?;
     networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_get_execute(
         builder,
     )
@@ -7317,6 +7898,23 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsDestinationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}/destinations
 /// Lists the Destination resources in a specified project and location.
 ///
@@ -7329,19 +7927,14 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
 
 pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsDestinationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDestinationsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_list_builder(client, parent, filter, orderBy, pageSize, pageToken, returnPartialSuccess)?;
+    let builder = networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_list_builder(client, &args.parent, args.filter.as_deref(), args.orderBy.as_deref(), args.pageSize, args.pageToken.as_deref(), args.returnPartialSuccess)?;
     networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_list_execute(builder)
 }
 
@@ -7458,6 +8051,19 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsDestinationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Destination,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/multicloudDataTransferConfigs/{multicloudDataTransferConfigsId}/destinations/{destinationsId}
 /// Updates a Destination resource in a specified project and location.
 ///
@@ -7470,10 +8076,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
 
 pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Destination,
+    args: &NetworkconnectivityProjectsLocationsMulticloudDataTransferConfigsDestinationsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -7482,7 +8085,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_configs_d
         + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_patch_builder(client, name, requestId, updateMask, body)?;
+    let builder = networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_patch_builder(client, &args.name, args.requestId.as_deref(), args.updateMask.as_deref(), &args.body)?;
     networkconnectivity_projects_locations_multicloud_data_transfer_configs_destinations_patch_execute(builder)
 }
 
@@ -7580,6 +8183,13 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_supported
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsMulticloudDataTransferSupportedServicesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/multicloudDataTransferSupportedServices/{multicloudDataTransferSupportedServicesId}
 /// Gets the details of a service that is supported for Data Transfer Essentials.
 ///
@@ -7592,7 +8202,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_supported
 
 pub fn networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsMulticloudDataTransferSupportedServicesGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<MulticloudDataTransferSupportedService>, ApiError>,
@@ -7601,7 +8211,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_supported
         + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_get_builder(client, name)?;
+    let builder = networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_get_builder(client, &args.name)?;
     networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_get_execute(
         builder,
     )
@@ -7718,6 +8328,17 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_supported
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsMulticloudDataTransferSupportedServicesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/multicloudDataTransferSupportedServices
 /// Lists the services in the project for a region that are supported for Data Transfer Essentials.
 ///
@@ -7730,9 +8351,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_supported
 
 pub fn networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsMulticloudDataTransferSupportedServicesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListMulticloudDataTransferSupportedServicesResponse>, ApiError>,
@@ -7741,7 +8360,7 @@ pub fn networkconnectivity_projects_locations_multicloud_data_transfer_supported
         + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     networkconnectivity_projects_locations_multicloud_data_transfer_supported_services_list_execute(
         builder,
     )
@@ -7840,6 +8459,15 @@ pub fn networkconnectivity_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunningCancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -7852,14 +8480,14 @@ pub fn networkconnectivity_projects_locations_operations_cancel_execute(
 
 pub fn networkconnectivity_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunningCancelOperationRequest,
+    args: &NetworkconnectivityProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        networkconnectivity_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = networkconnectivity_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     networkconnectivity_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -7953,6 +8581,13 @@ pub fn networkconnectivity_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -7965,12 +8600,13 @@ pub fn networkconnectivity_projects_locations_operations_delete_execute(
 
 pub fn networkconnectivity_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_operations_delete_builder(client, name)?;
+    let builder =
+        networkconnectivity_projects_locations_operations_delete_builder(client, &args.name)?;
     networkconnectivity_projects_locations_operations_delete_execute(builder)
 }
 
@@ -8068,6 +8704,13 @@ pub fn networkconnectivity_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -8080,7 +8723,7 @@ pub fn networkconnectivity_projects_locations_operations_get_execute(
 
 pub fn networkconnectivity_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -8089,7 +8732,8 @@ pub fn networkconnectivity_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_operations_get_builder(client, name)?;
+    let builder =
+        networkconnectivity_projects_locations_operations_get_builder(client, &args.name)?;
     networkconnectivity_projects_locations_operations_get_execute(builder)
 }
 
@@ -8212,6 +8856,21 @@ pub fn networkconnectivity_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -8224,11 +8883,7 @@ pub fn networkconnectivity_projects_locations_operations_list_execute(
 
 pub fn networkconnectivity_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NetworkconnectivityProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -8239,11 +8894,11 @@ pub fn networkconnectivity_projects_locations_operations_list(
 > {
     let builder = networkconnectivity_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     networkconnectivity_projects_locations_operations_list_execute(builder)
 }
@@ -8361,6 +9016,19 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_regional_endpoints_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsRegionalEndpointsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: regionalEndpointId
+    pub regionalEndpointId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: RegionalEndpoint,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/regionalEndpoints
 /// Creates a new RegionalEndpoint in a given project and location.
 ///
@@ -8373,10 +9041,7 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_create_execute(
 
 pub fn networkconnectivity_projects_locations_regional_endpoints_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    regionalEndpointId: Option<&str>,
-    requestId: Option<&str>,
-    body: &RegionalEndpoint,
+    args: &NetworkconnectivityProjectsLocationsRegionalEndpointsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -8387,10 +9052,10 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_create(
 > {
     let builder = networkconnectivity_projects_locations_regional_endpoints_create_builder(
         client,
-        parent,
-        regionalEndpointId,
-        requestId,
-        body,
+        &args.parent,
+        args.regionalEndpointId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_regional_endpoints_create_execute(builder)
 }
@@ -8501,6 +9166,15 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_regional_endpoints_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsRegionalEndpointsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/regionalEndpoints/{regionalEndpointsId}
 /// Deletes a single RegionalEndpoint.
 ///
@@ -8513,8 +9187,7 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_delete_execute(
 
 pub fn networkconnectivity_projects_locations_regional_endpoints_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsRegionalEndpointsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -8524,7 +9197,9 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_delete(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_regional_endpoints_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     networkconnectivity_projects_locations_regional_endpoints_delete_execute(builder)
 }
@@ -8621,6 +9296,13 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_regional_endpoints_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsRegionalEndpointsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/regionalEndpoints/{regionalEndpointsId}
 /// Gets details of a single RegionalEndpoint.
 ///
@@ -8633,7 +9315,7 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_get_execute(
 
 pub fn networkconnectivity_projects_locations_regional_endpoints_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsRegionalEndpointsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RegionalEndpoint>, ApiError>, P = ApiPending>
         + Send
@@ -8641,7 +9323,7 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_get(
     ApiError,
 > {
     let builder =
-        networkconnectivity_projects_locations_regional_endpoints_get_builder(client, name)?;
+        networkconnectivity_projects_locations_regional_endpoints_get_builder(client, &args.name)?;
     networkconnectivity_projects_locations_regional_endpoints_get_execute(builder)
 }
 
@@ -8763,6 +9445,21 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_regional_endpoints_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsRegionalEndpointsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/regionalEndpoints
 /// Lists RegionalEndpoints in a given project and location.
 ///
@@ -8775,11 +9472,7 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_list_execute(
 
 pub fn networkconnectivity_projects_locations_regional_endpoints_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsRegionalEndpointsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListRegionalEndpointsResponse>, ApiError>,
@@ -8789,7 +9482,12 @@ pub fn networkconnectivity_projects_locations_regional_endpoints_list(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_regional_endpoints_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_regional_endpoints_list_execute(builder)
 }
@@ -8886,6 +9584,13 @@ pub fn networkconnectivity_projects_locations_remote_transport_profiles_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_remote_transport_profiles_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsRemoteTransportProfilesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/remoteTransportProfiles/{remoteTransportProfilesId}
 /// Gets details of a single RemoteTransportProfile.
 ///
@@ -8898,15 +9603,16 @@ pub fn networkconnectivity_projects_locations_remote_transport_profiles_get_exec
 
 pub fn networkconnectivity_projects_locations_remote_transport_profiles_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsRemoteTransportProfilesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RemoteTransportProfile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        networkconnectivity_projects_locations_remote_transport_profiles_get_builder(client, name)?;
+    let builder = networkconnectivity_projects_locations_remote_transport_profiles_get_builder(
+        client, &args.name,
+    )?;
     networkconnectivity_projects_locations_remote_transport_profiles_get_execute(builder)
 }
 
@@ -9028,6 +9734,21 @@ pub fn networkconnectivity_projects_locations_remote_transport_profiles_list_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_remote_transport_profiles_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsRemoteTransportProfilesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/remoteTransportProfiles
 /// Lists RemoteTransportProfiles in a given project and location.
 ///
@@ -9040,11 +9761,7 @@ pub fn networkconnectivity_projects_locations_remote_transport_profiles_list_exe
 
 pub fn networkconnectivity_projects_locations_remote_transport_profiles_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsRemoteTransportProfilesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListRemoteTransportProfilesResponse>, ApiError>,
@@ -9054,7 +9771,12 @@ pub fn networkconnectivity_projects_locations_remote_transport_profiles_list(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_remote_transport_profiles_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_remote_transport_profiles_list_execute(builder)
 }
@@ -9169,6 +9891,17 @@ pub fn networkconnectivity_projects_locations_service_classes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_classes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceClassesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceClasses/{serviceClassesId}
 /// Deletes a single ServiceClass.
 ///
@@ -9181,9 +9914,7 @@ pub fn networkconnectivity_projects_locations_service_classes_delete_execute(
 
 pub fn networkconnectivity_projects_locations_service_classes_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsServiceClassesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -9193,7 +9924,10 @@ pub fn networkconnectivity_projects_locations_service_classes_delete(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_service_classes_delete_builder(
-        client, name, etag, requestId,
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
     )?;
     networkconnectivity_projects_locations_service_classes_delete_execute(builder)
 }
@@ -9290,6 +10024,13 @@ pub fn networkconnectivity_projects_locations_service_classes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_classes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceClassesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceClasses/{serviceClassesId}
 /// Gets details of a single ServiceClass.
 ///
@@ -9302,14 +10043,15 @@ pub fn networkconnectivity_projects_locations_service_classes_get_execute(
 
 pub fn networkconnectivity_projects_locations_service_classes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsServiceClassesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ServiceClass>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_service_classes_get_builder(client, name)?;
+    let builder =
+        networkconnectivity_projects_locations_service_classes_get_builder(client, &args.name)?;
     networkconnectivity_projects_locations_service_classes_get_execute(builder)
 }
 
@@ -9431,6 +10173,21 @@ pub fn networkconnectivity_projects_locations_service_classes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_classes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceClassesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceClasses
 /// Lists ServiceClasses in a given project and location.
 ///
@@ -9443,11 +10200,7 @@ pub fn networkconnectivity_projects_locations_service_classes_list_execute(
 
 pub fn networkconnectivity_projects_locations_service_classes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsServiceClassesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListServiceClassesResponse>, ApiError>,
@@ -9457,7 +10210,12 @@ pub fn networkconnectivity_projects_locations_service_classes_list(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_service_classes_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_service_classes_list_execute(builder)
 }
@@ -9575,6 +10333,19 @@ pub fn networkconnectivity_projects_locations_service_classes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_classes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceClassesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ServiceClass,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceClasses/{serviceClassesId}
 /// Updates the parameters of a single ServiceClass.
 ///
@@ -9587,10 +10358,7 @@ pub fn networkconnectivity_projects_locations_service_classes_patch_execute(
 
 pub fn networkconnectivity_projects_locations_service_classes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &ServiceClass,
+    args: &NetworkconnectivityProjectsLocationsServiceClassesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -9600,7 +10368,11 @@ pub fn networkconnectivity_projects_locations_service_classes_patch(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_service_classes_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_service_classes_patch_execute(builder)
 }
@@ -9718,6 +10490,19 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_create_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_connection_maps_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceConnectionMapsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: serviceConnectionMapId
+    pub serviceConnectionMapId: Option<String>,
+    /// Request body.
+    pub body: ServiceConnectionMap,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceConnectionMaps
 /// Creates a new ServiceConnectionMap in a given project and location.
 ///
@@ -9730,10 +10515,7 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_create_exe
 
 pub fn networkconnectivity_projects_locations_service_connection_maps_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    serviceConnectionMapId: Option<&str>,
-    body: &ServiceConnectionMap,
+    args: &NetworkconnectivityProjectsLocationsServiceConnectionMapsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -9744,10 +10526,10 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_create(
 > {
     let builder = networkconnectivity_projects_locations_service_connection_maps_create_builder(
         client,
-        parent,
-        requestId,
-        serviceConnectionMapId,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.serviceConnectionMapId.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_service_connection_maps_create_execute(builder)
 }
@@ -9862,6 +10644,17 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_delete_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_connection_maps_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceConnectionMapsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceConnectionMaps/{serviceConnectionMapsId}
 /// Deletes a single ServiceConnectionMap.
 ///
@@ -9874,9 +10667,7 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_delete_exe
 
 pub fn networkconnectivity_projects_locations_service_connection_maps_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsServiceConnectionMapsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -9886,7 +10677,10 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_delete(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_service_connection_maps_delete_builder(
-        client, name, etag, requestId,
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
     )?;
     networkconnectivity_projects_locations_service_connection_maps_delete_execute(builder)
 }
@@ -9983,6 +10777,13 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_get_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_connection_maps_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceConnectionMapsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceConnectionMaps/{serviceConnectionMapsId}
 /// Gets details of a single ServiceConnectionMap.
 ///
@@ -9995,15 +10796,16 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_get_execut
 
 pub fn networkconnectivity_projects_locations_service_connection_maps_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsServiceConnectionMapsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ServiceConnectionMap>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        networkconnectivity_projects_locations_service_connection_maps_get_builder(client, name)?;
+    let builder = networkconnectivity_projects_locations_service_connection_maps_get_builder(
+        client, &args.name,
+    )?;
     networkconnectivity_projects_locations_service_connection_maps_get_execute(builder)
 }
 
@@ -10125,6 +10927,21 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_list_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_connection_maps_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceConnectionMapsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceConnectionMaps
 /// Lists ServiceConnectionMaps in a given project and location.
 ///
@@ -10137,11 +10954,7 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_list_execu
 
 pub fn networkconnectivity_projects_locations_service_connection_maps_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsServiceConnectionMapsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListServiceConnectionMapsResponse>, ApiError>,
@@ -10151,7 +10964,12 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_list(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_service_connection_maps_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_service_connection_maps_list_execute(builder)
 }
@@ -10269,6 +11087,19 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_patch_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_connection_maps_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceConnectionMapsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ServiceConnectionMap,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceConnectionMaps/{serviceConnectionMapsId}
 /// Updates the parameters of a single ServiceConnectionMap.
 ///
@@ -10281,10 +11112,7 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_patch_exec
 
 pub fn networkconnectivity_projects_locations_service_connection_maps_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &ServiceConnectionMap,
+    args: &NetworkconnectivityProjectsLocationsServiceConnectionMapsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10294,7 +11122,11 @@ pub fn networkconnectivity_projects_locations_service_connection_maps_patch(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_service_connection_maps_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_service_connection_maps_patch_execute(builder)
 }
@@ -10428,6 +11260,27 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_create
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_connection_policies_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceConnectionPoliciesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: autoSubnetworkConfig_allocRangeSpace
+    pub autoSubnetworkConfig_allocRangeSpace: Option<String>,
+    /// Query parameter: autoSubnetworkConfig_ipStack
+    pub autoSubnetworkConfig_ipStack: Option<String>,
+    /// Query parameter: autoSubnetworkConfig_prefixLength
+    pub autoSubnetworkConfig_prefixLength: Option<i32>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: serviceConnectionPolicyId
+    pub serviceConnectionPolicyId: Option<String>,
+    /// Query parameter: subnetworkMode
+    pub subnetworkMode: Option<String>,
+    /// Request body.
+    pub body: ServiceConnectionPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceConnectionPolicies
 /// Creates a new ServiceConnectionPolicy in a given project and location.
 ///
@@ -10440,14 +11293,7 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_create
 
 pub fn networkconnectivity_projects_locations_service_connection_policies_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    autoSubnetworkConfig_allocRangeSpace: Option<&str>,
-    autoSubnetworkConfig_ipStack: Option<&str>,
-    autoSubnetworkConfig_prefixLength: Option<i32>,
-    requestId: Option<&str>,
-    serviceConnectionPolicyId: Option<&str>,
-    subnetworkMode: Option<&str>,
-    body: &ServiceConnectionPolicy,
+    args: &NetworkconnectivityProjectsLocationsServiceConnectionPoliciesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10459,14 +11305,14 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_create
     let builder =
         networkconnectivity_projects_locations_service_connection_policies_create_builder(
             client,
-            parent,
-            autoSubnetworkConfig_allocRangeSpace,
-            autoSubnetworkConfig_ipStack,
-            autoSubnetworkConfig_prefixLength,
-            requestId,
-            serviceConnectionPolicyId,
-            subnetworkMode,
-            body,
+            &args.parent,
+            args.autoSubnetworkConfig_allocRangeSpace.as_deref(),
+            args.autoSubnetworkConfig_ipStack.as_deref(),
+            args.autoSubnetworkConfig_prefixLength,
+            args.requestId.as_deref(),
+            args.serviceConnectionPolicyId.as_deref(),
+            args.subnetworkMode.as_deref(),
+            &args.body,
         )?;
     networkconnectivity_projects_locations_service_connection_policies_create_execute(builder)
 }
@@ -10581,6 +11427,17 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_delete
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_connection_policies_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceConnectionPoliciesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceConnectionPolicies/{serviceConnectionPoliciesId}
 /// Deletes a single ServiceConnectionPolicy.
 ///
@@ -10593,9 +11450,7 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_delete
 
 pub fn networkconnectivity_projects_locations_service_connection_policies_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsServiceConnectionPoliciesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -10606,7 +11461,10 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_delete
 > {
     let builder =
         networkconnectivity_projects_locations_service_connection_policies_delete_builder(
-            client, name, etag, requestId,
+            client,
+            &args.name,
+            args.etag.as_deref(),
+            args.requestId.as_deref(),
         )?;
     networkconnectivity_projects_locations_service_connection_policies_delete_execute(builder)
 }
@@ -10703,6 +11561,13 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_get_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_connection_policies_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceConnectionPoliciesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceConnectionPolicies/{serviceConnectionPoliciesId}
 /// Gets details of a single ServiceConnectionPolicy.
 ///
@@ -10715,7 +11580,7 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_get_ex
 
 pub fn networkconnectivity_projects_locations_service_connection_policies_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsServiceConnectionPoliciesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ServiceConnectionPolicy>, ApiError>, P = ApiPending>
         + Send
@@ -10723,7 +11588,7 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_get(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_service_connection_policies_get_builder(
-        client, name,
+        client, &args.name,
     )?;
     networkconnectivity_projects_locations_service_connection_policies_get_execute(builder)
 }
@@ -10846,6 +11711,21 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_list_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_connection_policies_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceConnectionPoliciesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceConnectionPolicies
 /// Lists ServiceConnectionPolicies in a given project and location.
 ///
@@ -10858,11 +11738,7 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_list_e
 
 pub fn networkconnectivity_projects_locations_service_connection_policies_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsServiceConnectionPoliciesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListServiceConnectionPoliciesResponse>, ApiError>,
@@ -10872,7 +11748,12 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_list(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_service_connection_policies_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_service_connection_policies_list_execute(builder)
 }
@@ -10990,6 +11871,19 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_patch_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_connection_policies_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceConnectionPoliciesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ServiceConnectionPolicy,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceConnectionPolicies/{serviceConnectionPoliciesId}
 /// Updates the parameters of a single ServiceConnectionPolicy.
 ///
@@ -11002,10 +11896,7 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_patch_
 
 pub fn networkconnectivity_projects_locations_service_connection_policies_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &ServiceConnectionPolicy,
+    args: &NetworkconnectivityProjectsLocationsServiceConnectionPoliciesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11015,7 +11906,11 @@ pub fn networkconnectivity_projects_locations_service_connection_policies_patch(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_service_connection_policies_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_service_connection_policies_patch_execute(builder)
 }
@@ -11133,6 +12028,19 @@ pub fn networkconnectivity_projects_locations_service_connection_tokens_create_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_connection_tokens_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceConnectionTokensCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: serviceConnectionTokenId
+    pub serviceConnectionTokenId: Option<String>,
+    /// Request body.
+    pub body: ServiceConnectionToken,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceConnectionTokens
 /// Creates a new ServiceConnectionToken in a given project and location.
 ///
@@ -11145,10 +12053,7 @@ pub fn networkconnectivity_projects_locations_service_connection_tokens_create_e
 
 pub fn networkconnectivity_projects_locations_service_connection_tokens_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    serviceConnectionTokenId: Option<&str>,
-    body: &ServiceConnectionToken,
+    args: &NetworkconnectivityProjectsLocationsServiceConnectionTokensCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11159,10 +12064,10 @@ pub fn networkconnectivity_projects_locations_service_connection_tokens_create(
 > {
     let builder = networkconnectivity_projects_locations_service_connection_tokens_create_builder(
         client,
-        parent,
-        requestId,
-        serviceConnectionTokenId,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.serviceConnectionTokenId.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_service_connection_tokens_create_execute(builder)
 }
@@ -11277,6 +12182,17 @@ pub fn networkconnectivity_projects_locations_service_connection_tokens_delete_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_connection_tokens_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceConnectionTokensDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: etag
+    pub etag: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceConnectionTokens/{serviceConnectionTokensId}
 /// Deletes a single ServiceConnectionToken.
 ///
@@ -11289,9 +12205,7 @@ pub fn networkconnectivity_projects_locations_service_connection_tokens_delete_e
 
 pub fn networkconnectivity_projects_locations_service_connection_tokens_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    etag: Option<&str>,
-    requestId: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsServiceConnectionTokensDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11301,7 +12215,10 @@ pub fn networkconnectivity_projects_locations_service_connection_tokens_delete(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_service_connection_tokens_delete_builder(
-        client, name, etag, requestId,
+        client,
+        &args.name,
+        args.etag.as_deref(),
+        args.requestId.as_deref(),
     )?;
     networkconnectivity_projects_locations_service_connection_tokens_delete_execute(builder)
 }
@@ -11398,6 +12315,13 @@ pub fn networkconnectivity_projects_locations_service_connection_tokens_get_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_connection_tokens_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceConnectionTokensGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceConnectionTokens/{serviceConnectionTokensId}
 /// Gets details of a single ServiceConnectionToken.
 ///
@@ -11410,15 +12334,16 @@ pub fn networkconnectivity_projects_locations_service_connection_tokens_get_exec
 
 pub fn networkconnectivity_projects_locations_service_connection_tokens_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsServiceConnectionTokensGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ServiceConnectionToken>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        networkconnectivity_projects_locations_service_connection_tokens_get_builder(client, name)?;
+    let builder = networkconnectivity_projects_locations_service_connection_tokens_get_builder(
+        client, &args.name,
+    )?;
     networkconnectivity_projects_locations_service_connection_tokens_get_execute(builder)
 }
 
@@ -11540,6 +12465,21 @@ pub fn networkconnectivity_projects_locations_service_connection_tokens_list_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_service_connection_tokens_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsServiceConnectionTokensListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/serviceConnectionTokens
 /// Lists ServiceConnectionTokens in a given project and location.
 ///
@@ -11552,11 +12492,7 @@ pub fn networkconnectivity_projects_locations_service_connection_tokens_list_exe
 
 pub fn networkconnectivity_projects_locations_service_connection_tokens_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsServiceConnectionTokensListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListServiceConnectionTokensResponse>, ApiError>,
@@ -11566,7 +12502,12 @@ pub fn networkconnectivity_projects_locations_service_connection_tokens_list(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_service_connection_tokens_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_service_connection_tokens_list_execute(builder)
 }
@@ -11684,6 +12625,19 @@ pub fn networkconnectivity_projects_locations_spokes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_spokes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsSpokesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: spokeId
+    pub spokeId: Option<String>,
+    /// Request body.
+    pub body: Spoke,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/spokes
 /// Creates a Network Connectivity Center spoke.
 ///
@@ -11696,10 +12650,7 @@ pub fn networkconnectivity_projects_locations_spokes_create_execute(
 
 pub fn networkconnectivity_projects_locations_spokes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    spokeId: Option<&str>,
-    body: &Spoke,
+    args: &NetworkconnectivityProjectsLocationsSpokesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11709,7 +12660,11 @@ pub fn networkconnectivity_projects_locations_spokes_create(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_spokes_create_builder(
-        client, parent, requestId, spokeId, body,
+        client,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.spokeId.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_spokes_create_execute(builder)
 }
@@ -11820,6 +12775,15 @@ pub fn networkconnectivity_projects_locations_spokes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_spokes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsSpokesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/spokes/{spokesId}
 /// Deletes a Network Connectivity Center spoke.
 ///
@@ -11832,8 +12796,7 @@ pub fn networkconnectivity_projects_locations_spokes_delete_execute(
 
 pub fn networkconnectivity_projects_locations_spokes_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsSpokesDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -11842,8 +12805,11 @@ pub fn networkconnectivity_projects_locations_spokes_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        networkconnectivity_projects_locations_spokes_delete_builder(client, name, requestId)?;
+    let builder = networkconnectivity_projects_locations_spokes_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     networkconnectivity_projects_locations_spokes_delete_execute(builder)
 }
 
@@ -11937,6 +12903,13 @@ pub fn networkconnectivity_projects_locations_spokes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_spokes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsSpokesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/spokes/{spokesId}
 /// Gets details about a Network Connectivity Center spoke.
 ///
@@ -11949,12 +12922,12 @@ pub fn networkconnectivity_projects_locations_spokes_get_execute(
 
 pub fn networkconnectivity_projects_locations_spokes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsSpokesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Spoke>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_spokes_get_builder(client, name)?;
+    let builder = networkconnectivity_projects_locations_spokes_get_builder(client, &args.name)?;
     networkconnectivity_projects_locations_spokes_get_execute(builder)
 }
 
@@ -12060,6 +13033,15 @@ pub fn networkconnectivity_projects_locations_spokes_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_spokes_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsSpokesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/spokes/{spokesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -12072,16 +13054,15 @@ pub fn networkconnectivity_projects_locations_spokes_get_iam_policy_execute(
 
 pub fn networkconnectivity_projects_locations_spokes_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &NetworkconnectivityProjectsLocationsSpokesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_spokes_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     networkconnectivity_projects_locations_spokes_get_iam_policy_execute(builder)
 }
@@ -12202,6 +13183,21 @@ pub fn networkconnectivity_projects_locations_spokes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_spokes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsSpokesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/spokes
 /// Lists the Network Connectivity Center spokes in a specified project and location.
 ///
@@ -12214,11 +13210,7 @@ pub fn networkconnectivity_projects_locations_spokes_list_execute(
 
 pub fn networkconnectivity_projects_locations_spokes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsSpokesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSpokesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -12226,7 +13218,12 @@ pub fn networkconnectivity_projects_locations_spokes_list(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_spokes_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_spokes_list_execute(builder)
 }
@@ -12344,6 +13341,19 @@ pub fn networkconnectivity_projects_locations_spokes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_spokes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsSpokesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Spoke,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/spokes/{spokesId}
 /// Updates the parameters of a Network Connectivity Center spoke.
 ///
@@ -12356,10 +13366,7 @@ pub fn networkconnectivity_projects_locations_spokes_patch_execute(
 
 pub fn networkconnectivity_projects_locations_spokes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Spoke,
+    args: &NetworkconnectivityProjectsLocationsSpokesPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -12369,7 +13376,11 @@ pub fn networkconnectivity_projects_locations_spokes_patch(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_spokes_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_spokes_patch_execute(builder)
 }
@@ -12467,6 +13478,15 @@ pub fn networkconnectivity_projects_locations_spokes_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_spokes_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsSpokesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/spokes/{spokesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -12479,14 +13499,15 @@ pub fn networkconnectivity_projects_locations_spokes_set_iam_policy_execute(
 
 pub fn networkconnectivity_projects_locations_spokes_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &NetworkconnectivityProjectsLocationsSpokesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_spokes_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networkconnectivity_projects_locations_spokes_set_iam_policy_execute(builder)
 }
@@ -12588,6 +13609,15 @@ pub fn networkconnectivity_projects_locations_spokes_test_iam_permissions_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_spokes_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsSpokesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/spokes/{spokesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -12600,8 +13630,7 @@ pub fn networkconnectivity_projects_locations_spokes_test_iam_permissions_execut
 
 pub fn networkconnectivity_projects_locations_spokes_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &NetworkconnectivityProjectsLocationsSpokesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -12611,7 +13640,9 @@ pub fn networkconnectivity_projects_locations_spokes_test_iam_permissions(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_spokes_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     networkconnectivity_projects_locations_spokes_test_iam_permissions_execute(builder)
 }
@@ -12729,6 +13760,19 @@ pub fn networkconnectivity_projects_locations_transports_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_transports_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsTransportsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: transportId
+    pub transportId: Option<String>,
+    /// Request body.
+    pub body: Transport,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transports
 /// Creates a new Transport in a given project and location.
 ///
@@ -12741,10 +13785,7 @@ pub fn networkconnectivity_projects_locations_transports_create_execute(
 
 pub fn networkconnectivity_projects_locations_transports_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    requestId: Option<&str>,
-    transportId: Option<&str>,
-    body: &Transport,
+    args: &NetworkconnectivityProjectsLocationsTransportsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -12755,10 +13796,10 @@ pub fn networkconnectivity_projects_locations_transports_create(
 > {
     let builder = networkconnectivity_projects_locations_transports_create_builder(
         client,
-        parent,
-        requestId,
-        transportId,
-        body,
+        &args.parent,
+        args.requestId.as_deref(),
+        args.transportId.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_transports_create_execute(builder)
 }
@@ -12869,6 +13910,15 @@ pub fn networkconnectivity_projects_locations_transports_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_transports_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsTransportsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transports/{transportsId}
 /// Deletes a single Transport.
 ///
@@ -12881,8 +13931,7 @@ pub fn networkconnectivity_projects_locations_transports_delete_execute(
 
 pub fn networkconnectivity_projects_locations_transports_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsTransportsDeleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -12891,8 +13940,11 @@ pub fn networkconnectivity_projects_locations_transports_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        networkconnectivity_projects_locations_transports_delete_builder(client, name, requestId)?;
+    let builder = networkconnectivity_projects_locations_transports_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     networkconnectivity_projects_locations_transports_delete_execute(builder)
 }
 
@@ -12986,6 +14038,13 @@ pub fn networkconnectivity_projects_locations_transports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_transports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsTransportsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transports/{transportsId}
 /// Gets details of a single Transport.
 ///
@@ -12998,12 +14057,13 @@ pub fn networkconnectivity_projects_locations_transports_get_execute(
 
 pub fn networkconnectivity_projects_locations_transports_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NetworkconnectivityProjectsLocationsTransportsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Transport>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = networkconnectivity_projects_locations_transports_get_builder(client, name)?;
+    let builder =
+        networkconnectivity_projects_locations_transports_get_builder(client, &args.name)?;
     networkconnectivity_projects_locations_transports_get_execute(builder)
 }
 
@@ -13123,6 +14183,21 @@ pub fn networkconnectivity_projects_locations_transports_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_transports_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsTransportsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transports
 /// Lists Transports in a given project and location.
 ///
@@ -13135,11 +14210,7 @@ pub fn networkconnectivity_projects_locations_transports_list_execute(
 
 pub fn networkconnectivity_projects_locations_transports_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NetworkconnectivityProjectsLocationsTransportsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTransportsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -13147,7 +14218,12 @@ pub fn networkconnectivity_projects_locations_transports_list(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_transports_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     networkconnectivity_projects_locations_transports_list_execute(builder)
 }
@@ -13265,6 +14341,19 @@ pub fn networkconnectivity_projects_locations_transports_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`networkconnectivity_projects_locations_transports_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NetworkconnectivityProjectsLocationsTransportsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Transport,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/transports/{transportsId}
 /// Updates the parameters of a single Transport.
 ///
@@ -13277,10 +14366,7 @@ pub fn networkconnectivity_projects_locations_transports_patch_execute(
 
 pub fn networkconnectivity_projects_locations_transports_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Transport,
+    args: &NetworkconnectivityProjectsLocationsTransportsPatchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -13290,7 +14376,11 @@ pub fn networkconnectivity_projects_locations_transports_patch(
     ApiError,
 > {
     let builder = networkconnectivity_projects_locations_transports_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     networkconnectivity_projects_locations_transports_patch_execute(builder)
 }

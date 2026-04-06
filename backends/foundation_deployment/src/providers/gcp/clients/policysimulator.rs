@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/folders/{foldersId}/locations/{locationsId}/accessPolicySimulations/{accessPolicySimulationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
@@ -110,6 +112,13 @@ pub fn policysimulator_folders_locations_access_policy_simulations_operations_ge
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_folders_locations_access_policy_simulations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorFoldersLocationsAccessPolicySimulationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/accessPolicySimulations/{accessPolicySimulationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -122,7 +131,7 @@ pub fn policysimulator_folders_locations_access_policy_simulations_operations_ge
 
 pub fn policysimulator_folders_locations_access_policy_simulations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PolicysimulatorFoldersLocationsAccessPolicySimulationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -133,7 +142,7 @@ pub fn policysimulator_folders_locations_access_policy_simulations_operations_ge
 > {
     let builder =
         policysimulator_folders_locations_access_policy_simulations_operations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     policysimulator_folders_locations_access_policy_simulations_operations_get_execute(builder)
 }
@@ -232,6 +241,13 @@ pub fn policysimulator_folders_locations_org_policy_violations_previews_operatio
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_folders_locations_org_policy_violations_previews_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorFoldersLocationsOrgPolicyViolationsPreviewsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/orgPolicyViolationsPreviews/{orgPolicyViolationsPreviewsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -244,7 +260,7 @@ pub fn policysimulator_folders_locations_org_policy_violations_previews_operatio
 
 pub fn policysimulator_folders_locations_org_policy_violations_previews_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PolicysimulatorFoldersLocationsOrgPolicyViolationsPreviewsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -255,7 +271,7 @@ pub fn policysimulator_folders_locations_org_policy_violations_previews_operatio
 > {
     let builder =
         policysimulator_folders_locations_org_policy_violations_previews_operations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     policysimulator_folders_locations_org_policy_violations_previews_operations_get_execute(builder)
 }
@@ -357,6 +373,15 @@ pub fn policysimulator_folders_locations_replays_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_folders_locations_replays_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorFoldersLocationsReplaysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudPolicysimulatorV1Replay,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/replays
 /// Creates and starts a Replay using the given ReplayConfig.
 ///
@@ -369,8 +394,7 @@ pub fn policysimulator_folders_locations_replays_create_execute(
 
 pub fn policysimulator_folders_locations_replays_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudPolicysimulatorV1Replay,
+    args: &PolicysimulatorFoldersLocationsReplaysCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -379,7 +403,8 @@ pub fn policysimulator_folders_locations_replays_create(
         + 'static,
     ApiError,
 > {
-    let builder = policysimulator_folders_locations_replays_create_builder(client, parent, body)?;
+    let builder =
+        policysimulator_folders_locations_replays_create_builder(client, &args.parent, &args.body)?;
     policysimulator_folders_locations_replays_create_execute(builder)
 }
 
@@ -477,6 +502,13 @@ pub fn policysimulator_folders_locations_replays_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_folders_locations_replays_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorFoldersLocationsReplaysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/replays/{replaysId}
 /// Gets the specified Replay. Each Replay is available for at least 7 days.
 ///
@@ -489,7 +521,7 @@ pub fn policysimulator_folders_locations_replays_get_execute(
 
 pub fn policysimulator_folders_locations_replays_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PolicysimulatorFoldersLocationsReplaysGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudPolicysimulatorV1Replay>, ApiError>,
@@ -498,7 +530,7 @@ pub fn policysimulator_folders_locations_replays_get(
         + 'static,
     ApiError,
 > {
-    let builder = policysimulator_folders_locations_replays_get_builder(client, name)?;
+    let builder = policysimulator_folders_locations_replays_get_builder(client, &args.name)?;
     policysimulator_folders_locations_replays_get_execute(builder)
 }
 
@@ -596,6 +628,13 @@ pub fn policysimulator_folders_locations_replays_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_folders_locations_replays_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorFoldersLocationsReplaysOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/replays/{replaysId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -608,7 +647,7 @@ pub fn policysimulator_folders_locations_replays_operations_get_execute(
 
 pub fn policysimulator_folders_locations_replays_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PolicysimulatorFoldersLocationsReplaysOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -617,7 +656,8 @@ pub fn policysimulator_folders_locations_replays_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = policysimulator_folders_locations_replays_operations_get_builder(client, name)?;
+    let builder =
+        policysimulator_folders_locations_replays_operations_get_builder(client, &args.name)?;
     policysimulator_folders_locations_replays_operations_get_execute(builder)
 }
 
@@ -740,6 +780,21 @@ pub fn policysimulator_folders_locations_replays_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_folders_locations_replays_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorFoldersLocationsReplaysOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/replays/{replaysId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -752,11 +807,7 @@ pub fn policysimulator_folders_locations_replays_operations_list_execute(
 
 pub fn policysimulator_folders_locations_replays_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &PolicysimulatorFoldersLocationsReplaysOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -767,11 +818,11 @@ pub fn policysimulator_folders_locations_replays_operations_list(
 > {
     let builder = policysimulator_folders_locations_replays_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     policysimulator_folders_locations_replays_operations_list_execute(builder)
 }
@@ -890,6 +941,17 @@ pub fn policysimulator_folders_locations_replays_results_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_folders_locations_replays_results_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorFoldersLocationsReplaysResultsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/folders/{foldersId}/locations/{locationsId}/replays/{replaysId}/results
 /// Lists the results of running a Replay.
 ///
@@ -902,9 +964,7 @@ pub fn policysimulator_folders_locations_replays_results_list_execute(
 
 pub fn policysimulator_folders_locations_replays_results_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PolicysimulatorFoldersLocationsReplaysResultsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -917,7 +977,10 @@ pub fn policysimulator_folders_locations_replays_results_list(
     ApiError,
 > {
     let builder = policysimulator_folders_locations_replays_results_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     policysimulator_folders_locations_replays_results_list_execute(builder)
 }
@@ -1016,6 +1079,13 @@ pub fn policysimulator_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1028,7 +1098,7 @@ pub fn policysimulator_operations_get_execute(
 
 pub fn policysimulator_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PolicysimulatorOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1037,7 +1107,7 @@ pub fn policysimulator_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = policysimulator_operations_get_builder(client, name)?;
+    let builder = policysimulator_operations_get_builder(client, &args.name)?;
     policysimulator_operations_get_execute(builder)
 }
 
@@ -1157,6 +1227,21 @@ pub fn policysimulator_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1169,11 +1254,7 @@ pub fn policysimulator_operations_list_execute(
 
 pub fn policysimulator_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &PolicysimulatorOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -1184,11 +1265,11 @@ pub fn policysimulator_operations_list(
 > {
     let builder = policysimulator_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     policysimulator_operations_list_execute(builder)
 }
@@ -1287,6 +1368,13 @@ pub fn policysimulator_organizations_locations_access_policy_simulations_operati
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_organizations_locations_access_policy_simulations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorOrganizationsLocationsAccessPolicySimulationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/accessPolicySimulations/{accessPolicySimulationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1299,7 +1387,7 @@ pub fn policysimulator_organizations_locations_access_policy_simulations_operati
 
 pub fn policysimulator_organizations_locations_access_policy_simulations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PolicysimulatorOrganizationsLocationsAccessPolicySimulationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1310,7 +1398,7 @@ pub fn policysimulator_organizations_locations_access_policy_simulations_operati
 > {
     let builder =
         policysimulator_organizations_locations_access_policy_simulations_operations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     policysimulator_organizations_locations_access_policy_simulations_operations_get_execute(
         builder,
@@ -1426,6 +1514,17 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_cr
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_organizations_locations_org_policy_violations_previews_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orgPolicyViolationsPreviewId
+    pub orgPolicyViolationsPreviewId: Option<String>,
+    /// Request body.
+    pub body: GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreview,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/orgPolicyViolationsPreviews
 /// CreateOrgPolicyViolationsPreview creates an OrgPolicyViolationsPreview for the proposed changes in the provided OrgPolicyViolationsPreview.OrgPolicyOverlay. The changes to OrgPolicy are specified by this OrgPolicyOverlay. The resources to scan are inferred from these specified changes.
 ///
@@ -1438,9 +1537,7 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_cr
 
 pub fn policysimulator_organizations_locations_org_policy_violations_previews_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    orgPolicyViolationsPreviewId: Option<&str>,
-    body: &GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreview,
+    args: &PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1452,9 +1549,9 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_cr
     let builder =
         policysimulator_organizations_locations_org_policy_violations_previews_create_builder(
             client,
-            parent,
-            orgPolicyViolationsPreviewId,
-            body,
+            &args.parent,
+            args.orgPolicyViolationsPreviewId.as_deref(),
+            &args.body,
         )?;
     policysimulator_organizations_locations_org_policy_violations_previews_create_execute(builder)
 }
@@ -1557,6 +1654,13 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_ge
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_organizations_locations_org_policy_violations_previews_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/orgPolicyViolationsPreviews/{orgPolicyViolationsPreviewsId}
 /// GetOrgPolicyViolationsPreview gets the specified OrgPolicyViolationsPreview. Each OrgPolicyViolationsPreview is available for at least 7 days.
 ///
@@ -1569,7 +1673,7 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_ge
 
 pub fn policysimulator_organizations_locations_org_policy_violations_previews_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1583,7 +1687,7 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_ge
 > {
     let builder =
         policysimulator_organizations_locations_org_policy_violations_previews_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     policysimulator_organizations_locations_org_policy_violations_previews_get_execute(builder)
 }
@@ -1702,6 +1806,17 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_li
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_organizations_locations_org_policy_violations_previews_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/orgPolicyViolationsPreviews
 /// ListOrgPolicyViolationsPreviews lists each OrgPolicyViolationsPreview in an organization. Each OrgPolicyViolationsPreview is available for at least 7 days.
 ///
@@ -1714,9 +1829,7 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_li
 
 pub fn policysimulator_organizations_locations_org_policy_violations_previews_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1730,7 +1843,10 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_li
 > {
     let builder =
         policysimulator_organizations_locations_org_policy_violations_previews_list_builder(
-            client, parent, pageSize, pageToken,
+            client,
+            &args.parent,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     policysimulator_organizations_locations_org_policy_violations_previews_list_execute(builder)
 }
@@ -1829,6 +1945,13 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_op
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_organizations_locations_org_policy_violations_previews_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/orgPolicyViolationsPreviews/{orgPolicyViolationsPreviewsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1841,7 +1964,7 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_op
 
 pub fn policysimulator_organizations_locations_org_policy_violations_previews_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -1850,7 +1973,7 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_op
         + 'static,
     ApiError,
 > {
-    let builder = policysimulator_organizations_locations_org_policy_violations_previews_operations_get_builder(client, name)?;
+    let builder = policysimulator_organizations_locations_org_policy_violations_previews_operations_get_builder(client, &args.name)?;
     policysimulator_organizations_locations_org_policy_violations_previews_operations_get_execute(
         builder,
     )
@@ -1970,6 +2093,18 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_or
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_organizations_locations_org_policy_violations_previews_org_policy_violations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsOrgPolicyViolationsListArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/orgPolicyViolationsPreviews/{orgPolicyViolationsPreviewsId}/orgPolicyViolations
 /// ListOrgPolicyViolations lists the OrgPolicyViolations that are present in an OrgPolicyViolationsPreview.
 ///
@@ -1982,9 +2117,7 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_or
 
 pub fn policysimulator_organizations_locations_org_policy_violations_previews_org_policy_violations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsOrgPolicyViolationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1996,7 +2129,7 @@ pub fn policysimulator_organizations_locations_org_policy_violations_previews_or
         + 'static,
     ApiError,
 > {
-    let builder = policysimulator_organizations_locations_org_policy_violations_previews_org_policy_violations_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = policysimulator_organizations_locations_org_policy_violations_previews_org_policy_violations_list_builder(client, &args.parent, args.pageSize, args.pageToken.as_deref())?;
     policysimulator_organizations_locations_org_policy_violations_previews_org_policy_violations_list_execute(builder)
 }
 
@@ -2097,6 +2230,15 @@ pub fn policysimulator_organizations_locations_replays_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_organizations_locations_replays_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorOrganizationsLocationsReplaysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudPolicysimulatorV1Replay,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/replays
 /// Creates and starts a Replay using the given ReplayConfig.
 ///
@@ -2109,8 +2251,7 @@ pub fn policysimulator_organizations_locations_replays_create_execute(
 
 pub fn policysimulator_organizations_locations_replays_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudPolicysimulatorV1Replay,
+    args: &PolicysimulatorOrganizationsLocationsReplaysCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2119,8 +2260,11 @@ pub fn policysimulator_organizations_locations_replays_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        policysimulator_organizations_locations_replays_create_builder(client, parent, body)?;
+    let builder = policysimulator_organizations_locations_replays_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     policysimulator_organizations_locations_replays_create_execute(builder)
 }
 
@@ -2218,6 +2362,13 @@ pub fn policysimulator_organizations_locations_replays_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_organizations_locations_replays_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorOrganizationsLocationsReplaysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/replays/{replaysId}
 /// Gets the specified Replay. Each Replay is available for at least 7 days.
 ///
@@ -2230,7 +2381,7 @@ pub fn policysimulator_organizations_locations_replays_get_execute(
 
 pub fn policysimulator_organizations_locations_replays_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PolicysimulatorOrganizationsLocationsReplaysGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudPolicysimulatorV1Replay>, ApiError>,
@@ -2239,7 +2390,7 @@ pub fn policysimulator_organizations_locations_replays_get(
         + 'static,
     ApiError,
 > {
-    let builder = policysimulator_organizations_locations_replays_get_builder(client, name)?;
+    let builder = policysimulator_organizations_locations_replays_get_builder(client, &args.name)?;
     policysimulator_organizations_locations_replays_get_execute(builder)
 }
 
@@ -2337,6 +2488,13 @@ pub fn policysimulator_organizations_locations_replays_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_organizations_locations_replays_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorOrganizationsLocationsReplaysOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/replays/{replaysId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2349,7 +2507,7 @@ pub fn policysimulator_organizations_locations_replays_operations_get_execute(
 
 pub fn policysimulator_organizations_locations_replays_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PolicysimulatorOrganizationsLocationsReplaysOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2359,7 +2517,7 @@ pub fn policysimulator_organizations_locations_replays_operations_get(
     ApiError,
 > {
     let builder =
-        policysimulator_organizations_locations_replays_operations_get_builder(client, name)?;
+        policysimulator_organizations_locations_replays_operations_get_builder(client, &args.name)?;
     policysimulator_organizations_locations_replays_operations_get_execute(builder)
 }
 
@@ -2482,6 +2640,21 @@ pub fn policysimulator_organizations_locations_replays_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_organizations_locations_replays_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorOrganizationsLocationsReplaysOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/replays/{replaysId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -2494,11 +2667,7 @@ pub fn policysimulator_organizations_locations_replays_operations_list_execute(
 
 pub fn policysimulator_organizations_locations_replays_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &PolicysimulatorOrganizationsLocationsReplaysOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -2509,11 +2678,11 @@ pub fn policysimulator_organizations_locations_replays_operations_list(
 > {
     let builder = policysimulator_organizations_locations_replays_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     policysimulator_organizations_locations_replays_operations_list_execute(builder)
 }
@@ -2632,6 +2801,17 @@ pub fn policysimulator_organizations_locations_replays_results_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_organizations_locations_replays_results_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorOrganizationsLocationsReplaysResultsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/organizations/{organizationsId}/locations/{locationsId}/replays/{replaysId}/results
 /// Lists the results of running a Replay.
 ///
@@ -2644,9 +2824,7 @@ pub fn policysimulator_organizations_locations_replays_results_list_execute(
 
 pub fn policysimulator_organizations_locations_replays_results_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PolicysimulatorOrganizationsLocationsReplaysResultsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -2659,7 +2837,10 @@ pub fn policysimulator_organizations_locations_replays_results_list(
     ApiError,
 > {
     let builder = policysimulator_organizations_locations_replays_results_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     policysimulator_organizations_locations_replays_results_list_execute(builder)
 }
@@ -2758,6 +2939,13 @@ pub fn policysimulator_projects_locations_access_policy_simulations_operations_g
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_projects_locations_access_policy_simulations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorProjectsLocationsAccessPolicySimulationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/accessPolicySimulations/{accessPolicySimulationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2770,7 +2958,7 @@ pub fn policysimulator_projects_locations_access_policy_simulations_operations_g
 
 pub fn policysimulator_projects_locations_access_policy_simulations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PolicysimulatorProjectsLocationsAccessPolicySimulationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2781,7 +2969,7 @@ pub fn policysimulator_projects_locations_access_policy_simulations_operations_g
 > {
     let builder =
         policysimulator_projects_locations_access_policy_simulations_operations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     policysimulator_projects_locations_access_policy_simulations_operations_get_execute(builder)
 }
@@ -2880,6 +3068,13 @@ pub fn policysimulator_projects_locations_org_policy_violations_previews_operati
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_projects_locations_org_policy_violations_previews_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorProjectsLocationsOrgPolicyViolationsPreviewsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/orgPolicyViolationsPreviews/{orgPolicyViolationsPreviewsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -2892,7 +3087,7 @@ pub fn policysimulator_projects_locations_org_policy_violations_previews_operati
 
 pub fn policysimulator_projects_locations_org_policy_violations_previews_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PolicysimulatorProjectsLocationsOrgPolicyViolationsPreviewsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -2903,7 +3098,7 @@ pub fn policysimulator_projects_locations_org_policy_violations_previews_operati
 > {
     let builder =
         policysimulator_projects_locations_org_policy_violations_previews_operations_get_builder(
-            client, name,
+            client, &args.name,
         )?;
     policysimulator_projects_locations_org_policy_violations_previews_operations_get_execute(
         builder,
@@ -3007,6 +3202,15 @@ pub fn policysimulator_projects_locations_replays_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_projects_locations_replays_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorProjectsLocationsReplaysCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GoogleCloudPolicysimulatorV1Replay,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/replays
 /// Creates and starts a Replay using the given ReplayConfig.
 ///
@@ -3019,8 +3223,7 @@ pub fn policysimulator_projects_locations_replays_create_execute(
 
 pub fn policysimulator_projects_locations_replays_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleCloudPolicysimulatorV1Replay,
+    args: &PolicysimulatorProjectsLocationsReplaysCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3029,7 +3232,11 @@ pub fn policysimulator_projects_locations_replays_create(
         + 'static,
     ApiError,
 > {
-    let builder = policysimulator_projects_locations_replays_create_builder(client, parent, body)?;
+    let builder = policysimulator_projects_locations_replays_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     policysimulator_projects_locations_replays_create_execute(builder)
 }
 
@@ -3127,6 +3334,13 @@ pub fn policysimulator_projects_locations_replays_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_projects_locations_replays_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorProjectsLocationsReplaysGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/replays/{replaysId}
 /// Gets the specified Replay. Each Replay is available for at least 7 days.
 ///
@@ -3139,7 +3353,7 @@ pub fn policysimulator_projects_locations_replays_get_execute(
 
 pub fn policysimulator_projects_locations_replays_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PolicysimulatorProjectsLocationsReplaysGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleCloudPolicysimulatorV1Replay>, ApiError>,
@@ -3148,7 +3362,7 @@ pub fn policysimulator_projects_locations_replays_get(
         + 'static,
     ApiError,
 > {
-    let builder = policysimulator_projects_locations_replays_get_builder(client, name)?;
+    let builder = policysimulator_projects_locations_replays_get_builder(client, &args.name)?;
     policysimulator_projects_locations_replays_get_execute(builder)
 }
 
@@ -3246,6 +3460,13 @@ pub fn policysimulator_projects_locations_replays_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_projects_locations_replays_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorProjectsLocationsReplaysOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/replays/{replaysId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3258,7 +3479,7 @@ pub fn policysimulator_projects_locations_replays_operations_get_execute(
 
 pub fn policysimulator_projects_locations_replays_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PolicysimulatorProjectsLocationsReplaysOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningOperation>, ApiError>,
@@ -3267,7 +3488,8 @@ pub fn policysimulator_projects_locations_replays_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = policysimulator_projects_locations_replays_operations_get_builder(client, name)?;
+    let builder =
+        policysimulator_projects_locations_replays_operations_get_builder(client, &args.name)?;
     policysimulator_projects_locations_replays_operations_get_execute(builder)
 }
 
@@ -3390,6 +3612,21 @@ pub fn policysimulator_projects_locations_replays_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_projects_locations_replays_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorProjectsLocationsReplaysOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/replays/{replaysId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -3402,11 +3639,7 @@ pub fn policysimulator_projects_locations_replays_operations_list_execute(
 
 pub fn policysimulator_projects_locations_replays_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &PolicysimulatorProjectsLocationsReplaysOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunningListOperationsResponse>, ApiError>,
@@ -3417,11 +3650,11 @@ pub fn policysimulator_projects_locations_replays_operations_list(
 > {
     let builder = policysimulator_projects_locations_replays_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     policysimulator_projects_locations_replays_operations_list_execute(builder)
 }
@@ -3540,6 +3773,17 @@ pub fn policysimulator_projects_locations_replays_results_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`policysimulator_projects_locations_replays_results_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PolicysimulatorProjectsLocationsReplaysResultsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/replays/{replaysId}/results
 /// Lists the results of running a Replay.
 ///
@@ -3552,9 +3796,7 @@ pub fn policysimulator_projects_locations_replays_results_list_execute(
 
 pub fn policysimulator_projects_locations_replays_results_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PolicysimulatorProjectsLocationsReplaysResultsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -3567,7 +3809,10 @@ pub fn policysimulator_projects_locations_replays_results_list(
     ApiError,
 > {
     let builder = policysimulator_projects_locations_replays_results_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     policysimulator_projects_locations_replays_results_list_execute(builder)
 }

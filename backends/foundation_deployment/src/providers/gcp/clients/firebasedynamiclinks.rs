@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/managedShortLinks:create
 /// Creates a managed short Dynamic Link given either a valid long Dynamic Link or details such as Dynamic Link domain, Android and iOS app information. The created short Dynamic Link will not expire. This differs from CreateShortDynamicLink in the following ways: - The request will also contain a name for the link (non unique name for the front end). - The response must be authenticated with an auth token (generated with the admin service account). - The link will appear in the FDL list of links in the console front end. The Dynamic Link domain in the request must be owned by requester's Firebase project.
@@ -109,6 +111,13 @@ pub fn firebasedynamiclinks_managed_short_links_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedynamiclinks_managed_short_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedynamiclinksManagedShortLinksCreateArgs {
+    /// Request body.
+    pub body: CreateManagedShortLinkRequest,
+}
+
 /// GET v1/managedShortLinks:create
 /// Creates a managed short Dynamic Link given either a valid long Dynamic Link or details such as Dynamic Link domain, Android and iOS app information. The created short Dynamic Link will not expire. This differs from CreateShortDynamicLink in the following ways: - The request will also contain a name for the link (non unique name for the front end). - The response must be authenticated with an auth token (generated with the admin service account). - The link will appear in the FDL list of links in the console front end. The Dynamic Link domain in the request must be owned by requester's Firebase project.
 ///
@@ -121,7 +130,7 @@ pub fn firebasedynamiclinks_managed_short_links_create_execute(
 
 pub fn firebasedynamiclinks_managed_short_links_create(
     client: &SimpleHttpClient,
-    body: &CreateManagedShortLinkRequest,
+    args: &FirebasedynamiclinksManagedShortLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CreateManagedShortLinkResponse>, ApiError>,
@@ -130,7 +139,7 @@ pub fn firebasedynamiclinks_managed_short_links_create(
         + 'static,
     ApiError,
 > {
-    let builder = firebasedynamiclinks_managed_short_links_create_builder(client, body)?;
+    let builder = firebasedynamiclinks_managed_short_links_create_builder(client, &args.body)?;
     firebasedynamiclinks_managed_short_links_create_execute(builder)
 }
 
@@ -227,6 +236,13 @@ pub fn firebasedynamiclinks_short_links_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedynamiclinks_short_links_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedynamiclinksShortLinksCreateArgs {
+    /// Request body.
+    pub body: CreateShortDynamicLinkRequest,
+}
+
 /// GET v1/shortLinks
 /// Creates a short Dynamic Link given either a valid long Dynamic Link or details such as Dynamic Link domain, Android and iOS app information. The created short Dynamic Link will not expire. Repeated calls with the same long Dynamic Link or Dynamic Link information will produce the same short Dynamic Link. The Dynamic Link domain in the request must be owned by requester's Firebase project.
 ///
@@ -239,7 +255,7 @@ pub fn firebasedynamiclinks_short_links_create_execute(
 
 pub fn firebasedynamiclinks_short_links_create(
     client: &SimpleHttpClient,
-    body: &CreateShortDynamicLinkRequest,
+    args: &FirebasedynamiclinksShortLinksCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CreateShortDynamicLinkResponse>, ApiError>,
@@ -248,7 +264,7 @@ pub fn firebasedynamiclinks_short_links_create(
         + 'static,
     ApiError,
 > {
-    let builder = firebasedynamiclinks_short_links_create_builder(client, body)?;
+    let builder = firebasedynamiclinks_short_links_create_builder(client, &args.body)?;
     firebasedynamiclinks_short_links_create_execute(builder)
 }
 
@@ -360,6 +376,17 @@ pub fn firebasedynamiclinks_get_link_stats_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedynamiclinks_get_link_stats`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedynamiclinksGetLinkStatsArgs {
+    /// Path parameter: dynamicLink
+    pub dynamicLink: String,
+    /// Query parameter: durationDays
+    pub durationDays: Option<String>,
+    /// Query parameter: sdkVersion
+    pub sdkVersion: Option<String>,
+}
+
 /// GET v1/{dynamicLink}/linkStats
 /// Fetches analytics stats of a short Dynamic Link for a given duration. Metrics include number of clicks, redirects, installs, app first opens, and app reopens.
 ///
@@ -372,17 +399,19 @@ pub fn firebasedynamiclinks_get_link_stats_execute(
 
 pub fn firebasedynamiclinks_get_link_stats(
     client: &SimpleHttpClient,
-    dynamicLink: &str,
-    durationDays: Option<&str>,
-    sdkVersion: Option<&str>,
+    args: &FirebasedynamiclinksGetLinkStatsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DynamicLinkStats>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebasedynamiclinks_get_link_stats_builder(client, dynamicLink, durationDays, sdkVersion)?;
+    let builder = firebasedynamiclinks_get_link_stats_builder(
+        client,
+        &args.dynamicLink,
+        args.durationDays.as_deref(),
+        args.sdkVersion.as_deref(),
+    )?;
     firebasedynamiclinks_get_link_stats_execute(builder)
 }
 
@@ -479,6 +508,13 @@ pub fn firebasedynamiclinks_install_attribution_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedynamiclinks_install_attribution`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedynamiclinksInstallAttributionArgs {
+    /// Request body.
+    pub body: GetIosPostInstallAttributionRequest,
+}
+
 /// GET v1/installAttribution
 /// Get iOS `strong/weak-match` info for post-install attribution.
 ///
@@ -491,7 +527,7 @@ pub fn firebasedynamiclinks_install_attribution_execute(
 
 pub fn firebasedynamiclinks_install_attribution(
     client: &SimpleHttpClient,
-    body: &GetIosPostInstallAttributionRequest,
+    args: &FirebasedynamiclinksInstallAttributionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetIosPostInstallAttributionResponse>, ApiError>,
@@ -500,7 +536,7 @@ pub fn firebasedynamiclinks_install_attribution(
         + 'static,
     ApiError,
 > {
-    let builder = firebasedynamiclinks_install_attribution_builder(client, body)?;
+    let builder = firebasedynamiclinks_install_attribution_builder(client, &args.body)?;
     firebasedynamiclinks_install_attribution_execute(builder)
 }
 
@@ -597,6 +633,13 @@ pub fn firebasedynamiclinks_reopen_attribution_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`firebasedynamiclinks_reopen_attribution`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct FirebasedynamiclinksReopenAttributionArgs {
+    /// Request body.
+    pub body: GetIosReopenAttributionRequest,
+}
+
 /// GET v1/reopenAttribution
 /// Get iOS reopen attribution for app universal link open deeplinking.
 ///
@@ -609,7 +652,7 @@ pub fn firebasedynamiclinks_reopen_attribution_execute(
 
 pub fn firebasedynamiclinks_reopen_attribution(
     client: &SimpleHttpClient,
-    body: &GetIosReopenAttributionRequest,
+    args: &FirebasedynamiclinksReopenAttributionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetIosReopenAttributionResponse>, ApiError>,
@@ -618,6 +661,6 @@ pub fn firebasedynamiclinks_reopen_attribution(
         + 'static,
     ApiError,
 > {
-    let builder = firebasedynamiclinks_reopen_attribution_builder(client, body)?;
+    let builder = firebasedynamiclinks_reopen_attribution_builder(client, &args.body)?;
     firebasedynamiclinks_reopen_attribution_execute(builder)
 }

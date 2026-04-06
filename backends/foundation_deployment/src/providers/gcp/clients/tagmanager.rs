@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET tagmanager/v2/accounts/{accountsId}
 /// Gets a GTM Account.
@@ -106,6 +108,13 @@ pub fn tagmanager_accounts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}
 /// Gets a GTM Account.
 ///
@@ -118,12 +127,12 @@ pub fn tagmanager_accounts_get_execute(
 
 pub fn tagmanager_accounts_get(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_get_builder(client, path)?;
+    let builder = tagmanager_accounts_get_builder(client, &args.path)?;
     tagmanager_accounts_get_execute(builder)
 }
 
@@ -231,6 +240,15 @@ pub fn tagmanager_accounts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsListArgs {
+    /// Query parameter: includeGoogleTags
+    pub includeGoogleTags: Option<bool>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts
 /// Lists all GTM Accounts that a user has access to.
 ///
@@ -243,15 +261,18 @@ pub fn tagmanager_accounts_list_execute(
 
 pub fn tagmanager_accounts_list(
     client: &SimpleHttpClient,
-    includeGoogleTags: Option<bool>,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAccountsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_list_builder(client, includeGoogleTags, pageToken)?;
+    let builder = tagmanager_accounts_list_builder(
+        client,
+        args.includeGoogleTags,
+        args.pageToken.as_deref(),
+    )?;
     tagmanager_accounts_list_execute(builder)
 }
 
@@ -360,6 +381,17 @@ pub fn tagmanager_accounts_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+    /// Request body.
+    pub body: Account,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}
 /// Updates a GTM Account.
 ///
@@ -372,14 +404,17 @@ pub fn tagmanager_accounts_update_execute(
 
 pub fn tagmanager_accounts_update(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
-    body: &Account,
+    args: &TagmanagerAccountsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_update_builder(client, path, fingerprint, body)?;
+    let builder = tagmanager_accounts_update_builder(
+        client,
+        &args.path,
+        args.fingerprint.as_deref(),
+        &args.body,
+    )?;
     tagmanager_accounts_update_execute(builder)
 }
 
@@ -493,6 +528,19 @@ pub fn tagmanager_accounts_containers_combine_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_combine`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersCombineArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: allowUserPermissionFeatureUpdate
+    pub allowUserPermissionFeatureUpdate: Option<bool>,
+    /// Query parameter: containerId
+    pub containerId: Option<String>,
+    /// Query parameter: settingSource
+    pub settingSource: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}:combine
 /// Combines Containers.
 ///
@@ -505,20 +553,17 @@ pub fn tagmanager_accounts_containers_combine_execute(
 
 pub fn tagmanager_accounts_containers_combine(
     client: &SimpleHttpClient,
-    path: &str,
-    allowUserPermissionFeatureUpdate: Option<bool>,
-    containerId: Option<&str>,
-    settingSource: Option<&str>,
+    args: &TagmanagerAccountsContainersCombineArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_combine_builder(
         client,
-        path,
-        allowUserPermissionFeatureUpdate,
-        containerId,
-        settingSource,
+        &args.path,
+        args.allowUserPermissionFeatureUpdate,
+        args.containerId.as_deref(),
+        args.settingSource.as_deref(),
     )?;
     tagmanager_accounts_containers_combine_execute(builder)
 }
@@ -616,6 +661,15 @@ pub fn tagmanager_accounts_containers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Container,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers
 /// Creates a Container.
 ///
@@ -628,13 +682,12 @@ pub fn tagmanager_accounts_containers_create_execute(
 
 pub fn tagmanager_accounts_containers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Container,
+    args: &TagmanagerAccountsContainersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_create_builder(client, parent, body)?;
+    let builder = tagmanager_accounts_containers_create_builder(client, &args.parent, &args.body)?;
     tagmanager_accounts_containers_create_execute(builder)
 }
 
@@ -725,6 +778,13 @@ pub fn tagmanager_accounts_containers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}
 /// Deletes a Container.
 ///
@@ -737,12 +797,12 @@ pub fn tagmanager_accounts_containers_delete_execute(
 
 pub fn tagmanager_accounts_containers_delete(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_delete_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_delete_builder(client, &args.path)?;
     tagmanager_accounts_containers_delete_execute(builder)
 }
 
@@ -836,6 +896,13 @@ pub fn tagmanager_accounts_containers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}
 /// Gets a Container.
 ///
@@ -848,12 +915,12 @@ pub fn tagmanager_accounts_containers_get_execute(
 
 pub fn tagmanager_accounts_containers_get(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_get_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_get_builder(client, &args.path)?;
     tagmanager_accounts_containers_get_execute(builder)
 }
 
@@ -961,6 +1028,15 @@ pub fn tagmanager_accounts_containers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers
 /// Lists all Containers that belongs to a GTM Account.
 ///
@@ -973,15 +1049,18 @@ pub fn tagmanager_accounts_containers_list_execute(
 
 pub fn tagmanager_accounts_containers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsContainersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListContainersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_list_builder(client, parent, pageToken)?;
+    let builder = tagmanager_accounts_containers_list_builder(
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
+    )?;
     tagmanager_accounts_containers_list_execute(builder)
 }
 
@@ -1088,6 +1167,15 @@ pub fn tagmanager_accounts_containers_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersLookupArgs {
+    /// Query parameter: destinationId
+    pub destinationId: Option<String>,
+    /// Query parameter: tagId
+    pub tagId: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/containers:lookup
 /// Looks up a Container by destination ID or tag ID.
 ///
@@ -1100,13 +1188,16 @@ pub fn tagmanager_accounts_containers_lookup_execute(
 
 pub fn tagmanager_accounts_containers_lookup(
     client: &SimpleHttpClient,
-    destinationId: Option<&str>,
-    tagId: Option<&str>,
+    args: &TagmanagerAccountsContainersLookupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_lookup_builder(client, destinationId, tagId)?;
+    let builder = tagmanager_accounts_containers_lookup_builder(
+        client,
+        args.destinationId.as_deref(),
+        args.tagId.as_deref(),
+    )?;
     tagmanager_accounts_containers_lookup_execute(builder)
 }
 
@@ -1232,6 +1323,25 @@ pub fn tagmanager_accounts_containers_move_tag_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_move_tag_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersMoveTagIdArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: allowUserPermissionFeatureUpdate
+    pub allowUserPermissionFeatureUpdate: Option<bool>,
+    /// Query parameter: copySettings
+    pub copySettings: Option<bool>,
+    /// Query parameter: copyTermsOfService
+    pub copyTermsOfService: Option<bool>,
+    /// Query parameter: copyUsers
+    pub copyUsers: Option<bool>,
+    /// Query parameter: tagId
+    pub tagId: Option<String>,
+    /// Query parameter: tagName
+    pub tagName: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}:move_tag_id
 /// Move Tag ID out of a Container.
 ///
@@ -1244,26 +1354,20 @@ pub fn tagmanager_accounts_containers_move_tag_id_execute(
 
 pub fn tagmanager_accounts_containers_move_tag_id(
     client: &SimpleHttpClient,
-    path: &str,
-    allowUserPermissionFeatureUpdate: Option<bool>,
-    copySettings: Option<bool>,
-    copyTermsOfService: Option<bool>,
-    copyUsers: Option<bool>,
-    tagId: Option<&str>,
-    tagName: Option<&str>,
+    args: &TagmanagerAccountsContainersMoveTagIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_move_tag_id_builder(
         client,
-        path,
-        allowUserPermissionFeatureUpdate,
-        copySettings,
-        copyTermsOfService,
-        copyUsers,
-        tagId,
-        tagName,
+        &args.path,
+        args.allowUserPermissionFeatureUpdate,
+        args.copySettings,
+        args.copyTermsOfService,
+        args.copyUsers,
+        args.tagId.as_deref(),
+        args.tagName.as_deref(),
     )?;
     tagmanager_accounts_containers_move_tag_id_execute(builder)
 }
@@ -1362,6 +1466,13 @@ pub fn tagmanager_accounts_containers_snippet_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_snippet`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersSnippetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}:snippet
 /// Gets the tagging snippet for a Container.
 ///
@@ -1374,7 +1485,7 @@ pub fn tagmanager_accounts_containers_snippet_execute(
 
 pub fn tagmanager_accounts_containers_snippet(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersSnippetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetContainerSnippetResponse>, ApiError>,
@@ -1383,7 +1494,7 @@ pub fn tagmanager_accounts_containers_snippet(
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_snippet_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_snippet_builder(client, &args.path)?;
     tagmanager_accounts_containers_snippet_execute(builder)
 }
 
@@ -1492,6 +1603,17 @@ pub fn tagmanager_accounts_containers_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+    /// Request body.
+    pub body: Container,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}
 /// Updates a Container.
 ///
@@ -1504,14 +1626,17 @@ pub fn tagmanager_accounts_containers_update_execute(
 
 pub fn tagmanager_accounts_containers_update(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
-    body: &Container,
+    args: &TagmanagerAccountsContainersUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Container>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_update_builder(client, path, fingerprint, body)?;
+    let builder = tagmanager_accounts_containers_update_builder(
+        client,
+        &args.path,
+        args.fingerprint.as_deref(),
+        &args.body,
+    )?;
     tagmanager_accounts_containers_update_execute(builder)
 }
 
@@ -1605,6 +1730,13 @@ pub fn tagmanager_accounts_containers_destinations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_destinations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersDestinationsGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations/{destinationsId}
 /// Gets a Destination.
 ///
@@ -1617,12 +1749,12 @@ pub fn tagmanager_accounts_containers_destinations_get_execute(
 
 pub fn tagmanager_accounts_containers_destinations_get(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersDestinationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Destination>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_destinations_get_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_destinations_get_builder(client, &args.path)?;
     tagmanager_accounts_containers_destinations_get_execute(builder)
 }
 
@@ -1732,6 +1864,17 @@ pub fn tagmanager_accounts_containers_destinations_link_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_destinations_link`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersDestinationsLinkArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: allowUserPermissionFeatureUpdate
+    pub allowUserPermissionFeatureUpdate: Option<bool>,
+    /// Query parameter: destinationId
+    pub destinationId: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations:link
 /// Adds a Destination to this Container and removes it from the Container to which it is currently linked.
 ///
@@ -1744,18 +1887,16 @@ pub fn tagmanager_accounts_containers_destinations_link_execute(
 
 pub fn tagmanager_accounts_containers_destinations_link(
     client: &SimpleHttpClient,
-    parent: &str,
-    allowUserPermissionFeatureUpdate: Option<bool>,
-    destinationId: Option<&str>,
+    args: &TagmanagerAccountsContainersDestinationsLinkArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Destination>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_destinations_link_builder(
         client,
-        parent,
-        allowUserPermissionFeatureUpdate,
-        destinationId,
+        &args.parent,
+        args.allowUserPermissionFeatureUpdate,
+        args.destinationId.as_deref(),
     )?;
     tagmanager_accounts_containers_destinations_link_execute(builder)
 }
@@ -1852,6 +1993,13 @@ pub fn tagmanager_accounts_containers_destinations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_destinations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersDestinationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/destinations
 /// Lists all Destinations linked to a GTM Container.
 ///
@@ -1864,14 +2012,14 @@ pub fn tagmanager_accounts_containers_destinations_list_execute(
 
 pub fn tagmanager_accounts_containers_destinations_list(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &TagmanagerAccountsContainersDestinationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDestinationsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_destinations_list_builder(client, parent)?;
+    let builder = tagmanager_accounts_containers_destinations_list_builder(client, &args.parent)?;
     tagmanager_accounts_containers_destinations_list_execute(builder)
 }
 
@@ -1968,6 +2116,15 @@ pub fn tagmanager_accounts_containers_environments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_environments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersEnvironmentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Environment,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments
 /// Creates a GTM Environment.
 ///
@@ -1980,13 +2137,16 @@ pub fn tagmanager_accounts_containers_environments_create_execute(
 
 pub fn tagmanager_accounts_containers_environments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Environment,
+    args: &TagmanagerAccountsContainersEnvironmentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_environments_create_builder(client, parent, body)?;
+    let builder = tagmanager_accounts_containers_environments_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     tagmanager_accounts_containers_environments_create_execute(builder)
 }
 
@@ -2077,6 +2237,13 @@ pub fn tagmanager_accounts_containers_environments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_environments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersEnvironmentsDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
 /// Deletes a GTM Environment.
 ///
@@ -2089,12 +2256,12 @@ pub fn tagmanager_accounts_containers_environments_delete_execute(
 
 pub fn tagmanager_accounts_containers_environments_delete(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersEnvironmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_environments_delete_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_environments_delete_builder(client, &args.path)?;
     tagmanager_accounts_containers_environments_delete_execute(builder)
 }
 
@@ -2188,6 +2355,13 @@ pub fn tagmanager_accounts_containers_environments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_environments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersEnvironmentsGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
 /// Gets a GTM Environment.
 ///
@@ -2200,12 +2374,12 @@ pub fn tagmanager_accounts_containers_environments_get_execute(
 
 pub fn tagmanager_accounts_containers_environments_get(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersEnvironmentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_environments_get_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_environments_get_builder(client, &args.path)?;
     tagmanager_accounts_containers_environments_get_execute(builder)
 }
 
@@ -2313,6 +2487,15 @@ pub fn tagmanager_accounts_containers_environments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_environments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersEnvironmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments
 /// Lists all GTM Environments of a GTM Container.
 ///
@@ -2325,16 +2508,18 @@ pub fn tagmanager_accounts_containers_environments_list_execute(
 
 pub fn tagmanager_accounts_containers_environments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsContainersEnvironmentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListEnvironmentsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_environments_list_builder(client, parent, pageToken)?;
+    let builder = tagmanager_accounts_containers_environments_list_builder(
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
+    )?;
     tagmanager_accounts_containers_environments_list_execute(builder)
 }
 
@@ -2431,6 +2616,15 @@ pub fn tagmanager_accounts_containers_environments_reauthorize_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_environments_reauthorize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersEnvironmentsReauthorizeArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Request body.
+    pub body: Environment,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}:reauthorize
 /// Re-generates the authorization code for a GTM Environment.
 ///
@@ -2443,14 +2637,14 @@ pub fn tagmanager_accounts_containers_environments_reauthorize_execute(
 
 pub fn tagmanager_accounts_containers_environments_reauthorize(
     client: &SimpleHttpClient,
-    path: &str,
-    body: &Environment,
+    args: &TagmanagerAccountsContainersEnvironmentsReauthorizeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_environments_reauthorize_builder(client, path, body)?;
+    let builder = tagmanager_accounts_containers_environments_reauthorize_builder(
+        client, &args.path, &args.body,
+    )?;
     tagmanager_accounts_containers_environments_reauthorize_execute(builder)
 }
 
@@ -2559,6 +2753,17 @@ pub fn tagmanager_accounts_containers_environments_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_environments_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersEnvironmentsUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+    /// Request body.
+    pub body: Environment,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/environments/{environmentsId}
 /// Updates a GTM Environment.
 ///
@@ -2571,18 +2776,16 @@ pub fn tagmanager_accounts_containers_environments_update_execute(
 
 pub fn tagmanager_accounts_containers_environments_update(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
-    body: &Environment,
+    args: &TagmanagerAccountsContainersEnvironmentsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_environments_update_builder(
         client,
-        path,
-        fingerprint,
-        body,
+        &args.path,
+        args.fingerprint.as_deref(),
+        &args.body,
     )?;
     tagmanager_accounts_containers_environments_update_execute(builder)
 }
@@ -2679,6 +2882,13 @@ pub fn tagmanager_accounts_containers_version_headers_latest_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_version_headers_latest`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionHeadersLatestArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/version_headers:latest
 /// Gets the latest container version header
 ///
@@ -2691,14 +2901,15 @@ pub fn tagmanager_accounts_containers_version_headers_latest_execute(
 
 pub fn tagmanager_accounts_containers_version_headers_latest(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &TagmanagerAccountsContainersVersionHeadersLatestArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContainerVersionHeader>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_version_headers_latest_builder(client, parent)?;
+    let builder =
+        tagmanager_accounts_containers_version_headers_latest_builder(client, &args.parent)?;
     tagmanager_accounts_containers_version_headers_latest_execute(builder)
 }
 
@@ -2812,6 +3023,17 @@ pub fn tagmanager_accounts_containers_version_headers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_version_headers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionHeadersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: includeDeleted
+    pub includeDeleted: Option<bool>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/version_headers
 /// Lists all Container Versions of a GTM Container.
 ///
@@ -2824,9 +3046,7 @@ pub fn tagmanager_accounts_containers_version_headers_list_execute(
 
 pub fn tagmanager_accounts_containers_version_headers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    includeDeleted: Option<bool>,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsContainersVersionHeadersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListContainerVersionsResponse>, ApiError>,
@@ -2837,9 +3057,9 @@ pub fn tagmanager_accounts_containers_version_headers_list(
 > {
     let builder = tagmanager_accounts_containers_version_headers_list_builder(
         client,
-        parent,
-        includeDeleted,
-        pageToken,
+        &args.parent,
+        args.includeDeleted,
+        args.pageToken.as_deref(),
     )?;
     tagmanager_accounts_containers_version_headers_list_execute(builder)
 }
@@ -2931,6 +3151,13 @@ pub fn tagmanager_accounts_containers_versions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionsDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
 /// Deletes a Container Version.
 ///
@@ -2943,12 +3170,12 @@ pub fn tagmanager_accounts_containers_versions_delete_execute(
 
 pub fn tagmanager_accounts_containers_versions_delete(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_versions_delete_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_versions_delete_builder(client, &args.path)?;
     tagmanager_accounts_containers_versions_delete_execute(builder)
 }
 
@@ -3056,6 +3283,15 @@ pub fn tagmanager_accounts_containers_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionsGetArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: containerVersionId
+    pub containerVersionId: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
 /// Gets a Container Version.
 ///
@@ -3068,16 +3304,18 @@ pub fn tagmanager_accounts_containers_versions_get_execute(
 
 pub fn tagmanager_accounts_containers_versions_get(
     client: &SimpleHttpClient,
-    path: &str,
-    containerVersionId: Option<&str>,
+    args: &TagmanagerAccountsContainersVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContainerVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_versions_get_builder(client, path, containerVersionId)?;
+    let builder = tagmanager_accounts_containers_versions_get_builder(
+        client,
+        &args.path,
+        args.containerVersionId.as_deref(),
+    )?;
     tagmanager_accounts_containers_versions_get_execute(builder)
 }
 
@@ -3173,6 +3411,13 @@ pub fn tagmanager_accounts_containers_versions_live_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_versions_live`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionsLiveArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions:live
 /// Gets the live (i.e. published) container version
 ///
@@ -3185,14 +3430,14 @@ pub fn tagmanager_accounts_containers_versions_live_execute(
 
 pub fn tagmanager_accounts_containers_versions_live(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &TagmanagerAccountsContainersVersionsLiveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContainerVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_versions_live_builder(client, parent)?;
+    let builder = tagmanager_accounts_containers_versions_live_builder(client, &args.parent)?;
     tagmanager_accounts_containers_versions_live_execute(builder)
 }
 
@@ -3302,6 +3547,15 @@ pub fn tagmanager_accounts_containers_versions_publish_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_versions_publish`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionsPublishArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:publish
 /// Publishes a Container Version.
 ///
@@ -3314,8 +3568,7 @@ pub fn tagmanager_accounts_containers_versions_publish_execute(
 
 pub fn tagmanager_accounts_containers_versions_publish(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
+    args: &TagmanagerAccountsContainersVersionsPublishArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<PublishContainerVersionResponse>, ApiError>,
@@ -3324,8 +3577,11 @@ pub fn tagmanager_accounts_containers_versions_publish(
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_versions_publish_builder(client, path, fingerprint)?;
+    let builder = tagmanager_accounts_containers_versions_publish_builder(
+        client,
+        &args.path,
+        args.fingerprint.as_deref(),
+    )?;
     tagmanager_accounts_containers_versions_publish_execute(builder)
 }
 
@@ -3421,6 +3677,13 @@ pub fn tagmanager_accounts_containers_versions_set_latest_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_versions_set_latest`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionsSetLatestArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:set_latest
 /// Sets the latest version used for synchronization of workspaces when detecting conflicts and errors.
 ///
@@ -3433,14 +3696,14 @@ pub fn tagmanager_accounts_containers_versions_set_latest_execute(
 
 pub fn tagmanager_accounts_containers_versions_set_latest(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersVersionsSetLatestArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContainerVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_versions_set_latest_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_versions_set_latest_builder(client, &args.path)?;
     tagmanager_accounts_containers_versions_set_latest_execute(builder)
 }
 
@@ -3536,6 +3799,13 @@ pub fn tagmanager_accounts_containers_versions_undelete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_versions_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionsUndeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}:undelete
 /// Undeletes a Container Version.
 ///
@@ -3548,14 +3818,14 @@ pub fn tagmanager_accounts_containers_versions_undelete_execute(
 
 pub fn tagmanager_accounts_containers_versions_undelete(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersVersionsUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContainerVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_versions_undelete_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_versions_undelete_builder(client, &args.path)?;
     tagmanager_accounts_containers_versions_undelete_execute(builder)
 }
 
@@ -3666,6 +3936,17 @@ pub fn tagmanager_accounts_containers_versions_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_versions_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersVersionsUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+    /// Request body.
+    pub body: ContainerVersion,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/versions/{versionsId}
 /// Updates a Container Version.
 ///
@@ -3678,17 +3959,19 @@ pub fn tagmanager_accounts_containers_versions_update_execute(
 
 pub fn tagmanager_accounts_containers_versions_update(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
-    body: &ContainerVersion,
+    args: &TagmanagerAccountsContainersVersionsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContainerVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_versions_update_builder(client, path, fingerprint, body)?;
+    let builder = tagmanager_accounts_containers_versions_update_builder(
+        client,
+        &args.path,
+        args.fingerprint.as_deref(),
+        &args.body,
+    )?;
     tagmanager_accounts_containers_versions_update_execute(builder)
 }
 
@@ -3789,6 +4072,15 @@ pub fn tagmanager_accounts_containers_workspaces_bulk_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_bulk_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesBulkUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Request body.
+    pub body: ProposedChange,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/bulk_update
 /// Applies multiple entity changes to a workspace in one call. When creating new entities, their entity IDs must be unique and in correct format. That is, they must start with "new_" and followed by number, e.g. "new_1", "new_2". Example body snippet to create `myNewTag` under `myNewFolder` is:  "changes": [ { "folder": { "`folderId`": "new_1", "name": "`myNewFolder`", ... }, "`changeStatus`": "added" }, { "tag": { "`tagId`": "new_2", "name": "`myNewTag`", "`parentFolderId`": "new_1", ... }, "`changeStatus`": "added" } ]
 ///
@@ -3801,8 +4093,7 @@ pub fn tagmanager_accounts_containers_workspaces_bulk_update_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_bulk_update(
     client: &SimpleHttpClient,
-    path: &str,
-    body: &ProposedChange,
+    args: &TagmanagerAccountsContainersWorkspacesBulkUpdateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BulkUpdateWorkspaceResponse>, ApiError>,
@@ -3811,8 +4102,9 @@ pub fn tagmanager_accounts_containers_workspaces_bulk_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_bulk_update_builder(client, path, body)?;
+    let builder = tagmanager_accounts_containers_workspaces_bulk_update_builder(
+        client, &args.path, &args.body,
+    )?;
     tagmanager_accounts_containers_workspaces_bulk_update_execute(builder)
 }
 
@@ -3909,6 +4201,15 @@ pub fn tagmanager_accounts_containers_workspaces_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Workspace,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces
 /// Creates a Workspace.
 ///
@@ -3921,13 +4222,13 @@ pub fn tagmanager_accounts_containers_workspaces_create_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Workspace,
+    args: &TagmanagerAccountsContainersWorkspacesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Workspace>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_create_builder(client, parent, body)?;
+    let builder =
+        tagmanager_accounts_containers_workspaces_create_builder(client, &args.parent, &args.body)?;
     tagmanager_accounts_containers_workspaces_create_execute(builder)
 }
 
@@ -4028,6 +4329,15 @@ pub fn tagmanager_accounts_containers_workspaces_create_version_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_create_version`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesCreateVersionArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Request body.
+    pub body: CreateContainerVersionRequestVersionOptions,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:create_version
 /// Creates a Container Version from the entities present in the workspace, deletes the workspace, and sets the base container version to the newly created version.
 ///
@@ -4040,8 +4350,7 @@ pub fn tagmanager_accounts_containers_workspaces_create_version_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_create_version(
     client: &SimpleHttpClient,
-    path: &str,
-    body: &CreateContainerVersionRequestVersionOptions,
+    args: &TagmanagerAccountsContainersWorkspacesCreateVersionArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CreateContainerVersionResponse>, ApiError>,
@@ -4050,8 +4359,9 @@ pub fn tagmanager_accounts_containers_workspaces_create_version(
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_create_version_builder(client, path, body)?;
+    let builder = tagmanager_accounts_containers_workspaces_create_version_builder(
+        client, &args.path, &args.body,
+    )?;
     tagmanager_accounts_containers_workspaces_create_version_execute(builder)
 }
 
@@ -4142,6 +4452,13 @@ pub fn tagmanager_accounts_containers_workspaces_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
 /// Deletes a Workspace.
 ///
@@ -4154,12 +4471,12 @@ pub fn tagmanager_accounts_containers_workspaces_delete_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_delete(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_delete_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_workspaces_delete_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_delete_execute(builder)
 }
 
@@ -4253,6 +4570,13 @@ pub fn tagmanager_accounts_containers_workspaces_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
 /// Gets a Workspace.
 ///
@@ -4265,12 +4589,12 @@ pub fn tagmanager_accounts_containers_workspaces_get_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_get(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Workspace>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_get_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_workspaces_get_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_get_execute(builder)
 }
 
@@ -4368,6 +4692,13 @@ pub fn tagmanager_accounts_containers_workspaces_get_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_get_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesGetStatusArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/status
 /// Finds conflicting and modified entities in the workspace.
 ///
@@ -4380,7 +4711,7 @@ pub fn tagmanager_accounts_containers_workspaces_get_status_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_get_status(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesGetStatusArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetWorkspaceStatusResponse>, ApiError>,
@@ -4389,7 +4720,7 @@ pub fn tagmanager_accounts_containers_workspaces_get_status(
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_get_status_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_workspaces_get_status_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_get_status_execute(builder)
 }
 
@@ -4497,6 +4828,15 @@ pub fn tagmanager_accounts_containers_workspaces_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces
 /// Lists all Workspaces that belong to a GTM Container.
 ///
@@ -4509,16 +4849,18 @@ pub fn tagmanager_accounts_containers_workspaces_list_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListWorkspacesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_list_builder(client, parent, pageToken)?;
+    let builder = tagmanager_accounts_containers_workspaces_list_builder(
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
+    )?;
     tagmanager_accounts_containers_workspaces_list_execute(builder)
 }
 
@@ -4614,6 +4956,13 @@ pub fn tagmanager_accounts_containers_workspaces_quick_preview_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_quick_preview`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesQuickPreviewArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:quick_preview
 /// Quick previews a workspace by creating a fake container version from all entities in the provided workspace.
 ///
@@ -4626,14 +4975,15 @@ pub fn tagmanager_accounts_containers_workspaces_quick_preview_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_quick_preview(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesQuickPreviewArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QuickPreviewResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_quick_preview_builder(client, path)?;
+    let builder =
+        tagmanager_accounts_containers_workspaces_quick_preview_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_quick_preview_execute(builder)
 }
 
@@ -4739,6 +5089,17 @@ pub fn tagmanager_accounts_containers_workspaces_resolve_conflict_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_resolve_conflict`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesResolveConflictArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+    /// Request body.
+    pub body: Entity,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:resolve_conflict
 /// Resolves a merge conflict for a workspace entity by updating it to the resolved entity passed in the request.
 ///
@@ -4751,18 +5112,16 @@ pub fn tagmanager_accounts_containers_workspaces_resolve_conflict_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_resolve_conflict(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
-    body: &Entity,
+    args: &TagmanagerAccountsContainersWorkspacesResolveConflictArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_resolve_conflict_builder(
         client,
-        path,
-        fingerprint,
-        body,
+        &args.path,
+        args.fingerprint.as_deref(),
+        &args.body,
     )?;
     tagmanager_accounts_containers_workspaces_resolve_conflict_execute(builder)
 }
@@ -4859,6 +5218,13 @@ pub fn tagmanager_accounts_containers_workspaces_sync_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_sync`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesSyncArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}:sync
 /// Syncs a workspace to the latest container version by updating all unmodified workspace entities and displaying conflicts for modified entities.
 ///
@@ -4871,14 +5237,14 @@ pub fn tagmanager_accounts_containers_workspaces_sync_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_sync(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesSyncArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SyncWorkspaceResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_sync_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_workspaces_sync_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_sync_execute(builder)
 }
 
@@ -4987,6 +5353,17 @@ pub fn tagmanager_accounts_containers_workspaces_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+    /// Request body.
+    pub body: Workspace,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}
 /// Updates a Workspace.
 ///
@@ -4999,15 +5376,17 @@ pub fn tagmanager_accounts_containers_workspaces_update_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_update(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
-    body: &Workspace,
+    args: &TagmanagerAccountsContainersWorkspacesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Workspace>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_update_builder(client, path, fingerprint, body)?;
+    let builder = tagmanager_accounts_containers_workspaces_update_builder(
+        client,
+        &args.path,
+        args.fingerprint.as_deref(),
+        &args.body,
+    )?;
     tagmanager_accounts_containers_workspaces_update_execute(builder)
 }
 
@@ -5117,6 +5496,15 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_built_in_variables_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesBuiltInVariablesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
 /// Creates one or more GTM Built-In Variables.
 ///
@@ -5129,8 +5517,7 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_create_execu
 
 pub fn tagmanager_accounts_containers_workspaces_built_in_variables_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    type_rs: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesBuiltInVariablesCreateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CreateBuiltInVariableResponse>, ApiError>,
@@ -5140,7 +5527,9 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_create(
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_built_in_variables_create_builder(
-        client, parent, type_rs,
+        client,
+        &args.parent,
+        args.type_rs.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_built_in_variables_create_execute(builder)
 }
@@ -5244,6 +5633,15 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_built_in_variables_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesBuiltInVariablesDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
 /// Deletes one or more GTM Built-In Variables.
 ///
@@ -5256,14 +5654,15 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_delete_execu
 
 pub fn tagmanager_accounts_containers_workspaces_built_in_variables_delete(
     client: &SimpleHttpClient,
-    path: &str,
-    type_rs: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesBuiltInVariablesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_built_in_variables_delete_builder(
-        client, path, type_rs,
+        client,
+        &args.path,
+        args.type_rs.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_built_in_variables_delete_execute(builder)
 }
@@ -5374,6 +5773,15 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_built_in_variables_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesBuiltInVariablesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables
 /// Lists all the enabled Built-In Variables of a GTM Container.
 ///
@@ -5386,8 +5794,7 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_list_execute
 
 pub fn tagmanager_accounts_containers_workspaces_built_in_variables_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesBuiltInVariablesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListEnabledBuiltInVariablesResponse>, ApiError>,
@@ -5397,7 +5804,9 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_list(
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_built_in_variables_list_builder(
-        client, parent, pageToken,
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_built_in_variables_list_execute(builder)
 }
@@ -5508,6 +5917,15 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_revert_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_built_in_variables_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesBuiltInVariablesRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: type
+    pub type_rs: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/built_in_variables:revert
 /// Reverts changes to a GTM Built-In Variables in a GTM Workspace.
 ///
@@ -5520,8 +5938,7 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_revert_execu
 
 pub fn tagmanager_accounts_containers_workspaces_built_in_variables_revert(
     client: &SimpleHttpClient,
-    path: &str,
-    type_rs: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesBuiltInVariablesRevertArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RevertBuiltInVariableResponse>, ApiError>,
@@ -5531,7 +5948,9 @@ pub fn tagmanager_accounts_containers_workspaces_built_in_variables_revert(
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_built_in_variables_revert_builder(
-        client, path, type_rs,
+        client,
+        &args.path,
+        args.type_rs.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_built_in_variables_revert_execute(builder)
 }
@@ -5629,6 +6048,15 @@ pub fn tagmanager_accounts_containers_workspaces_clients_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_clients_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesClientsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Client,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients
 /// Creates a GTM Client.
 ///
@@ -5641,14 +6069,16 @@ pub fn tagmanager_accounts_containers_workspaces_clients_create_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_clients_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Client,
+    args: &TagmanagerAccountsContainersWorkspacesClientsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_clients_create_builder(client, parent, body)?;
+    let builder = tagmanager_accounts_containers_workspaces_clients_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     tagmanager_accounts_containers_workspaces_clients_create_execute(builder)
 }
 
@@ -5739,6 +6169,13 @@ pub fn tagmanager_accounts_containers_workspaces_clients_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_clients_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesClientsDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
 /// Deletes a GTM Client.
 ///
@@ -5751,12 +6188,13 @@ pub fn tagmanager_accounts_containers_workspaces_clients_delete_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_clients_delete(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesClientsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_clients_delete_builder(client, path)?;
+    let builder =
+        tagmanager_accounts_containers_workspaces_clients_delete_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_clients_delete_execute(builder)
 }
 
@@ -5850,6 +6288,13 @@ pub fn tagmanager_accounts_containers_workspaces_clients_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_clients_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesClientsGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
 /// Gets a GTM Client.
 ///
@@ -5862,12 +6307,13 @@ pub fn tagmanager_accounts_containers_workspaces_clients_get_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_clients_get(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesClientsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_clients_get_builder(client, path)?;
+    let builder =
+        tagmanager_accounts_containers_workspaces_clients_get_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_clients_get_execute(builder)
 }
 
@@ -5975,6 +6421,15 @@ pub fn tagmanager_accounts_containers_workspaces_clients_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_clients_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesClientsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients
 /// Lists all GTM Clients of a GTM container workspace.
 ///
@@ -5987,16 +6442,18 @@ pub fn tagmanager_accounts_containers_workspaces_clients_list_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_clients_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesClientsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListClientsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_clients_list_builder(client, parent, pageToken)?;
+    let builder = tagmanager_accounts_containers_workspaces_clients_list_builder(
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
+    )?;
     tagmanager_accounts_containers_workspaces_clients_list_execute(builder)
 }
 
@@ -6104,6 +6561,15 @@ pub fn tagmanager_accounts_containers_workspaces_clients_revert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_clients_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesClientsRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}:revert
 /// Reverts changes to a GTM Client in a GTM Workspace.
 ///
@@ -6116,8 +6582,7 @@ pub fn tagmanager_accounts_containers_workspaces_clients_revert_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_clients_revert(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesClientsRevertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RevertClientResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6126,8 +6591,8 @@ pub fn tagmanager_accounts_containers_workspaces_clients_revert(
 > {
     let builder = tagmanager_accounts_containers_workspaces_clients_revert_builder(
         client,
-        path,
-        fingerprint,
+        &args.path,
+        args.fingerprint.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_clients_revert_execute(builder)
 }
@@ -6237,6 +6702,17 @@ pub fn tagmanager_accounts_containers_workspaces_clients_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_clients_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesClientsUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+    /// Request body.
+    pub body: Client,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/clients/{clientsId}
 /// Updates a GTM Client.
 ///
@@ -6249,18 +6725,16 @@ pub fn tagmanager_accounts_containers_workspaces_clients_update_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_clients_update(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
-    body: &Client,
+    args: &TagmanagerAccountsContainersWorkspacesClientsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_clients_update_builder(
         client,
-        path,
-        fingerprint,
-        body,
+        &args.path,
+        args.fingerprint.as_deref(),
+        &args.body,
     )?;
     tagmanager_accounts_containers_workspaces_clients_update_execute(builder)
 }
@@ -6358,6 +6832,15 @@ pub fn tagmanager_accounts_containers_workspaces_folders_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Folder,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders
 /// Creates a GTM Folder.
 ///
@@ -6370,14 +6853,16 @@ pub fn tagmanager_accounts_containers_workspaces_folders_create_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_folders_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Folder,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_folders_create_builder(client, parent, body)?;
+    let builder = tagmanager_accounts_containers_workspaces_folders_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     tagmanager_accounts_containers_workspaces_folders_create_execute(builder)
 }
 
@@ -6468,6 +6953,13 @@ pub fn tagmanager_accounts_containers_workspaces_folders_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
 /// Deletes a GTM Folder.
 ///
@@ -6480,12 +6972,13 @@ pub fn tagmanager_accounts_containers_workspaces_folders_delete_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_folders_delete(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_folders_delete_builder(client, path)?;
+    let builder =
+        tagmanager_accounts_containers_workspaces_folders_delete_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_folders_delete_execute(builder)
 }
 
@@ -6593,6 +7086,15 @@ pub fn tagmanager_accounts_containers_workspaces_folders_entities_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_entities`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersEntitiesArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:entities
 /// List all entities in a GTM Folder.
 ///
@@ -6605,8 +7107,7 @@ pub fn tagmanager_accounts_containers_workspaces_folders_entities_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_folders_entities(
     client: &SimpleHttpClient,
-    path: &str,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersEntitiesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FolderEntities>, ApiError>, P = ApiPending>
         + Send
@@ -6614,7 +7115,9 @@ pub fn tagmanager_accounts_containers_workspaces_folders_entities(
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_folders_entities_builder(
-        client, path, pageToken,
+        client,
+        &args.path,
+        args.pageToken.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_folders_entities_execute(builder)
 }
@@ -6709,6 +7212,13 @@ pub fn tagmanager_accounts_containers_workspaces_folders_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
 /// Gets a GTM Folder.
 ///
@@ -6721,12 +7231,13 @@ pub fn tagmanager_accounts_containers_workspaces_folders_get_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_folders_get(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_folders_get_builder(client, path)?;
+    let builder =
+        tagmanager_accounts_containers_workspaces_folders_get_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_folders_get_execute(builder)
 }
 
@@ -6834,6 +7345,15 @@ pub fn tagmanager_accounts_containers_workspaces_folders_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders
 /// Lists all GTM Folders of a Container.
 ///
@@ -6846,16 +7366,18 @@ pub fn tagmanager_accounts_containers_workspaces_folders_list_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_folders_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFoldersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_folders_list_builder(client, parent, pageToken)?;
+    let builder = tagmanager_accounts_containers_workspaces_folders_list_builder(
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
+    )?;
     tagmanager_accounts_containers_workspaces_folders_list_execute(builder)
 }
 
@@ -6969,6 +7491,21 @@ pub fn tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersMoveEntitiesToFolderArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: tagId
+    pub tagId: Option<String>,
+    /// Query parameter: triggerId
+    pub triggerId: Option<String>,
+    /// Query parameter: variableId
+    pub variableId: Option<String>,
+    /// Request body.
+    pub body: Folder,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:move_entities_to_folder
 /// Moves entities to a GTM Folder. If {folder_id} in the request path equals 0, this will instead move entities out of the folder they currently belong to.
 ///
@@ -6981,18 +7518,19 @@ pub fn tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder
 
 pub fn tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder(
     client: &SimpleHttpClient,
-    path: &str,
-    tagId: Option<&str>,
-    triggerId: Option<&str>,
-    variableId: Option<&str>,
-    body: &Folder,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersMoveEntitiesToFolderArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_builder(
-            client, path, tagId, triggerId, variableId, body,
+            client,
+            &args.path,
+            args.tagId.as_deref(),
+            args.triggerId.as_deref(),
+            args.variableId.as_deref(),
+            &args.body,
         )?;
     tagmanager_accounts_containers_workspaces_folders_move_entities_to_folder_execute(builder)
 }
@@ -7101,6 +7639,15 @@ pub fn tagmanager_accounts_containers_workspaces_folders_revert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}:revert
 /// Reverts changes to a GTM Folder in a GTM Workspace.
 ///
@@ -7113,8 +7660,7 @@ pub fn tagmanager_accounts_containers_workspaces_folders_revert_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_folders_revert(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersRevertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RevertFolderResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7123,8 +7669,8 @@ pub fn tagmanager_accounts_containers_workspaces_folders_revert(
 > {
     let builder = tagmanager_accounts_containers_workspaces_folders_revert_builder(
         client,
-        path,
-        fingerprint,
+        &args.path,
+        args.fingerprint.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_folders_revert_execute(builder)
 }
@@ -7234,6 +7780,17 @@ pub fn tagmanager_accounts_containers_workspaces_folders_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_folders_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesFoldersUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+    /// Request body.
+    pub body: Folder,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/folders/{foldersId}
 /// Updates a GTM Folder.
 ///
@@ -7246,18 +7803,16 @@ pub fn tagmanager_accounts_containers_workspaces_folders_update_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_folders_update(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
-    body: &Folder,
+    args: &TagmanagerAccountsContainersWorkspacesFoldersUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Folder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_folders_update_builder(
         client,
-        path,
-        fingerprint,
-        body,
+        &args.path,
+        args.fingerprint.as_deref(),
+        &args.body,
     )?;
     tagmanager_accounts_containers_workspaces_folders_update_execute(builder)
 }
@@ -7355,6 +7910,15 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_gtag_config_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesGtagConfigCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GtagConfig,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config
 /// Creates a Google tag config.
 ///
@@ -7367,14 +7931,16 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_create_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_gtag_config_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GtagConfig,
+    args: &TagmanagerAccountsContainersWorkspacesGtagConfigCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GtagConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_gtag_config_create_builder(client, parent, body)?;
+    let builder = tagmanager_accounts_containers_workspaces_gtag_config_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     tagmanager_accounts_containers_workspaces_gtag_config_create_execute(builder)
 }
 
@@ -7465,6 +8031,13 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_gtag_config_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesGtagConfigDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
 /// Deletes a Google tag config.
 ///
@@ -7477,13 +8050,13 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_delete_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_gtag_config_delete(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesGtagConfigDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        tagmanager_accounts_containers_workspaces_gtag_config_delete_builder(client, path)?;
+        tagmanager_accounts_containers_workspaces_gtag_config_delete_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_gtag_config_delete_execute(builder)
 }
 
@@ -7577,6 +8150,13 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_gtag_config_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesGtagConfigGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
 /// Gets a Google tag config.
 ///
@@ -7589,12 +8169,13 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_get_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_gtag_config_get(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesGtagConfigGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GtagConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_gtag_config_get_builder(client, path)?;
+    let builder =
+        tagmanager_accounts_containers_workspaces_gtag_config_get_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_gtag_config_get_execute(builder)
 }
 
@@ -7702,6 +8283,15 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_gtag_config_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesGtagConfigListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config
 /// Lists all Google tag configs in a Container.
 ///
@@ -7714,8 +8304,7 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_list_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_gtag_config_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesGtagConfigListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListGtagConfigResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7723,7 +8312,9 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_list(
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_gtag_config_list_builder(
-        client, parent, pageToken,
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_gtag_config_list_execute(builder)
 }
@@ -7833,6 +8424,17 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_gtag_config_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesGtagConfigUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+    /// Request body.
+    pub body: GtagConfig,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/gtag_config/{gtag_configId}
 /// Updates a Google tag config.
 ///
@@ -7845,18 +8447,16 @@ pub fn tagmanager_accounts_containers_workspaces_gtag_config_update_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_gtag_config_update(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
-    body: &GtagConfig,
+    args: &TagmanagerAccountsContainersWorkspacesGtagConfigUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GtagConfig>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_gtag_config_update_builder(
         client,
-        path,
-        fingerprint,
-        body,
+        &args.path,
+        args.fingerprint.as_deref(),
+        &args.body,
     )?;
     tagmanager_accounts_containers_workspaces_gtag_config_update_execute(builder)
 }
@@ -7954,6 +8554,15 @@ pub fn tagmanager_accounts_containers_workspaces_tags_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_tags_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTagsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Tag,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags
 /// Creates a GTM Tag.
 ///
@@ -7966,14 +8575,16 @@ pub fn tagmanager_accounts_containers_workspaces_tags_create_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_tags_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Tag,
+    args: &TagmanagerAccountsContainersWorkspacesTagsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_tags_create_builder(client, parent, body)?;
+    let builder = tagmanager_accounts_containers_workspaces_tags_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     tagmanager_accounts_containers_workspaces_tags_create_execute(builder)
 }
 
@@ -8064,6 +8675,13 @@ pub fn tagmanager_accounts_containers_workspaces_tags_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_tags_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTagsDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
 /// Deletes a GTM Tag.
 ///
@@ -8076,12 +8694,13 @@ pub fn tagmanager_accounts_containers_workspaces_tags_delete_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_tags_delete(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesTagsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_tags_delete_builder(client, path)?;
+    let builder =
+        tagmanager_accounts_containers_workspaces_tags_delete_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_tags_delete_execute(builder)
 }
 
@@ -8175,6 +8794,13 @@ pub fn tagmanager_accounts_containers_workspaces_tags_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_tags_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTagsGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
 /// Gets a GTM Tag.
 ///
@@ -8187,12 +8813,12 @@ pub fn tagmanager_accounts_containers_workspaces_tags_get_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_tags_get(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesTagsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_tags_get_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_workspaces_tags_get_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_tags_get_execute(builder)
 }
 
@@ -8300,6 +8926,15 @@ pub fn tagmanager_accounts_containers_workspaces_tags_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_tags_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTagsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags
 /// Lists all GTM Tags of a Container.
 ///
@@ -8312,16 +8947,18 @@ pub fn tagmanager_accounts_containers_workspaces_tags_list_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_tags_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesTagsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTagsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_tags_list_builder(client, parent, pageToken)?;
+    let builder = tagmanager_accounts_containers_workspaces_tags_list_builder(
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
+    )?;
     tagmanager_accounts_containers_workspaces_tags_list_execute(builder)
 }
 
@@ -8429,6 +9066,15 @@ pub fn tagmanager_accounts_containers_workspaces_tags_revert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_tags_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTagsRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}:revert
 /// Reverts changes to a GTM Tag in a GTM Workspace.
 ///
@@ -8441,16 +9087,18 @@ pub fn tagmanager_accounts_containers_workspaces_tags_revert_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_tags_revert(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesTagsRevertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RevertTagResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_tags_revert_builder(client, path, fingerprint)?;
+    let builder = tagmanager_accounts_containers_workspaces_tags_revert_builder(
+        client,
+        &args.path,
+        args.fingerprint.as_deref(),
+    )?;
     tagmanager_accounts_containers_workspaces_tags_revert_execute(builder)
 }
 
@@ -8559,6 +9207,17 @@ pub fn tagmanager_accounts_containers_workspaces_tags_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_tags_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTagsUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+    /// Request body.
+    pub body: Tag,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/tags/{tagsId}
 /// Updates a GTM Tag.
 ///
@@ -8571,18 +9230,16 @@ pub fn tagmanager_accounts_containers_workspaces_tags_update_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_tags_update(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
-    body: &Tag,
+    args: &TagmanagerAccountsContainersWorkspacesTagsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Tag>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_tags_update_builder(
         client,
-        path,
-        fingerprint,
-        body,
+        &args.path,
+        args.fingerprint.as_deref(),
+        &args.body,
     )?;
     tagmanager_accounts_containers_workspaces_tags_update_execute(builder)
 }
@@ -8682,6 +9339,15 @@ pub fn tagmanager_accounts_containers_workspaces_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CustomTemplate,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates
 /// Creates a GTM Custom Template.
 ///
@@ -8694,16 +9360,18 @@ pub fn tagmanager_accounts_containers_workspaces_templates_create_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CustomTemplate,
+    args: &TagmanagerAccountsContainersWorkspacesTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_templates_create_builder(client, parent, body)?;
+    let builder = tagmanager_accounts_containers_workspaces_templates_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     tagmanager_accounts_containers_workspaces_templates_create_execute(builder)
 }
 
@@ -8794,6 +9462,13 @@ pub fn tagmanager_accounts_containers_workspaces_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTemplatesDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
 /// Deletes a GTM Template.
 ///
@@ -8806,12 +9481,13 @@ pub fn tagmanager_accounts_containers_workspaces_templates_delete_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_templates_delete(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_templates_delete_builder(client, path)?;
+    let builder =
+        tagmanager_accounts_containers_workspaces_templates_delete_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_templates_delete_execute(builder)
 }
 
@@ -8907,6 +9583,13 @@ pub fn tagmanager_accounts_containers_workspaces_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTemplatesGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
 /// Gets a GTM Template.
 ///
@@ -8919,14 +9602,15 @@ pub fn tagmanager_accounts_containers_workspaces_templates_get_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_templates_get(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_templates_get_builder(client, path)?;
+    let builder =
+        tagmanager_accounts_containers_workspaces_templates_get_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_templates_get_execute(builder)
 }
 
@@ -9046,6 +9730,21 @@ pub fn tagmanager_accounts_containers_workspaces_templates_import_from_gallery_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_templates_import_from_gallery`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTemplatesImportFromGalleryArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: acknowledgePermissions
+    pub acknowledgePermissions: Option<bool>,
+    /// Query parameter: galleryOwner
+    pub galleryOwner: Option<String>,
+    /// Query parameter: galleryRepository
+    pub galleryRepository: Option<String>,
+    /// Query parameter: gallerySha
+    pub gallerySha: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates:import_from_gallery
 /// Imports a GTM Custom Template from Gallery.
 ///
@@ -9058,11 +9757,7 @@ pub fn tagmanager_accounts_containers_workspaces_templates_import_from_gallery_e
 
 pub fn tagmanager_accounts_containers_workspaces_templates_import_from_gallery(
     client: &SimpleHttpClient,
-    parent: &str,
-    acknowledgePermissions: Option<bool>,
-    galleryOwner: Option<&str>,
-    galleryRepository: Option<&str>,
-    gallerySha: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesTemplatesImportFromGalleryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomTemplate>, ApiError>, P = ApiPending>
         + Send
@@ -9071,11 +9766,11 @@ pub fn tagmanager_accounts_containers_workspaces_templates_import_from_gallery(
 > {
     let builder = tagmanager_accounts_containers_workspaces_templates_import_from_gallery_builder(
         client,
-        parent,
-        acknowledgePermissions,
-        galleryOwner,
-        galleryRepository,
-        gallerySha,
+        &args.parent,
+        args.acknowledgePermissions,
+        args.galleryOwner.as_deref(),
+        args.galleryRepository.as_deref(),
+        args.gallerySha.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_templates_import_from_gallery_execute(builder)
 }
@@ -9184,6 +9879,15 @@ pub fn tagmanager_accounts_containers_workspaces_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates
 /// Lists all GTM Templates of a GTM container workspace.
 ///
@@ -9196,8 +9900,7 @@ pub fn tagmanager_accounts_containers_workspaces_templates_list_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTemplatesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9205,7 +9908,9 @@ pub fn tagmanager_accounts_containers_workspaces_templates_list(
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_templates_list_builder(
-        client, parent, pageToken,
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_templates_list_execute(builder)
 }
@@ -9314,6 +10019,15 @@ pub fn tagmanager_accounts_containers_workspaces_templates_revert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_templates_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTemplatesRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}:revert
 /// Reverts changes to a GTM Template in a GTM Workspace.
 ///
@@ -9326,8 +10040,7 @@ pub fn tagmanager_accounts_containers_workspaces_templates_revert_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_templates_revert(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesTemplatesRevertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RevertTemplateResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9336,8 +10049,8 @@ pub fn tagmanager_accounts_containers_workspaces_templates_revert(
 > {
     let builder = tagmanager_accounts_containers_workspaces_templates_revert_builder(
         client,
-        path,
-        fingerprint,
+        &args.path,
+        args.fingerprint.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_templates_revert_execute(builder)
 }
@@ -9449,6 +10162,17 @@ pub fn tagmanager_accounts_containers_workspaces_templates_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_templates_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTemplatesUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+    /// Request body.
+    pub body: CustomTemplate,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/templates/{templatesId}
 /// Updates a GTM Template.
 ///
@@ -9461,9 +10185,7 @@ pub fn tagmanager_accounts_containers_workspaces_templates_update_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_templates_update(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
-    body: &CustomTemplate,
+    args: &TagmanagerAccountsContainersWorkspacesTemplatesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CustomTemplate>, ApiError>, P = ApiPending>
         + Send
@@ -9472,9 +10194,9 @@ pub fn tagmanager_accounts_containers_workspaces_templates_update(
 > {
     let builder = tagmanager_accounts_containers_workspaces_templates_update_builder(
         client,
-        path,
-        fingerprint,
-        body,
+        &args.path,
+        args.fingerprint.as_deref(),
+        &args.body,
     )?;
     tagmanager_accounts_containers_workspaces_templates_update_execute(builder)
 }
@@ -9574,6 +10296,15 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_transformations_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTransformationsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Transformation,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations
 /// Creates a GTM Transformation.
 ///
@@ -9586,8 +10317,7 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_create_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_transformations_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Transformation,
+    args: &TagmanagerAccountsContainersWorkspacesTransformationsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Transformation>, ApiError>, P = ApiPending>
         + Send
@@ -9595,7 +10325,9 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_create(
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_transformations_create_builder(
-        client, parent, body,
+        client,
+        &args.parent,
+        &args.body,
     )?;
     tagmanager_accounts_containers_workspaces_transformations_create_execute(builder)
 }
@@ -9687,6 +10419,13 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_transformations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTransformationsDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
 /// Deletes a GTM Transformation.
 ///
@@ -9699,13 +10438,14 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_delete_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_transformations_delete(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesTransformationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_transformations_delete_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_workspaces_transformations_delete_builder(
+        client, &args.path,
+    )?;
     tagmanager_accounts_containers_workspaces_transformations_delete_execute(builder)
 }
 
@@ -9801,6 +10541,13 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_transformations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTransformationsGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
 /// Gets a GTM Transformation.
 ///
@@ -9813,7 +10560,7 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_get_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_transformations_get(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesTransformationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Transformation>, ApiError>, P = ApiPending>
         + Send
@@ -9821,7 +10568,7 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_get(
     ApiError,
 > {
     let builder =
-        tagmanager_accounts_containers_workspaces_transformations_get_builder(client, path)?;
+        tagmanager_accounts_containers_workspaces_transformations_get_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_transformations_get_execute(builder)
 }
 
@@ -9931,6 +10678,15 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_transformations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTransformationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations
 /// Lists all GTM Transformations of a GTM container workspace.
 ///
@@ -9943,8 +10699,7 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_list_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_transformations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesTransformationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListTransformationsResponse>, ApiError>,
@@ -9954,7 +10709,9 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_list(
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_transformations_list_builder(
-        client, parent, pageToken,
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_transformations_list_execute(builder)
 }
@@ -10065,6 +10822,15 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_revert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_transformations_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTransformationsRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}:revert
 /// Reverts changes to a GTM Transformation in a GTM Workspace.
 ///
@@ -10077,8 +10843,7 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_revert_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_transformations_revert(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesTransformationsRevertArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RevertTransformationResponse>, ApiError>,
@@ -10089,8 +10854,8 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_revert(
 > {
     let builder = tagmanager_accounts_containers_workspaces_transformations_revert_builder(
         client,
-        path,
-        fingerprint,
+        &args.path,
+        args.fingerprint.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_transformations_revert_execute(builder)
 }
@@ -10202,6 +10967,17 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_transformations_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTransformationsUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+    /// Request body.
+    pub body: Transformation,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/transformations/{transformationsId}
 /// Updates a GTM Transformation.
 ///
@@ -10214,9 +10990,7 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_update_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_transformations_update(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
-    body: &Transformation,
+    args: &TagmanagerAccountsContainersWorkspacesTransformationsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Transformation>, ApiError>, P = ApiPending>
         + Send
@@ -10225,9 +10999,9 @@ pub fn tagmanager_accounts_containers_workspaces_transformations_update(
 > {
     let builder = tagmanager_accounts_containers_workspaces_transformations_update_builder(
         client,
-        path,
-        fingerprint,
-        body,
+        &args.path,
+        args.fingerprint.as_deref(),
+        &args.body,
     )?;
     tagmanager_accounts_containers_workspaces_transformations_update_execute(builder)
 }
@@ -10325,6 +11099,15 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_triggers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTriggersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Trigger,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers
 /// Creates a GTM Trigger.
 ///
@@ -10337,14 +11120,16 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_create_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_triggers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Trigger,
+    args: &TagmanagerAccountsContainersWorkspacesTriggersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Trigger>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_triggers_create_builder(client, parent, body)?;
+    let builder = tagmanager_accounts_containers_workspaces_triggers_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     tagmanager_accounts_containers_workspaces_triggers_create_execute(builder)
 }
 
@@ -10435,6 +11220,13 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_triggers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTriggersDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
 /// Deletes a GTM Trigger.
 ///
@@ -10447,12 +11239,13 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_delete_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_triggers_delete(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesTriggersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_triggers_delete_builder(client, path)?;
+    let builder =
+        tagmanager_accounts_containers_workspaces_triggers_delete_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_triggers_delete_execute(builder)
 }
 
@@ -10546,6 +11339,13 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_triggers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTriggersGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
 /// Gets a GTM Trigger.
 ///
@@ -10558,12 +11358,13 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_get_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_triggers_get(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesTriggersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Trigger>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_triggers_get_builder(client, path)?;
+    let builder =
+        tagmanager_accounts_containers_workspaces_triggers_get_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_triggers_get_execute(builder)
 }
 
@@ -10671,6 +11472,15 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_triggers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTriggersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers
 /// Lists all GTM Triggers of a Container.
 ///
@@ -10683,16 +11493,18 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_list_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_triggers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesTriggersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListTriggersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_triggers_list_builder(client, parent, pageToken)?;
+    let builder = tagmanager_accounts_containers_workspaces_triggers_list_builder(
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
+    )?;
     tagmanager_accounts_containers_workspaces_triggers_list_execute(builder)
 }
 
@@ -10800,6 +11612,15 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_revert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_triggers_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTriggersRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}:revert
 /// Reverts changes to a GTM Trigger in a GTM Workspace.
 ///
@@ -10812,8 +11633,7 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_revert_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_triggers_revert(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesTriggersRevertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RevertTriggerResponse>, ApiError>, P = ApiPending>
         + Send
@@ -10822,8 +11642,8 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_revert(
 > {
     let builder = tagmanager_accounts_containers_workspaces_triggers_revert_builder(
         client,
-        path,
-        fingerprint,
+        &args.path,
+        args.fingerprint.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_triggers_revert_execute(builder)
 }
@@ -10933,6 +11753,17 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_triggers_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesTriggersUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+    /// Request body.
+    pub body: Trigger,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/triggers/{triggersId}
 /// Updates a GTM Trigger.
 ///
@@ -10945,18 +11776,16 @@ pub fn tagmanager_accounts_containers_workspaces_triggers_update_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_triggers_update(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
-    body: &Trigger,
+    args: &TagmanagerAccountsContainersWorkspacesTriggersUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Trigger>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_triggers_update_builder(
         client,
-        path,
-        fingerprint,
-        body,
+        &args.path,
+        args.fingerprint.as_deref(),
+        &args.body,
     )?;
     tagmanager_accounts_containers_workspaces_triggers_update_execute(builder)
 }
@@ -11054,6 +11883,15 @@ pub fn tagmanager_accounts_containers_workspaces_variables_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_variables_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesVariablesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Variable,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables
 /// Creates a GTM Variable.
 ///
@@ -11066,14 +11904,16 @@ pub fn tagmanager_accounts_containers_workspaces_variables_create_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_variables_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Variable,
+    args: &TagmanagerAccountsContainersWorkspacesVariablesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Variable>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_variables_create_builder(client, parent, body)?;
+    let builder = tagmanager_accounts_containers_workspaces_variables_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     tagmanager_accounts_containers_workspaces_variables_create_execute(builder)
 }
 
@@ -11164,6 +12004,13 @@ pub fn tagmanager_accounts_containers_workspaces_variables_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_variables_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesVariablesDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
 /// Deletes a GTM Variable.
 ///
@@ -11176,12 +12023,13 @@ pub fn tagmanager_accounts_containers_workspaces_variables_delete_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_variables_delete(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesVariablesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_variables_delete_builder(client, path)?;
+    let builder =
+        tagmanager_accounts_containers_workspaces_variables_delete_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_variables_delete_execute(builder)
 }
 
@@ -11275,6 +12123,13 @@ pub fn tagmanager_accounts_containers_workspaces_variables_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_variables_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesVariablesGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
 /// Gets a GTM Variable.
 ///
@@ -11287,12 +12142,13 @@ pub fn tagmanager_accounts_containers_workspaces_variables_get_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_variables_get(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesVariablesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Variable>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_variables_get_builder(client, path)?;
+    let builder =
+        tagmanager_accounts_containers_workspaces_variables_get_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_variables_get_execute(builder)
 }
 
@@ -11400,6 +12256,15 @@ pub fn tagmanager_accounts_containers_workspaces_variables_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_variables_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesVariablesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables
 /// Lists all GTM Variables of a Container.
 ///
@@ -11412,8 +12277,7 @@ pub fn tagmanager_accounts_containers_workspaces_variables_list_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_variables_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesVariablesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListVariablesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -11421,7 +12285,9 @@ pub fn tagmanager_accounts_containers_workspaces_variables_list(
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_variables_list_builder(
-        client, parent, pageToken,
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_variables_list_execute(builder)
 }
@@ -11530,6 +12396,15 @@ pub fn tagmanager_accounts_containers_workspaces_variables_revert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_variables_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesVariablesRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}:revert
 /// Reverts changes to a GTM Variable in a GTM Workspace.
 ///
@@ -11542,8 +12417,7 @@ pub fn tagmanager_accounts_containers_workspaces_variables_revert_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_variables_revert(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesVariablesRevertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RevertVariableResponse>, ApiError>, P = ApiPending>
         + Send
@@ -11552,8 +12426,8 @@ pub fn tagmanager_accounts_containers_workspaces_variables_revert(
 > {
     let builder = tagmanager_accounts_containers_workspaces_variables_revert_builder(
         client,
-        path,
-        fingerprint,
+        &args.path,
+        args.fingerprint.as_deref(),
     )?;
     tagmanager_accounts_containers_workspaces_variables_revert_execute(builder)
 }
@@ -11663,6 +12537,17 @@ pub fn tagmanager_accounts_containers_workspaces_variables_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_variables_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesVariablesUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+    /// Request body.
+    pub body: Variable,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/variables/{variablesId}
 /// Updates a GTM Variable.
 ///
@@ -11675,18 +12560,16 @@ pub fn tagmanager_accounts_containers_workspaces_variables_update_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_variables_update(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
-    body: &Variable,
+    args: &TagmanagerAccountsContainersWorkspacesVariablesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Variable>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_variables_update_builder(
         client,
-        path,
-        fingerprint,
-        body,
+        &args.path,
+        args.fingerprint.as_deref(),
+        &args.body,
     )?;
     tagmanager_accounts_containers_workspaces_variables_update_execute(builder)
 }
@@ -11784,6 +12667,15 @@ pub fn tagmanager_accounts_containers_workspaces_zones_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_zones_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesZonesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Zone,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones
 /// Creates a GTM Zone.
 ///
@@ -11796,14 +12688,16 @@ pub fn tagmanager_accounts_containers_workspaces_zones_create_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_zones_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Zone,
+    args: &TagmanagerAccountsContainersWorkspacesZonesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Zone>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_zones_create_builder(client, parent, body)?;
+    let builder = tagmanager_accounts_containers_workspaces_zones_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     tagmanager_accounts_containers_workspaces_zones_create_execute(builder)
 }
 
@@ -11894,6 +12788,13 @@ pub fn tagmanager_accounts_containers_workspaces_zones_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_zones_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesZonesDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
 /// Deletes a GTM Zone.
 ///
@@ -11906,12 +12807,13 @@ pub fn tagmanager_accounts_containers_workspaces_zones_delete_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_zones_delete(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesZonesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_zones_delete_builder(client, path)?;
+    let builder =
+        tagmanager_accounts_containers_workspaces_zones_delete_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_zones_delete_execute(builder)
 }
 
@@ -12005,6 +12907,13 @@ pub fn tagmanager_accounts_containers_workspaces_zones_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_zones_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesZonesGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
 /// Gets a GTM Zone.
 ///
@@ -12017,12 +12926,12 @@ pub fn tagmanager_accounts_containers_workspaces_zones_get_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_zones_get(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsContainersWorkspacesZonesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Zone>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_containers_workspaces_zones_get_builder(client, path)?;
+    let builder = tagmanager_accounts_containers_workspaces_zones_get_builder(client, &args.path)?;
     tagmanager_accounts_containers_workspaces_zones_get_execute(builder)
 }
 
@@ -12130,6 +13039,15 @@ pub fn tagmanager_accounts_containers_workspaces_zones_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_zones_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesZonesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones
 /// Lists all GTM Zones of a GTM container workspace.
 ///
@@ -12142,16 +13060,18 @@ pub fn tagmanager_accounts_containers_workspaces_zones_list_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_zones_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesZonesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListZonesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_zones_list_builder(client, parent, pageToken)?;
+    let builder = tagmanager_accounts_containers_workspaces_zones_list_builder(
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
+    )?;
     tagmanager_accounts_containers_workspaces_zones_list_execute(builder)
 }
 
@@ -12259,6 +13179,15 @@ pub fn tagmanager_accounts_containers_workspaces_zones_revert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_zones_revert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesZonesRevertArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}:revert
 /// Reverts changes to a GTM Zone in a GTM Workspace.
 ///
@@ -12271,16 +13200,18 @@ pub fn tagmanager_accounts_containers_workspaces_zones_revert_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_zones_revert(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
+    args: &TagmanagerAccountsContainersWorkspacesZonesRevertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RevertZoneResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        tagmanager_accounts_containers_workspaces_zones_revert_builder(client, path, fingerprint)?;
+    let builder = tagmanager_accounts_containers_workspaces_zones_revert_builder(
+        client,
+        &args.path,
+        args.fingerprint.as_deref(),
+    )?;
     tagmanager_accounts_containers_workspaces_zones_revert_execute(builder)
 }
 
@@ -12389,6 +13320,17 @@ pub fn tagmanager_accounts_containers_workspaces_zones_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_containers_workspaces_zones_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsContainersWorkspacesZonesUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Query parameter: fingerprint
+    pub fingerprint: Option<String>,
+    /// Request body.
+    pub body: Zone,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/containers/{containersId}/workspaces/{workspacesId}/zones/{zonesId}
 /// Updates a GTM Zone.
 ///
@@ -12401,18 +13343,16 @@ pub fn tagmanager_accounts_containers_workspaces_zones_update_execute(
 
 pub fn tagmanager_accounts_containers_workspaces_zones_update(
     client: &SimpleHttpClient,
-    path: &str,
-    fingerprint: Option<&str>,
-    body: &Zone,
+    args: &TagmanagerAccountsContainersWorkspacesZonesUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Zone>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tagmanager_accounts_containers_workspaces_zones_update_builder(
         client,
-        path,
-        fingerprint,
-        body,
+        &args.path,
+        args.fingerprint.as_deref(),
+        &args.body,
     )?;
     tagmanager_accounts_containers_workspaces_zones_update_execute(builder)
 }
@@ -12512,6 +13452,15 @@ pub fn tagmanager_accounts_user_permissions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_user_permissions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsUserPermissionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UserPermission,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/user_permissions
 /// Creates a user's Account & Container access.
 ///
@@ -12524,15 +13473,15 @@ pub fn tagmanager_accounts_user_permissions_create_execute(
 
 pub fn tagmanager_accounts_user_permissions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UserPermission,
+    args: &TagmanagerAccountsUserPermissionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserPermission>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_user_permissions_create_builder(client, parent, body)?;
+    let builder =
+        tagmanager_accounts_user_permissions_create_builder(client, &args.parent, &args.body)?;
     tagmanager_accounts_user_permissions_create_execute(builder)
 }
 
@@ -12623,6 +13572,13 @@ pub fn tagmanager_accounts_user_permissions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_user_permissions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsUserPermissionsDeleteArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
 /// Removes a user from the account, revoking access to it and all of its containers.
 ///
@@ -12635,12 +13591,12 @@ pub fn tagmanager_accounts_user_permissions_delete_execute(
 
 pub fn tagmanager_accounts_user_permissions_delete(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsUserPermissionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_user_permissions_delete_builder(client, path)?;
+    let builder = tagmanager_accounts_user_permissions_delete_builder(client, &args.path)?;
     tagmanager_accounts_user_permissions_delete_execute(builder)
 }
 
@@ -12736,6 +13692,13 @@ pub fn tagmanager_accounts_user_permissions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_user_permissions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsUserPermissionsGetArgs {
+    /// Path parameter: path
+    pub path: String,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
 /// Gets a user's Account & Container access.
 ///
@@ -12748,14 +13711,14 @@ pub fn tagmanager_accounts_user_permissions_get_execute(
 
 pub fn tagmanager_accounts_user_permissions_get(
     client: &SimpleHttpClient,
-    path: &str,
+    args: &TagmanagerAccountsUserPermissionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserPermission>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_user_permissions_get_builder(client, path)?;
+    let builder = tagmanager_accounts_user_permissions_get_builder(client, &args.path)?;
     tagmanager_accounts_user_permissions_get_execute(builder)
 }
 
@@ -12865,6 +13828,15 @@ pub fn tagmanager_accounts_user_permissions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_user_permissions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsUserPermissionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/user_permissions
 /// List all users that have access to the account along with Account and Container user access granted to each of them.
 ///
@@ -12877,8 +13849,7 @@ pub fn tagmanager_accounts_user_permissions_list_execute(
 
 pub fn tagmanager_accounts_user_permissions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageToken: Option<&str>,
+    args: &TagmanagerAccountsUserPermissionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListUserPermissionsResponse>, ApiError>,
@@ -12887,7 +13858,11 @@ pub fn tagmanager_accounts_user_permissions_list(
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_user_permissions_list_builder(client, parent, pageToken)?;
+    let builder = tagmanager_accounts_user_permissions_list_builder(
+        client,
+        &args.parent,
+        args.pageToken.as_deref(),
+    )?;
     tagmanager_accounts_user_permissions_list_execute(builder)
 }
 
@@ -12986,6 +13961,15 @@ pub fn tagmanager_accounts_user_permissions_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tagmanager_accounts_user_permissions_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TagmanagerAccountsUserPermissionsUpdateArgs {
+    /// Path parameter: path
+    pub path: String,
+    /// Request body.
+    pub body: UserPermission,
+}
+
 /// GET tagmanager/v2/accounts/{accountsId}/user_permissions/{user_permissionsId}
 /// Updates a user's Account & Container access.
 ///
@@ -12998,14 +13982,14 @@ pub fn tagmanager_accounts_user_permissions_update_execute(
 
 pub fn tagmanager_accounts_user_permissions_update(
     client: &SimpleHttpClient,
-    path: &str,
-    body: &UserPermission,
+    args: &TagmanagerAccountsUserPermissionsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserPermission>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tagmanager_accounts_user_permissions_update_builder(client, path, body)?;
+    let builder =
+        tagmanager_accounts_user_permissions_update_builder(client, &args.path, &args.body)?;
     tagmanager_accounts_user_permissions_update_execute(builder)
 }

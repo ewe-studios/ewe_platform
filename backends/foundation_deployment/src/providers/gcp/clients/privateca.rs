@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn privateca_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn privateca_projects_locations_get_execute(
 
 pub fn privateca_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PrivatecaProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = privateca_projects_locations_get_builder(client, name)?;
+    let builder = privateca_projects_locations_get_builder(client, &args.name)?;
     privateca_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn privateca_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn privateca_projects_locations_list_execute(
 
 pub fn privateca_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PrivatecaProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn privateca_projects_locations_list(
 > {
     let builder = privateca_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     privateca_projects_locations_list_execute(builder)
 }
@@ -386,6 +406,19 @@ pub fn privateca_projects_locations_ca_pools_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: caPoolId
+    pub caPoolId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: CaPool,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools
 /// Create a CaPool.
 ///
@@ -398,16 +431,17 @@ pub fn privateca_projects_locations_ca_pools_create_execute(
 
 pub fn privateca_projects_locations_ca_pools_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    caPoolId: Option<&str>,
-    requestId: Option<&str>,
-    body: &CaPool,
+    args: &PrivatecaProjectsLocationsCaPoolsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_create_builder(
-        client, parent, caPoolId, requestId, body,
+        client,
+        &args.parent,
+        args.caPoolId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     privateca_projects_locations_ca_pools_create_execute(builder)
 }
@@ -518,6 +552,17 @@ pub fn privateca_projects_locations_ca_pools_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: ignoreDependentResources
+    pub ignoreDependentResources: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}
 /// Delete a CaPool.
 ///
@@ -530,18 +575,16 @@ pub fn privateca_projects_locations_ca_pools_delete_execute(
 
 pub fn privateca_projects_locations_ca_pools_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    ignoreDependentResources: Option<bool>,
-    requestId: Option<&str>,
+    args: &PrivatecaProjectsLocationsCaPoolsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_delete_builder(
         client,
-        name,
-        ignoreDependentResources,
-        requestId,
+        &args.name,
+        args.ignoreDependentResources,
+        args.requestId.as_deref(),
     )?;
     privateca_projects_locations_ca_pools_delete_execute(builder)
 }
@@ -641,6 +684,15 @@ pub fn privateca_projects_locations_ca_pools_fetch_ca_certs_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_fetch_ca_certs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsFetchCaCertsArgs {
+    /// Path parameter: caPool
+    pub caPool: String,
+    /// Request body.
+    pub body: FetchCaCertsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}:fetchCaCerts
 /// FetchCaCerts returns the current trust anchor for the CaPool. This will include CA certificate chains for all certificate authorities in the ENABLED, DISABLED, or STAGED states.
 ///
@@ -653,16 +705,18 @@ pub fn privateca_projects_locations_ca_pools_fetch_ca_certs_execute(
 
 pub fn privateca_projects_locations_ca_pools_fetch_ca_certs(
     client: &SimpleHttpClient,
-    caPool: &str,
-    body: &FetchCaCertsRequest,
+    args: &PrivatecaProjectsLocationsCaPoolsFetchCaCertsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FetchCaCertsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        privateca_projects_locations_ca_pools_fetch_ca_certs_builder(client, caPool, body)?;
+    let builder = privateca_projects_locations_ca_pools_fetch_ca_certs_builder(
+        client,
+        &args.caPool,
+        &args.body,
+    )?;
     privateca_projects_locations_ca_pools_fetch_ca_certs_execute(builder)
 }
 
@@ -756,6 +810,13 @@ pub fn privateca_projects_locations_ca_pools_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}
 /// Returns a CaPool.
 ///
@@ -768,12 +829,12 @@ pub fn privateca_projects_locations_ca_pools_get_execute(
 
 pub fn privateca_projects_locations_ca_pools_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PrivatecaProjectsLocationsCaPoolsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CaPool>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = privateca_projects_locations_ca_pools_get_builder(client, name)?;
+    let builder = privateca_projects_locations_ca_pools_get_builder(client, &args.name)?;
     privateca_projects_locations_ca_pools_get_execute(builder)
 }
 
@@ -879,6 +940,15 @@ pub fn privateca_projects_locations_ca_pools_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -891,16 +961,15 @@ pub fn privateca_projects_locations_ca_pools_get_iam_policy_execute(
 
 pub fn privateca_projects_locations_ca_pools_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &PrivatecaProjectsLocationsCaPoolsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     privateca_projects_locations_ca_pools_get_iam_policy_execute(builder)
 }
@@ -1021,6 +1090,21 @@ pub fn privateca_projects_locations_ca_pools_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools
 /// Lists CaPools.
 ///
@@ -1033,11 +1117,7 @@ pub fn privateca_projects_locations_ca_pools_list_execute(
 
 pub fn privateca_projects_locations_ca_pools_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PrivatecaProjectsLocationsCaPoolsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCaPoolsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1045,7 +1125,12 @@ pub fn privateca_projects_locations_ca_pools_list(
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     privateca_projects_locations_ca_pools_list_execute(builder)
 }
@@ -1159,6 +1244,19 @@ pub fn privateca_projects_locations_ca_pools_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CaPool,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}
 /// Update a CaPool.
 ///
@@ -1171,16 +1269,17 @@ pub fn privateca_projects_locations_ca_pools_patch_execute(
 
 pub fn privateca_projects_locations_ca_pools_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &CaPool,
+    args: &PrivatecaProjectsLocationsCaPoolsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     privateca_projects_locations_ca_pools_patch_execute(builder)
 }
@@ -1278,6 +1377,15 @@ pub fn privateca_projects_locations_ca_pools_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1290,14 +1398,16 @@ pub fn privateca_projects_locations_ca_pools_set_iam_policy_execute(
 
 pub fn privateca_projects_locations_ca_pools_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &PrivatecaProjectsLocationsCaPoolsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        privateca_projects_locations_ca_pools_set_iam_policy_builder(client, resource, body)?;
+    let builder = privateca_projects_locations_ca_pools_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     privateca_projects_locations_ca_pools_set_iam_policy_execute(builder)
 }
 
@@ -1398,6 +1508,15 @@ pub fn privateca_projects_locations_ca_pools_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1410,8 +1529,7 @@ pub fn privateca_projects_locations_ca_pools_test_iam_permissions_execute(
 
 pub fn privateca_projects_locations_ca_pools_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &PrivatecaProjectsLocationsCaPoolsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1420,8 +1538,11 @@ pub fn privateca_projects_locations_ca_pools_test_iam_permissions(
         + 'static,
     ApiError,
 > {
-    let builder =
-        privateca_projects_locations_ca_pools_test_iam_permissions_builder(client, resource, body)?;
+    let builder = privateca_projects_locations_ca_pools_test_iam_permissions_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     privateca_projects_locations_ca_pools_test_iam_permissions_execute(builder)
 }
 
@@ -1518,6 +1639,15 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_activate_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_activate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesActivateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ActivateCertificateAuthorityRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}:activate
 /// Activate a CertificateAuthority that is in state AWAITING_USER_ACTIVATION and is of type SUBORDINATE. After the parent Certificate Authority signs a certificate signing request from FetchCertificateAuthorityCsr, this method can complete the activation process.
 ///
@@ -1530,14 +1660,13 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_activate_ex
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_activate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ActivateCertificateAuthorityRequest,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesActivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_certificate_authorities_activate_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     privateca_projects_locations_ca_pools_certificate_authorities_activate_execute(builder)
 }
@@ -1651,6 +1780,19 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_create_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: certificateAuthorityId
+    pub certificateAuthorityId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: CertificateAuthority,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities
 /// Create a new CertificateAuthority in a given Project and Location.
 ///
@@ -1663,20 +1805,17 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_create_exec
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    certificateAuthorityId: Option<&str>,
-    requestId: Option<&str>,
-    body: &CertificateAuthority,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_certificate_authorities_create_builder(
         client,
-        parent,
-        certificateAuthorityId,
-        requestId,
-        body,
+        &args.parent,
+        args.certificateAuthorityId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     privateca_projects_locations_ca_pools_certificate_authorities_create_execute(builder)
 }
@@ -1795,6 +1934,21 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_delete_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: ignoreActiveCertificates
+    pub ignoreActiveCertificates: Option<bool>,
+    /// Query parameter: ignoreDependentResources
+    pub ignoreDependentResources: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: skipGracePeriod
+    pub skipGracePeriod: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}
 /// Delete a CertificateAuthority.
 ///
@@ -1807,22 +1961,18 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_delete_exec
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    ignoreActiveCertificates: Option<bool>,
-    ignoreDependentResources: Option<bool>,
-    requestId: Option<&str>,
-    skipGracePeriod: Option<bool>,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_certificate_authorities_delete_builder(
         client,
-        name,
-        ignoreActiveCertificates,
-        ignoreDependentResources,
-        requestId,
-        skipGracePeriod,
+        &args.name,
+        args.ignoreActiveCertificates,
+        args.ignoreDependentResources,
+        args.requestId.as_deref(),
+        args.skipGracePeriod,
     )?;
     privateca_projects_locations_ca_pools_certificate_authorities_delete_execute(builder)
 }
@@ -1920,6 +2070,15 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_disable_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesDisableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DisableCertificateAuthorityRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}:disable
 /// Disable a CertificateAuthority.
 ///
@@ -1932,14 +2091,13 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_disable_exe
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_disable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DisableCertificateAuthorityRequest,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesDisableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_certificate_authorities_disable_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     privateca_projects_locations_ca_pools_certificate_authorities_disable_execute(builder)
 }
@@ -2037,6 +2195,15 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_enable_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesEnableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EnableCertificateAuthorityRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}:enable
 /// Enable a CertificateAuthority.
 ///
@@ -2049,14 +2216,13 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_enable_exec
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_enable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EnableCertificateAuthorityRequest,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesEnableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_certificate_authorities_enable_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     privateca_projects_locations_ca_pools_certificate_authorities_enable_execute(builder)
 }
@@ -2155,6 +2321,13 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_fetch_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_fetch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesFetchArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}:fetch
 /// Fetch a certificate signing request (CSR) from a CertificateAuthority that is in state AWAITING_USER_ACTIVATION and is of type SUBORDINATE. The CSR must then be signed by the desired parent Certificate Authority, which could be another CertificateAuthority resource, or could be an on-prem certificate authority. See also ActivateCertificateAuthority.
 ///
@@ -2167,7 +2340,7 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_fetch_execu
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_fetch(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesFetchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<FetchCertificateAuthorityCsrResponse>, ApiError>,
@@ -2176,8 +2349,9 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_fetch(
         + 'static,
     ApiError,
 > {
-    let builder =
-        privateca_projects_locations_ca_pools_certificate_authorities_fetch_builder(client, name)?;
+    let builder = privateca_projects_locations_ca_pools_certificate_authorities_fetch_builder(
+        client, &args.name,
+    )?;
     privateca_projects_locations_ca_pools_certificate_authorities_fetch_execute(builder)
 }
 
@@ -2273,6 +2447,13 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_get_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}
 /// Returns a CertificateAuthority.
 ///
@@ -2285,15 +2466,16 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_get_execute
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateAuthority>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        privateca_projects_locations_ca_pools_certificate_authorities_get_builder(client, name)?;
+    let builder = privateca_projects_locations_ca_pools_certificate_authorities_get_builder(
+        client, &args.name,
+    )?;
     privateca_projects_locations_ca_pools_certificate_authorities_get_execute(builder)
 }
 
@@ -2415,6 +2597,21 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_list_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities
 /// Lists CertificateAuthorities.
 ///
@@ -2427,11 +2624,7 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_list_execut
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCertificateAuthoritiesResponse>, ApiError>,
@@ -2441,7 +2634,12 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_list(
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_certificate_authorities_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     privateca_projects_locations_ca_pools_certificate_authorities_list_execute(builder)
 }
@@ -2555,6 +2753,19 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_patch_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CertificateAuthority,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}
 /// Update a CertificateAuthority.
 ///
@@ -2567,16 +2778,17 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_patch_execu
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &CertificateAuthority,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_certificate_authorities_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     privateca_projects_locations_ca_pools_certificate_authorities_patch_execute(builder)
 }
@@ -2674,6 +2886,15 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_undelete_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_undelete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesUndeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UndeleteCertificateAuthorityRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}:undelete
 /// Undelete a CertificateAuthority that has been deleted.
 ///
@@ -2686,14 +2907,13 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_undelete_ex
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_undelete(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UndeleteCertificateAuthorityRequest,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesUndeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_certificate_authorities_undelete_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     privateca_projects_locations_ca_pools_certificate_authorities_undelete_execute(builder)
 }
@@ -2790,6 +3010,14 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsGetArgs
+{
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}/certificateRevocationLists/{certificateRevocationListsId}
 /// Returns a CertificateRevocationList.
 ///
@@ -2802,14 +3030,14 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateRevocationList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_builder(client, name)?;
+    let builder = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_builder(client, &args.name)?;
     privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_execute(builder)
 }
 
@@ -2915,6 +3143,16 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsGetIamPolicyArgs
+{
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}/certificateRevocationLists/{certificateRevocationListsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2927,13 +3165,12 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_iam_policy_builder(client, resource, options_requestedPolicyVersion)?;
+    let builder = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_iam_policy_builder(client, &args.resource, args.options_requestedPolicyVersion)?;
     privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_get_iam_policy_execute(builder)
 }
 
@@ -3055,6 +3292,22 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsListArgs
+{
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}/certificateRevocationLists
 /// Lists CertificateRevocationLists.
 ///
@@ -3067,11 +3320,7 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCertificateRevocationListsResponse>, ApiError>,
@@ -3080,7 +3329,7 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
         + 'static,
     ApiError,
 > {
-    let builder = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_list_builder(client, parent, filter, orderBy, pageSize, pageToken)?;
+    let builder = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_list_builder(client, &args.parent, args.filter.as_deref(), args.orderBy.as_deref(), args.pageSize, args.pageToken.as_deref())?;
     privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_list_execute(builder)
 }
 
@@ -3193,6 +3442,20 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsPatchArgs
+{
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CertificateRevocationList,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}/certificateRevocationLists/{certificateRevocationListsId}
 /// Update a CertificateRevocationList.
 ///
@@ -3205,15 +3468,12 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &CertificateRevocationList,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_patch_builder(client, name, requestId, updateMask, body)?;
+    let builder = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_patch_builder(client, &args.name, args.requestId.as_deref(), args.updateMask.as_deref(), &args.body)?;
     privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_patch_execute(builder)
 }
 
@@ -3310,6 +3570,16 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsSetIamPolicyArgs
+{
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}/certificateRevocationLists/{certificateRevocationListsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3322,13 +3592,12 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_set_iam_policy_builder(client, resource, body)?;
+    let builder = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_set_iam_policy_builder(client, &args.resource, &args.body)?;
     privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_set_iam_policy_execute(builder)
 }
 
@@ -3429,6 +3698,16 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsTestIamPermissionsArgs
+{
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificateAuthorities/{certificateAuthoritiesId}/certificateRevocationLists/{certificateRevocationListsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3441,8 +3720,7 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
 
 pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificateAuthoritiesCertificateRevocationListsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3451,7 +3729,7 @@ pub fn privateca_projects_locations_ca_pools_certificate_authorities_certificate
         + 'static,
     ApiError,
 > {
-    let builder = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_test_iam_permissions_builder(client, resource, body)?;
+    let builder = privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     privateca_projects_locations_ca_pools_certificate_authorities_certificate_revocation_lists_test_iam_permissions_execute(builder)
 }
 
@@ -3572,6 +3850,23 @@ pub fn privateca_projects_locations_ca_pools_certificates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: certificateId
+    pub certificateId: Option<String>,
+    /// Query parameter: issuingCertificateAuthorityId
+    pub issuingCertificateAuthorityId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: validateOnly
+    pub validateOnly: Option<bool>,
+    /// Request body.
+    pub body: Certificate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificates
 /// Create a new Certificate in a given Project, Location from a particular CaPool.
 ///
@@ -3584,24 +3879,19 @@ pub fn privateca_projects_locations_ca_pools_certificates_create_execute(
 
 pub fn privateca_projects_locations_ca_pools_certificates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    certificateId: Option<&str>,
-    issuingCertificateAuthorityId: Option<&str>,
-    requestId: Option<&str>,
-    validateOnly: Option<bool>,
-    body: &Certificate,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificatesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Certificate>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_certificates_create_builder(
         client,
-        parent,
-        certificateId,
-        issuingCertificateAuthorityId,
-        requestId,
-        validateOnly,
-        body,
+        &args.parent,
+        args.certificateId.as_deref(),
+        args.issuingCertificateAuthorityId.as_deref(),
+        args.requestId.as_deref(),
+        args.validateOnly,
+        &args.body,
     )?;
     privateca_projects_locations_ca_pools_certificates_create_execute(builder)
 }
@@ -3696,6 +3986,13 @@ pub fn privateca_projects_locations_ca_pools_certificates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificates/{certificatesId}
 /// Returns a Certificate.
 ///
@@ -3708,12 +4005,13 @@ pub fn privateca_projects_locations_ca_pools_certificates_get_execute(
 
 pub fn privateca_projects_locations_ca_pools_certificates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificatesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Certificate>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = privateca_projects_locations_ca_pools_certificates_get_builder(client, name)?;
+    let builder =
+        privateca_projects_locations_ca_pools_certificates_get_builder(client, &args.name)?;
     privateca_projects_locations_ca_pools_certificates_get_execute(builder)
 }
 
@@ -3833,6 +4131,21 @@ pub fn privateca_projects_locations_ca_pools_certificates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificates
 /// Lists Certificates.
 ///
@@ -3845,11 +4158,7 @@ pub fn privateca_projects_locations_ca_pools_certificates_list_execute(
 
 pub fn privateca_projects_locations_ca_pools_certificates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificatesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCertificatesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3857,7 +4166,12 @@ pub fn privateca_projects_locations_ca_pools_certificates_list(
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_certificates_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     privateca_projects_locations_ca_pools_certificates_list_execute(builder)
 }
@@ -3971,6 +4285,19 @@ pub fn privateca_projects_locations_ca_pools_certificates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Certificate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificates/{certificatesId}
 /// Update a Certificate. Currently, the only field you can update is the labels field.
 ///
@@ -3983,16 +4310,17 @@ pub fn privateca_projects_locations_ca_pools_certificates_patch_execute(
 
 pub fn privateca_projects_locations_ca_pools_certificates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Certificate,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificatesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Certificate>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_ca_pools_certificates_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     privateca_projects_locations_ca_pools_certificates_patch_execute(builder)
 }
@@ -4090,6 +4418,15 @@ pub fn privateca_projects_locations_ca_pools_certificates_revoke_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_ca_pools_certificates_revoke`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCaPoolsCertificatesRevokeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RevokeCertificateRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/caPools/{caPoolsId}/certificates/{certificatesId}:revoke
 /// Revoke a Certificate.
 ///
@@ -4102,14 +4439,14 @@ pub fn privateca_projects_locations_ca_pools_certificates_revoke_execute(
 
 pub fn privateca_projects_locations_ca_pools_certificates_revoke(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RevokeCertificateRequest,
+    args: &PrivatecaProjectsLocationsCaPoolsCertificatesRevokeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Certificate>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        privateca_projects_locations_ca_pools_certificates_revoke_builder(client, name, body)?;
+    let builder = privateca_projects_locations_ca_pools_certificates_revoke_builder(
+        client, &args.name, &args.body,
+    )?;
     privateca_projects_locations_ca_pools_certificates_revoke_execute(builder)
 }
 
@@ -4222,6 +4559,19 @@ pub fn privateca_projects_locations_certificate_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_certificate_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCertificateTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: certificateTemplateId
+    pub certificateTemplateId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: CertificateTemplate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateTemplates
 /// Create a new CertificateTemplate in a given Project and Location.
 ///
@@ -4234,20 +4584,17 @@ pub fn privateca_projects_locations_certificate_templates_create_execute(
 
 pub fn privateca_projects_locations_certificate_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    certificateTemplateId: Option<&str>,
-    requestId: Option<&str>,
-    body: &CertificateTemplate,
+    args: &PrivatecaProjectsLocationsCertificateTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_certificate_templates_create_builder(
         client,
-        parent,
-        certificateTemplateId,
-        requestId,
-        body,
+        &args.parent,
+        args.certificateTemplateId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     privateca_projects_locations_certificate_templates_create_execute(builder)
 }
@@ -4354,6 +4701,15 @@ pub fn privateca_projects_locations_certificate_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_certificate_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCertificateTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateTemplates/{certificateTemplatesId}
 /// DeleteCertificateTemplate deletes a CertificateTemplate.
 ///
@@ -4366,14 +4722,16 @@ pub fn privateca_projects_locations_certificate_templates_delete_execute(
 
 pub fn privateca_projects_locations_certificate_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &PrivatecaProjectsLocationsCertificateTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        privateca_projects_locations_certificate_templates_delete_builder(client, name, requestId)?;
+    let builder = privateca_projects_locations_certificate_templates_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     privateca_projects_locations_certificate_templates_delete_execute(builder)
 }
 
@@ -4469,6 +4827,13 @@ pub fn privateca_projects_locations_certificate_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_certificate_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCertificateTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateTemplates/{certificateTemplatesId}
 /// Returns a CertificateTemplate.
 ///
@@ -4481,14 +4846,15 @@ pub fn privateca_projects_locations_certificate_templates_get_execute(
 
 pub fn privateca_projects_locations_certificate_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PrivatecaProjectsLocationsCertificateTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CertificateTemplate>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = privateca_projects_locations_certificate_templates_get_builder(client, name)?;
+    let builder =
+        privateca_projects_locations_certificate_templates_get_builder(client, &args.name)?;
     privateca_projects_locations_certificate_templates_get_execute(builder)
 }
 
@@ -4594,6 +4960,15 @@ pub fn privateca_projects_locations_certificate_templates_get_iam_policy_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_certificate_templates_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCertificateTemplatesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateTemplates/{certificateTemplatesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -4606,16 +4981,15 @@ pub fn privateca_projects_locations_certificate_templates_get_iam_policy_execute
 
 pub fn privateca_projects_locations_certificate_templates_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &PrivatecaProjectsLocationsCertificateTemplatesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_certificate_templates_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     privateca_projects_locations_certificate_templates_get_iam_policy_execute(builder)
 }
@@ -4738,6 +5112,21 @@ pub fn privateca_projects_locations_certificate_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_certificate_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCertificateTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateTemplates
 /// Lists CertificateTemplates.
 ///
@@ -4750,11 +5139,7 @@ pub fn privateca_projects_locations_certificate_templates_list_execute(
 
 pub fn privateca_projects_locations_certificate_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &PrivatecaProjectsLocationsCertificateTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListCertificateTemplatesResponse>, ApiError>,
@@ -4764,7 +5149,12 @@ pub fn privateca_projects_locations_certificate_templates_list(
     ApiError,
 > {
     let builder = privateca_projects_locations_certificate_templates_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     privateca_projects_locations_certificate_templates_list_execute(builder)
 }
@@ -4878,6 +5268,19 @@ pub fn privateca_projects_locations_certificate_templates_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_certificate_templates_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCertificateTemplatesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: CertificateTemplate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateTemplates/{certificateTemplatesId}
 /// Update a CertificateTemplate.
 ///
@@ -4890,16 +5293,17 @@ pub fn privateca_projects_locations_certificate_templates_patch_execute(
 
 pub fn privateca_projects_locations_certificate_templates_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &CertificateTemplate,
+    args: &PrivatecaProjectsLocationsCertificateTemplatesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_certificate_templates_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     privateca_projects_locations_certificate_templates_patch_execute(builder)
 }
@@ -4997,6 +5401,15 @@ pub fn privateca_projects_locations_certificate_templates_set_iam_policy_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_certificate_templates_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCertificateTemplatesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateTemplates/{certificateTemplatesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -5009,14 +5422,15 @@ pub fn privateca_projects_locations_certificate_templates_set_iam_policy_execute
 
 pub fn privateca_projects_locations_certificate_templates_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &PrivatecaProjectsLocationsCertificateTemplatesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = privateca_projects_locations_certificate_templates_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     privateca_projects_locations_certificate_templates_set_iam_policy_execute(builder)
 }
@@ -5118,6 +5532,15 @@ pub fn privateca_projects_locations_certificate_templates_test_iam_permissions_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_certificate_templates_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsCertificateTemplatesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/certificateTemplates/{certificateTemplatesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -5130,8 +5553,7 @@ pub fn privateca_projects_locations_certificate_templates_test_iam_permissions_e
 
 pub fn privateca_projects_locations_certificate_templates_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &PrivatecaProjectsLocationsCertificateTemplatesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -5141,7 +5563,9 @@ pub fn privateca_projects_locations_certificate_templates_test_iam_permissions(
     ApiError,
 > {
     let builder = privateca_projects_locations_certificate_templates_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     privateca_projects_locations_certificate_templates_test_iam_permissions_execute(builder)
 }
@@ -5239,6 +5663,15 @@ pub fn privateca_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -5251,13 +5684,13 @@ pub fn privateca_projects_locations_operations_cancel_execute(
 
 pub fn privateca_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &PrivatecaProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = privateca_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        privateca_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     privateca_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -5351,6 +5784,13 @@ pub fn privateca_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -5363,12 +5803,12 @@ pub fn privateca_projects_locations_operations_delete_execute(
 
 pub fn privateca_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PrivatecaProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = privateca_projects_locations_operations_delete_builder(client, name)?;
+    let builder = privateca_projects_locations_operations_delete_builder(client, &args.name)?;
     privateca_projects_locations_operations_delete_execute(builder)
 }
 
@@ -5462,6 +5902,13 @@ pub fn privateca_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -5474,12 +5921,12 @@ pub fn privateca_projects_locations_operations_get_execute(
 
 pub fn privateca_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &PrivatecaProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = privateca_projects_locations_operations_get_builder(client, name)?;
+    let builder = privateca_projects_locations_operations_get_builder(client, &args.name)?;
     privateca_projects_locations_operations_get_execute(builder)
 }
 
@@ -5599,6 +6046,21 @@ pub fn privateca_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`privateca_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PrivatecaProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -5611,11 +6073,7 @@ pub fn privateca_projects_locations_operations_list_execute(
 
 pub fn privateca_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &PrivatecaProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5624,11 +6082,11 @@ pub fn privateca_projects_locations_operations_list(
 > {
     let builder = privateca_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     privateca_projects_locations_operations_list_execute(builder)
 }

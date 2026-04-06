@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1beta/projects/{projectsId}:generateOrgProfile
 /// Triggers the generation of a Customer Profile for a project.
@@ -109,6 +111,15 @@ pub fn threatintelligence_projects_generate_org_profile_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_generate_org_profile`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsGenerateOrgProfileArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GenerateOrgProfileConfigurationRequest,
+}
+
 /// GET v1beta/projects/{projectsId}:generateOrgProfile
 /// Triggers the generation of a Customer Profile for a project.
 ///
@@ -121,13 +132,13 @@ pub fn threatintelligence_projects_generate_org_profile_execute(
 
 pub fn threatintelligence_projects_generate_org_profile(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GenerateOrgProfileConfigurationRequest,
+    args: &ThreatintelligenceProjectsGenerateOrgProfileArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = threatintelligence_projects_generate_org_profile_builder(client, name, body)?;
+    let builder =
+        threatintelligence_projects_generate_org_profile_builder(client, &args.name, &args.body)?;
     threatintelligence_projects_generate_org_profile_execute(builder)
 }
 
@@ -224,6 +235,15 @@ pub fn threatintelligence_projects_alerts_benign_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_alerts_benign`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsAlertsBenignArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MarkAlertAsBenignRequest,
+}
+
 /// GET v1beta/projects/{projectsId}/alerts/{alertsId}:benign
 /// Marks an alert as benign - BENIGN.
 ///
@@ -236,13 +256,13 @@ pub fn threatintelligence_projects_alerts_benign_execute(
 
 pub fn threatintelligence_projects_alerts_benign(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsBenignRequest,
+    args: &ThreatintelligenceProjectsAlertsBenignArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = threatintelligence_projects_alerts_benign_builder(client, name, body)?;
+    let builder =
+        threatintelligence_projects_alerts_benign_builder(client, &args.name, &args.body)?;
     threatintelligence_projects_alerts_benign_execute(builder)
 }
 
@@ -339,6 +359,15 @@ pub fn threatintelligence_projects_alerts_duplicate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_alerts_duplicate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsAlertsDuplicateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MarkAlertAsDuplicateRequest,
+}
+
 /// GET v1beta/projects/{projectsId}/alerts/{alertsId}:duplicate
 /// Marks an alert as a duplicate of another alert. - DUPLICATE.
 ///
@@ -351,13 +380,13 @@ pub fn threatintelligence_projects_alerts_duplicate_execute(
 
 pub fn threatintelligence_projects_alerts_duplicate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsDuplicateRequest,
+    args: &ThreatintelligenceProjectsAlertsDuplicateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = threatintelligence_projects_alerts_duplicate_builder(client, name, body)?;
+    let builder =
+        threatintelligence_projects_alerts_duplicate_builder(client, &args.name, &args.body)?;
     threatintelligence_projects_alerts_duplicate_execute(builder)
 }
 
@@ -467,6 +496,15 @@ pub fn threatintelligence_projects_alerts_enumerate_facets_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_alerts_enumerate_facets`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsAlertsEnumerateFacetsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+}
+
 /// GET v1beta/projects/{projectsId}/alerts:enumerateFacets
 /// EnumerateAlertFacets returns the facets and the number of alerts that meet the filter criteria and have that value for each facet.
 ///
@@ -479,8 +517,7 @@ pub fn threatintelligence_projects_alerts_enumerate_facets_execute(
 
 pub fn threatintelligence_projects_alerts_enumerate_facets(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    args: &ThreatintelligenceProjectsAlertsEnumerateFacetsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<EnumerateAlertFacetsResponse>, ApiError>,
@@ -489,8 +526,11 @@ pub fn threatintelligence_projects_alerts_enumerate_facets(
         + 'static,
     ApiError,
 > {
-    let builder =
-        threatintelligence_projects_alerts_enumerate_facets_builder(client, parent, filter)?;
+    let builder = threatintelligence_projects_alerts_enumerate_facets_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+    )?;
     threatintelligence_projects_alerts_enumerate_facets_execute(builder)
 }
 
@@ -587,6 +627,15 @@ pub fn threatintelligence_projects_alerts_escalate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_alerts_escalate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsAlertsEscalateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MarkAlertAsEscalatedRequest,
+}
+
 /// GET v1beta/projects/{projectsId}/alerts/{alertsId}:escalate
 /// Marks an alert as escalated - ESCALATED.
 ///
@@ -599,13 +648,13 @@ pub fn threatintelligence_projects_alerts_escalate_execute(
 
 pub fn threatintelligence_projects_alerts_escalate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsEscalatedRequest,
+    args: &ThreatintelligenceProjectsAlertsEscalateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = threatintelligence_projects_alerts_escalate_builder(client, name, body)?;
+    let builder =
+        threatintelligence_projects_alerts_escalate_builder(client, &args.name, &args.body)?;
     threatintelligence_projects_alerts_escalate_execute(builder)
 }
 
@@ -702,6 +751,15 @@ pub fn threatintelligence_projects_alerts_false_positive_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_alerts_false_positive`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsAlertsFalsePositiveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MarkAlertAsFalsePositiveRequest,
+}
+
 /// GET v1beta/projects/{projectsId}/alerts/{alertsId}:falsePositive
 /// Marks an alert as a `false` positive - FALSE_POSITIVE.
 ///
@@ -714,13 +772,13 @@ pub fn threatintelligence_projects_alerts_false_positive_execute(
 
 pub fn threatintelligence_projects_alerts_false_positive(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsFalsePositiveRequest,
+    args: &ThreatintelligenceProjectsAlertsFalsePositiveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = threatintelligence_projects_alerts_false_positive_builder(client, name, body)?;
+    let builder =
+        threatintelligence_projects_alerts_false_positive_builder(client, &args.name, &args.body)?;
     threatintelligence_projects_alerts_false_positive_execute(builder)
 }
 
@@ -814,6 +872,13 @@ pub fn threatintelligence_projects_alerts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_alerts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsAlertsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/projects/{projectsId}/alerts/{alertsId}
 /// Get an alert by name.
 ///
@@ -826,12 +891,12 @@ pub fn threatintelligence_projects_alerts_get_execute(
 
 pub fn threatintelligence_projects_alerts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ThreatintelligenceProjectsAlertsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = threatintelligence_projects_alerts_get_builder(client, name)?;
+    let builder = threatintelligence_projects_alerts_get_builder(client, &args.name)?;
     threatintelligence_projects_alerts_get_execute(builder)
 }
 
@@ -951,6 +1016,21 @@ pub fn threatintelligence_projects_alerts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_alerts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsAlertsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta/projects/{projectsId}/alerts
 /// Get a list of alerts that meet the filter criteria.
 ///
@@ -963,11 +1043,7 @@ pub fn threatintelligence_projects_alerts_list_execute(
 
 pub fn threatintelligence_projects_alerts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ThreatintelligenceProjectsAlertsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAlertsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -975,7 +1051,12 @@ pub fn threatintelligence_projects_alerts_list(
     ApiError,
 > {
     let builder = threatintelligence_projects_alerts_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     threatintelligence_projects_alerts_list_execute(builder)
 }
@@ -1073,6 +1154,15 @@ pub fn threatintelligence_projects_alerts_not_actionable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_alerts_not_actionable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsAlertsNotActionableArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MarkAlertAsNotActionableRequest,
+}
+
 /// GET v1beta/projects/{projectsId}/alerts/{alertsId}:notActionable
 /// Marks an alert as not actionable - NOT_ACTIONABLE.
 ///
@@ -1085,13 +1175,13 @@ pub fn threatintelligence_projects_alerts_not_actionable_execute(
 
 pub fn threatintelligence_projects_alerts_not_actionable(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsNotActionableRequest,
+    args: &ThreatintelligenceProjectsAlertsNotActionableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = threatintelligence_projects_alerts_not_actionable_builder(client, name, body)?;
+    let builder =
+        threatintelligence_projects_alerts_not_actionable_builder(client, &args.name, &args.body)?;
     threatintelligence_projects_alerts_not_actionable_execute(builder)
 }
 
@@ -1188,6 +1278,15 @@ pub fn threatintelligence_projects_alerts_read_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_alerts_read`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsAlertsReadArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MarkAlertAsReadRequest,
+}
+
 /// GET v1beta/projects/{projectsId}/alerts/{alertsId}:read
 /// Marks an alert as read - READ.
 ///
@@ -1200,13 +1299,12 @@ pub fn threatintelligence_projects_alerts_read_execute(
 
 pub fn threatintelligence_projects_alerts_read(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsReadRequest,
+    args: &ThreatintelligenceProjectsAlertsReadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = threatintelligence_projects_alerts_read_builder(client, name, body)?;
+    let builder = threatintelligence_projects_alerts_read_builder(client, &args.name, &args.body)?;
     threatintelligence_projects_alerts_read_execute(builder)
 }
 
@@ -1303,6 +1401,15 @@ pub fn threatintelligence_projects_alerts_resolve_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_alerts_resolve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsAlertsResolveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MarkAlertAsResolvedRequest,
+}
+
 /// GET v1beta/projects/{projectsId}/alerts/{alertsId}:resolve
 /// Marks an alert to closed state - RESOLVED.
 ///
@@ -1315,13 +1422,13 @@ pub fn threatintelligence_projects_alerts_resolve_execute(
 
 pub fn threatintelligence_projects_alerts_resolve(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsResolvedRequest,
+    args: &ThreatintelligenceProjectsAlertsResolveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = threatintelligence_projects_alerts_resolve_builder(client, name, body)?;
+    let builder =
+        threatintelligence_projects_alerts_resolve_builder(client, &args.name, &args.body)?;
     threatintelligence_projects_alerts_resolve_execute(builder)
 }
 
@@ -1418,6 +1525,15 @@ pub fn threatintelligence_projects_alerts_track_externally_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_alerts_track_externally`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsAlertsTrackExternallyArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MarkAlertAsTrackedExternallyRequest,
+}
+
 /// GET v1beta/projects/{projectsId}/alerts/{alertsId}:trackExternally
 /// Marks an alert as tracked externally - TRACKED_EXTERNALLY.
 ///
@@ -1430,13 +1546,14 @@ pub fn threatintelligence_projects_alerts_track_externally_execute(
 
 pub fn threatintelligence_projects_alerts_track_externally(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsTrackedExternallyRequest,
+    args: &ThreatintelligenceProjectsAlertsTrackExternallyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = threatintelligence_projects_alerts_track_externally_builder(client, name, body)?;
+    let builder = threatintelligence_projects_alerts_track_externally_builder(
+        client, &args.name, &args.body,
+    )?;
     threatintelligence_projects_alerts_track_externally_execute(builder)
 }
 
@@ -1533,6 +1650,15 @@ pub fn threatintelligence_projects_alerts_triage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_alerts_triage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsAlertsTriageArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: MarkAlertAsTriagedRequest,
+}
+
 /// GET v1beta/projects/{projectsId}/alerts/{alertsId}:triage
 /// Marks an alert as triaged - TRIAGED.
 ///
@@ -1545,13 +1671,13 @@ pub fn threatintelligence_projects_alerts_triage_execute(
 
 pub fn threatintelligence_projects_alerts_triage(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsTriagedRequest,
+    args: &ThreatintelligenceProjectsAlertsTriageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = threatintelligence_projects_alerts_triage_builder(client, name, body)?;
+    let builder =
+        threatintelligence_projects_alerts_triage_builder(client, &args.name, &args.body)?;
     threatintelligence_projects_alerts_triage_execute(builder)
 }
 
@@ -1647,6 +1773,13 @@ pub fn threatintelligence_projects_alerts_documents_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_alerts_documents_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsAlertsDocumentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/projects/{projectsId}/alerts/{alertsId}/documents/{documentsId}
 /// Gets a specific document associated with an alert.
 ///
@@ -1659,14 +1792,14 @@ pub fn threatintelligence_projects_alerts_documents_get_execute(
 
 pub fn threatintelligence_projects_alerts_documents_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ThreatintelligenceProjectsAlertsDocumentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AlertDocument>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = threatintelligence_projects_alerts_documents_get_builder(client, name)?;
+    let builder = threatintelligence_projects_alerts_documents_get_builder(client, &args.name)?;
     threatintelligence_projects_alerts_documents_get_execute(builder)
 }
 
@@ -1762,6 +1895,13 @@ pub fn threatintelligence_projects_configurations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_configurations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsConfigurationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/projects/{projectsId}/configurations/{configurationsId}
 /// Get a configuration by name.
 ///
@@ -1774,14 +1914,14 @@ pub fn threatintelligence_projects_configurations_get_execute(
 
 pub fn threatintelligence_projects_configurations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ThreatintelligenceProjectsConfigurationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Configuration>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = threatintelligence_projects_configurations_get_builder(client, name)?;
+    let builder = threatintelligence_projects_configurations_get_builder(client, &args.name)?;
     threatintelligence_projects_configurations_get_execute(builder)
 }
 
@@ -1903,6 +2043,21 @@ pub fn threatintelligence_projects_configurations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_configurations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsConfigurationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta/projects/{projectsId}/configurations
 /// Get a list of configurations that meet the filter criteria.
 ///
@@ -1915,11 +2070,7 @@ pub fn threatintelligence_projects_configurations_list_execute(
 
 pub fn threatintelligence_projects_configurations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ThreatintelligenceProjectsConfigurationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListConfigurationsResponse>, ApiError>,
@@ -1929,7 +2080,12 @@ pub fn threatintelligence_projects_configurations_list(
     ApiError,
 > {
     let builder = threatintelligence_projects_configurations_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     threatintelligence_projects_configurations_list_execute(builder)
 }
@@ -2043,6 +2199,17 @@ pub fn threatintelligence_projects_configurations_upsert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_configurations_upsert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsConfigurationsUpsertArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: publishTime
+    pub publishTime: Option<String>,
+    /// Request body.
+    pub body: Configuration,
+}
+
 /// GET v1beta/projects/{projectsId}/configurations:upsert
 /// Creates or updates a configuration.
 ///
@@ -2055,9 +2222,7 @@ pub fn threatintelligence_projects_configurations_upsert_execute(
 
 pub fn threatintelligence_projects_configurations_upsert(
     client: &SimpleHttpClient,
-    parent: &str,
-    publishTime: Option<&str>,
-    body: &Configuration,
+    args: &ThreatintelligenceProjectsConfigurationsUpsertArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UpsertConfigurationResponse>, ApiError>,
@@ -2068,9 +2233,9 @@ pub fn threatintelligence_projects_configurations_upsert(
 > {
     let builder = threatintelligence_projects_configurations_upsert_builder(
         client,
-        parent,
-        publishTime,
-        body,
+        &args.parent,
+        args.publishTime.as_deref(),
+        &args.body,
     )?;
     threatintelligence_projects_configurations_upsert_execute(builder)
 }
@@ -2193,6 +2358,21 @@ pub fn threatintelligence_projects_configurations_revisions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_configurations_revisions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsConfigurationsRevisionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta/projects/{projectsId}/configurations/{configurationsId}/revisions
 /// List configuration revisions that meet the filter criteria.
 ///
@@ -2205,11 +2385,7 @@ pub fn threatintelligence_projects_configurations_revisions_list_execute(
 
 pub fn threatintelligence_projects_configurations_revisions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ThreatintelligenceProjectsConfigurationsRevisionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListConfigurationRevisionsResponse>, ApiError>,
@@ -2219,7 +2395,12 @@ pub fn threatintelligence_projects_configurations_revisions_list(
     ApiError,
 > {
     let builder = threatintelligence_projects_configurations_revisions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     threatintelligence_projects_configurations_revisions_list_execute(builder)
 }
@@ -2314,6 +2495,13 @@ pub fn threatintelligence_projects_findings_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_findings_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsFindingsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1beta/projects/{projectsId}/findings/{findingsId}
 /// Get a finding by name. The name field should have the format: `projects/{project}/findings/{finding}`
 ///
@@ -2326,12 +2514,12 @@ pub fn threatintelligence_projects_findings_get_execute(
 
 pub fn threatintelligence_projects_findings_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ThreatintelligenceProjectsFindingsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = threatintelligence_projects_findings_get_builder(client, name)?;
+    let builder = threatintelligence_projects_findings_get_builder(client, &args.name)?;
     threatintelligence_projects_findings_get_execute(builder)
 }
 
@@ -2451,6 +2639,21 @@ pub fn threatintelligence_projects_findings_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_findings_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsFindingsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1beta/projects/{projectsId}/findings
 /// Get a list of findings that meet the filter criteria. The parent field in ListFindingsRequest should have the format: `projects/{project}`
 ///
@@ -2463,11 +2666,7 @@ pub fn threatintelligence_projects_findings_list_execute(
 
 pub fn threatintelligence_projects_findings_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ThreatintelligenceProjectsFindingsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFindingsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2475,7 +2674,12 @@ pub fn threatintelligence_projects_findings_list(
     ApiError,
 > {
     let builder = threatintelligence_projects_findings_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     threatintelligence_projects_findings_list_execute(builder)
 }
@@ -2596,6 +2800,21 @@ pub fn threatintelligence_projects_findings_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`threatintelligence_projects_findings_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ThreatintelligenceProjectsFindingsSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v1beta/projects/{projectsId}/findings:search
 /// SearchFindings is a more powerful version of ListFindings that supports complex queries like "findings for alerts" using functions such as has_alert in the query string. The parent field in SearchFindingsRequest should have the format: `projects/{project}` Example to search for findings for a specific issue: has_alert("name=\"`projects/gti-12345/alerts/alert-12345`\"")
 ///
@@ -2608,11 +2827,7 @@ pub fn threatintelligence_projects_findings_search_execute(
 
 pub fn threatintelligence_projects_findings_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &ThreatintelligenceProjectsFindingsSearchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchFindingsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2620,7 +2835,12 @@ pub fn threatintelligence_projects_findings_search(
     ApiError,
 > {
     let builder = threatintelligence_projects_findings_search_builder(
-        client, parent, orderBy, pageSize, pageToken, query,
+        client,
+        &args.parent,
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
     )?;
     threatintelligence_projects_findings_search_execute(builder)
 }

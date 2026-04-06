@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET doubleclicksearch/v2/agency/{agencyId}/advertiser/{advertiserId}/engine/{engineAccountId}/conversion
 /// Retrieves a list of conversions from a DoubleClick Search engine account.
@@ -148,6 +150,35 @@ pub fn doubleclicksearch_conversion_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclicksearch_conversion_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclicksearchConversionGetArgs {
+    /// Path parameter: agencyId
+    pub agencyId: String,
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+    /// Path parameter: engineAccountId
+    pub engineAccountId: String,
+    /// Path parameter: endDate
+    pub endDate: String,
+    /// Path parameter: rowCount
+    pub rowCount: String,
+    /// Path parameter: startDate
+    pub startDate: String,
+    /// Path parameter: startRow
+    pub startRow: String,
+    /// Query parameter: adGroupId
+    pub adGroupId: Option<String>,
+    /// Query parameter: adId
+    pub adId: Option<String>,
+    /// Query parameter: campaignId
+    pub campaignId: Option<String>,
+    /// Query parameter: criterionId
+    pub criterionId: Option<String>,
+    /// Query parameter: customerId
+    pub customerId: Option<String>,
+}
+
 /// GET doubleclicksearch/v2/agency/{agencyId}/advertiser/{advertiserId}/engine/{engineAccountId}/conversion
 /// Retrieves a list of conversions from a DoubleClick Search engine account.
 ///
@@ -160,18 +191,7 @@ pub fn doubleclicksearch_conversion_get_execute(
 
 pub fn doubleclicksearch_conversion_get(
     client: &SimpleHttpClient,
-    agencyId: &str,
-    advertiserId: &str,
-    engineAccountId: &str,
-    endDate: &str,
-    rowCount: &str,
-    startDate: &str,
-    startRow: &str,
-    adGroupId: Option<&str>,
-    adId: Option<&str>,
-    campaignId: Option<&str>,
-    criterionId: Option<&str>,
-    customerId: Option<&str>,
+    args: &DoubleclicksearchConversionGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConversionList>, ApiError>, P = ApiPending>
         + Send
@@ -180,18 +200,18 @@ pub fn doubleclicksearch_conversion_get(
 > {
     let builder = doubleclicksearch_conversion_get_builder(
         client,
-        agencyId,
-        advertiserId,
-        engineAccountId,
-        endDate,
-        rowCount,
-        startDate,
-        startRow,
-        adGroupId,
-        adId,
-        campaignId,
-        criterionId,
-        customerId,
+        &args.agencyId,
+        &args.advertiserId,
+        &args.engineAccountId,
+        &args.endDate,
+        &args.rowCount,
+        &args.startDate,
+        &args.startRow,
+        args.adGroupId.as_deref(),
+        args.adId.as_deref(),
+        args.campaignId.as_deref(),
+        args.criterionId.as_deref(),
+        args.customerId.as_deref(),
     )?;
     doubleclicksearch_conversion_get_execute(builder)
 }
@@ -328,6 +348,35 @@ pub fn doubleclicksearch_conversion_get_by_customer_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclicksearch_conversion_get_by_customer_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclicksearchConversionGetByCustomerIdArgs {
+    /// Path parameter: customerId
+    pub customerId: String,
+    /// Path parameter: endDate
+    pub endDate: String,
+    /// Path parameter: rowCount
+    pub rowCount: String,
+    /// Path parameter: startDate
+    pub startDate: String,
+    /// Path parameter: startRow
+    pub startRow: String,
+    /// Query parameter: adGroupId
+    pub adGroupId: Option<String>,
+    /// Query parameter: adId
+    pub adId: Option<String>,
+    /// Query parameter: advertiserId
+    pub advertiserId: Option<String>,
+    /// Query parameter: agencyId
+    pub agencyId: Option<String>,
+    /// Query parameter: campaignId
+    pub campaignId: Option<String>,
+    /// Query parameter: criterionId
+    pub criterionId: Option<String>,
+    /// Query parameter: engineAccountId
+    pub engineAccountId: Option<String>,
+}
+
 /// GET doubleclicksearch/v2/customer/{customerId}/conversion
 /// Retrieves a list of conversions from a DoubleClick Search engine account.
 ///
@@ -340,18 +389,7 @@ pub fn doubleclicksearch_conversion_get_by_customer_id_execute(
 
 pub fn doubleclicksearch_conversion_get_by_customer_id(
     client: &SimpleHttpClient,
-    customerId: &str,
-    endDate: &str,
-    rowCount: &str,
-    startDate: &str,
-    startRow: &str,
-    adGroupId: Option<&str>,
-    adId: Option<&str>,
-    advertiserId: Option<&str>,
-    agencyId: Option<&str>,
-    campaignId: Option<&str>,
-    criterionId: Option<&str>,
-    engineAccountId: Option<&str>,
+    args: &DoubleclicksearchConversionGetByCustomerIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConversionList>, ApiError>, P = ApiPending>
         + Send
@@ -360,18 +398,18 @@ pub fn doubleclicksearch_conversion_get_by_customer_id(
 > {
     let builder = doubleclicksearch_conversion_get_by_customer_id_builder(
         client,
-        customerId,
-        endDate,
-        rowCount,
-        startDate,
-        startRow,
-        adGroupId,
-        adId,
-        advertiserId,
-        agencyId,
-        campaignId,
-        criterionId,
-        engineAccountId,
+        &args.customerId,
+        &args.endDate,
+        &args.rowCount,
+        &args.startDate,
+        &args.startRow,
+        args.adGroupId.as_deref(),
+        args.adId.as_deref(),
+        args.advertiserId.as_deref(),
+        args.agencyId.as_deref(),
+        args.campaignId.as_deref(),
+        args.criterionId.as_deref(),
+        args.engineAccountId.as_deref(),
     )?;
     doubleclicksearch_conversion_get_by_customer_id_execute(builder)
 }
@@ -467,6 +505,13 @@ pub fn doubleclicksearch_conversion_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclicksearch_conversion_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclicksearchConversionInsertArgs {
+    /// Request body.
+    pub body: ConversionList,
+}
+
 /// GET doubleclicksearch/v2/conversion
 /// Inserts a batch of new conversions into DoubleClick Search.
 ///
@@ -479,14 +524,14 @@ pub fn doubleclicksearch_conversion_insert_execute(
 
 pub fn doubleclicksearch_conversion_insert(
     client: &SimpleHttpClient,
-    body: &ConversionList,
+    args: &DoubleclicksearchConversionInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConversionList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = doubleclicksearch_conversion_insert_builder(client, body)?;
+    let builder = doubleclicksearch_conversion_insert_builder(client, &args.body)?;
     doubleclicksearch_conversion_insert_execute(builder)
 }
 
@@ -581,6 +626,13 @@ pub fn doubleclicksearch_conversion_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclicksearch_conversion_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclicksearchConversionUpdateArgs {
+    /// Request body.
+    pub body: ConversionList,
+}
+
 /// GET doubleclicksearch/v2/conversion
 /// Updates a batch of conversions in DoubleClick Search.
 ///
@@ -593,14 +645,14 @@ pub fn doubleclicksearch_conversion_update_execute(
 
 pub fn doubleclicksearch_conversion_update(
     client: &SimpleHttpClient,
-    body: &ConversionList,
+    args: &DoubleclicksearchConversionUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ConversionList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = doubleclicksearch_conversion_update_builder(client, body)?;
+    let builder = doubleclicksearch_conversion_update_builder(client, &args.body)?;
     doubleclicksearch_conversion_update_execute(builder)
 }
 
@@ -699,6 +751,13 @@ pub fn doubleclicksearch_conversion_update_availability_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclicksearch_conversion_update_availability`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclicksearchConversionUpdateAvailabilityArgs {
+    /// Request body.
+    pub body: UpdateAvailabilityRequest,
+}
+
 /// GET doubleclicksearch/v2/conversion/updateAvailability
 /// Updates the availabilities of a batch of floodlight activities in DoubleClick Search.
 ///
@@ -711,7 +770,7 @@ pub fn doubleclicksearch_conversion_update_availability_execute(
 
 pub fn doubleclicksearch_conversion_update_availability(
     client: &SimpleHttpClient,
-    body: &UpdateAvailabilityRequest,
+    args: &DoubleclicksearchConversionUpdateAvailabilityArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UpdateAvailabilityResponse>, ApiError>,
@@ -720,7 +779,7 @@ pub fn doubleclicksearch_conversion_update_availability(
         + 'static,
     ApiError,
 > {
-    let builder = doubleclicksearch_conversion_update_availability_builder(client, body)?;
+    let builder = doubleclicksearch_conversion_update_availability_builder(client, &args.body)?;
     doubleclicksearch_conversion_update_availability_execute(builder)
 }
 
@@ -814,6 +873,13 @@ pub fn doubleclicksearch_reports_generate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclicksearch_reports_generate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclicksearchReportsGenerateArgs {
+    /// Request body.
+    pub body: ReportRequest,
+}
+
 /// GET doubleclicksearch/v2/reports/generate
 /// Generates and returns a report immediately.
 ///
@@ -826,12 +892,12 @@ pub fn doubleclicksearch_reports_generate_execute(
 
 pub fn doubleclicksearch_reports_generate(
     client: &SimpleHttpClient,
-    body: &ReportRequest,
+    args: &DoubleclicksearchReportsGenerateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = doubleclicksearch_reports_generate_builder(client, body)?;
+    let builder = doubleclicksearch_reports_generate_builder(client, &args.body)?;
     doubleclicksearch_reports_generate_execute(builder)
 }
 
@@ -925,6 +991,13 @@ pub fn doubleclicksearch_reports_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclicksearch_reports_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclicksearchReportsGetArgs {
+    /// Path parameter: reportId
+    pub reportId: String,
+}
+
 /// GET doubleclicksearch/v2/reports/{reportId}
 /// Polls for the status of a report request.
 ///
@@ -937,12 +1010,12 @@ pub fn doubleclicksearch_reports_get_execute(
 
 pub fn doubleclicksearch_reports_get(
     client: &SimpleHttpClient,
-    reportId: &str,
+    args: &DoubleclicksearchReportsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = doubleclicksearch_reports_get_builder(client, reportId)?;
+    let builder = doubleclicksearch_reports_get_builder(client, &args.reportId)?;
     doubleclicksearch_reports_get_execute(builder)
 }
 
@@ -1034,6 +1107,15 @@ pub fn doubleclicksearch_reports_get_file_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclicksearch_reports_get_file`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclicksearchReportsGetFileArgs {
+    /// Path parameter: reportId
+    pub reportId: String,
+    /// Path parameter: reportFragment
+    pub reportFragment: String,
+}
+
 /// GET doubleclicksearch/v2/reports/{reportId}/files/{reportFragment}
 /// Downloads a report file encoded in UTF-8.
 ///
@@ -1046,13 +1128,13 @@ pub fn doubleclicksearch_reports_get_file_execute(
 
 pub fn doubleclicksearch_reports_get_file(
     client: &SimpleHttpClient,
-    reportId: &str,
-    reportFragment: &str,
+    args: &DoubleclicksearchReportsGetFileArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = doubleclicksearch_reports_get_file_builder(client, reportId, reportFragment)?;
+    let builder =
+        doubleclicksearch_reports_get_file_builder(client, &args.reportId, &args.reportFragment)?;
     doubleclicksearch_reports_get_file_execute(builder)
 }
 
@@ -1150,6 +1232,15 @@ pub fn doubleclicksearch_reports_get_id_mapping_file_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclicksearch_reports_get_id_mapping_file`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclicksearchReportsGetIdMappingFileArgs {
+    /// Path parameter: agencyId
+    pub agencyId: String,
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+}
+
 /// GET doubleclicksearch/v2/agency/{agencyId}/advertiser/{advertiserId}/idmapping
 /// Downloads a csv file(encoded in UTF-8) that contains ID mappings between legacy SA360 and new SA360. The file includes all children entities of the given advertiser(e.g. engine accounts, campaigns, ad groups, etc.) that exist in both legacy SA360 and new SA360.
 ///
@@ -1162,16 +1253,18 @@ pub fn doubleclicksearch_reports_get_id_mapping_file_execute(
 
 pub fn doubleclicksearch_reports_get_id_mapping_file(
     client: &SimpleHttpClient,
-    agencyId: &str,
-    advertiserId: &str,
+    args: &DoubleclicksearchReportsGetIdMappingFileArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<IdMappingFile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        doubleclicksearch_reports_get_id_mapping_file_builder(client, agencyId, advertiserId)?;
+    let builder = doubleclicksearch_reports_get_id_mapping_file_builder(
+        client,
+        &args.agencyId,
+        &args.advertiserId,
+    )?;
     doubleclicksearch_reports_get_id_mapping_file_execute(builder)
 }
 
@@ -1264,6 +1357,13 @@ pub fn doubleclicksearch_reports_request_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclicksearch_reports_request`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclicksearchReportsRequestArgs {
+    /// Request body.
+    pub body: ReportRequest,
+}
+
 /// GET doubleclicksearch/v2/reports
 /// Inserts a report request into the reporting system.
 ///
@@ -1276,12 +1376,12 @@ pub fn doubleclicksearch_reports_request_execute(
 
 pub fn doubleclicksearch_reports_request(
     client: &SimpleHttpClient,
-    body: &ReportRequest,
+    args: &DoubleclicksearchReportsRequestArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Report>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = doubleclicksearch_reports_request_builder(client, body)?;
+    let builder = doubleclicksearch_reports_request_builder(client, &args.body)?;
     doubleclicksearch_reports_request_execute(builder)
 }
 
@@ -1379,6 +1479,15 @@ pub fn doubleclicksearch_saved_columns_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`doubleclicksearch_saved_columns_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DoubleclicksearchSavedColumnsListArgs {
+    /// Path parameter: agencyId
+    pub agencyId: String,
+    /// Path parameter: advertiserId
+    pub advertiserId: String,
+}
+
 /// GET doubleclicksearch/v2/agency/{agencyId}/advertiser/{advertiserId}/savedcolumns
 /// Retrieve the list of saved columns for a specified advertiser.
 ///
@@ -1391,14 +1500,14 @@ pub fn doubleclicksearch_saved_columns_list_execute(
 
 pub fn doubleclicksearch_saved_columns_list(
     client: &SimpleHttpClient,
-    agencyId: &str,
-    advertiserId: &str,
+    args: &DoubleclicksearchSavedColumnsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SavedColumnList>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = doubleclicksearch_saved_columns_list_builder(client, agencyId, advertiserId)?;
+    let builder =
+        doubleclicksearch_saved_columns_list_builder(client, &args.agencyId, &args.advertiserId)?;
     doubleclicksearch_saved_columns_list_execute(builder)
 }

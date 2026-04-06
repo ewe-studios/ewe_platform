@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/documents:analyzeEntities
 /// Finds named entities (currently proper names and common nouns) in the text along with entity types, probability, mentions for each entity, and other properties.
@@ -107,6 +109,13 @@ pub fn language_documents_analyze_entities_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`language_documents_analyze_entities`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LanguageDocumentsAnalyzeEntitiesArgs {
+    /// Request body.
+    pub body: AnalyzeEntitiesRequest,
+}
+
 /// GET v2/documents:analyzeEntities
 /// Finds named entities (currently proper names and common nouns) in the text along with entity types, probability, mentions for each entity, and other properties.
 ///
@@ -119,14 +128,14 @@ pub fn language_documents_analyze_entities_execute(
 
 pub fn language_documents_analyze_entities(
     client: &SimpleHttpClient,
-    body: &AnalyzeEntitiesRequest,
+    args: &LanguageDocumentsAnalyzeEntitiesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnalyzeEntitiesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = language_documents_analyze_entities_builder(client, body)?;
+    let builder = language_documents_analyze_entities_builder(client, &args.body)?;
     language_documents_analyze_entities_execute(builder)
 }
 
@@ -221,6 +230,13 @@ pub fn language_documents_analyze_sentiment_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`language_documents_analyze_sentiment`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LanguageDocumentsAnalyzeSentimentArgs {
+    /// Request body.
+    pub body: AnalyzeSentimentRequest,
+}
+
 /// GET v2/documents:analyzeSentiment
 /// Analyzes the sentiment of the provided text.
 ///
@@ -233,14 +249,14 @@ pub fn language_documents_analyze_sentiment_execute(
 
 pub fn language_documents_analyze_sentiment(
     client: &SimpleHttpClient,
-    body: &AnalyzeSentimentRequest,
+    args: &LanguageDocumentsAnalyzeSentimentArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnalyzeSentimentResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = language_documents_analyze_sentiment_builder(client, body)?;
+    let builder = language_documents_analyze_sentiment_builder(client, &args.body)?;
     language_documents_analyze_sentiment_execute(builder)
 }
 
@@ -335,6 +351,13 @@ pub fn language_documents_annotate_text_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`language_documents_annotate_text`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LanguageDocumentsAnnotateTextArgs {
+    /// Request body.
+    pub body: AnnotateTextRequest,
+}
+
 /// GET v2/documents:annotateText
 /// A convenience method that provides all features in one call.
 ///
@@ -347,14 +370,14 @@ pub fn language_documents_annotate_text_execute(
 
 pub fn language_documents_annotate_text(
     client: &SimpleHttpClient,
-    body: &AnnotateTextRequest,
+    args: &LanguageDocumentsAnnotateTextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnnotateTextResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = language_documents_annotate_text_builder(client, body)?;
+    let builder = language_documents_annotate_text_builder(client, &args.body)?;
     language_documents_annotate_text_execute(builder)
 }
 
@@ -449,6 +472,13 @@ pub fn language_documents_classify_text_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`language_documents_classify_text`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LanguageDocumentsClassifyTextArgs {
+    /// Request body.
+    pub body: ClassifyTextRequest,
+}
+
 /// GET v2/documents:classifyText
 /// Classifies a document into categories.
 ///
@@ -461,14 +491,14 @@ pub fn language_documents_classify_text_execute(
 
 pub fn language_documents_classify_text(
     client: &SimpleHttpClient,
-    body: &ClassifyTextRequest,
+    args: &LanguageDocumentsClassifyTextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ClassifyTextResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = language_documents_classify_text_builder(client, body)?;
+    let builder = language_documents_classify_text_builder(client, &args.body)?;
     language_documents_classify_text_execute(builder)
 }
 
@@ -563,6 +593,13 @@ pub fn language_documents_moderate_text_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`language_documents_moderate_text`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LanguageDocumentsModerateTextArgs {
+    /// Request body.
+    pub body: ModerateTextRequest,
+}
+
 /// GET v2/documents:moderateText
 /// Moderates a document for harmful and sensitive categories.
 ///
@@ -575,13 +612,13 @@ pub fn language_documents_moderate_text_execute(
 
 pub fn language_documents_moderate_text(
     client: &SimpleHttpClient,
-    body: &ModerateTextRequest,
+    args: &LanguageDocumentsModerateTextArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ModerateTextResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = language_documents_moderate_text_builder(client, body)?;
+    let builder = language_documents_moderate_text_builder(client, &args.body)?;
     language_documents_moderate_text_execute(builder)
 }

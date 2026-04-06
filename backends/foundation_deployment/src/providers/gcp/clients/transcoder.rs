@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobTemplates
 /// Creates a job template in the specified region.
@@ -121,6 +123,17 @@ pub fn transcoder_projects_locations_job_templates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`transcoder_projects_locations_job_templates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranscoderProjectsLocationsJobTemplatesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: jobTemplateId
+    pub jobTemplateId: Option<String>,
+    /// Request body.
+    pub body: JobTemplate,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobTemplates
 /// Creates a job template in the specified region.
 ///
@@ -133,18 +146,16 @@ pub fn transcoder_projects_locations_job_templates_create_execute(
 
 pub fn transcoder_projects_locations_job_templates_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    jobTemplateId: Option<&str>,
-    body: &JobTemplate,
+    args: &TranscoderProjectsLocationsJobTemplatesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<JobTemplate>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = transcoder_projects_locations_job_templates_create_builder(
         client,
-        parent,
-        jobTemplateId,
-        body,
+        &args.parent,
+        args.jobTemplateId.as_deref(),
+        &args.body,
     )?;
     transcoder_projects_locations_job_templates_create_execute(builder)
 }
@@ -251,6 +262,15 @@ pub fn transcoder_projects_locations_job_templates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`transcoder_projects_locations_job_templates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranscoderProjectsLocationsJobTemplatesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobTemplates/{jobTemplatesId}
 /// Deletes a job template.
 ///
@@ -263,14 +283,16 @@ pub fn transcoder_projects_locations_job_templates_delete_execute(
 
 pub fn transcoder_projects_locations_job_templates_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
+    args: &TranscoderProjectsLocationsJobTemplatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        transcoder_projects_locations_job_templates_delete_builder(client, name, allowMissing)?;
+    let builder = transcoder_projects_locations_job_templates_delete_builder(
+        client,
+        &args.name,
+        args.allowMissing,
+    )?;
     transcoder_projects_locations_job_templates_delete_execute(builder)
 }
 
@@ -364,6 +386,13 @@ pub fn transcoder_projects_locations_job_templates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`transcoder_projects_locations_job_templates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranscoderProjectsLocationsJobTemplatesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobTemplates/{jobTemplatesId}
 /// Returns the job template data.
 ///
@@ -376,12 +405,12 @@ pub fn transcoder_projects_locations_job_templates_get_execute(
 
 pub fn transcoder_projects_locations_job_templates_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranscoderProjectsLocationsJobTemplatesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<JobTemplate>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = transcoder_projects_locations_job_templates_get_builder(client, name)?;
+    let builder = transcoder_projects_locations_job_templates_get_builder(client, &args.name)?;
     transcoder_projects_locations_job_templates_get_execute(builder)
 }
 
@@ -501,6 +530,21 @@ pub fn transcoder_projects_locations_job_templates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`transcoder_projects_locations_job_templates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranscoderProjectsLocationsJobTemplatesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobTemplates
 /// Lists job templates in the specified region.
 ///
@@ -513,11 +557,7 @@ pub fn transcoder_projects_locations_job_templates_list_execute(
 
 pub fn transcoder_projects_locations_job_templates_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TranscoderProjectsLocationsJobTemplatesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListJobTemplatesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -525,7 +565,12 @@ pub fn transcoder_projects_locations_job_templates_list(
     ApiError,
 > {
     let builder = transcoder_projects_locations_job_templates_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     transcoder_projects_locations_job_templates_list_execute(builder)
 }
@@ -623,6 +668,15 @@ pub fn transcoder_projects_locations_jobs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`transcoder_projects_locations_jobs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranscoderProjectsLocationsJobsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Job,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobs
 /// Creates a job in the specified region.
 ///
@@ -635,13 +689,13 @@ pub fn transcoder_projects_locations_jobs_create_execute(
 
 pub fn transcoder_projects_locations_jobs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Job,
+    args: &TranscoderProjectsLocationsJobsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = transcoder_projects_locations_jobs_create_builder(client, parent, body)?;
+    let builder =
+        transcoder_projects_locations_jobs_create_builder(client, &args.parent, &args.body)?;
     transcoder_projects_locations_jobs_create_execute(builder)
 }
 
@@ -747,6 +801,15 @@ pub fn transcoder_projects_locations_jobs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`transcoder_projects_locations_jobs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranscoderProjectsLocationsJobsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
 /// Deletes a job.
 ///
@@ -759,13 +822,13 @@ pub fn transcoder_projects_locations_jobs_delete_execute(
 
 pub fn transcoder_projects_locations_jobs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
+    args: &TranscoderProjectsLocationsJobsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = transcoder_projects_locations_jobs_delete_builder(client, name, allowMissing)?;
+    let builder =
+        transcoder_projects_locations_jobs_delete_builder(client, &args.name, args.allowMissing)?;
     transcoder_projects_locations_jobs_delete_execute(builder)
 }
 
@@ -859,6 +922,13 @@ pub fn transcoder_projects_locations_jobs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`transcoder_projects_locations_jobs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranscoderProjectsLocationsJobsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobs/{jobsId}
 /// Returns the job data.
 ///
@@ -871,12 +941,12 @@ pub fn transcoder_projects_locations_jobs_get_execute(
 
 pub fn transcoder_projects_locations_jobs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TranscoderProjectsLocationsJobsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = transcoder_projects_locations_jobs_get_builder(client, name)?;
+    let builder = transcoder_projects_locations_jobs_get_builder(client, &args.name)?;
     transcoder_projects_locations_jobs_get_execute(builder)
 }
 
@@ -996,6 +1066,21 @@ pub fn transcoder_projects_locations_jobs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`transcoder_projects_locations_jobs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TranscoderProjectsLocationsJobsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/jobs
 /// Lists jobs in the specified region.
 ///
@@ -1008,11 +1093,7 @@ pub fn transcoder_projects_locations_jobs_list_execute(
 
 pub fn transcoder_projects_locations_jobs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TranscoderProjectsLocationsJobsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1020,7 +1101,12 @@ pub fn transcoder_projects_locations_jobs_list(
     ApiError,
 > {
     let builder = transcoder_projects_locations_jobs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     transcoder_projects_locations_jobs_list_execute(builder)
 }

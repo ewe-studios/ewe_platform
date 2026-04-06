@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/accountReports:search
 /// Get account reports containing aggregate account data of all linked GLS accounts. Caller needs to provide their manager customer id and the associated auth credential that allows them read permissions on their linked accounts.
@@ -154,6 +156,29 @@ pub fn localservices_account_reports_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`localservices_account_reports_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LocalservicesAccountReportsSearchArgs {
+    /// Query parameter: endDate_day
+    pub endDate_day: Option<i32>,
+    /// Query parameter: endDate_month
+    pub endDate_month: Option<i32>,
+    /// Query parameter: endDate_year
+    pub endDate_year: Option<i32>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: startDate_day
+    pub startDate_day: Option<i32>,
+    /// Query parameter: startDate_month
+    pub startDate_month: Option<i32>,
+    /// Query parameter: startDate_year
+    pub startDate_year: Option<i32>,
+}
+
 /// GET v1/accountReports:search
 /// Get account reports containing aggregate account data of all linked GLS accounts. Caller needs to provide their manager customer id and the associated auth credential that allows them read permissions on their linked accounts.
 ///
@@ -166,15 +191,7 @@ pub fn localservices_account_reports_search_execute(
 
 pub fn localservices_account_reports_search(
     client: &SimpleHttpClient,
-    endDate_day: Option<i32>,
-    endDate_month: Option<i32>,
-    endDate_year: Option<i32>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
-    startDate_day: Option<i32>,
-    startDate_month: Option<i32>,
-    startDate_year: Option<i32>,
+    args: &LocalservicesAccountReportsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -188,15 +205,15 @@ pub fn localservices_account_reports_search(
 > {
     let builder = localservices_account_reports_search_builder(
         client,
-        endDate_day,
-        endDate_month,
-        endDate_year,
-        pageSize,
-        pageToken,
-        query,
-        startDate_day,
-        startDate_month,
-        startDate_year,
+        args.endDate_day,
+        args.endDate_month,
+        args.endDate_year,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
+        args.startDate_day,
+        args.startDate_month,
+        args.startDate_year,
     )?;
     localservices_account_reports_search_execute(builder)
 }
@@ -338,6 +355,29 @@ pub fn localservices_detailed_lead_reports_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`localservices_detailed_lead_reports_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LocalservicesDetailedLeadReportsSearchArgs {
+    /// Query parameter: endDate_day
+    pub endDate_day: Option<i32>,
+    /// Query parameter: endDate_month
+    pub endDate_month: Option<i32>,
+    /// Query parameter: endDate_year
+    pub endDate_year: Option<i32>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+    /// Query parameter: startDate_day
+    pub startDate_day: Option<i32>,
+    /// Query parameter: startDate_month
+    pub startDate_month: Option<i32>,
+    /// Query parameter: startDate_year
+    pub startDate_year: Option<i32>,
+}
+
 /// GET v1/detailedLeadReports:search
 /// Get detailed lead reports containing leads that have been received by all linked GLS accounts. Caller needs to provide their manager customer id and the associated auth credential that allows them read permissions on their linked accounts.
 ///
@@ -350,15 +390,7 @@ pub fn localservices_detailed_lead_reports_search_execute(
 
 pub fn localservices_detailed_lead_reports_search(
     client: &SimpleHttpClient,
-    endDate_day: Option<i32>,
-    endDate_month: Option<i32>,
-    endDate_year: Option<i32>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
-    startDate_day: Option<i32>,
-    startDate_month: Option<i32>,
-    startDate_year: Option<i32>,
+    args: &LocalservicesDetailedLeadReportsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -372,15 +404,15 @@ pub fn localservices_detailed_lead_reports_search(
 > {
     let builder = localservices_detailed_lead_reports_search_builder(
         client,
-        endDate_day,
-        endDate_month,
-        endDate_year,
-        pageSize,
-        pageToken,
-        query,
-        startDate_day,
-        startDate_month,
-        startDate_year,
+        args.endDate_day,
+        args.endDate_month,
+        args.endDate_year,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
+        args.startDate_day,
+        args.startDate_month,
+        args.startDate_year,
     )?;
     localservices_detailed_lead_reports_search_execute(builder)
 }

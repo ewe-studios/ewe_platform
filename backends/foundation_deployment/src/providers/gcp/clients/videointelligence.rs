@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/operations/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
@@ -108,6 +110,13 @@ pub fn videointelligence_operations_projects_locations_operations_cancel_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`videointelligence_operations_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VideointelligenceOperationsProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -120,15 +129,16 @@ pub fn videointelligence_operations_projects_locations_operations_cancel_execute
 
 pub fn videointelligence_operations_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VideointelligenceOperationsProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobuf_Empty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        videointelligence_operations_projects_locations_operations_cancel_builder(client, name)?;
+    let builder = videointelligence_operations_projects_locations_operations_cancel_builder(
+        client, &args.name,
+    )?;
     videointelligence_operations_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -224,6 +234,13 @@ pub fn videointelligence_operations_projects_locations_operations_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`videointelligence_operations_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VideointelligenceOperationsProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -236,15 +253,16 @@ pub fn videointelligence_operations_projects_locations_operations_delete_execute
 
 pub fn videointelligence_operations_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VideointelligenceOperationsProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobuf_Empty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        videointelligence_operations_projects_locations_operations_delete_builder(client, name)?;
+    let builder = videointelligence_operations_projects_locations_operations_delete_builder(
+        client, &args.name,
+    )?;
     videointelligence_operations_projects_locations_operations_delete_execute(builder)
 }
 
@@ -342,6 +360,13 @@ pub fn videointelligence_operations_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`videointelligence_operations_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VideointelligenceOperationsProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/operations/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -354,7 +379,7 @@ pub fn videointelligence_operations_projects_locations_operations_get_execute(
 
 pub fn videointelligence_operations_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VideointelligenceOperationsProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunning_Operation>, ApiError>,
@@ -364,7 +389,7 @@ pub fn videointelligence_operations_projects_locations_operations_get(
     ApiError,
 > {
     let builder =
-        videointelligence_operations_projects_locations_operations_get_builder(client, name)?;
+        videointelligence_operations_projects_locations_operations_get_builder(client, &args.name)?;
     videointelligence_operations_projects_locations_operations_get_execute(builder)
 }
 
@@ -463,6 +488,15 @@ pub fn videointelligence_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`videointelligence_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VideointelligenceProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GoogleLongrunning_CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -475,16 +509,16 @@ pub fn videointelligence_projects_locations_operations_cancel_execute(
 
 pub fn videointelligence_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GoogleLongrunning_CancelOperationRequest,
+    args: &VideointelligenceProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobuf_Empty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        videointelligence_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = videointelligence_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     videointelligence_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -580,6 +614,13 @@ pub fn videointelligence_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`videointelligence_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VideointelligenceProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -592,14 +633,15 @@ pub fn videointelligence_projects_locations_operations_delete_execute(
 
 pub fn videointelligence_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VideointelligenceProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleProtobuf_Empty>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = videointelligence_projects_locations_operations_delete_builder(client, name)?;
+    let builder =
+        videointelligence_projects_locations_operations_delete_builder(client, &args.name)?;
     videointelligence_projects_locations_operations_delete_execute(builder)
 }
 
@@ -697,6 +739,13 @@ pub fn videointelligence_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`videointelligence_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VideointelligenceProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -709,7 +758,7 @@ pub fn videointelligence_projects_locations_operations_get_execute(
 
 pub fn videointelligence_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &VideointelligenceProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunning_Operation>, ApiError>,
@@ -718,7 +767,7 @@ pub fn videointelligence_projects_locations_operations_get(
         + 'static,
     ApiError,
 > {
-    let builder = videointelligence_projects_locations_operations_get_builder(client, name)?;
+    let builder = videointelligence_projects_locations_operations_get_builder(client, &args.name)?;
     videointelligence_projects_locations_operations_get_execute(builder)
 }
 
@@ -840,6 +889,21 @@ pub fn videointelligence_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`videointelligence_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VideointelligenceProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -852,11 +916,7 @@ pub fn videointelligence_projects_locations_operations_list_execute(
 
 pub fn videointelligence_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &VideointelligenceProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunning_ListOperationsResponse>, ApiError>,
@@ -867,11 +927,11 @@ pub fn videointelligence_projects_locations_operations_list(
 > {
     let builder = videointelligence_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     videointelligence_projects_locations_operations_list_execute(builder)
 }
@@ -969,6 +1029,13 @@ pub fn videointelligence_videos_annotate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`videointelligence_videos_annotate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct VideointelligenceVideosAnnotateArgs {
+    /// Request body.
+    pub body: GoogleCloudVideointelligenceV1_AnnotateVideoRequest,
+}
+
 /// GET v1/videos:annotate
 /// Performs asynchronous video annotation. Progress and results can be retrieved through the google.longrunning.Operations interface. Operation.metadata contains AnnotateVideoProgress (progress). Operation.response contains AnnotateVideoResponse (results).
 ///
@@ -981,7 +1048,7 @@ pub fn videointelligence_videos_annotate_execute(
 
 pub fn videointelligence_videos_annotate(
     client: &SimpleHttpClient,
-    body: &GoogleCloudVideointelligenceV1_AnnotateVideoRequest,
+    args: &VideointelligenceVideosAnnotateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleLongrunning_Operation>, ApiError>,
@@ -990,6 +1057,6 @@ pub fn videointelligence_videos_annotate(
         + 'static,
     ApiError,
 > {
-    let builder = videointelligence_videos_annotate_builder(client, body)?;
+    let builder = videointelligence_videos_annotate_builder(client, &args.body)?;
     videointelligence_videos_annotate_execute(builder)
 }

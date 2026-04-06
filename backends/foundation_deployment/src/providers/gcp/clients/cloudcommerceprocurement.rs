@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/providers/{providersId}/accounts/{accountsId}:approve
 /// Grants an approval on an Account.
@@ -109,6 +111,15 @@ pub fn cloudcommerceprocurement_providers_accounts_approve_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcommerceprocurement_providers_accounts_approve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcommerceprocurementProvidersAccountsApproveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ApproveAccountRequest,
+}
+
 /// GET v1/providers/{providersId}/accounts/{accountsId}:approve
 /// Grants an approval on an Account.
 ///
@@ -121,13 +132,14 @@ pub fn cloudcommerceprocurement_providers_accounts_approve_execute(
 
 pub fn cloudcommerceprocurement_providers_accounts_approve(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ApproveAccountRequest,
+    args: &CloudcommerceprocurementProvidersAccountsApproveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudcommerceprocurement_providers_accounts_approve_builder(client, name, body)?;
+    let builder = cloudcommerceprocurement_providers_accounts_approve_builder(
+        client, &args.name, &args.body,
+    )?;
     cloudcommerceprocurement_providers_accounts_approve_execute(builder)
 }
 
@@ -233,6 +245,15 @@ pub fn cloudcommerceprocurement_providers_accounts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcommerceprocurement_providers_accounts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcommerceprocurementProvidersAccountsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/providers/{providersId}/accounts/{accountsId}
 /// Gets a requested Account resource.
 ///
@@ -245,13 +266,16 @@ pub fn cloudcommerceprocurement_providers_accounts_get_execute(
 
 pub fn cloudcommerceprocurement_providers_accounts_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &CloudcommerceprocurementProvidersAccountsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Account>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudcommerceprocurement_providers_accounts_get_builder(client, name, view)?;
+    let builder = cloudcommerceprocurement_providers_accounts_get_builder(
+        client,
+        &args.name,
+        args.view.as_deref(),
+    )?;
     cloudcommerceprocurement_providers_accounts_get_execute(builder)
 }
 
@@ -363,6 +387,17 @@ pub fn cloudcommerceprocurement_providers_accounts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcommerceprocurement_providers_accounts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcommerceprocurementProvidersAccountsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/providers/{providersId}/accounts
 /// Lists Accounts that the provider has access to.
 ///
@@ -375,9 +410,7 @@ pub fn cloudcommerceprocurement_providers_accounts_list_execute(
 
 pub fn cloudcommerceprocurement_providers_accounts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudcommerceprocurementProvidersAccountsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAccountsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -385,7 +418,10 @@ pub fn cloudcommerceprocurement_providers_accounts_list(
     ApiError,
 > {
     let builder = cloudcommerceprocurement_providers_accounts_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudcommerceprocurement_providers_accounts_list_execute(builder)
 }
@@ -483,6 +519,15 @@ pub fn cloudcommerceprocurement_providers_accounts_reject_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcommerceprocurement_providers_accounts_reject`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcommerceprocurementProvidersAccountsRejectArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RejectAccountRequest,
+}
+
 /// GET v1/providers/{providersId}/accounts/{accountsId}:reject
 /// Rejects an approval on an Account.
 ///
@@ -495,13 +540,13 @@ pub fn cloudcommerceprocurement_providers_accounts_reject_execute(
 
 pub fn cloudcommerceprocurement_providers_accounts_reject(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RejectAccountRequest,
+    args: &CloudcommerceprocurementProvidersAccountsRejectArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudcommerceprocurement_providers_accounts_reject_builder(client, name, body)?;
+    let builder =
+        cloudcommerceprocurement_providers_accounts_reject_builder(client, &args.name, &args.body)?;
     cloudcommerceprocurement_providers_accounts_reject_execute(builder)
 }
 
@@ -598,6 +643,15 @@ pub fn cloudcommerceprocurement_providers_accounts_reset_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcommerceprocurement_providers_accounts_reset`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcommerceprocurementProvidersAccountsResetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResetAccountRequest,
+}
+
 /// GET v1/providers/{providersId}/accounts/{accountsId}:reset
 /// Resets an Account and cancels all associated Entitlements. Partner can only reset accounts they own rather than customer accounts.
 ///
@@ -610,13 +664,13 @@ pub fn cloudcommerceprocurement_providers_accounts_reset_execute(
 
 pub fn cloudcommerceprocurement_providers_accounts_reset(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResetAccountRequest,
+    args: &CloudcommerceprocurementProvidersAccountsResetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudcommerceprocurement_providers_accounts_reset_builder(client, name, body)?;
+    let builder =
+        cloudcommerceprocurement_providers_accounts_reset_builder(client, &args.name, &args.body)?;
     cloudcommerceprocurement_providers_accounts_reset_execute(builder)
 }
 
@@ -713,6 +767,15 @@ pub fn cloudcommerceprocurement_providers_entitlements_approve_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcommerceprocurement_providers_entitlements_approve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcommerceprocurementProvidersEntitlementsApproveArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ApproveEntitlementRequest,
+}
+
 /// GET v1/providers/{providersId}/entitlements/{entitlementsId}:approve
 /// Approves an entitlement that is in the EntitlementState.ENTITLEMENT_ACTIVATION_REQUESTED state. This method is invoked by the provider to approve the creation of the entitlement resource.
 ///
@@ -725,14 +788,14 @@ pub fn cloudcommerceprocurement_providers_entitlements_approve_execute(
 
 pub fn cloudcommerceprocurement_providers_entitlements_approve(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ApproveEntitlementRequest,
+    args: &CloudcommerceprocurementProvidersEntitlementsApproveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudcommerceprocurement_providers_entitlements_approve_builder(client, name, body)?;
+    let builder = cloudcommerceprocurement_providers_entitlements_approve_builder(
+        client, &args.name, &args.body,
+    )?;
     cloudcommerceprocurement_providers_entitlements_approve_execute(builder)
 }
 
@@ -829,6 +892,15 @@ pub fn cloudcommerceprocurement_providers_entitlements_approve_plan_change_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcommerceprocurement_providers_entitlements_approve_plan_change`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcommerceprocurementProvidersEntitlementsApprovePlanChangeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ApproveEntitlementPlanChangeRequest,
+}
+
 /// GET v1/providers/{providersId}/entitlements/{entitlementsId}:approvePlanChange
 /// Approves an entitlement plan change that is in the EntitlementState.ENTITLEMENT_PENDING_PLAN_CHANGE_APPROVAL state. This method is invoked by the provider to approve the plan change on the entitlement resource.
 ///
@@ -841,14 +913,13 @@ pub fn cloudcommerceprocurement_providers_entitlements_approve_plan_change_execu
 
 pub fn cloudcommerceprocurement_providers_entitlements_approve_plan_change(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ApproveEntitlementPlanChangeRequest,
+    args: &CloudcommerceprocurementProvidersEntitlementsApprovePlanChangeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudcommerceprocurement_providers_entitlements_approve_plan_change_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     cloudcommerceprocurement_providers_entitlements_approve_plan_change_execute(builder)
 }
@@ -943,6 +1014,13 @@ pub fn cloudcommerceprocurement_providers_entitlements_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcommerceprocurement_providers_entitlements_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcommerceprocurementProvidersEntitlementsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/providers/{providersId}/entitlements/{entitlementsId}
 /// Gets a requested Entitlement resource.
 ///
@@ -955,12 +1033,12 @@ pub fn cloudcommerceprocurement_providers_entitlements_get_execute(
 
 pub fn cloudcommerceprocurement_providers_entitlements_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudcommerceprocurementProvidersEntitlementsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Entitlement>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudcommerceprocurement_providers_entitlements_get_builder(client, name)?;
+    let builder = cloudcommerceprocurement_providers_entitlements_get_builder(client, &args.name)?;
     cloudcommerceprocurement_providers_entitlements_get_execute(builder)
 }
 
@@ -1076,6 +1154,19 @@ pub fn cloudcommerceprocurement_providers_entitlements_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcommerceprocurement_providers_entitlements_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcommerceprocurementProvidersEntitlementsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/providers/{providersId}/entitlements
 /// Lists Entitlements for which the provider has read access.
 ///
@@ -1088,10 +1179,7 @@ pub fn cloudcommerceprocurement_providers_entitlements_list_execute(
 
 pub fn cloudcommerceprocurement_providers_entitlements_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudcommerceprocurementProvidersEntitlementsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListEntitlementsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1099,7 +1187,11 @@ pub fn cloudcommerceprocurement_providers_entitlements_list(
     ApiError,
 > {
     let builder = cloudcommerceprocurement_providers_entitlements_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     cloudcommerceprocurement_providers_entitlements_list_execute(builder)
 }
@@ -1209,6 +1301,17 @@ pub fn cloudcommerceprocurement_providers_entitlements_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcommerceprocurement_providers_entitlements_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcommerceprocurementProvidersEntitlementsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Entitlement,
+}
+
 /// GET v1/providers/{providersId}/entitlements/{entitlementsId}
 /// Updates an existing Entitlement.
 ///
@@ -1221,15 +1324,16 @@ pub fn cloudcommerceprocurement_providers_entitlements_patch_execute(
 
 pub fn cloudcommerceprocurement_providers_entitlements_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Entitlement,
+    args: &CloudcommerceprocurementProvidersEntitlementsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Entitlement>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudcommerceprocurement_providers_entitlements_patch_builder(
-        client, name, updateMask, body,
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     cloudcommerceprocurement_providers_entitlements_patch_execute(builder)
 }
@@ -1327,6 +1431,15 @@ pub fn cloudcommerceprocurement_providers_entitlements_reject_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcommerceprocurement_providers_entitlements_reject`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcommerceprocurementProvidersEntitlementsRejectArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RejectEntitlementRequest,
+}
+
 /// GET v1/providers/{providersId}/entitlements/{entitlementsId}:reject
 /// Rejects an entitlement that is in the EntitlementState.ENTITLEMENT_ACTIVATION_REQUESTED state. This method is invoked by the provider to reject the creation of the entitlement resource.
 ///
@@ -1339,14 +1452,14 @@ pub fn cloudcommerceprocurement_providers_entitlements_reject_execute(
 
 pub fn cloudcommerceprocurement_providers_entitlements_reject(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RejectEntitlementRequest,
+    args: &CloudcommerceprocurementProvidersEntitlementsRejectArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudcommerceprocurement_providers_entitlements_reject_builder(client, name, body)?;
+    let builder = cloudcommerceprocurement_providers_entitlements_reject_builder(
+        client, &args.name, &args.body,
+    )?;
     cloudcommerceprocurement_providers_entitlements_reject_execute(builder)
 }
 
@@ -1443,6 +1556,15 @@ pub fn cloudcommerceprocurement_providers_entitlements_reject_plan_change_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcommerceprocurement_providers_entitlements_reject_plan_change`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcommerceprocurementProvidersEntitlementsRejectPlanChangeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RejectEntitlementPlanChangeRequest,
+}
+
 /// GET v1/providers/{providersId}/entitlements/{entitlementsId}:rejectPlanChange
 /// Rejects an entitlement plan change that is in the EntitlementState.ENTITLEMENT_PENDING_PLAN_CHANGE_APPROVAL state. This method is invoked by the provider to reject the plan change on the entitlement resource.
 ///
@@ -1455,14 +1577,13 @@ pub fn cloudcommerceprocurement_providers_entitlements_reject_plan_change_execut
 
 pub fn cloudcommerceprocurement_providers_entitlements_reject_plan_change(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RejectEntitlementPlanChangeRequest,
+    args: &CloudcommerceprocurementProvidersEntitlementsRejectPlanChangeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = cloudcommerceprocurement_providers_entitlements_reject_plan_change_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     cloudcommerceprocurement_providers_entitlements_reject_plan_change_execute(builder)
 }
@@ -1560,6 +1681,15 @@ pub fn cloudcommerceprocurement_providers_entitlements_suspend_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudcommerceprocurement_providers_entitlements_suspend`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudcommerceprocurementProvidersEntitlementsSuspendArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SuspendEntitlementRequest,
+}
+
 /// GET v1/providers/{providersId}/entitlements/{entitlementsId}:suspend
 /// Requests suspension of an active Entitlement. This is not yet supported.
 ///
@@ -1572,13 +1702,13 @@ pub fn cloudcommerceprocurement_providers_entitlements_suspend_execute(
 
 pub fn cloudcommerceprocurement_providers_entitlements_suspend(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SuspendEntitlementRequest,
+    args: &CloudcommerceprocurementProvidersEntitlementsSuspendArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        cloudcommerceprocurement_providers_entitlements_suspend_builder(client, name, body)?;
+    let builder = cloudcommerceprocurement_providers_entitlements_suspend_builder(
+        client, &args.name, &args.body,
+    )?;
     cloudcommerceprocurement_providers_entitlements_suspend_execute(builder)
 }

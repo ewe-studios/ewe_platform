@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET createAuthUri
 /// Creates the URI used by the IdP to authenticate the user.
@@ -107,6 +109,13 @@ pub fn identitytoolkit_relyingparty_create_auth_uri_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_create_auth_uri`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartyCreateAuthUriArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartyCreateAuthUriRequest,
+}
+
 /// GET createAuthUri
 /// Creates the URI used by the IdP to authenticate the user.
 ///
@@ -119,14 +128,14 @@ pub fn identitytoolkit_relyingparty_create_auth_uri_execute(
 
 pub fn identitytoolkit_relyingparty_create_auth_uri(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyCreateAuthUriRequest,
+    args: &IdentitytoolkitRelyingpartyCreateAuthUriArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreateAuthUriResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_create_auth_uri_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_create_auth_uri_builder(client, &args.body)?;
     identitytoolkit_relyingparty_create_auth_uri_execute(builder)
 }
 
@@ -221,6 +230,13 @@ pub fn identitytoolkit_relyingparty_delete_account_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_delete_account`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartyDeleteAccountArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartyDeleteAccountRequest,
+}
+
 /// GET deleteAccount
 /// Delete user account.
 ///
@@ -233,14 +249,14 @@ pub fn identitytoolkit_relyingparty_delete_account_execute(
 
 pub fn identitytoolkit_relyingparty_delete_account(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyDeleteAccountRequest,
+    args: &IdentitytoolkitRelyingpartyDeleteAccountArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeleteAccountResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_delete_account_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_delete_account_builder(client, &args.body)?;
     identitytoolkit_relyingparty_delete_account_execute(builder)
 }
 
@@ -336,6 +352,13 @@ pub fn identitytoolkit_relyingparty_download_account_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_download_account`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartyDownloadAccountArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartyDownloadAccountRequest,
+}
+
 /// GET downloadAccount
 /// Batch download user accounts.
 ///
@@ -348,14 +371,14 @@ pub fn identitytoolkit_relyingparty_download_account_execute(
 
 pub fn identitytoolkit_relyingparty_download_account(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyDownloadAccountRequest,
+    args: &IdentitytoolkitRelyingpartyDownloadAccountArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DownloadAccountResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_download_account_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_download_account_builder(client, &args.body)?;
     identitytoolkit_relyingparty_download_account_execute(builder)
 }
 
@@ -451,6 +474,13 @@ pub fn identitytoolkit_relyingparty_email_link_signin_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_email_link_signin`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartyEmailLinkSigninArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartyEmailLinkSigninRequest,
+}
+
 /// GET emailLinkSignin
 /// Reset password for a user.
 ///
@@ -463,14 +493,14 @@ pub fn identitytoolkit_relyingparty_email_link_signin_execute(
 
 pub fn identitytoolkit_relyingparty_email_link_signin(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyEmailLinkSigninRequest,
+    args: &IdentitytoolkitRelyingpartyEmailLinkSigninArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<EmailLinkSigninResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_email_link_signin_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_email_link_signin_builder(client, &args.body)?;
     identitytoolkit_relyingparty_email_link_signin_execute(builder)
 }
 
@@ -565,6 +595,13 @@ pub fn identitytoolkit_relyingparty_get_account_info_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_get_account_info`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartyGetAccountInfoArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartyGetAccountInfoRequest,
+}
+
 /// GET getAccountInfo
 /// Returns the account info.
 ///
@@ -577,14 +614,14 @@ pub fn identitytoolkit_relyingparty_get_account_info_execute(
 
 pub fn identitytoolkit_relyingparty_get_account_info(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyGetAccountInfoRequest,
+    args: &IdentitytoolkitRelyingpartyGetAccountInfoArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetAccountInfoResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_get_account_info_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_get_account_info_builder(client, &args.body)?;
     identitytoolkit_relyingparty_get_account_info_execute(builder)
 }
 
@@ -683,6 +720,13 @@ pub fn identitytoolkit_relyingparty_get_oob_confirmation_code_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_get_oob_confirmation_code`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartyGetOobConfirmationCodeArgs {
+    /// Request body.
+    pub body: Relyingparty,
+}
+
 /// GET getOobConfirmationCode
 /// Get a code for user action confirmation.
 ///
@@ -695,7 +739,7 @@ pub fn identitytoolkit_relyingparty_get_oob_confirmation_code_execute(
 
 pub fn identitytoolkit_relyingparty_get_oob_confirmation_code(
     client: &SimpleHttpClient,
-    body: &Relyingparty,
+    args: &IdentitytoolkitRelyingpartyGetOobConfirmationCodeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetOobConfirmationCodeResponse>, ApiError>,
@@ -704,7 +748,8 @@ pub fn identitytoolkit_relyingparty_get_oob_confirmation_code(
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_get_oob_confirmation_code_builder(client, body)?;
+    let builder =
+        identitytoolkit_relyingparty_get_oob_confirmation_code_builder(client, &args.body)?;
     identitytoolkit_relyingparty_get_oob_confirmation_code_execute(builder)
 }
 
@@ -816,6 +861,15 @@ pub fn identitytoolkit_relyingparty_get_project_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_get_project_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartyGetProjectConfigArgs {
+    /// Query parameter: delegatedProjectNumber
+    pub delegatedProjectNumber: Option<String>,
+    /// Query parameter: projectNumber
+    pub projectNumber: Option<String>,
+}
+
 /// GET getProjectConfig
 /// Get project configuration.
 ///
@@ -828,8 +882,7 @@ pub fn identitytoolkit_relyingparty_get_project_config_execute(
 
 pub fn identitytoolkit_relyingparty_get_project_config(
     client: &SimpleHttpClient,
-    delegatedProjectNumber: Option<&str>,
-    projectNumber: Option<&str>,
+    args: &IdentitytoolkitRelyingpartyGetProjectConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<IdentitytoolkitRelyingpartyGetProjectConfigResponse>, ApiError>,
@@ -840,8 +893,8 @@ pub fn identitytoolkit_relyingparty_get_project_config(
 > {
     let builder = identitytoolkit_relyingparty_get_project_config_builder(
         client,
-        delegatedProjectNumber,
-        projectNumber,
+        args.delegatedProjectNumber.as_deref(),
+        args.projectNumber.as_deref(),
     )?;
     identitytoolkit_relyingparty_get_project_config_execute(builder)
 }
@@ -1163,6 +1216,13 @@ pub fn identitytoolkit_relyingparty_reset_password_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_reset_password`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartyResetPasswordArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartyResetPasswordRequest,
+}
+
 /// GET resetPassword
 /// Reset password for a user.
 ///
@@ -1175,14 +1235,14 @@ pub fn identitytoolkit_relyingparty_reset_password_execute(
 
 pub fn identitytoolkit_relyingparty_reset_password(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyResetPasswordRequest,
+    args: &IdentitytoolkitRelyingpartyResetPasswordArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ResetPasswordResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_reset_password_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_reset_password_builder(client, &args.body)?;
     identitytoolkit_relyingparty_reset_password_execute(builder)
 }
 
@@ -1284,6 +1344,13 @@ pub fn identitytoolkit_relyingparty_send_verification_code_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_send_verification_code`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartySendVerificationCodeArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartySendVerificationCodeRequest,
+}
+
 /// GET sendVerificationCode
 /// Send SMS verification code.
 ///
@@ -1296,7 +1363,7 @@ pub fn identitytoolkit_relyingparty_send_verification_code_execute(
 
 pub fn identitytoolkit_relyingparty_send_verification_code(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartySendVerificationCodeRequest,
+    args: &IdentitytoolkitRelyingpartySendVerificationCodeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<
@@ -1308,7 +1375,7 @@ pub fn identitytoolkit_relyingparty_send_verification_code(
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_send_verification_code_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_send_verification_code_builder(client, &args.body)?;
     identitytoolkit_relyingparty_send_verification_code_execute(builder)
 }
 
@@ -1403,6 +1470,13 @@ pub fn identitytoolkit_relyingparty_set_account_info_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_set_account_info`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartySetAccountInfoArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartySetAccountInfoRequest,
+}
+
 /// GET setAccountInfo
 /// Set account info for a user.
 ///
@@ -1415,14 +1489,14 @@ pub fn identitytoolkit_relyingparty_set_account_info_execute(
 
 pub fn identitytoolkit_relyingparty_set_account_info(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartySetAccountInfoRequest,
+    args: &IdentitytoolkitRelyingpartySetAccountInfoArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SetAccountInfoResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_set_account_info_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_set_account_info_builder(client, &args.body)?;
     identitytoolkit_relyingparty_set_account_info_execute(builder)
 }
 
@@ -1521,6 +1595,13 @@ pub fn identitytoolkit_relyingparty_set_project_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_set_project_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartySetProjectConfigArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartySetProjectConfigRequest,
+}
+
 /// GET setProjectConfig
 /// Set project configuration.
 ///
@@ -1533,7 +1614,7 @@ pub fn identitytoolkit_relyingparty_set_project_config_execute(
 
 pub fn identitytoolkit_relyingparty_set_project_config(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartySetProjectConfigRequest,
+    args: &IdentitytoolkitRelyingpartySetProjectConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<IdentitytoolkitRelyingpartySetProjectConfigResponse>, ApiError>,
@@ -1542,7 +1623,7 @@ pub fn identitytoolkit_relyingparty_set_project_config(
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_set_project_config_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_set_project_config_builder(client, &args.body)?;
     identitytoolkit_relyingparty_set_project_config_execute(builder)
 }
 
@@ -1640,6 +1721,13 @@ pub fn identitytoolkit_relyingparty_sign_out_user_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_sign_out_user`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartySignOutUserArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartySignOutUserRequest,
+}
+
 /// GET signOutUser
 /// Sign out user.
 ///
@@ -1652,7 +1740,7 @@ pub fn identitytoolkit_relyingparty_sign_out_user_execute(
 
 pub fn identitytoolkit_relyingparty_sign_out_user(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartySignOutUserRequest,
+    args: &IdentitytoolkitRelyingpartySignOutUserArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<IdentitytoolkitRelyingpartySignOutUserResponse>, ApiError>,
@@ -1661,7 +1749,7 @@ pub fn identitytoolkit_relyingparty_sign_out_user(
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_sign_out_user_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_sign_out_user_builder(client, &args.body)?;
     identitytoolkit_relyingparty_sign_out_user_execute(builder)
 }
 
@@ -1756,6 +1844,13 @@ pub fn identitytoolkit_relyingparty_signup_new_user_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_signup_new_user`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartySignupNewUserArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartySignupNewUserRequest,
+}
+
 /// GET signupNewUser
 /// Signup new user.
 ///
@@ -1768,14 +1863,14 @@ pub fn identitytoolkit_relyingparty_signup_new_user_execute(
 
 pub fn identitytoolkit_relyingparty_signup_new_user(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartySignupNewUserRequest,
+    args: &IdentitytoolkitRelyingpartySignupNewUserArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SignupNewUserResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_signup_new_user_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_signup_new_user_builder(client, &args.body)?;
     identitytoolkit_relyingparty_signup_new_user_execute(builder)
 }
 
@@ -1870,6 +1965,13 @@ pub fn identitytoolkit_relyingparty_upload_account_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_upload_account`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartyUploadAccountArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartyUploadAccountRequest,
+}
+
 /// GET uploadAccount
 /// Batch upload existing user accounts.
 ///
@@ -1882,14 +1984,14 @@ pub fn identitytoolkit_relyingparty_upload_account_execute(
 
 pub fn identitytoolkit_relyingparty_upload_account(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyUploadAccountRequest,
+    args: &IdentitytoolkitRelyingpartyUploadAccountArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UploadAccountResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_upload_account_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_upload_account_builder(client, &args.body)?;
     identitytoolkit_relyingparty_upload_account_execute(builder)
 }
 
@@ -1985,6 +2087,13 @@ pub fn identitytoolkit_relyingparty_verify_assertion_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_verify_assertion`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartyVerifyAssertionArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartyVerifyAssertionRequest,
+}
+
 /// GET verifyAssertion
 /// Verifies the assertion returned by the IdP.
 ///
@@ -1997,14 +2106,14 @@ pub fn identitytoolkit_relyingparty_verify_assertion_execute(
 
 pub fn identitytoolkit_relyingparty_verify_assertion(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyVerifyAssertionRequest,
+    args: &IdentitytoolkitRelyingpartyVerifyAssertionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VerifyAssertionResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_verify_assertion_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_verify_assertion_builder(client, &args.body)?;
     identitytoolkit_relyingparty_verify_assertion_execute(builder)
 }
 
@@ -2100,6 +2209,13 @@ pub fn identitytoolkit_relyingparty_verify_custom_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_verify_custom_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartyVerifyCustomTokenArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartyVerifyCustomTokenRequest,
+}
+
 /// GET verifyCustomToken
 /// Verifies the developer asserted ID token.
 ///
@@ -2112,14 +2228,14 @@ pub fn identitytoolkit_relyingparty_verify_custom_token_execute(
 
 pub fn identitytoolkit_relyingparty_verify_custom_token(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyVerifyCustomTokenRequest,
+    args: &IdentitytoolkitRelyingpartyVerifyCustomTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VerifyCustomTokenResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_verify_custom_token_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_verify_custom_token_builder(client, &args.body)?;
     identitytoolkit_relyingparty_verify_custom_token_execute(builder)
 }
 
@@ -2214,6 +2330,13 @@ pub fn identitytoolkit_relyingparty_verify_password_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_verify_password`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartyVerifyPasswordArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartyVerifyPasswordRequest,
+}
+
 /// GET verifyPassword
 /// Verifies the user entered password.
 ///
@@ -2226,14 +2349,14 @@ pub fn identitytoolkit_relyingparty_verify_password_execute(
 
 pub fn identitytoolkit_relyingparty_verify_password(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyVerifyPasswordRequest,
+    args: &IdentitytoolkitRelyingpartyVerifyPasswordArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VerifyPasswordResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_verify_password_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_verify_password_builder(client, &args.body)?;
     identitytoolkit_relyingparty_verify_password_execute(builder)
 }
 
@@ -2332,6 +2455,13 @@ pub fn identitytoolkit_relyingparty_verify_phone_number_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`identitytoolkit_relyingparty_verify_phone_number`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct IdentitytoolkitRelyingpartyVerifyPhoneNumberArgs {
+    /// Request body.
+    pub body: IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest,
+}
+
 /// GET verifyPhoneNumber
 /// Verifies ownership of a phone number and `creates/updates` the user account accordingly.
 ///
@@ -2344,7 +2474,7 @@ pub fn identitytoolkit_relyingparty_verify_phone_number_execute(
 
 pub fn identitytoolkit_relyingparty_verify_phone_number(
     client: &SimpleHttpClient,
-    body: &IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest,
+    args: &IdentitytoolkitRelyingpartyVerifyPhoneNumberArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse>, ApiError>,
@@ -2353,6 +2483,6 @@ pub fn identitytoolkit_relyingparty_verify_phone_number(
         + 'static,
     ApiError,
 > {
-    let builder = identitytoolkit_relyingparty_verify_phone_number_builder(client, body)?;
+    let builder = identitytoolkit_relyingparty_verify_phone_number_builder(client, &args.body)?;
     identitytoolkit_relyingparty_verify_phone_number_execute(builder)
 }

@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}:generateServiceIdentity
 /// Generates the Cloud TPU service identity for the project.
@@ -113,6 +115,15 @@ pub fn tpu_projects_locations_generate_service_identity_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_generate_service_identity`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsGenerateServiceIdentityArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GenerateServiceIdentityRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}:generateServiceIdentity
 /// Generates the Cloud TPU service identity for the project.
 ///
@@ -125,8 +136,7 @@ pub fn tpu_projects_locations_generate_service_identity_execute(
 
 pub fn tpu_projects_locations_generate_service_identity(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GenerateServiceIdentityRequest,
+    args: &TpuProjectsLocationsGenerateServiceIdentityArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateServiceIdentityResponse>, ApiError>,
@@ -135,7 +145,8 @@ pub fn tpu_projects_locations_generate_service_identity(
         + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_generate_service_identity_builder(client, parent, body)?;
+    let builder =
+        tpu_projects_locations_generate_service_identity_builder(client, &args.parent, &args.body)?;
     tpu_projects_locations_generate_service_identity_execute(builder)
 }
 
@@ -229,6 +240,13 @@ pub fn tpu_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -241,12 +259,12 @@ pub fn tpu_projects_locations_get_execute(
 
 pub fn tpu_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TpuProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_get_builder(client, name)?;
+    let builder = tpu_projects_locations_get_builder(client, &args.name)?;
     tpu_projects_locations_get_execute(builder)
 }
 
@@ -363,6 +381,21 @@ pub fn tpu_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -375,11 +408,7 @@ pub fn tpu_projects_locations_list_execute(
 
 pub fn tpu_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TpuProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -388,11 +417,11 @@ pub fn tpu_projects_locations_list(
 > {
     let builder = tpu_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     tpu_projects_locations_list_execute(builder)
 }
@@ -489,6 +518,13 @@ pub fn tpu_projects_locations_accelerator_types_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_accelerator_types_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsAcceleratorTypesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/acceleratorTypes/{acceleratorTypesId}
 /// Gets AcceleratorType.
 ///
@@ -501,14 +537,14 @@ pub fn tpu_projects_locations_accelerator_types_get_execute(
 
 pub fn tpu_projects_locations_accelerator_types_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TpuProjectsLocationsAcceleratorTypesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AcceleratorType>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_accelerator_types_get_builder(client, name)?;
+    let builder = tpu_projects_locations_accelerator_types_get_builder(client, &args.name)?;
     tpu_projects_locations_accelerator_types_get_execute(builder)
 }
 
@@ -630,6 +666,21 @@ pub fn tpu_projects_locations_accelerator_types_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_accelerator_types_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsAcceleratorTypesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/acceleratorTypes
 /// Lists accelerator types supported by this API.
 ///
@@ -642,11 +693,7 @@ pub fn tpu_projects_locations_accelerator_types_list_execute(
 
 pub fn tpu_projects_locations_accelerator_types_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TpuProjectsLocationsAcceleratorTypesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListAcceleratorTypesResponse>, ApiError>,
@@ -656,7 +703,12 @@ pub fn tpu_projects_locations_accelerator_types_list(
     ApiError,
 > {
     let builder = tpu_projects_locations_accelerator_types_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     tpu_projects_locations_accelerator_types_list_execute(builder)
 }
@@ -766,6 +818,17 @@ pub fn tpu_projects_locations_nodes_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_nodes_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsNodesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: nodeId
+    pub nodeId: Option<String>,
+    /// Request body.
+    pub body: Node,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nodes
 /// Creates a node.
 ///
@@ -778,14 +841,17 @@ pub fn tpu_projects_locations_nodes_create_execute(
 
 pub fn tpu_projects_locations_nodes_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    nodeId: Option<&str>,
-    body: &Node,
+    args: &TpuProjectsLocationsNodesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_nodes_create_builder(client, parent, nodeId, body)?;
+    let builder = tpu_projects_locations_nodes_create_builder(
+        client,
+        &args.parent,
+        args.nodeId.as_deref(),
+        &args.body,
+    )?;
     tpu_projects_locations_nodes_create_execute(builder)
 }
 
@@ -879,6 +945,13 @@ pub fn tpu_projects_locations_nodes_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_nodes_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsNodesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nodes/{nodesId}
 /// Deletes a node.
 ///
@@ -891,12 +964,12 @@ pub fn tpu_projects_locations_nodes_delete_execute(
 
 pub fn tpu_projects_locations_nodes_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TpuProjectsLocationsNodesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_nodes_delete_builder(client, name)?;
+    let builder = tpu_projects_locations_nodes_delete_builder(client, &args.name)?;
     tpu_projects_locations_nodes_delete_execute(builder)
 }
 
@@ -990,6 +1063,13 @@ pub fn tpu_projects_locations_nodes_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_nodes_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsNodesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nodes/{nodesId}
 /// Gets the details of a node.
 ///
@@ -1002,12 +1082,12 @@ pub fn tpu_projects_locations_nodes_get_execute(
 
 pub fn tpu_projects_locations_nodes_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TpuProjectsLocationsNodesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Node>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_nodes_get_builder(client, name)?;
+    let builder = tpu_projects_locations_nodes_get_builder(client, &args.name)?;
     tpu_projects_locations_nodes_get_execute(builder)
 }
 
@@ -1108,6 +1188,15 @@ pub fn tpu_projects_locations_nodes_get_guest_attributes_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_nodes_get_guest_attributes`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsNodesGetGuestAttributesArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GetGuestAttributesRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nodes/{nodesId}:getGuestAttributes
 /// Retrieves the guest attributes for the node.
 ///
@@ -1120,8 +1209,7 @@ pub fn tpu_projects_locations_nodes_get_guest_attributes_execute(
 
 pub fn tpu_projects_locations_nodes_get_guest_attributes(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GetGuestAttributesRequest,
+    args: &TpuProjectsLocationsNodesGetGuestAttributesArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetGuestAttributesResponse>, ApiError>,
@@ -1130,7 +1218,8 @@ pub fn tpu_projects_locations_nodes_get_guest_attributes(
         + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_nodes_get_guest_attributes_builder(client, name, body)?;
+    let builder =
+        tpu_projects_locations_nodes_get_guest_attributes_builder(client, &args.name, &args.body)?;
     tpu_projects_locations_nodes_get_guest_attributes_execute(builder)
 }
 
@@ -1242,6 +1331,17 @@ pub fn tpu_projects_locations_nodes_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_nodes_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsNodesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nodes
 /// Lists nodes.
 ///
@@ -1254,16 +1354,19 @@ pub fn tpu_projects_locations_nodes_list_execute(
 
 pub fn tpu_projects_locations_nodes_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TpuProjectsLocationsNodesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListNodesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_nodes_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = tpu_projects_locations_nodes_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     tpu_projects_locations_nodes_list_execute(builder)
 }
 
@@ -1372,6 +1475,17 @@ pub fn tpu_projects_locations_nodes_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_nodes_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsNodesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Node,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nodes/{nodesId}
 /// Updates the configurations of a node.
 ///
@@ -1384,14 +1498,17 @@ pub fn tpu_projects_locations_nodes_patch_execute(
 
 pub fn tpu_projects_locations_nodes_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Node,
+    args: &TpuProjectsLocationsNodesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_nodes_patch_builder(client, name, updateMask, body)?;
+    let builder = tpu_projects_locations_nodes_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     tpu_projects_locations_nodes_patch_execute(builder)
 }
 
@@ -1488,6 +1605,15 @@ pub fn tpu_projects_locations_nodes_start_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_nodes_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsNodesStartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StartNodeRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nodes/{nodesId}:start
 /// Starts a node.
 ///
@@ -1500,13 +1626,12 @@ pub fn tpu_projects_locations_nodes_start_execute(
 
 pub fn tpu_projects_locations_nodes_start(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StartNodeRequest,
+    args: &TpuProjectsLocationsNodesStartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_nodes_start_builder(client, name, body)?;
+    let builder = tpu_projects_locations_nodes_start_builder(client, &args.name, &args.body)?;
     tpu_projects_locations_nodes_start_execute(builder)
 }
 
@@ -1603,6 +1728,15 @@ pub fn tpu_projects_locations_nodes_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_nodes_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsNodesStopArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StopNodeRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/nodes/{nodesId}:stop
 /// Stops a node. This operation is only available with single TPU nodes.
 ///
@@ -1615,13 +1749,12 @@ pub fn tpu_projects_locations_nodes_stop_execute(
 
 pub fn tpu_projects_locations_nodes_stop(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StopNodeRequest,
+    args: &TpuProjectsLocationsNodesStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_nodes_stop_builder(client, name, body)?;
+    let builder = tpu_projects_locations_nodes_stop_builder(client, &args.name, &args.body)?;
     tpu_projects_locations_nodes_stop_execute(builder)
 }
 
@@ -1715,6 +1848,13 @@ pub fn tpu_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1727,12 +1867,12 @@ pub fn tpu_projects_locations_operations_cancel_execute(
 
 pub fn tpu_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TpuProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_operations_cancel_builder(client, name)?;
+    let builder = tpu_projects_locations_operations_cancel_builder(client, &args.name)?;
     tpu_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1826,6 +1966,13 @@ pub fn tpu_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1838,12 +1985,12 @@ pub fn tpu_projects_locations_operations_delete_execute(
 
 pub fn tpu_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TpuProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_operations_delete_builder(client, name)?;
+    let builder = tpu_projects_locations_operations_delete_builder(client, &args.name)?;
     tpu_projects_locations_operations_delete_execute(builder)
 }
 
@@ -1937,6 +2084,13 @@ pub fn tpu_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1949,12 +2103,12 @@ pub fn tpu_projects_locations_operations_get_execute(
 
 pub fn tpu_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TpuProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_operations_get_builder(client, name)?;
+    let builder = tpu_projects_locations_operations_get_builder(client, &args.name)?;
     tpu_projects_locations_operations_get_execute(builder)
 }
 
@@ -2074,6 +2228,21 @@ pub fn tpu_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -2086,11 +2255,7 @@ pub fn tpu_projects_locations_operations_list_execute(
 
 pub fn tpu_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &TpuProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2099,11 +2264,11 @@ pub fn tpu_projects_locations_operations_list(
 > {
     let builder = tpu_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     tpu_projects_locations_operations_list_execute(builder)
 }
@@ -2217,6 +2382,19 @@ pub fn tpu_projects_locations_queued_resources_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_queued_resources_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsQueuedResourcesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: queuedResourceId
+    pub queuedResourceId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: QueuedResource,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queuedResources
 /// Creates a QueuedResource TPU instance.
 ///
@@ -2229,20 +2407,17 @@ pub fn tpu_projects_locations_queued_resources_create_execute(
 
 pub fn tpu_projects_locations_queued_resources_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    queuedResourceId: Option<&str>,
-    requestId: Option<&str>,
-    body: &QueuedResource,
+    args: &TpuProjectsLocationsQueuedResourcesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = tpu_projects_locations_queued_resources_create_builder(
         client,
-        parent,
-        queuedResourceId,
-        requestId,
-        body,
+        &args.parent,
+        args.queuedResourceId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     tpu_projects_locations_queued_resources_create_execute(builder)
 }
@@ -2353,6 +2528,17 @@ pub fn tpu_projects_locations_queued_resources_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_queued_resources_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsQueuedResourcesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queuedResources/{queuedResourcesId}
 /// Deletes a QueuedResource TPU instance.
 ///
@@ -2365,15 +2551,17 @@ pub fn tpu_projects_locations_queued_resources_delete_execute(
 
 pub fn tpu_projects_locations_queued_resources_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    requestId: Option<&str>,
+    args: &TpuProjectsLocationsQueuedResourcesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        tpu_projects_locations_queued_resources_delete_builder(client, name, force, requestId)?;
+    let builder = tpu_projects_locations_queued_resources_delete_builder(
+        client,
+        &args.name,
+        args.force,
+        args.requestId.as_deref(),
+    )?;
     tpu_projects_locations_queued_resources_delete_execute(builder)
 }
 
@@ -2469,6 +2657,13 @@ pub fn tpu_projects_locations_queued_resources_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_queued_resources_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsQueuedResourcesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queuedResources/{queuedResourcesId}
 /// Gets details of a queued resource.
 ///
@@ -2481,14 +2676,14 @@ pub fn tpu_projects_locations_queued_resources_get_execute(
 
 pub fn tpu_projects_locations_queued_resources_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TpuProjectsLocationsQueuedResourcesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<QueuedResource>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_queued_resources_get_builder(client, name)?;
+    let builder = tpu_projects_locations_queued_resources_get_builder(client, &args.name)?;
     tpu_projects_locations_queued_resources_get_execute(builder)
 }
 
@@ -2602,6 +2797,17 @@ pub fn tpu_projects_locations_queued_resources_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_queued_resources_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsQueuedResourcesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queuedResources
 /// Lists queued resources.
 ///
@@ -2614,9 +2820,7 @@ pub fn tpu_projects_locations_queued_resources_list_execute(
 
 pub fn tpu_projects_locations_queued_resources_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TpuProjectsLocationsQueuedResourcesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListQueuedResourcesResponse>, ApiError>,
@@ -2625,8 +2829,12 @@ pub fn tpu_projects_locations_queued_resources_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        tpu_projects_locations_queued_resources_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = tpu_projects_locations_queued_resources_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     tpu_projects_locations_queued_resources_list_execute(builder)
 }
 
@@ -2723,6 +2931,15 @@ pub fn tpu_projects_locations_queued_resources_reset_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_queued_resources_reset`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsQueuedResourcesResetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResetQueuedResourceRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/queuedResources/{queuedResourcesId}:reset
 /// Resets a QueuedResource TPU instance
 ///
@@ -2735,13 +2952,13 @@ pub fn tpu_projects_locations_queued_resources_reset_execute(
 
 pub fn tpu_projects_locations_queued_resources_reset(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResetQueuedResourceRequest,
+    args: &TpuProjectsLocationsQueuedResourcesResetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_queued_resources_reset_builder(client, name, body)?;
+    let builder =
+        tpu_projects_locations_queued_resources_reset_builder(client, &args.name, &args.body)?;
     tpu_projects_locations_queued_resources_reset_execute(builder)
 }
 
@@ -2837,6 +3054,13 @@ pub fn tpu_projects_locations_runtime_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_runtime_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsRuntimeVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/runtimeVersions/{runtimeVersionsId}
 /// Gets a runtime version.
 ///
@@ -2849,14 +3073,14 @@ pub fn tpu_projects_locations_runtime_versions_get_execute(
 
 pub fn tpu_projects_locations_runtime_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &TpuProjectsLocationsRuntimeVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RuntimeVersion>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = tpu_projects_locations_runtime_versions_get_builder(client, name)?;
+    let builder = tpu_projects_locations_runtime_versions_get_builder(client, &args.name)?;
     tpu_projects_locations_runtime_versions_get_execute(builder)
 }
 
@@ -2978,6 +3202,21 @@ pub fn tpu_projects_locations_runtime_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`tpu_projects_locations_runtime_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct TpuProjectsLocationsRuntimeVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/runtimeVersions
 /// Lists runtime versions supported by this API.
 ///
@@ -2990,11 +3229,7 @@ pub fn tpu_projects_locations_runtime_versions_list_execute(
 
 pub fn tpu_projects_locations_runtime_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &TpuProjectsLocationsRuntimeVersionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListRuntimeVersionsResponse>, ApiError>,
@@ -3004,7 +3239,12 @@ pub fn tpu_projects_locations_runtime_versions_list(
     ApiError,
 > {
     let builder = tpu_projects_locations_runtime_versions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     tpu_projects_locations_runtime_versions_list_execute(builder)
 }

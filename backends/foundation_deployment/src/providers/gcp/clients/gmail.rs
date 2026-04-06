@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET gmail/v1/users/{userId}/profile
 /// Gets the current user's Gmail profile.
@@ -106,6 +108,13 @@ pub fn gmail_users_get_profile_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_get_profile`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersGetProfileArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET gmail/v1/users/{userId}/profile
 /// Gets the current user's Gmail profile.
 ///
@@ -118,12 +127,12 @@ pub fn gmail_users_get_profile_execute(
 
 pub fn gmail_users_get_profile(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &GmailUsersGetProfileArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Profile>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_get_profile_builder(client, userId)?;
+    let builder = gmail_users_get_profile_builder(client, &args.userId)?;
     gmail_users_get_profile_execute(builder)
 }
 
@@ -214,6 +223,13 @@ pub fn gmail_users_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersStopArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET gmail/v1/users/{userId}/stop
 /// Stop receiving push notifications for the given user mailbox.
 ///
@@ -226,12 +242,12 @@ pub fn gmail_users_stop_execute(
 
 pub fn gmail_users_stop(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &GmailUsersStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_stop_builder(client, userId)?;
+    let builder = gmail_users_stop_builder(client, &args.userId)?;
     gmail_users_stop_execute(builder)
 }
 
@@ -330,6 +346,15 @@ pub fn gmail_users_watch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_watch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersWatchArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: WatchRequest,
+}
+
 /// GET gmail/v1/users/{userId}/watch
 /// Set up or update a push notification watch on the given user mailbox.
 ///
@@ -342,15 +367,14 @@ pub fn gmail_users_watch_execute(
 
 pub fn gmail_users_watch(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &WatchRequest,
+    args: &GmailUsersWatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WatchResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_watch_builder(client, userId, body)?;
+    let builder = gmail_users_watch_builder(client, &args.userId, &args.body)?;
     gmail_users_watch_execute(builder)
 }
 
@@ -447,6 +471,15 @@ pub fn gmail_users_drafts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_drafts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersDraftsCreateArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: Draft,
+}
+
 /// GET gmail/v1/users/{userId}/drafts
 /// Creates a new draft with the DRAFT label.
 ///
@@ -459,13 +492,12 @@ pub fn gmail_users_drafts_create_execute(
 
 pub fn gmail_users_drafts_create(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &Draft,
+    args: &GmailUsersDraftsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Draft>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_drafts_create_builder(client, userId, body)?;
+    let builder = gmail_users_drafts_create_builder(client, &args.userId, &args.body)?;
     gmail_users_drafts_create_execute(builder)
 }
 
@@ -557,6 +589,15 @@ pub fn gmail_users_drafts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_drafts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersDraftsDeleteArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET gmail/v1/users/{userId}/drafts/{id}
 /// Immediately and permanently deletes the specified draft. Does not simply trash it.
 ///
@@ -569,13 +610,12 @@ pub fn gmail_users_drafts_delete_execute(
 
 pub fn gmail_users_drafts_delete(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
+    args: &GmailUsersDraftsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_drafts_delete_builder(client, userId, id)?;
+    let builder = gmail_users_drafts_delete_builder(client, &args.userId, &args.id)?;
     gmail_users_drafts_delete_execute(builder)
 }
 
@@ -682,6 +722,17 @@ pub fn gmail_users_drafts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_drafts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersDraftsGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: format
+    pub format: Option<String>,
+}
+
 /// GET gmail/v1/users/{userId}/drafts/{id}
 /// Gets the specified draft.
 ///
@@ -694,14 +745,13 @@ pub fn gmail_users_drafts_get_execute(
 
 pub fn gmail_users_drafts_get(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
-    format: Option<&str>,
+    args: &GmailUsersDraftsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Draft>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_drafts_get_builder(client, userId, id, format)?;
+    let builder =
+        gmail_users_drafts_get_builder(client, &args.userId, &args.id, args.format.as_deref())?;
     gmail_users_drafts_get_execute(builder)
 }
 
@@ -821,6 +871,21 @@ pub fn gmail_users_drafts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_drafts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersDraftsListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: includeSpamTrash
+    pub includeSpamTrash: Option<bool>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: q
+    pub q: Option<String>,
+}
+
 /// GET gmail/v1/users/{userId}/drafts
 /// Lists the drafts in the user's mailbox.
 ///
@@ -833,11 +898,7 @@ pub fn gmail_users_drafts_list_execute(
 
 pub fn gmail_users_drafts_list(
     client: &SimpleHttpClient,
-    userId: &str,
-    includeSpamTrash: Option<bool>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    q: Option<&str>,
+    args: &GmailUsersDraftsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDraftsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -846,11 +907,11 @@ pub fn gmail_users_drafts_list(
 > {
     let builder = gmail_users_drafts_list_builder(
         client,
-        userId,
-        includeSpamTrash,
-        maxResults,
-        pageToken,
-        q,
+        &args.userId,
+        args.includeSpamTrash,
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.q.as_deref(),
     )?;
     gmail_users_drafts_list_execute(builder)
 }
@@ -948,6 +1009,15 @@ pub fn gmail_users_drafts_send_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_drafts_send`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersDraftsSendArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: Draft,
+}
+
 /// GET gmail/v1/users/{userId}/drafts/send
 /// Sends the specified, existing draft to the recipients in the To, Cc, and Bcc headers.
 ///
@@ -960,13 +1030,12 @@ pub fn gmail_users_drafts_send_execute(
 
 pub fn gmail_users_drafts_send(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &Draft,
+    args: &GmailUsersDraftsSendArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_drafts_send_builder(client, userId, body)?;
+    let builder = gmail_users_drafts_send_builder(client, &args.userId, &args.body)?;
     gmail_users_drafts_send_execute(builder)
 }
 
@@ -1064,6 +1133,17 @@ pub fn gmail_users_drafts_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_drafts_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersDraftsUpdateArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: Draft,
+}
+
 /// GET gmail/v1/users/{userId}/drafts/{id}
 /// Replaces a draft's content.
 ///
@@ -1076,14 +1156,12 @@ pub fn gmail_users_drafts_update_execute(
 
 pub fn gmail_users_drafts_update(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
-    body: &Draft,
+    args: &GmailUsersDraftsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Draft>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_drafts_update_builder(client, userId, id, body)?;
+    let builder = gmail_users_drafts_update_builder(client, &args.userId, &args.id, &args.body)?;
     gmail_users_drafts_update_execute(builder)
 }
 
@@ -1207,6 +1285,23 @@ pub fn gmail_users_history_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_history_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersHistoryListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: historyTypes
+    pub historyTypes: Option<String>,
+    /// Query parameter: labelId
+    pub labelId: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: startHistoryId
+    pub startHistoryId: Option<String>,
+}
+
 /// GET gmail/v1/users/{userId}/history
 /// Lists the history of all changes to the given mailbox. History results are returned in chronological order (increasing `historyId`).
 ///
@@ -1219,12 +1314,7 @@ pub fn gmail_users_history_list_execute(
 
 pub fn gmail_users_history_list(
     client: &SimpleHttpClient,
-    userId: &str,
-    historyTypes: Option<&str>,
-    labelId: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    startHistoryId: Option<&str>,
+    args: &GmailUsersHistoryListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListHistoryResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1233,12 +1323,12 @@ pub fn gmail_users_history_list(
 > {
     let builder = gmail_users_history_list_builder(
         client,
-        userId,
-        historyTypes,
-        labelId,
-        maxResults,
-        pageToken,
-        startHistoryId,
+        &args.userId,
+        args.historyTypes.as_deref(),
+        args.labelId.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.startHistoryId.as_deref(),
     )?;
     gmail_users_history_list_execute(builder)
 }
@@ -1336,6 +1426,15 @@ pub fn gmail_users_labels_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_labels_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersLabelsCreateArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: Label,
+}
+
 /// GET gmail/v1/users/{userId}/labels
 /// Creates a new label.
 ///
@@ -1348,13 +1447,12 @@ pub fn gmail_users_labels_create_execute(
 
 pub fn gmail_users_labels_create(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &Label,
+    args: &GmailUsersLabelsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Label>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_labels_create_builder(client, userId, body)?;
+    let builder = gmail_users_labels_create_builder(client, &args.userId, &args.body)?;
     gmail_users_labels_create_execute(builder)
 }
 
@@ -1446,6 +1544,15 @@ pub fn gmail_users_labels_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_labels_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersLabelsDeleteArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET gmail/v1/users/{userId}/labels/{id}
 /// Immediately and permanently deletes the specified label and removes it from any messages and threads that it is applied to.
 ///
@@ -1458,13 +1565,12 @@ pub fn gmail_users_labels_delete_execute(
 
 pub fn gmail_users_labels_delete(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
+    args: &GmailUsersLabelsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_labels_delete_builder(client, userId, id)?;
+    let builder = gmail_users_labels_delete_builder(client, &args.userId, &args.id)?;
     gmail_users_labels_delete_execute(builder)
 }
 
@@ -1559,6 +1665,15 @@ pub fn gmail_users_labels_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_labels_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersLabelsGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET gmail/v1/users/{userId}/labels/{id}
 /// Gets the specified label.
 ///
@@ -1571,13 +1686,12 @@ pub fn gmail_users_labels_get_execute(
 
 pub fn gmail_users_labels_get(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
+    args: &GmailUsersLabelsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Label>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_labels_get_builder(client, userId, id)?;
+    let builder = gmail_users_labels_get_builder(client, &args.userId, &args.id)?;
     gmail_users_labels_get_execute(builder)
 }
 
@@ -1673,6 +1787,13 @@ pub fn gmail_users_labels_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_labels_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersLabelsListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET gmail/v1/users/{userId}/labels
 /// Lists all labels in the user's mailbox.
 ///
@@ -1685,14 +1806,14 @@ pub fn gmail_users_labels_list_execute(
 
 pub fn gmail_users_labels_list(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &GmailUsersLabelsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLabelsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_labels_list_builder(client, userId)?;
+    let builder = gmail_users_labels_list_builder(client, &args.userId)?;
     gmail_users_labels_list_execute(builder)
 }
 
@@ -1790,6 +1911,17 @@ pub fn gmail_users_labels_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_labels_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersLabelsPatchArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: Label,
+}
+
 /// GET gmail/v1/users/{userId}/labels/{id}
 /// Patch the specified label.
 ///
@@ -1802,14 +1934,12 @@ pub fn gmail_users_labels_patch_execute(
 
 pub fn gmail_users_labels_patch(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
-    body: &Label,
+    args: &GmailUsersLabelsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Label>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_labels_patch_builder(client, userId, id, body)?;
+    let builder = gmail_users_labels_patch_builder(client, &args.userId, &args.id, &args.body)?;
     gmail_users_labels_patch_execute(builder)
 }
 
@@ -1907,6 +2037,17 @@ pub fn gmail_users_labels_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_labels_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersLabelsUpdateArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: Label,
+}
+
 /// GET gmail/v1/users/{userId}/labels/{id}
 /// Updates the specified label.
 ///
@@ -1919,14 +2060,12 @@ pub fn gmail_users_labels_update_execute(
 
 pub fn gmail_users_labels_update(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
-    body: &Label,
+    args: &GmailUsersLabelsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Label>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_labels_update_builder(client, userId, id, body)?;
+    let builder = gmail_users_labels_update_builder(client, &args.userId, &args.id, &args.body)?;
     gmail_users_labels_update_execute(builder)
 }
 
@@ -2020,6 +2159,15 @@ pub fn gmail_users_messages_batch_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_messages_batch_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersMessagesBatchDeleteArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: BatchDeleteMessagesRequest,
+}
+
 /// GET gmail/v1/users/{userId}/messages/batchDelete
 /// Deletes many messages by message ID. Provides no guarantees that messages were not already deleted or even existed at all.
 ///
@@ -2032,13 +2180,12 @@ pub fn gmail_users_messages_batch_delete_execute(
 
 pub fn gmail_users_messages_batch_delete(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &BatchDeleteMessagesRequest,
+    args: &GmailUsersMessagesBatchDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_batch_delete_builder(client, userId, body)?;
+    let builder = gmail_users_messages_batch_delete_builder(client, &args.userId, &args.body)?;
     gmail_users_messages_batch_delete_execute(builder)
 }
 
@@ -2132,6 +2279,15 @@ pub fn gmail_users_messages_batch_modify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_messages_batch_modify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersMessagesBatchModifyArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: BatchModifyMessagesRequest,
+}
+
 /// GET gmail/v1/users/{userId}/messages/batchModify
 /// Modifies the labels on the specified messages.
 ///
@@ -2144,13 +2300,12 @@ pub fn gmail_users_messages_batch_modify_execute(
 
 pub fn gmail_users_messages_batch_modify(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &BatchModifyMessagesRequest,
+    args: &GmailUsersMessagesBatchModifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_batch_modify_builder(client, userId, body)?;
+    let builder = gmail_users_messages_batch_modify_builder(client, &args.userId, &args.body)?;
     gmail_users_messages_batch_modify_execute(builder)
 }
 
@@ -2242,6 +2397,15 @@ pub fn gmail_users_messages_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_messages_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersMessagesDeleteArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET gmail/v1/users/{userId}/messages/{id}
 /// Immediately and permanently deletes the specified message. This operation cannot be undone. Prefer messages.trash instead.
 ///
@@ -2254,13 +2418,12 @@ pub fn gmail_users_messages_delete_execute(
 
 pub fn gmail_users_messages_delete(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
+    args: &GmailUsersMessagesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_delete_builder(client, userId, id)?;
+    let builder = gmail_users_messages_delete_builder(client, &args.userId, &args.id)?;
     gmail_users_messages_delete_execute(builder)
 }
 
@@ -2371,6 +2534,19 @@ pub fn gmail_users_messages_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_messages_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersMessagesGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: format
+    pub format: Option<String>,
+    /// Query parameter: metadataHeaders
+    pub metadataHeaders: Option<String>,
+}
+
 /// GET gmail/v1/users/{userId}/messages/{id}
 /// Gets the specified message.
 ///
@@ -2383,15 +2559,18 @@ pub fn gmail_users_messages_get_execute(
 
 pub fn gmail_users_messages_get(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
-    format: Option<&str>,
-    metadataHeaders: Option<&str>,
+    args: &GmailUsersMessagesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_get_builder(client, userId, id, format, metadataHeaders)?;
+    let builder = gmail_users_messages_get_builder(
+        client,
+        &args.userId,
+        &args.id,
+        args.format.as_deref(),
+        args.metadataHeaders.as_deref(),
+    )?;
     gmail_users_messages_get_execute(builder)
 }
 
@@ -2512,6 +2691,23 @@ pub fn gmail_users_messages_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_messages_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersMessagesImportArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: deleted
+    pub deleted: Option<bool>,
+    /// Query parameter: internalDateSource
+    pub internalDateSource: Option<String>,
+    /// Query parameter: neverMarkSpam
+    pub neverMarkSpam: Option<bool>,
+    /// Query parameter: processForCalendar
+    pub processForCalendar: Option<bool>,
+    /// Request body.
+    pub body: Message,
+}
+
 /// GET gmail/v1/users/{userId}/messages/import
 /// Imports a message into only this user's mailbox, with standard email delivery scanning and classification similar to receiving via SMTP. This method doesn't perform SPF checks, so it might not work for some spam messages, such as those attempting to perform domain spoofing. This method does not send a message. Note that the maximum size of the message is 150MB.
 ///
@@ -2524,24 +2720,19 @@ pub fn gmail_users_messages_import_execute(
 
 pub fn gmail_users_messages_import(
     client: &SimpleHttpClient,
-    userId: &str,
-    deleted: Option<bool>,
-    internalDateSource: Option<&str>,
-    neverMarkSpam: Option<bool>,
-    processForCalendar: Option<bool>,
-    body: &Message,
+    args: &GmailUsersMessagesImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gmail_users_messages_import_builder(
         client,
-        userId,
-        deleted,
-        internalDateSource,
-        neverMarkSpam,
-        processForCalendar,
-        body,
+        &args.userId,
+        args.deleted,
+        args.internalDateSource.as_deref(),
+        args.neverMarkSpam,
+        args.processForCalendar,
+        &args.body,
     )?;
     gmail_users_messages_import_execute(builder)
 }
@@ -2655,6 +2846,19 @@ pub fn gmail_users_messages_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_messages_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersMessagesInsertArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: deleted
+    pub deleted: Option<bool>,
+    /// Query parameter: internalDateSource
+    pub internalDateSource: Option<String>,
+    /// Request body.
+    pub body: Message,
+}
+
 /// GET gmail/v1/users/{userId}/messages
 /// Directly inserts a message into only this user's mailbox similar to IMAP APPEND, bypassing most scanning and classification. Does not send a message.
 ///
@@ -2667,16 +2871,18 @@ pub fn gmail_users_messages_insert_execute(
 
 pub fn gmail_users_messages_insert(
     client: &SimpleHttpClient,
-    userId: &str,
-    deleted: Option<bool>,
-    internalDateSource: Option<&str>,
-    body: &Message,
+    args: &GmailUsersMessagesInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_messages_insert_builder(client, userId, deleted, internalDateSource, body)?;
+    let builder = gmail_users_messages_insert_builder(
+        client,
+        &args.userId,
+        args.deleted,
+        args.internalDateSource.as_deref(),
+        &args.body,
+    )?;
     gmail_users_messages_insert_execute(builder)
 }
 
@@ -2800,6 +3006,23 @@ pub fn gmail_users_messages_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_messages_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersMessagesListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: includeSpamTrash
+    pub includeSpamTrash: Option<bool>,
+    /// Query parameter: labelIds
+    pub labelIds: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: q
+    pub q: Option<String>,
+}
+
 /// GET gmail/v1/users/{userId}/messages
 /// Lists the messages in the user's mailbox. For example usage, see [List Gmail messages](<https://developers.google.`com/workspace/gmail/api/guides/list-messages`>).
 ///
@@ -2812,12 +3035,7 @@ pub fn gmail_users_messages_list_execute(
 
 pub fn gmail_users_messages_list(
     client: &SimpleHttpClient,
-    userId: &str,
-    includeSpamTrash: Option<bool>,
-    labelIds: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    q: Option<&str>,
+    args: &GmailUsersMessagesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListMessagesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2826,12 +3044,12 @@ pub fn gmail_users_messages_list(
 > {
     let builder = gmail_users_messages_list_builder(
         client,
-        userId,
-        includeSpamTrash,
-        labelIds,
-        maxResults,
-        pageToken,
-        q,
+        &args.userId,
+        args.includeSpamTrash,
+        args.labelIds.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.q.as_deref(),
     )?;
     gmail_users_messages_list_execute(builder)
 }
@@ -2930,6 +3148,17 @@ pub fn gmail_users_messages_modify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_messages_modify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersMessagesModifyArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: ModifyMessageRequest,
+}
+
 /// GET gmail/v1/users/{userId}/messages/{id}/modify
 /// Modifies the labels on the specified message.
 ///
@@ -2942,14 +3171,12 @@ pub fn gmail_users_messages_modify_execute(
 
 pub fn gmail_users_messages_modify(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
-    body: &ModifyMessageRequest,
+    args: &GmailUsersMessagesModifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_modify_builder(client, userId, id, body)?;
+    let builder = gmail_users_messages_modify_builder(client, &args.userId, &args.id, &args.body)?;
     gmail_users_messages_modify_execute(builder)
 }
 
@@ -3046,6 +3273,15 @@ pub fn gmail_users_messages_send_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_messages_send`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersMessagesSendArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: Message,
+}
+
 /// GET gmail/v1/users/{userId}/messages/send
 /// Sends the specified message to the recipients in the To, Cc, and Bcc headers. For example usage, see [Sending email](<https://developers.google.`com/workspace/gmail/api/guides/sending`>).
 ///
@@ -3058,13 +3294,12 @@ pub fn gmail_users_messages_send_execute(
 
 pub fn gmail_users_messages_send(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &Message,
+    args: &GmailUsersMessagesSendArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_send_builder(client, userId, body)?;
+    let builder = gmail_users_messages_send_builder(client, &args.userId, &args.body)?;
     gmail_users_messages_send_execute(builder)
 }
 
@@ -3159,6 +3394,15 @@ pub fn gmail_users_messages_trash_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_messages_trash`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersMessagesTrashArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET gmail/v1/users/{userId}/messages/{id}/trash
 /// Moves the specified message to the trash.
 ///
@@ -3171,13 +3415,12 @@ pub fn gmail_users_messages_trash_execute(
 
 pub fn gmail_users_messages_trash(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
+    args: &GmailUsersMessagesTrashArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_trash_builder(client, userId, id)?;
+    let builder = gmail_users_messages_trash_builder(client, &args.userId, &args.id)?;
     gmail_users_messages_trash_execute(builder)
 }
 
@@ -3272,6 +3515,15 @@ pub fn gmail_users_messages_untrash_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_messages_untrash`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersMessagesUntrashArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET gmail/v1/users/{userId}/messages/{id}/untrash
 /// Removes the specified message from the trash.
 ///
@@ -3284,13 +3536,12 @@ pub fn gmail_users_messages_untrash_execute(
 
 pub fn gmail_users_messages_untrash(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
+    args: &GmailUsersMessagesUntrashArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_untrash_builder(client, userId, id)?;
+    let builder = gmail_users_messages_untrash_builder(client, &args.userId, &args.id)?;
     gmail_users_messages_untrash_execute(builder)
 }
 
@@ -3388,6 +3639,17 @@ pub fn gmail_users_messages_attachments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_messages_attachments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersMessagesAttachmentsGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: messageId
+    pub messageId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET gmail/v1/users/{userId}/messages/{messageId}/attachments/{id}
 /// Gets the specified message attachment.
 ///
@@ -3400,16 +3662,19 @@ pub fn gmail_users_messages_attachments_get_execute(
 
 pub fn gmail_users_messages_attachments_get(
     client: &SimpleHttpClient,
-    userId: &str,
-    messageId: &str,
-    id: &str,
+    args: &GmailUsersMessagesAttachmentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<MessagePartBody>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_messages_attachments_get_builder(client, userId, messageId, id)?;
+    let builder = gmail_users_messages_attachments_get_builder(
+        client,
+        &args.userId,
+        &args.messageId,
+        &args.id,
+    )?;
     gmail_users_messages_attachments_get_execute(builder)
 }
 
@@ -3505,6 +3770,13 @@ pub fn gmail_users_settings_get_auto_forwarding_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_get_auto_forwarding`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsGetAutoForwardingArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/autoForwarding
 /// Gets the auto-forwarding setting for the specified account.
 ///
@@ -3517,14 +3789,14 @@ pub fn gmail_users_settings_get_auto_forwarding_execute(
 
 pub fn gmail_users_settings_get_auto_forwarding(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &GmailUsersSettingsGetAutoForwardingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutoForwarding>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_get_auto_forwarding_builder(client, userId)?;
+    let builder = gmail_users_settings_get_auto_forwarding_builder(client, &args.userId)?;
     gmail_users_settings_get_auto_forwarding_execute(builder)
 }
 
@@ -3620,6 +3892,13 @@ pub fn gmail_users_settings_get_imap_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_get_imap`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsGetImapArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/imap
 /// Gets IMAP settings.
 ///
@@ -3632,14 +3911,14 @@ pub fn gmail_users_settings_get_imap_execute(
 
 pub fn gmail_users_settings_get_imap(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &GmailUsersSettingsGetImapArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ImapSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_get_imap_builder(client, userId)?;
+    let builder = gmail_users_settings_get_imap_builder(client, &args.userId)?;
     gmail_users_settings_get_imap_execute(builder)
 }
 
@@ -3735,6 +4014,13 @@ pub fn gmail_users_settings_get_language_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_get_language`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsGetLanguageArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/language
 /// Gets language settings.
 ///
@@ -3747,14 +4033,14 @@ pub fn gmail_users_settings_get_language_execute(
 
 pub fn gmail_users_settings_get_language(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &GmailUsersSettingsGetLanguageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LanguageSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_get_language_builder(client, userId)?;
+    let builder = gmail_users_settings_get_language_builder(client, &args.userId)?;
     gmail_users_settings_get_language_execute(builder)
 }
 
@@ -3848,6 +4134,13 @@ pub fn gmail_users_settings_get_pop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_get_pop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsGetPopArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/pop
 /// Gets POP settings.
 ///
@@ -3860,12 +4153,12 @@ pub fn gmail_users_settings_get_pop_execute(
 
 pub fn gmail_users_settings_get_pop(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &GmailUsersSettingsGetPopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PopSettings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_get_pop_builder(client, userId)?;
+    let builder = gmail_users_settings_get_pop_builder(client, &args.userId)?;
     gmail_users_settings_get_pop_execute(builder)
 }
 
@@ -3961,6 +4254,13 @@ pub fn gmail_users_settings_get_vacation_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_get_vacation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsGetVacationArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/vacation
 /// Gets vacation responder settings.
 ///
@@ -3973,14 +4273,14 @@ pub fn gmail_users_settings_get_vacation_execute(
 
 pub fn gmail_users_settings_get_vacation(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &GmailUsersSettingsGetVacationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VacationSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_get_vacation_builder(client, userId)?;
+    let builder = gmail_users_settings_get_vacation_builder(client, &args.userId)?;
     gmail_users_settings_get_vacation_execute(builder)
 }
 
@@ -4079,6 +4379,15 @@ pub fn gmail_users_settings_update_auto_forwarding_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_update_auto_forwarding`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsUpdateAutoForwardingArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: AutoForwarding,
+}
+
 /// GET gmail/v1/users/{userId}/settings/autoForwarding
 /// Updates the auto-forwarding setting for the specified account. A verified forwarding address must be specified when auto-forwarding is enabled. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
@@ -4091,15 +4400,15 @@ pub fn gmail_users_settings_update_auto_forwarding_execute(
 
 pub fn gmail_users_settings_update_auto_forwarding(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &AutoForwarding,
+    args: &GmailUsersSettingsUpdateAutoForwardingArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AutoForwarding>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_update_auto_forwarding_builder(client, userId, body)?;
+    let builder =
+        gmail_users_settings_update_auto_forwarding_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_update_auto_forwarding_execute(builder)
 }
 
@@ -4198,6 +4507,15 @@ pub fn gmail_users_settings_update_imap_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_update_imap`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsUpdateImapArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: ImapSettings,
+}
+
 /// GET gmail/v1/users/{userId}/settings/imap
 /// Updates IMAP settings.
 ///
@@ -4210,15 +4528,14 @@ pub fn gmail_users_settings_update_imap_execute(
 
 pub fn gmail_users_settings_update_imap(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &ImapSettings,
+    args: &GmailUsersSettingsUpdateImapArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ImapSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_update_imap_builder(client, userId, body)?;
+    let builder = gmail_users_settings_update_imap_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_update_imap_execute(builder)
 }
 
@@ -4317,6 +4634,15 @@ pub fn gmail_users_settings_update_language_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_update_language`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsUpdateLanguageArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: LanguageSettings,
+}
+
 /// GET gmail/v1/users/{userId}/settings/language
 /// Updates language settings. If successful, the return object contains the `displayLanguage` that was saved for the user, which may differ from the value passed into the request. This is because the requested `displayLanguage` may not be directly supported by Gmail but have a close variant that is, and so the variant may be chosen and saved instead.
 ///
@@ -4329,15 +4655,14 @@ pub fn gmail_users_settings_update_language_execute(
 
 pub fn gmail_users_settings_update_language(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &LanguageSettings,
+    args: &GmailUsersSettingsUpdateLanguageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LanguageSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_update_language_builder(client, userId, body)?;
+    let builder = gmail_users_settings_update_language_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_update_language_execute(builder)
 }
 
@@ -4434,6 +4759,15 @@ pub fn gmail_users_settings_update_pop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_update_pop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsUpdatePopArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: PopSettings,
+}
+
 /// GET gmail/v1/users/{userId}/settings/pop
 /// Updates POP settings.
 ///
@@ -4446,13 +4780,12 @@ pub fn gmail_users_settings_update_pop_execute(
 
 pub fn gmail_users_settings_update_pop(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &PopSettings,
+    args: &GmailUsersSettingsUpdatePopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PopSettings>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_update_pop_builder(client, userId, body)?;
+    let builder = gmail_users_settings_update_pop_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_update_pop_execute(builder)
 }
 
@@ -4551,6 +4884,15 @@ pub fn gmail_users_settings_update_vacation_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_update_vacation`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsUpdateVacationArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: VacationSettings,
+}
+
 /// GET gmail/v1/users/{userId}/settings/vacation
 /// Updates vacation responder settings.
 ///
@@ -4563,15 +4905,14 @@ pub fn gmail_users_settings_update_vacation_execute(
 
 pub fn gmail_users_settings_update_vacation(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &VacationSettings,
+    args: &GmailUsersSettingsUpdateVacationArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<VacationSettings>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_update_vacation_builder(client, userId, body)?;
+    let builder = gmail_users_settings_update_vacation_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_update_vacation_execute(builder)
 }
 
@@ -4668,6 +5009,15 @@ pub fn gmail_users_settings_cse_identities_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_cse_identities_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsCseIdentitiesCreateArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: CseIdentity,
+}
+
 /// GET gmail/v1/users/{userId}/settings/cse/identities
 /// Creates and configures a client-side encryption identity that's authorized to send mail from the user account. Google publishes the S/MIME certificate to a shared domain-wide directory so that people within a Google Workspace organization can encrypt and send mail to the identity. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
@@ -4680,13 +5030,13 @@ pub fn gmail_users_settings_cse_identities_create_execute(
 
 pub fn gmail_users_settings_cse_identities_create(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &CseIdentity,
+    args: &GmailUsersSettingsCseIdentitiesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CseIdentity>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_cse_identities_create_builder(client, userId, body)?;
+    let builder =
+        gmail_users_settings_cse_identities_create_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_cse_identities_create_execute(builder)
 }
 
@@ -4778,6 +5128,15 @@ pub fn gmail_users_settings_cse_identities_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_cse_identities_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsCseIdentitiesDeleteArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: cseEmailAddress
+    pub cseEmailAddress: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}
 /// Deletes a client-side encryption identity. The authenticated user can no longer use the identity to send encrypted messages. You cannot restore the identity after you delete it. Instead, use the CreateCseIdentity method to create another identity with the same configuration. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
@@ -4790,14 +5149,16 @@ pub fn gmail_users_settings_cse_identities_delete_execute(
 
 pub fn gmail_users_settings_cse_identities_delete(
     client: &SimpleHttpClient,
-    userId: &str,
-    cseEmailAddress: &str,
+    args: &GmailUsersSettingsCseIdentitiesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_cse_identities_delete_builder(client, userId, cseEmailAddress)?;
+    let builder = gmail_users_settings_cse_identities_delete_builder(
+        client,
+        &args.userId,
+        &args.cseEmailAddress,
+    )?;
     gmail_users_settings_cse_identities_delete_execute(builder)
 }
 
@@ -4892,6 +5253,15 @@ pub fn gmail_users_settings_cse_identities_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_cse_identities_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsCseIdentitiesGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: cseEmailAddress
+    pub cseEmailAddress: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/cse/identities/{cseEmailAddress}
 /// Retrieves a client-side encryption identity configuration. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
@@ -4904,13 +5274,16 @@ pub fn gmail_users_settings_cse_identities_get_execute(
 
 pub fn gmail_users_settings_cse_identities_get(
     client: &SimpleHttpClient,
-    userId: &str,
-    cseEmailAddress: &str,
+    args: &GmailUsersSettingsCseIdentitiesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CseIdentity>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_cse_identities_get_builder(client, userId, cseEmailAddress)?;
+    let builder = gmail_users_settings_cse_identities_get_builder(
+        client,
+        &args.userId,
+        &args.cseEmailAddress,
+    )?;
     gmail_users_settings_cse_identities_get_execute(builder)
 }
 
@@ -5022,6 +5395,17 @@ pub fn gmail_users_settings_cse_identities_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_cse_identities_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsCseIdentitiesListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET gmail/v1/users/{userId}/settings/cse/identities
 /// Lists the client-side encrypted identities for an authenticated user. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
@@ -5034,17 +5418,19 @@ pub fn gmail_users_settings_cse_identities_list_execute(
 
 pub fn gmail_users_settings_cse_identities_list(
     client: &SimpleHttpClient,
-    userId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GmailUsersSettingsCseIdentitiesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCseIdentitiesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_cse_identities_list_builder(client, userId, pageSize, pageToken)?;
+    let builder = gmail_users_settings_cse_identities_list_builder(
+        client,
+        &args.userId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     gmail_users_settings_cse_identities_list_execute(builder)
 }
 
@@ -5142,6 +5528,17 @@ pub fn gmail_users_settings_cse_identities_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_cse_identities_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsCseIdentitiesPatchArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: emailAddress
+    pub emailAddress: String,
+    /// Request body.
+    pub body: CseIdentity,
+}
+
 /// GET gmail/v1/users/{userId}/settings/cse/identities/{emailAddress}
 /// Associates a different key pair with an existing client-side encryption identity. The updated key pair must validate against Google's [S/MIME certificate profiles](<https://support.google.`com/a/answer/7300887`>). For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
@@ -5154,15 +5551,17 @@ pub fn gmail_users_settings_cse_identities_patch_execute(
 
 pub fn gmail_users_settings_cse_identities_patch(
     client: &SimpleHttpClient,
-    userId: &str,
-    emailAddress: &str,
-    body: &CseIdentity,
+    args: &GmailUsersSettingsCseIdentitiesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CseIdentity>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_cse_identities_patch_builder(client, userId, emailAddress, body)?;
+    let builder = gmail_users_settings_cse_identities_patch_builder(
+        client,
+        &args.userId,
+        &args.emailAddress,
+        &args.body,
+    )?;
     gmail_users_settings_cse_identities_patch_execute(builder)
 }
 
@@ -5259,6 +5658,15 @@ pub fn gmail_users_settings_cse_keypairs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_cse_keypairs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsCseKeypairsCreateArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: CseKeyPair,
+}
+
 /// GET gmail/v1/users/{userId}/settings/cse/keypairs
 /// Creates and uploads a client-side encryption S/MIME public key certificate chain and private key metadata for the authenticated user. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
@@ -5271,13 +5679,13 @@ pub fn gmail_users_settings_cse_keypairs_create_execute(
 
 pub fn gmail_users_settings_cse_keypairs_create(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &CseKeyPair,
+    args: &GmailUsersSettingsCseKeypairsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CseKeyPair>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_cse_keypairs_create_builder(client, userId, body)?;
+    let builder =
+        gmail_users_settings_cse_keypairs_create_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_cse_keypairs_create_execute(builder)
 }
 
@@ -5375,6 +5783,17 @@ pub fn gmail_users_settings_cse_keypairs_disable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_cse_keypairs_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsCseKeypairsDisableArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: keyPairId
+    pub keyPairId: String,
+    /// Request body.
+    pub body: DisableCseKeyPairRequest,
+}
+
 /// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:disable
 /// Turns off a client-side encryption key pair. The authenticated user can no longer use the key pair to decrypt incoming CSE message texts or sign outgoing CSE mail. To regain access, use the EnableCseKeyPair to turn on the key pair. After 30 days, you can permanently delete the key pair by using the ObliterateCseKeyPair method. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
@@ -5387,15 +5806,17 @@ pub fn gmail_users_settings_cse_keypairs_disable_execute(
 
 pub fn gmail_users_settings_cse_keypairs_disable(
     client: &SimpleHttpClient,
-    userId: &str,
-    keyPairId: &str,
-    body: &DisableCseKeyPairRequest,
+    args: &GmailUsersSettingsCseKeypairsDisableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CseKeyPair>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_cse_keypairs_disable_builder(client, userId, keyPairId, body)?;
+    let builder = gmail_users_settings_cse_keypairs_disable_builder(
+        client,
+        &args.userId,
+        &args.keyPairId,
+        &args.body,
+    )?;
     gmail_users_settings_cse_keypairs_disable_execute(builder)
 }
 
@@ -5493,6 +5914,17 @@ pub fn gmail_users_settings_cse_keypairs_enable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_cse_keypairs_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsCseKeypairsEnableArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: keyPairId
+    pub keyPairId: String,
+    /// Request body.
+    pub body: EnableCseKeyPairRequest,
+}
+
 /// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:enable
 /// Turns on a client-side encryption key pair that was turned off. The key pair becomes active again for any associated client-side encryption identities. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
@@ -5505,15 +5937,17 @@ pub fn gmail_users_settings_cse_keypairs_enable_execute(
 
 pub fn gmail_users_settings_cse_keypairs_enable(
     client: &SimpleHttpClient,
-    userId: &str,
-    keyPairId: &str,
-    body: &EnableCseKeyPairRequest,
+    args: &GmailUsersSettingsCseKeypairsEnableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CseKeyPair>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_cse_keypairs_enable_builder(client, userId, keyPairId, body)?;
+    let builder = gmail_users_settings_cse_keypairs_enable_builder(
+        client,
+        &args.userId,
+        &args.keyPairId,
+        &args.body,
+    )?;
     gmail_users_settings_cse_keypairs_enable_execute(builder)
 }
 
@@ -5608,6 +6042,15 @@ pub fn gmail_users_settings_cse_keypairs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_cse_keypairs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsCseKeypairsGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: keyPairId
+    pub keyPairId: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}
 /// Retrieves an existing client-side encryption key pair. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
@@ -5620,13 +6063,13 @@ pub fn gmail_users_settings_cse_keypairs_get_execute(
 
 pub fn gmail_users_settings_cse_keypairs_get(
     client: &SimpleHttpClient,
-    userId: &str,
-    keyPairId: &str,
+    args: &GmailUsersSettingsCseKeypairsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CseKeyPair>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_cse_keypairs_get_builder(client, userId, keyPairId)?;
+    let builder =
+        gmail_users_settings_cse_keypairs_get_builder(client, &args.userId, &args.keyPairId)?;
     gmail_users_settings_cse_keypairs_get_execute(builder)
 }
 
@@ -5738,6 +6181,17 @@ pub fn gmail_users_settings_cse_keypairs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_cse_keypairs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsCseKeypairsListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET gmail/v1/users/{userId}/settings/cse/keypairs
 /// Lists client-side encryption key pairs for an authenticated user. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
@@ -5750,17 +6204,19 @@ pub fn gmail_users_settings_cse_keypairs_list_execute(
 
 pub fn gmail_users_settings_cse_keypairs_list(
     client: &SimpleHttpClient,
-    userId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GmailUsersSettingsCseKeypairsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCseKeyPairsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_cse_keypairs_list_builder(client, userId, pageSize, pageToken)?;
+    let builder = gmail_users_settings_cse_keypairs_list_builder(
+        client,
+        &args.userId,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     gmail_users_settings_cse_keypairs_list_execute(builder)
 }
 
@@ -5855,6 +6311,17 @@ pub fn gmail_users_settings_cse_keypairs_obliterate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_cse_keypairs_obliterate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsCseKeypairsObliterateArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: keyPairId
+    pub keyPairId: String,
+    /// Request body.
+    pub body: ObliterateCseKeyPairRequest,
+}
+
 /// GET gmail/v1/users/{userId}/settings/cse/keypairs/{keyPairId}:obliterate
 /// Deletes a client-side encryption key pair permanently and immediately. You can only permanently delete key pairs that have been turned off for more than 30 days. To turn off a key pair, use the DisableCseKeyPair method. Gmail can't restore or decrypt any messages that were encrypted by an obliterated key. Authenticated users and Google Workspace administrators lose access to reading the encrypted messages. For administrators managing identities and keypairs for users in their organization, requests require authorization with a [service account](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`>) that has [domain-wide delegation authority](<https://developers.google.`com/identity/protocols/OAuth2ServiceAccount`#delegatingauthority>) to impersonate users with the <https://www.googleapis.`com/auth/gmail`.settings.basic> scope. For users managing their own identities and keypairs, requests require [hardware key encryption](<https://support.google.`com/a/answer/14153163`>) turned on and configured.
 ///
@@ -5867,15 +6334,17 @@ pub fn gmail_users_settings_cse_keypairs_obliterate_execute(
 
 pub fn gmail_users_settings_cse_keypairs_obliterate(
     client: &SimpleHttpClient,
-    userId: &str,
-    keyPairId: &str,
-    body: &ObliterateCseKeyPairRequest,
+    args: &GmailUsersSettingsCseKeypairsObliterateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_cse_keypairs_obliterate_builder(client, userId, keyPairId, body)?;
+    let builder = gmail_users_settings_cse_keypairs_obliterate_builder(
+        client,
+        &args.userId,
+        &args.keyPairId,
+        &args.body,
+    )?;
     gmail_users_settings_cse_keypairs_obliterate_execute(builder)
 }
 
@@ -5972,6 +6441,15 @@ pub fn gmail_users_settings_delegates_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_delegates_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsDelegatesCreateArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: Delegate,
+}
+
 /// GET gmail/v1/users/{userId}/settings/delegates
 /// Adds a delegate with its verification status set directly to accepted, without sending any verification email. The delegate user must be a member of the same Google Workspace organization as the delegator user. Gmail imposes limitations on the number of delegates and delegators each user in a Google Workspace organization can have. These limits depend on your organization, but in general each user can have up to 25 delegates and up to 10 delegators. Note that a delegate user must be referred to by their primary email address, and not an email alias. Also note that when a new delegate is created, there may be up to a one minute delay before the new delegate is available for use. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
@@ -5984,13 +6462,12 @@ pub fn gmail_users_settings_delegates_create_execute(
 
 pub fn gmail_users_settings_delegates_create(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &Delegate,
+    args: &GmailUsersSettingsDelegatesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Delegate>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_delegates_create_builder(client, userId, body)?;
+    let builder = gmail_users_settings_delegates_create_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_delegates_create_execute(builder)
 }
 
@@ -6082,6 +6559,15 @@ pub fn gmail_users_settings_delegates_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_delegates_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsDelegatesDeleteArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: delegateEmail
+    pub delegateEmail: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/delegates/{delegateEmail}
 /// Removes the specified delegate (which can be of any verification status), and revokes any verification that may have been required for using it. Note that a delegate user must be referred to by their primary email address, and not an email alias. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
@@ -6094,13 +6580,13 @@ pub fn gmail_users_settings_delegates_delete_execute(
 
 pub fn gmail_users_settings_delegates_delete(
     client: &SimpleHttpClient,
-    userId: &str,
-    delegateEmail: &str,
+    args: &GmailUsersSettingsDelegatesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_delegates_delete_builder(client, userId, delegateEmail)?;
+    let builder =
+        gmail_users_settings_delegates_delete_builder(client, &args.userId, &args.delegateEmail)?;
     gmail_users_settings_delegates_delete_execute(builder)
 }
 
@@ -6195,6 +6681,15 @@ pub fn gmail_users_settings_delegates_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_delegates_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsDelegatesGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: delegateEmail
+    pub delegateEmail: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/delegates/{delegateEmail}
 /// Gets the specified delegate. Note that a delegate user must be referred to by their primary email address, and not an email alias. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
@@ -6207,13 +6702,13 @@ pub fn gmail_users_settings_delegates_get_execute(
 
 pub fn gmail_users_settings_delegates_get(
     client: &SimpleHttpClient,
-    userId: &str,
-    delegateEmail: &str,
+    args: &GmailUsersSettingsDelegatesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Delegate>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_delegates_get_builder(client, userId, delegateEmail)?;
+    let builder =
+        gmail_users_settings_delegates_get_builder(client, &args.userId, &args.delegateEmail)?;
     gmail_users_settings_delegates_get_execute(builder)
 }
 
@@ -6309,6 +6804,13 @@ pub fn gmail_users_settings_delegates_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_delegates_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsDelegatesListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/delegates
 /// Lists the delegates for the specified account. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
@@ -6321,14 +6823,14 @@ pub fn gmail_users_settings_delegates_list_execute(
 
 pub fn gmail_users_settings_delegates_list(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &GmailUsersSettingsDelegatesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListDelegatesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_delegates_list_builder(client, userId)?;
+    let builder = gmail_users_settings_delegates_list_builder(client, &args.userId)?;
     gmail_users_settings_delegates_list_execute(builder)
 }
 
@@ -6425,6 +6927,15 @@ pub fn gmail_users_settings_filters_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_filters_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsFiltersCreateArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: Filter,
+}
+
 /// GET gmail/v1/users/{userId}/settings/filters
 /// Creates a filter. Note: you can only create a maximum of 1,000 filters.
 ///
@@ -6437,13 +6948,12 @@ pub fn gmail_users_settings_filters_create_execute(
 
 pub fn gmail_users_settings_filters_create(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &Filter,
+    args: &GmailUsersSettingsFiltersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_filters_create_builder(client, userId, body)?;
+    let builder = gmail_users_settings_filters_create_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_filters_create_execute(builder)
 }
 
@@ -6535,6 +7045,15 @@ pub fn gmail_users_settings_filters_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_filters_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsFiltersDeleteArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/filters/{id}
 /// Immediately and permanently deletes the specified filter.
 ///
@@ -6547,13 +7066,12 @@ pub fn gmail_users_settings_filters_delete_execute(
 
 pub fn gmail_users_settings_filters_delete(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
+    args: &GmailUsersSettingsFiltersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_filters_delete_builder(client, userId, id)?;
+    let builder = gmail_users_settings_filters_delete_builder(client, &args.userId, &args.id)?;
     gmail_users_settings_filters_delete_execute(builder)
 }
 
@@ -6648,6 +7166,15 @@ pub fn gmail_users_settings_filters_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_filters_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsFiltersGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/filters/{id}
 /// Gets a filter.
 ///
@@ -6660,13 +7187,12 @@ pub fn gmail_users_settings_filters_get_execute(
 
 pub fn gmail_users_settings_filters_get(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
+    args: &GmailUsersSettingsFiltersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Filter>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_filters_get_builder(client, userId, id)?;
+    let builder = gmail_users_settings_filters_get_builder(client, &args.userId, &args.id)?;
     gmail_users_settings_filters_get_execute(builder)
 }
 
@@ -6762,6 +7288,13 @@ pub fn gmail_users_settings_filters_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_filters_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsFiltersListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/filters
 /// Lists the message filters of a Gmail user.
 ///
@@ -6774,14 +7307,14 @@ pub fn gmail_users_settings_filters_list_execute(
 
 pub fn gmail_users_settings_filters_list(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &GmailUsersSettingsFiltersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListFiltersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_filters_list_builder(client, userId)?;
+    let builder = gmail_users_settings_filters_list_builder(client, &args.userId)?;
     gmail_users_settings_filters_list_execute(builder)
 }
 
@@ -6880,6 +7413,15 @@ pub fn gmail_users_settings_forwarding_addresses_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_forwarding_addresses_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsForwardingAddressesCreateArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: ForwardingAddress,
+}
+
 /// GET gmail/v1/users/{userId}/settings/forwardingAddresses
 /// Creates a forwarding address. If ownership verification is required, a message will be sent to the recipient and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
@@ -6892,15 +7434,15 @@ pub fn gmail_users_settings_forwarding_addresses_create_execute(
 
 pub fn gmail_users_settings_forwarding_addresses_create(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &ForwardingAddress,
+    args: &GmailUsersSettingsForwardingAddressesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ForwardingAddress>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_forwarding_addresses_create_builder(client, userId, body)?;
+    let builder =
+        gmail_users_settings_forwarding_addresses_create_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_forwarding_addresses_create_execute(builder)
 }
 
@@ -6992,6 +7534,15 @@ pub fn gmail_users_settings_forwarding_addresses_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_forwarding_addresses_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsForwardingAddressesDeleteArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: forwardingEmail
+    pub forwardingEmail: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}
 /// Deletes the specified forwarding address and revokes any verification that may have been required. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
@@ -7004,14 +7555,16 @@ pub fn gmail_users_settings_forwarding_addresses_delete_execute(
 
 pub fn gmail_users_settings_forwarding_addresses_delete(
     client: &SimpleHttpClient,
-    userId: &str,
-    forwardingEmail: &str,
+    args: &GmailUsersSettingsForwardingAddressesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_forwarding_addresses_delete_builder(client, userId, forwardingEmail)?;
+    let builder = gmail_users_settings_forwarding_addresses_delete_builder(
+        client,
+        &args.userId,
+        &args.forwardingEmail,
+    )?;
     gmail_users_settings_forwarding_addresses_delete_execute(builder)
 }
 
@@ -7108,6 +7661,15 @@ pub fn gmail_users_settings_forwarding_addresses_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_forwarding_addresses_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsForwardingAddressesGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: forwardingEmail
+    pub forwardingEmail: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/forwardingAddresses/{forwardingEmail}
 /// Gets the specified forwarding address.
 ///
@@ -7120,16 +7682,18 @@ pub fn gmail_users_settings_forwarding_addresses_get_execute(
 
 pub fn gmail_users_settings_forwarding_addresses_get(
     client: &SimpleHttpClient,
-    userId: &str,
-    forwardingEmail: &str,
+    args: &GmailUsersSettingsForwardingAddressesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ForwardingAddress>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_forwarding_addresses_get_builder(client, userId, forwardingEmail)?;
+    let builder = gmail_users_settings_forwarding_addresses_get_builder(
+        client,
+        &args.userId,
+        &args.forwardingEmail,
+    )?;
     gmail_users_settings_forwarding_addresses_get_execute(builder)
 }
 
@@ -7227,6 +7791,13 @@ pub fn gmail_users_settings_forwarding_addresses_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_forwarding_addresses_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsForwardingAddressesListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/forwardingAddresses
 /// Lists the forwarding addresses for the specified account.
 ///
@@ -7239,7 +7810,7 @@ pub fn gmail_users_settings_forwarding_addresses_list_execute(
 
 pub fn gmail_users_settings_forwarding_addresses_list(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &GmailUsersSettingsForwardingAddressesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListForwardingAddressesResponse>, ApiError>,
@@ -7248,7 +7819,7 @@ pub fn gmail_users_settings_forwarding_addresses_list(
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_forwarding_addresses_list_builder(client, userId)?;
+    let builder = gmail_users_settings_forwarding_addresses_list_builder(client, &args.userId)?;
     gmail_users_settings_forwarding_addresses_list_execute(builder)
 }
 
@@ -7345,6 +7916,15 @@ pub fn gmail_users_settings_send_as_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_send_as_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsCreateArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: SendAs,
+}
+
 /// GET gmail/v1/users/{userId}/settings/sendAs
 /// Creates a custom "from" send-as alias. If an SMTP MSA is specified, Gmail will attempt to connect to the SMTP service to validate the configuration before creating the alias. If ownership verification is required for the alias, a message will be sent to the email address and the resource's verification status will be set to pending; otherwise, the resource will be created with verification status set to accepted. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
@@ -7357,13 +7937,12 @@ pub fn gmail_users_settings_send_as_create_execute(
 
 pub fn gmail_users_settings_send_as_create(
     client: &SimpleHttpClient,
-    userId: &str,
-    body: &SendAs,
+    args: &GmailUsersSettingsSendAsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SendAs>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_send_as_create_builder(client, userId, body)?;
+    let builder = gmail_users_settings_send_as_create_builder(client, &args.userId, &args.body)?;
     gmail_users_settings_send_as_create_execute(builder)
 }
 
@@ -7455,6 +8034,15 @@ pub fn gmail_users_settings_send_as_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_send_as_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsDeleteArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: sendAsEmail
+    pub sendAsEmail: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
 /// Deletes the specified send-as alias. Revokes any verification that may have been required for using it. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
@@ -7467,13 +8055,13 @@ pub fn gmail_users_settings_send_as_delete_execute(
 
 pub fn gmail_users_settings_send_as_delete(
     client: &SimpleHttpClient,
-    userId: &str,
-    sendAsEmail: &str,
+    args: &GmailUsersSettingsSendAsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_send_as_delete_builder(client, userId, sendAsEmail)?;
+    let builder =
+        gmail_users_settings_send_as_delete_builder(client, &args.userId, &args.sendAsEmail)?;
     gmail_users_settings_send_as_delete_execute(builder)
 }
 
@@ -7568,6 +8156,15 @@ pub fn gmail_users_settings_send_as_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_send_as_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: sendAsEmail
+    pub sendAsEmail: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
 /// Gets the specified send-as alias. Fails with an HTTP 404 error if the specified address is not a member of the collection.
 ///
@@ -7580,13 +8177,13 @@ pub fn gmail_users_settings_send_as_get_execute(
 
 pub fn gmail_users_settings_send_as_get(
     client: &SimpleHttpClient,
-    userId: &str,
-    sendAsEmail: &str,
+    args: &GmailUsersSettingsSendAsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SendAs>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_send_as_get_builder(client, userId, sendAsEmail)?;
+    let builder =
+        gmail_users_settings_send_as_get_builder(client, &args.userId, &args.sendAsEmail)?;
     gmail_users_settings_send_as_get_execute(builder)
 }
 
@@ -7682,6 +8279,13 @@ pub fn gmail_users_settings_send_as_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_send_as_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/sendAs
 /// Lists the send-as aliases for the specified account. The result includes the primary send-as address associated with the account as well as any custom "from" aliases.
 ///
@@ -7694,14 +8298,14 @@ pub fn gmail_users_settings_send_as_list_execute(
 
 pub fn gmail_users_settings_send_as_list(
     client: &SimpleHttpClient,
-    userId: &str,
+    args: &GmailUsersSettingsSendAsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSendAsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_send_as_list_builder(client, userId)?;
+    let builder = gmail_users_settings_send_as_list_builder(client, &args.userId)?;
     gmail_users_settings_send_as_list_execute(builder)
 }
 
@@ -7799,6 +8403,17 @@ pub fn gmail_users_settings_send_as_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_send_as_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsPatchArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: sendAsEmail
+    pub sendAsEmail: String,
+    /// Request body.
+    pub body: SendAs,
+}
+
 /// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
 /// Patch the specified send-as alias.
 ///
@@ -7811,14 +8426,17 @@ pub fn gmail_users_settings_send_as_patch_execute(
 
 pub fn gmail_users_settings_send_as_patch(
     client: &SimpleHttpClient,
-    userId: &str,
-    sendAsEmail: &str,
-    body: &SendAs,
+    args: &GmailUsersSettingsSendAsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SendAs>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_send_as_patch_builder(client, userId, sendAsEmail, body)?;
+    let builder = gmail_users_settings_send_as_patch_builder(
+        client,
+        &args.userId,
+        &args.sendAsEmail,
+        &args.body,
+    )?;
     gmail_users_settings_send_as_patch_execute(builder)
 }
 
@@ -7916,6 +8534,17 @@ pub fn gmail_users_settings_send_as_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_send_as_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsUpdateArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: sendAsEmail
+    pub sendAsEmail: String,
+    /// Request body.
+    pub body: SendAs,
+}
+
 /// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}
 /// Updates a send-as alias. If a signature is provided, Gmail will sanitize the HTML before saving it with the alias. Addresses other than the primary address for the account can only be updated by service account clients that have been delegated domain-wide authority.
 ///
@@ -7928,14 +8557,17 @@ pub fn gmail_users_settings_send_as_update_execute(
 
 pub fn gmail_users_settings_send_as_update(
     client: &SimpleHttpClient,
-    userId: &str,
-    sendAsEmail: &str,
-    body: &SendAs,
+    args: &GmailUsersSettingsSendAsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SendAs>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_send_as_update_builder(client, userId, sendAsEmail, body)?;
+    let builder = gmail_users_settings_send_as_update_builder(
+        client,
+        &args.userId,
+        &args.sendAsEmail,
+        &args.body,
+    )?;
     gmail_users_settings_send_as_update_execute(builder)
 }
 
@@ -8027,6 +8659,15 @@ pub fn gmail_users_settings_send_as_verify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_send_as_verify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsVerifyArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: sendAsEmail
+    pub sendAsEmail: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/verify
 /// Sends a verification email to the specified send-as alias address. The verification status must be pending. This method is only available to service account clients that have been delegated domain-wide authority.
 ///
@@ -8039,13 +8680,13 @@ pub fn gmail_users_settings_send_as_verify_execute(
 
 pub fn gmail_users_settings_send_as_verify(
     client: &SimpleHttpClient,
-    userId: &str,
-    sendAsEmail: &str,
+    args: &GmailUsersSettingsSendAsVerifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_settings_send_as_verify_builder(client, userId, sendAsEmail)?;
+    let builder =
+        gmail_users_settings_send_as_verify_builder(client, &args.userId, &args.sendAsEmail)?;
     gmail_users_settings_send_as_verify_execute(builder)
 }
 
@@ -8138,6 +8779,17 @@ pub fn gmail_users_settings_send_as_smime_info_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_send_as_smime_info_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsSmimeInfoDeleteArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: sendAsEmail
+    pub sendAsEmail: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}
 /// Deletes the specified S/MIME config for the specified send-as alias.
 ///
@@ -8150,15 +8802,17 @@ pub fn gmail_users_settings_send_as_smime_info_delete_execute(
 
 pub fn gmail_users_settings_send_as_smime_info_delete(
     client: &SimpleHttpClient,
-    userId: &str,
-    sendAsEmail: &str,
-    id: &str,
+    args: &GmailUsersSettingsSendAsSmimeInfoDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_send_as_smime_info_delete_builder(client, userId, sendAsEmail, id)?;
+    let builder = gmail_users_settings_send_as_smime_info_delete_builder(
+        client,
+        &args.userId,
+        &args.sendAsEmail,
+        &args.id,
+    )?;
     gmail_users_settings_send_as_smime_info_delete_execute(builder)
 }
 
@@ -8254,6 +8908,17 @@ pub fn gmail_users_settings_send_as_smime_info_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_send_as_smime_info_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsSmimeInfoGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: sendAsEmail
+    pub sendAsEmail: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}
 /// Gets the specified S/MIME config for the specified send-as alias.
 ///
@@ -8266,15 +8931,17 @@ pub fn gmail_users_settings_send_as_smime_info_get_execute(
 
 pub fn gmail_users_settings_send_as_smime_info_get(
     client: &SimpleHttpClient,
-    userId: &str,
-    sendAsEmail: &str,
-    id: &str,
+    args: &GmailUsersSettingsSendAsSmimeInfoGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SmimeInfo>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_send_as_smime_info_get_builder(client, userId, sendAsEmail, id)?;
+    let builder = gmail_users_settings_send_as_smime_info_get_builder(
+        client,
+        &args.userId,
+        &args.sendAsEmail,
+        &args.id,
+    )?;
     gmail_users_settings_send_as_smime_info_get_execute(builder)
 }
 
@@ -8372,6 +9039,17 @@ pub fn gmail_users_settings_send_as_smime_info_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_send_as_smime_info_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsSmimeInfoInsertArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: sendAsEmail
+    pub sendAsEmail: String,
+    /// Request body.
+    pub body: SmimeInfo,
+}
+
 /// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo
 /// Insert (upload) the given S/MIME config for the specified send-as alias. Note that pkcs12 format is required for the key.
 ///
@@ -8384,15 +9062,17 @@ pub fn gmail_users_settings_send_as_smime_info_insert_execute(
 
 pub fn gmail_users_settings_send_as_smime_info_insert(
     client: &SimpleHttpClient,
-    userId: &str,
-    sendAsEmail: &str,
-    body: &SmimeInfo,
+    args: &GmailUsersSettingsSendAsSmimeInfoInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SmimeInfo>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_send_as_smime_info_insert_builder(client, userId, sendAsEmail, body)?;
+    let builder = gmail_users_settings_send_as_smime_info_insert_builder(
+        client,
+        &args.userId,
+        &args.sendAsEmail,
+        &args.body,
+    )?;
     gmail_users_settings_send_as_smime_info_insert_execute(builder)
 }
 
@@ -8489,6 +9169,15 @@ pub fn gmail_users_settings_send_as_smime_info_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_send_as_smime_info_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsSmimeInfoListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: sendAsEmail
+    pub sendAsEmail: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo
 /// Lists S/MIME configs for the specified send-as alias.
 ///
@@ -8501,16 +9190,18 @@ pub fn gmail_users_settings_send_as_smime_info_list_execute(
 
 pub fn gmail_users_settings_send_as_smime_info_list(
     client: &SimpleHttpClient,
-    userId: &str,
-    sendAsEmail: &str,
+    args: &GmailUsersSettingsSendAsSmimeInfoListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListSmimeInfoResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        gmail_users_settings_send_as_smime_info_list_builder(client, userId, sendAsEmail)?;
+    let builder = gmail_users_settings_send_as_smime_info_list_builder(
+        client,
+        &args.userId,
+        &args.sendAsEmail,
+    )?;
     gmail_users_settings_send_as_smime_info_list_execute(builder)
 }
 
@@ -8603,6 +9294,17 @@ pub fn gmail_users_settings_send_as_smime_info_set_default_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_settings_send_as_smime_info_set_default`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersSettingsSendAsSmimeInfoSetDefaultArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: sendAsEmail
+    pub sendAsEmail: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET gmail/v1/users/{userId}/settings/sendAs/{sendAsEmail}/smimeInfo/{id}/setDefault
 /// Sets the default S/MIME config for the specified send-as alias.
 ///
@@ -8615,18 +9317,16 @@ pub fn gmail_users_settings_send_as_smime_info_set_default_execute(
 
 pub fn gmail_users_settings_send_as_smime_info_set_default(
     client: &SimpleHttpClient,
-    userId: &str,
-    sendAsEmail: &str,
-    id: &str,
+    args: &GmailUsersSettingsSendAsSmimeInfoSetDefaultArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = gmail_users_settings_send_as_smime_info_set_default_builder(
         client,
-        userId,
-        sendAsEmail,
-        id,
+        &args.userId,
+        &args.sendAsEmail,
+        &args.id,
     )?;
     gmail_users_settings_send_as_smime_info_set_default_execute(builder)
 }
@@ -8719,6 +9419,15 @@ pub fn gmail_users_threads_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_threads_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersThreadsDeleteArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET gmail/v1/users/{userId}/threads/{id}
 /// Immediately and permanently deletes the specified thread. Any messages that belong to the thread are also deleted. This operation cannot be undone. Prefer threads.trash instead.
 ///
@@ -8731,13 +9440,12 @@ pub fn gmail_users_threads_delete_execute(
 
 pub fn gmail_users_threads_delete(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
+    args: &GmailUsersThreadsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_threads_delete_builder(client, userId, id)?;
+    let builder = gmail_users_threads_delete_builder(client, &args.userId, &args.id)?;
     gmail_users_threads_delete_execute(builder)
 }
 
@@ -8848,6 +9556,19 @@ pub fn gmail_users_threads_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_threads_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersThreadsGetArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: format
+    pub format: Option<String>,
+    /// Query parameter: metadataHeaders
+    pub metadataHeaders: Option<String>,
+}
+
 /// GET gmail/v1/users/{userId}/threads/{id}
 /// Gets the specified thread.
 ///
@@ -8860,15 +9581,18 @@ pub fn gmail_users_threads_get_execute(
 
 pub fn gmail_users_threads_get(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
-    format: Option<&str>,
-    metadataHeaders: Option<&str>,
+    args: &GmailUsersThreadsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Thread>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_threads_get_builder(client, userId, id, format, metadataHeaders)?;
+    let builder = gmail_users_threads_get_builder(
+        client,
+        &args.userId,
+        &args.id,
+        args.format.as_deref(),
+        args.metadataHeaders.as_deref(),
+    )?;
     gmail_users_threads_get_execute(builder)
 }
 
@@ -8992,6 +9716,23 @@ pub fn gmail_users_threads_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_threads_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersThreadsListArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Query parameter: includeSpamTrash
+    pub includeSpamTrash: Option<bool>,
+    /// Query parameter: labelIds
+    pub labelIds: Option<String>,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: q
+    pub q: Option<String>,
+}
+
 /// GET gmail/v1/users/{userId}/threads
 /// Lists the threads in the user's mailbox.
 ///
@@ -9004,12 +9745,7 @@ pub fn gmail_users_threads_list_execute(
 
 pub fn gmail_users_threads_list(
     client: &SimpleHttpClient,
-    userId: &str,
-    includeSpamTrash: Option<bool>,
-    labelIds: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    q: Option<&str>,
+    args: &GmailUsersThreadsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListThreadsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9018,12 +9754,12 @@ pub fn gmail_users_threads_list(
 > {
     let builder = gmail_users_threads_list_builder(
         client,
-        userId,
-        includeSpamTrash,
-        labelIds,
-        maxResults,
-        pageToken,
-        q,
+        &args.userId,
+        args.includeSpamTrash,
+        args.labelIds.as_deref(),
+        args.maxResults,
+        args.pageToken.as_deref(),
+        args.q.as_deref(),
     )?;
     gmail_users_threads_list_execute(builder)
 }
@@ -9122,6 +9858,17 @@ pub fn gmail_users_threads_modify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_threads_modify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersThreadsModifyArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Request body.
+    pub body: ModifyThreadRequest,
+}
+
 /// GET gmail/v1/users/{userId}/threads/{id}/modify
 /// Modifies the labels applied to the thread. This applies to all messages in the thread.
 ///
@@ -9134,14 +9881,12 @@ pub fn gmail_users_threads_modify_execute(
 
 pub fn gmail_users_threads_modify(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
-    body: &ModifyThreadRequest,
+    args: &GmailUsersThreadsModifyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Thread>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_threads_modify_builder(client, userId, id, body)?;
+    let builder = gmail_users_threads_modify_builder(client, &args.userId, &args.id, &args.body)?;
     gmail_users_threads_modify_execute(builder)
 }
 
@@ -9236,6 +9981,15 @@ pub fn gmail_users_threads_trash_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_threads_trash`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersThreadsTrashArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET gmail/v1/users/{userId}/threads/{id}/trash
 /// Moves the specified thread to the trash. Any messages that belong to the thread are also moved to the trash.
 ///
@@ -9248,13 +10002,12 @@ pub fn gmail_users_threads_trash_execute(
 
 pub fn gmail_users_threads_trash(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
+    args: &GmailUsersThreadsTrashArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Thread>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_threads_trash_builder(client, userId, id)?;
+    let builder = gmail_users_threads_trash_builder(client, &args.userId, &args.id)?;
     gmail_users_threads_trash_execute(builder)
 }
 
@@ -9349,6 +10102,15 @@ pub fn gmail_users_threads_untrash_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`gmail_users_threads_untrash`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GmailUsersThreadsUntrashArgs {
+    /// Path parameter: userId
+    pub userId: String,
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET gmail/v1/users/{userId}/threads/{id}/untrash
 /// Removes the specified thread from the trash. Any messages that belong to the thread are also removed from the trash.
 ///
@@ -9361,12 +10123,11 @@ pub fn gmail_users_threads_untrash_execute(
 
 pub fn gmail_users_threads_untrash(
     client: &SimpleHttpClient,
-    userId: &str,
-    id: &str,
+    args: &GmailUsersThreadsUntrashArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Thread>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = gmail_users_threads_untrash_builder(client, userId, id)?;
+    let builder = gmail_users_threads_untrash_builder(client, &args.userId, &args.id)?;
     gmail_users_threads_untrash_execute(builder)
 }

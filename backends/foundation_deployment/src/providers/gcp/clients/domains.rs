@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn domains_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn domains_projects_locations_get_execute(
 
 pub fn domains_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DomainsProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = domains_projects_locations_get_builder(client, name)?;
+    let builder = domains_projects_locations_get_builder(client, &args.name)?;
     domains_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn domains_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -255,11 +279,7 @@ pub fn domains_projects_locations_list_execute(
 
 pub fn domains_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DomainsProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn domains_projects_locations_list(
 > {
     let builder = domains_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     domains_projects_locations_list_execute(builder)
 }
@@ -367,6 +387,13 @@ pub fn domains_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -379,12 +406,12 @@ pub fn domains_projects_locations_operations_get_execute(
 
 pub fn domains_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DomainsProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = domains_projects_locations_operations_get_builder(client, name)?;
+    let builder = domains_projects_locations_operations_get_builder(client, &args.name)?;
     domains_projects_locations_operations_get_execute(builder)
 }
 
@@ -504,6 +531,21 @@ pub fn domains_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -516,11 +558,7 @@ pub fn domains_projects_locations_operations_list_execute(
 
 pub fn domains_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &DomainsProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -529,11 +567,11 @@ pub fn domains_projects_locations_operations_list(
 > {
     let builder = domains_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     domains_projects_locations_operations_list_execute(builder)
 }
@@ -631,6 +669,15 @@ pub fn domains_projects_locations_registrations_configure_contact_settings_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_configure_contact_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsConfigureContactSettingsArgs {
+    /// Path parameter: registration
+    pub registration: String,
+    /// Request body.
+    pub body: ConfigureContactSettingsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureContactSettings
 /// Updates a Registration's contact settings. Some changes require confirmation by the domain's registrant contact . Caution: Please consider carefully any changes to contact privacy settings when changing from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA. There may be a delay in reflecting updates you make to registrant contact information such that any changes you make to contact privacy (including from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA) will be applied without delay but changes to registrant contact information may take a limited time to be publicized. This means that changes to contact privacy from REDACTED_CONTACT_DATA to PUBLIC_CONTACT_DATA may make the previous registrant contact data public until the modified registrant contact details are published.
 ///
@@ -643,16 +690,15 @@ pub fn domains_projects_locations_registrations_configure_contact_settings_execu
 
 pub fn domains_projects_locations_registrations_configure_contact_settings(
     client: &SimpleHttpClient,
-    registration: &str,
-    body: &ConfigureContactSettingsRequest,
+    args: &DomainsProjectsLocationsRegistrationsConfigureContactSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = domains_projects_locations_registrations_configure_contact_settings_builder(
         client,
-        registration,
-        body,
+        &args.registration,
+        &args.body,
     )?;
     domains_projects_locations_registrations_configure_contact_settings_execute(builder)
 }
@@ -750,6 +796,15 @@ pub fn domains_projects_locations_registrations_configure_dns_settings_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_configure_dns_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsConfigureDnsSettingsArgs {
+    /// Path parameter: registration
+    pub registration: String,
+    /// Request body.
+    pub body: ConfigureDnsSettingsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureDnsSettings
 /// Updates a Registration's DNS settings.
 ///
@@ -762,16 +817,15 @@ pub fn domains_projects_locations_registrations_configure_dns_settings_execute(
 
 pub fn domains_projects_locations_registrations_configure_dns_settings(
     client: &SimpleHttpClient,
-    registration: &str,
-    body: &ConfigureDnsSettingsRequest,
+    args: &DomainsProjectsLocationsRegistrationsConfigureDnsSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = domains_projects_locations_registrations_configure_dns_settings_builder(
         client,
-        registration,
-        body,
+        &args.registration,
+        &args.body,
     )?;
     domains_projects_locations_registrations_configure_dns_settings_execute(builder)
 }
@@ -869,6 +923,15 @@ pub fn domains_projects_locations_registrations_configure_management_settings_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_configure_management_settings`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsConfigureManagementSettingsArgs {
+    /// Path parameter: registration
+    pub registration: String,
+    /// Request body.
+    pub body: ConfigureManagementSettingsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:configureManagementSettings
 /// Updates a Registration's management settings.
 ///
@@ -881,16 +944,15 @@ pub fn domains_projects_locations_registrations_configure_management_settings_ex
 
 pub fn domains_projects_locations_registrations_configure_management_settings(
     client: &SimpleHttpClient,
-    registration: &str,
-    body: &ConfigureManagementSettingsRequest,
+    args: &DomainsProjectsLocationsRegistrationsConfigureManagementSettingsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = domains_projects_locations_registrations_configure_management_settings_builder(
         client,
-        registration,
-        body,
+        &args.registration,
+        &args.body,
     )?;
     domains_projects_locations_registrations_configure_management_settings_execute(builder)
 }
@@ -985,6 +1047,13 @@ pub fn domains_projects_locations_registrations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
 /// Deletes a Registration resource. This method works on any Registration resource using [Subscription or Commitment billing](/`domains/pricing`#billing-models), provided that the resource was created at least 1 day in the past. When an active registration is successfully deleted, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains. After January 2024 you will only be able to delete Registration resources when state is one of: EXPORTED, EXPIRED,REGISTRATION_FAILED or TRANSFER_FAILED. See [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) for more details.
 ///
@@ -997,12 +1066,12 @@ pub fn domains_projects_locations_registrations_delete_execute(
 
 pub fn domains_projects_locations_registrations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DomainsProjectsLocationsRegistrationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = domains_projects_locations_registrations_delete_builder(client, name)?;
+    let builder = domains_projects_locations_registrations_delete_builder(client, &args.name)?;
     domains_projects_locations_registrations_delete_execute(builder)
 }
 
@@ -1099,6 +1168,15 @@ pub fn domains_projects_locations_registrations_export_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_export`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsExportArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ExportRegistrationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:export
 /// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Exports a Registration resource, such that it is no longer managed by Cloud Domains. When an active domain is successfully exported, you can continue to use the domain in [Google Domains](<https://domains.google/>) until it expires. The calling user becomes the domain's sole owner in Google Domains, and permissions for the domain are subsequently managed there. The domain does not renew automatically unless the new owner sets up billing in Google Domains.
 ///
@@ -1111,13 +1189,13 @@ pub fn domains_projects_locations_registrations_export_execute(
 
 pub fn domains_projects_locations_registrations_export(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ExportRegistrationRequest,
+    args: &DomainsProjectsLocationsRegistrationsExportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = domains_projects_locations_registrations_export_builder(client, name, body)?;
+    let builder =
+        domains_projects_locations_registrations_export_builder(client, &args.name, &args.body)?;
     domains_projects_locations_registrations_export_execute(builder)
 }
 
@@ -1213,6 +1291,13 @@ pub fn domains_projects_locations_registrations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
 /// Gets the details of a Registration resource.
 ///
@@ -1225,14 +1310,14 @@ pub fn domains_projects_locations_registrations_get_execute(
 
 pub fn domains_projects_locations_registrations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &DomainsProjectsLocationsRegistrationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Registration>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = domains_projects_locations_registrations_get_builder(client, name)?;
+    let builder = domains_projects_locations_registrations_get_builder(client, &args.name)?;
     domains_projects_locations_registrations_get_execute(builder)
 }
 
@@ -1338,6 +1423,15 @@ pub fn domains_projects_locations_registrations_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1350,16 +1444,15 @@ pub fn domains_projects_locations_registrations_get_iam_policy_execute(
 
 pub fn domains_projects_locations_registrations_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &DomainsProjectsLocationsRegistrationsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = domains_projects_locations_registrations_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     domains_projects_locations_registrations_get_iam_policy_execute(builder)
 }
@@ -1457,6 +1550,15 @@ pub fn domains_projects_locations_registrations_import_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_import`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsImportArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: ImportDomainRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:import
 /// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Imports a domain name from [Google Domains](<https://domains.google/>) for use in Cloud Domains. To transfer a domain from another registrar, use the TransferDomain method instead. Since individual users can own domains in Google Domains, the calling user must have ownership permission on the domain.
 ///
@@ -1469,13 +1571,13 @@ pub fn domains_projects_locations_registrations_import_execute(
 
 pub fn domains_projects_locations_registrations_import(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &ImportDomainRequest,
+    args: &DomainsProjectsLocationsRegistrationsImportArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = domains_projects_locations_registrations_import_builder(client, parent, body)?;
+    let builder =
+        domains_projects_locations_registrations_import_builder(client, &args.parent, &args.body)?;
     domains_projects_locations_registrations_import_execute(builder)
 }
 
@@ -1572,6 +1674,15 @@ pub fn domains_projects_locations_registrations_initiate_push_transfer_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_initiate_push_transfer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsInitiatePushTransferArgs {
+    /// Path parameter: registration
+    pub registration: String,
+    /// Request body.
+    pub body: InitiatePushTransferRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:initiatePushTransfer
 /// Initiates the Push Transfer process to transfer the domain to another registrar. The process might complete instantly or might require confirmation or additional work. Check the emails sent to the email address of the registrant. The process is aborted after a timeout if it's not completed. This method is only supported for domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties. The domain must also be unlocked before it can be transferred to a different registrar. For more information, see [Transfer a registered domain to another registrar](<https://cloud.google.`com/domains/docs/transfer-domain-to-another-registrar`>).
 ///
@@ -1584,16 +1695,15 @@ pub fn domains_projects_locations_registrations_initiate_push_transfer_execute(
 
 pub fn domains_projects_locations_registrations_initiate_push_transfer(
     client: &SimpleHttpClient,
-    registration: &str,
-    body: &InitiatePushTransferRequest,
+    args: &DomainsProjectsLocationsRegistrationsInitiatePushTransferArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = domains_projects_locations_registrations_initiate_push_transfer_builder(
         client,
-        registration,
-        body,
+        &args.registration,
+        &args.body,
     )?;
     domains_projects_locations_registrations_initiate_push_transfer_execute(builder)
 }
@@ -1710,6 +1820,19 @@ pub fn domains_projects_locations_registrations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations
 /// Lists the Registration resources in a project.
 ///
@@ -1722,10 +1845,7 @@ pub fn domains_projects_locations_registrations_list_execute(
 
 pub fn domains_projects_locations_registrations_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DomainsProjectsLocationsRegistrationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListRegistrationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1733,7 +1853,11 @@ pub fn domains_projects_locations_registrations_list(
     ApiError,
 > {
     let builder = domains_projects_locations_registrations_list_builder(
-        client, parent, filter, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     domains_projects_locations_registrations_list_execute(builder)
 }
@@ -1843,6 +1967,17 @@ pub fn domains_projects_locations_registrations_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Registration,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}
 /// Updates select fields of a Registration resource, notably labels. To update other fields, use the appropriate custom update method: * To update management settings, see ConfigureManagementSettings * To update DNS configuration, see ConfigureDnsSettings * To update contact information, see ConfigureContactSettings
 ///
@@ -1855,15 +1990,17 @@ pub fn domains_projects_locations_registrations_patch_execute(
 
 pub fn domains_projects_locations_registrations_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Registration,
+    args: &DomainsProjectsLocationsRegistrationsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        domains_projects_locations_registrations_patch_builder(client, name, updateMask, body)?;
+    let builder = domains_projects_locations_registrations_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     domains_projects_locations_registrations_patch_execute(builder)
 }
 
@@ -1960,6 +2097,15 @@ pub fn domains_projects_locations_registrations_register_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_register`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRegisterArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: RegisterDomainRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:register
 /// Registers a new domain name and creates a corresponding Registration resource. Call RetrieveRegisterParameters first to check availability of the domain name and determine parameters like price that are needed to build a call to this method. A successful call creates a Registration resource in state REGISTRATION_PENDING, which resolves to `ACTIVE` within 1-2 minutes, indicating that the domain was successfully registered. If the resource ends up in state REGISTRATION_FAILED, it indicates that the domain was not registered successfully, and you can safely delete the resource and retry registration.
 ///
@@ -1972,13 +2118,16 @@ pub fn domains_projects_locations_registrations_register_execute(
 
 pub fn domains_projects_locations_registrations_register(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &RegisterDomainRequest,
+    args: &DomainsProjectsLocationsRegistrationsRegisterArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = domains_projects_locations_registrations_register_builder(client, parent, body)?;
+    let builder = domains_projects_locations_registrations_register_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     domains_projects_locations_registrations_register_execute(builder)
 }
 
@@ -2075,6 +2224,15 @@ pub fn domains_projects_locations_registrations_renew_domain_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_renew_domain`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRenewDomainArgs {
+    /// Path parameter: registration
+    pub registration: String,
+    /// Request body.
+    pub body: RenewDomainRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:renewDomain
 /// Renews a recently expired domain. This method can only be called on domains that expired in the previous 30 days. After the renewal, the new expiration time of the domain is one year after the old expiration time and you are charged a yearly_price for the renewal.
 ///
@@ -2087,14 +2245,16 @@ pub fn domains_projects_locations_registrations_renew_domain_execute(
 
 pub fn domains_projects_locations_registrations_renew_domain(
     client: &SimpleHttpClient,
-    registration: &str,
-    body: &RenewDomainRequest,
+    args: &DomainsProjectsLocationsRegistrationsRenewDomainArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        domains_projects_locations_registrations_renew_domain_builder(client, registration, body)?;
+    let builder = domains_projects_locations_registrations_renew_domain_builder(
+        client,
+        &args.registration,
+        &args.body,
+    )?;
     domains_projects_locations_registrations_renew_domain_execute(builder)
 }
 
@@ -2193,6 +2353,15 @@ pub fn domains_projects_locations_registrations_reset_authorization_code_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_reset_authorization_code`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsResetAuthorizationCodeArgs {
+    /// Path parameter: registration
+    pub registration: String,
+    /// Request body.
+    pub body: ResetAuthorizationCodeRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:resetAuthorizationCode
 /// Resets the authorization code of the Registration to a new random string. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
 ///
@@ -2205,8 +2374,7 @@ pub fn domains_projects_locations_registrations_reset_authorization_code_execute
 
 pub fn domains_projects_locations_registrations_reset_authorization_code(
     client: &SimpleHttpClient,
-    registration: &str,
-    body: &ResetAuthorizationCodeRequest,
+    args: &DomainsProjectsLocationsRegistrationsResetAuthorizationCodeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthorizationCode>, ApiError>, P = ApiPending>
         + Send
@@ -2215,8 +2383,8 @@ pub fn domains_projects_locations_registrations_reset_authorization_code(
 > {
     let builder = domains_projects_locations_registrations_reset_authorization_code_builder(
         client,
-        registration,
-        body,
+        &args.registration,
+        &args.body,
     )?;
     domains_projects_locations_registrations_reset_authorization_code_execute(builder)
 }
@@ -2313,6 +2481,13 @@ pub fn domains_projects_locations_registrations_retrieve_authorization_code_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_retrieve_authorization_code`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRetrieveAuthorizationCodeArgs {
+    /// Path parameter: registration
+    pub registration: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveAuthorizationCode
 /// Gets the authorization code of the Registration for the purpose of transferring the domain to another registrar. You can call this method only after 60 days have elapsed since the initial domain registration. Domains that have the REQUIRE_PUSH_TRANSFER property in the list of domain_properties don't support authorization codes and must use the InitiatePushTransfer method to initiate the process to transfer the domain to a different registrar.
 ///
@@ -2325,7 +2500,7 @@ pub fn domains_projects_locations_registrations_retrieve_authorization_code_exec
 
 pub fn domains_projects_locations_registrations_retrieve_authorization_code(
     client: &SimpleHttpClient,
-    registration: &str,
+    args: &DomainsProjectsLocationsRegistrationsRetrieveAuthorizationCodeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthorizationCode>, ApiError>, P = ApiPending>
         + Send
@@ -2334,7 +2509,7 @@ pub fn domains_projects_locations_registrations_retrieve_authorization_code(
 > {
     let builder = domains_projects_locations_registrations_retrieve_authorization_code_builder(
         client,
-        registration,
+        &args.registration,
     )?;
     domains_projects_locations_registrations_retrieve_authorization_code_execute(builder)
 }
@@ -2450,6 +2625,17 @@ pub fn domains_projects_locations_registrations_retrieve_google_domains_dns_reco
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_retrieve_google_domains_dns_records`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsDnsRecordsArgs {
+    /// Path parameter: registration
+    pub registration: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsDnsRecords
 /// Lists the DNS records from the Google Domains DNS zone for domains that use the deprecated google_domains_dns in the Registration's dns_settings.
 ///
@@ -2462,9 +2648,7 @@ pub fn domains_projects_locations_registrations_retrieve_google_domains_dns_reco
 
 pub fn domains_projects_locations_registrations_retrieve_google_domains_dns_records(
     client: &SimpleHttpClient,
-    registration: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsDnsRecordsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RetrieveGoogleDomainsDnsRecordsResponse>, ApiError>,
@@ -2476,9 +2660,9 @@ pub fn domains_projects_locations_registrations_retrieve_google_domains_dns_reco
     let builder =
         domains_projects_locations_registrations_retrieve_google_domains_dns_records_builder(
             client,
-            registration,
-            pageSize,
-            pageToken,
+            &args.registration,
+            args.pageSize,
+            args.pageToken.as_deref(),
         )?;
     domains_projects_locations_registrations_retrieve_google_domains_dns_records_execute(builder)
 }
@@ -2578,6 +2762,13 @@ pub fn domains_projects_locations_registrations_retrieve_google_domains_forwardi
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_retrieve_google_domains_forwarding_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsForwardingConfigArgs {
+    /// Path parameter: registration
+    pub registration: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:retrieveGoogleDomainsForwardingConfig
 /// Lists the deprecated domain and email forwarding configurations you set up in the deprecated Google Domains UI. The configuration is present only for domains with the google_domains_redirects_data_available set to `true` in the Registration's dns_settings. A forwarding configuration might not work correctly if required DNS records are not present in the domain's authoritative DNS Zone.
 ///
@@ -2590,7 +2781,7 @@ pub fn domains_projects_locations_registrations_retrieve_google_domains_forwardi
 
 pub fn domains_projects_locations_registrations_retrieve_google_domains_forwarding_config(
     client: &SimpleHttpClient,
-    registration: &str,
+    args: &DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsForwardingConfigArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RetrieveGoogleDomainsForwardingConfigResponse>, ApiError>,
@@ -2602,7 +2793,7 @@ pub fn domains_projects_locations_registrations_retrieve_google_domains_forwardi
     let builder =
         domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_builder(
             client,
-            registration,
+            &args.registration,
         )?;
     domains_projects_locations_registrations_retrieve_google_domains_forwarding_config_execute(
         builder,
@@ -2719,6 +2910,17 @@ pub fn domains_projects_locations_registrations_retrieve_importable_domains_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_retrieve_importable_domains`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRetrieveImportableDomainsArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveImportableDomains
 /// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Lists domain names from [Google Domains](<https://domains.google/>) that can be imported to Cloud Domains using the ImportDomain method. Since individual users can own domains in Google Domains, the list of domains returned depends on the individual user making the call. Domains already managed by Cloud Domains are not returned.
 ///
@@ -2731,9 +2933,7 @@ pub fn domains_projects_locations_registrations_retrieve_importable_domains_exec
 
 pub fn domains_projects_locations_registrations_retrieve_importable_domains(
     client: &SimpleHttpClient,
-    location: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &DomainsProjectsLocationsRegistrationsRetrieveImportableDomainsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RetrieveImportableDomainsResponse>, ApiError>,
@@ -2743,7 +2943,10 @@ pub fn domains_projects_locations_registrations_retrieve_importable_domains(
     ApiError,
 > {
     let builder = domains_projects_locations_registrations_retrieve_importable_domains_builder(
-        client, location, pageSize, pageToken,
+        client,
+        &args.location,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     domains_projects_locations_registrations_retrieve_importable_domains_execute(builder)
 }
@@ -2854,6 +3057,15 @@ pub fn domains_projects_locations_registrations_retrieve_register_parameters_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_retrieve_register_parameters`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRetrieveRegisterParametersArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Query parameter: domainName
+    pub domainName: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveRegisterParameters
 /// Gets parameters needed to register a new domain name, including price and up-to-date availability. Use the returned values to call RegisterDomain.
 ///
@@ -2866,8 +3078,7 @@ pub fn domains_projects_locations_registrations_retrieve_register_parameters_exe
 
 pub fn domains_projects_locations_registrations_retrieve_register_parameters(
     client: &SimpleHttpClient,
-    location: &str,
-    domainName: Option<&str>,
+    args: &DomainsProjectsLocationsRegistrationsRetrieveRegisterParametersArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RetrieveRegisterParametersResponse>, ApiError>,
@@ -2877,7 +3088,9 @@ pub fn domains_projects_locations_registrations_retrieve_register_parameters(
     ApiError,
 > {
     let builder = domains_projects_locations_registrations_retrieve_register_parameters_builder(
-        client, location, domainName,
+        client,
+        &args.location,
+        args.domainName.as_deref(),
     )?;
     domains_projects_locations_registrations_retrieve_register_parameters_execute(builder)
 }
@@ -2988,6 +3201,15 @@ pub fn domains_projects_locations_registrations_retrieve_transfer_parameters_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_retrieve_transfer_parameters`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsRetrieveTransferParametersArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Query parameter: domainName
+    pub domainName: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:retrieveTransferParameters
 /// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Gets parameters needed to transfer a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Use the returned values to call TransferDomain.
 ///
@@ -3000,8 +3222,7 @@ pub fn domains_projects_locations_registrations_retrieve_transfer_parameters_exe
 
 pub fn domains_projects_locations_registrations_retrieve_transfer_parameters(
     client: &SimpleHttpClient,
-    location: &str,
-    domainName: Option<&str>,
+    args: &DomainsProjectsLocationsRegistrationsRetrieveTransferParametersArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<RetrieveTransferParametersResponse>, ApiError>,
@@ -3011,7 +3232,9 @@ pub fn domains_projects_locations_registrations_retrieve_transfer_parameters(
     ApiError,
 > {
     let builder = domains_projects_locations_registrations_retrieve_transfer_parameters_builder(
-        client, location, domainName,
+        client,
+        &args.location,
+        args.domainName.as_deref(),
     )?;
     domains_projects_locations_registrations_retrieve_transfer_parameters_execute(builder)
 }
@@ -3120,6 +3343,15 @@ pub fn domains_projects_locations_registrations_search_domains_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_search_domains`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsSearchDomainsArgs {
+    /// Path parameter: location
+    pub location: String,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:searchDomains
 /// Searches for available domain names similar to the provided query. Availability results from this method are approximate; call RetrieveRegisterParameters on a domain before registering to confirm availability.
 ///
@@ -3132,16 +3364,18 @@ pub fn domains_projects_locations_registrations_search_domains_execute(
 
 pub fn domains_projects_locations_registrations_search_domains(
     client: &SimpleHttpClient,
-    location: &str,
-    query: Option<&str>,
+    args: &DomainsProjectsLocationsRegistrationsSearchDomainsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchDomainsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        domains_projects_locations_registrations_search_domains_builder(client, location, query)?;
+    let builder = domains_projects_locations_registrations_search_domains_builder(
+        client,
+        &args.location,
+        args.query.as_deref(),
+    )?;
     domains_projects_locations_registrations_search_domains_execute(builder)
 }
 
@@ -3238,6 +3472,15 @@ pub fn domains_projects_locations_registrations_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3250,14 +3493,16 @@ pub fn domains_projects_locations_registrations_set_iam_policy_execute(
 
 pub fn domains_projects_locations_registrations_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &DomainsProjectsLocationsRegistrationsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        domains_projects_locations_registrations_set_iam_policy_builder(client, resource, body)?;
+    let builder = domains_projects_locations_registrations_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     domains_projects_locations_registrations_set_iam_policy_execute(builder)
 }
 
@@ -3358,6 +3603,15 @@ pub fn domains_projects_locations_registrations_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations/{registrationsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3370,8 +3624,7 @@ pub fn domains_projects_locations_registrations_test_iam_permissions_execute(
 
 pub fn domains_projects_locations_registrations_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &DomainsProjectsLocationsRegistrationsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3381,7 +3634,9 @@ pub fn domains_projects_locations_registrations_test_iam_permissions(
     ApiError,
 > {
     let builder = domains_projects_locations_registrations_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     domains_projects_locations_registrations_test_iam_permissions_execute(builder)
 }
@@ -3479,6 +3734,15 @@ pub fn domains_projects_locations_registrations_transfer_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`domains_projects_locations_registrations_transfer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DomainsProjectsLocationsRegistrationsTransferArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: TransferDomainRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/registrations:transfer
 /// Deprecated: For more information, see [Cloud Domains feature deprecation](<https://cloud.google.`com/domains/docs/deprecations/feature-deprecations`>) Transfers a domain name from another registrar to Cloud Domains. For domains already managed by [Google Domains](<https://domains.google/>), use ImportDomain instead. Before calling this method, go to the domain's current registrar to unlock the domain for transfer and retrieve the domain's transfer authorization code. Then call RetrieveTransferParameters to confirm that the domain is unlocked and to get values needed to build a call to this method. A successful call creates a Registration resource in state TRANSFER_PENDING. It can take several days to complete the transfer process. The registrant can often speed up this process by approving the transfer through the current registrar, either by clicking a link in an email from the registrar or by visiting the registrar's website. A few minutes after transfer approval, the resource transitions to state `ACTIVE`, indicating that the transfer was successful. If the transfer is rejected or the request expires without being approved, the resource can end up in state TRANSFER_FAILED. If transfer fails, you can safely delete the resource and retry the transfer.
 ///
@@ -3491,12 +3755,15 @@ pub fn domains_projects_locations_registrations_transfer_execute(
 
 pub fn domains_projects_locations_registrations_transfer(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &TransferDomainRequest,
+    args: &DomainsProjectsLocationsRegistrationsTransferArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = domains_projects_locations_registrations_transfer_builder(client, parent, body)?;
+    let builder = domains_projects_locations_registrations_transfer_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     domains_projects_locations_registrations_transfer_execute(builder)
 }

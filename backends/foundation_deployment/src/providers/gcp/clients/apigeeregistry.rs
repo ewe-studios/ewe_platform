@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn apigeeregistry_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn apigeeregistry_projects_locations_get_execute(
 
 pub fn apigeeregistry_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_get_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_get_builder(client, &args.name)?;
     apigeeregistry_projects_locations_get_execute(builder)
 }
 
@@ -239,6 +248,19 @@ pub fn apigeeregistry_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service.
 ///
@@ -251,18 +273,20 @@ pub fn apigeeregistry_projects_locations_list_execute(
 
 pub fn apigeeregistry_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeregistryProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_list_builder(client, name, filter, pageSize, pageToken)?;
+    let builder = apigeeregistry_projects_locations_list_builder(
+        client,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     apigeeregistry_projects_locations_list_execute(builder)
 }
 
@@ -371,6 +395,17 @@ pub fn apigeeregistry_projects_locations_apis_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: apiId
+    pub apiId: Option<String>,
+    /// Request body.
+    pub body: Api,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis
 /// Creates a specified API.
 ///
@@ -383,15 +418,17 @@ pub fn apigeeregistry_projects_locations_apis_create_execute(
 
 pub fn apigeeregistry_projects_locations_apis_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    apiId: Option<&str>,
-    body: &Api,
+    args: &ApigeeregistryProjectsLocationsApisCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Api>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_apis_create_builder(client, parent, apiId, body)?;
+    let builder = apigeeregistry_projects_locations_apis_create_builder(
+        client,
+        &args.parent,
+        args.apiId.as_deref(),
+        &args.body,
+    )?;
     apigeeregistry_projects_locations_apis_create_execute(builder)
 }
 
@@ -497,6 +534,15 @@ pub fn apigeeregistry_projects_locations_apis_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
 /// Removes a specified API and all of the resources that it owns.
 ///
@@ -509,13 +555,13 @@ pub fn apigeeregistry_projects_locations_apis_delete_execute(
 
 pub fn apigeeregistry_projects_locations_apis_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ApigeeregistryProjectsLocationsApisDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_apis_delete_builder(client, name, force)?;
+    let builder =
+        apigeeregistry_projects_locations_apis_delete_builder(client, &args.name, args.force)?;
     apigeeregistry_projects_locations_apis_delete_execute(builder)
 }
 
@@ -609,6 +655,13 @@ pub fn apigeeregistry_projects_locations_apis_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
 /// Returns a specified API.
 ///
@@ -621,12 +674,12 @@ pub fn apigeeregistry_projects_locations_apis_get_execute(
 
 pub fn apigeeregistry_projects_locations_apis_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Api>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_apis_get_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_apis_get_builder(client, &args.name)?;
     apigeeregistry_projects_locations_apis_get_execute(builder)
 }
 
@@ -732,6 +785,15 @@ pub fn apigeeregistry_projects_locations_apis_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -744,16 +806,15 @@ pub fn apigeeregistry_projects_locations_apis_get_iam_policy_execute(
 
 pub fn apigeeregistry_projects_locations_apis_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigeeregistryProjectsLocationsApisGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigeeregistry_projects_locations_apis_get_iam_policy_execute(builder)
 }
@@ -874,6 +935,21 @@ pub fn apigeeregistry_projects_locations_apis_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis
 /// Returns matching APIs.
 ///
@@ -886,11 +962,7 @@ pub fn apigeeregistry_projects_locations_apis_list_execute(
 
 pub fn apigeeregistry_projects_locations_apis_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeregistryProjectsLocationsApisListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListApisResponse>, ApiError>, P = ApiPending>
         + Send
@@ -898,7 +970,12 @@ pub fn apigeeregistry_projects_locations_apis_list(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigeeregistry_projects_locations_apis_list_execute(builder)
 }
@@ -1012,6 +1089,19 @@ pub fn apigeeregistry_projects_locations_apis_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Api,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}
 /// Used to modify a specified API.
 ///
@@ -1024,20 +1114,17 @@ pub fn apigeeregistry_projects_locations_apis_patch_execute(
 
 pub fn apigeeregistry_projects_locations_apis_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    body: &Api,
+    args: &ApigeeregistryProjectsLocationsApisPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Api>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_patch_execute(builder)
 }
@@ -1135,6 +1222,15 @@ pub fn apigeeregistry_projects_locations_apis_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -1147,14 +1243,16 @@ pub fn apigeeregistry_projects_locations_apis_set_iam_policy_execute(
 
 pub fn apigeeregistry_projects_locations_apis_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ApigeeregistryProjectsLocationsApisSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_apis_set_iam_policy_builder(client, resource, body)?;
+    let builder = apigeeregistry_projects_locations_apis_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     apigeeregistry_projects_locations_apis_set_iam_policy_execute(builder)
 }
 
@@ -1255,6 +1353,15 @@ pub fn apigeeregistry_projects_locations_apis_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -1267,8 +1374,7 @@ pub fn apigeeregistry_projects_locations_apis_test_iam_permissions_execute(
 
 pub fn apigeeregistry_projects_locations_apis_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ApigeeregistryProjectsLocationsApisTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -1278,7 +1384,9 @@ pub fn apigeeregistry_projects_locations_apis_test_iam_permissions(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_test_iam_permissions_execute(builder)
 }
@@ -1388,6 +1496,17 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_artifacts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisArtifactsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: artifactId
+    pub artifactId: Option<String>,
+    /// Request body.
+    pub body: Artifact,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/artifacts
 /// Creates a specified artifact.
 ///
@@ -1400,15 +1519,16 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_create_execute(
 
 pub fn apigeeregistry_projects_locations_apis_artifacts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    artifactId: Option<&str>,
-    body: &Artifact,
+    args: &ApigeeregistryProjectsLocationsApisArtifactsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Artifact>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_artifacts_create_builder(
-        client, parent, artifactId, body,
+        client,
+        &args.parent,
+        args.artifactId.as_deref(),
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_artifacts_create_execute(builder)
 }
@@ -1503,6 +1623,13 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_artifacts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisArtifactsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/artifacts/{artifactsId}
 /// Removes a specified artifact.
 ///
@@ -1515,12 +1642,13 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_delete_execute(
 
 pub fn apigeeregistry_projects_locations_apis_artifacts_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisArtifactsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_apis_artifacts_delete_builder(client, name)?;
+    let builder =
+        apigeeregistry_projects_locations_apis_artifacts_delete_builder(client, &args.name)?;
     apigeeregistry_projects_locations_apis_artifacts_delete_execute(builder)
 }
 
@@ -1614,6 +1742,13 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_artifacts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisArtifactsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/artifacts/{artifactsId}
 /// Returns a specified artifact.
 ///
@@ -1626,12 +1761,12 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_get_execute(
 
 pub fn apigeeregistry_projects_locations_apis_artifacts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisArtifactsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Artifact>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_apis_artifacts_get_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_apis_artifacts_get_builder(client, &args.name)?;
     apigeeregistry_projects_locations_apis_artifacts_get_execute(builder)
 }
 
@@ -1725,6 +1860,13 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_get_contents_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_artifacts_get_contents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisArtifactsGetContentsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/artifacts/{artifactsId}:getContents
 /// Returns the contents of a specified artifact. If artifacts are stored with GZip compression, the default behavior is to return the artifact uncompressed (the mime_type response field indicates the exact format returned).
 ///
@@ -1737,13 +1879,13 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_get_contents_execute(
 
 pub fn apigeeregistry_projects_locations_apis_artifacts_get_contents(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisArtifactsGetContentsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        apigeeregistry_projects_locations_apis_artifacts_get_contents_builder(client, name)?;
+        apigeeregistry_projects_locations_apis_artifacts_get_contents_builder(client, &args.name)?;
     apigeeregistry_projects_locations_apis_artifacts_get_contents_execute(builder)
 }
 
@@ -1849,6 +1991,15 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_artifacts_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisArtifactsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/artifacts/{artifactsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1861,16 +2012,15 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_get_iam_policy_execute(
 
 pub fn apigeeregistry_projects_locations_apis_artifacts_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigeeregistryProjectsLocationsApisArtifactsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_artifacts_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigeeregistry_projects_locations_apis_artifacts_get_iam_policy_execute(builder)
 }
@@ -1991,6 +2141,21 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_artifacts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisArtifactsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/artifacts
 /// Returns matching artifacts.
 ///
@@ -2003,11 +2168,7 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_list_execute(
 
 pub fn apigeeregistry_projects_locations_apis_artifacts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeregistryProjectsLocationsApisArtifactsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListArtifactsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -2015,7 +2176,12 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_list(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_artifacts_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigeeregistry_projects_locations_apis_artifacts_list_execute(builder)
 }
@@ -2113,6 +2279,15 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_replace_artifact_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_artifacts_replace_artifact`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisArtifactsReplaceArtifactArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Artifact,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/artifacts/{artifactsId}
 /// Used to replace a specified artifact.
 ///
@@ -2125,14 +2300,13 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_replace_artifact_execute
 
 pub fn apigeeregistry_projects_locations_apis_artifacts_replace_artifact(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &Artifact,
+    args: &ApigeeregistryProjectsLocationsApisArtifactsReplaceArtifactArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Artifact>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_artifacts_replace_artifact_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     apigeeregistry_projects_locations_apis_artifacts_replace_artifact_execute(builder)
 }
@@ -2230,6 +2404,15 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_artifacts_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisArtifactsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/artifacts/{artifactsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -2242,14 +2425,15 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_set_iam_policy_execute(
 
 pub fn apigeeregistry_projects_locations_apis_artifacts_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ApigeeregistryProjectsLocationsApisArtifactsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_artifacts_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_artifacts_set_iam_policy_execute(builder)
 }
@@ -2351,6 +2535,15 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_test_iam_permissions_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_artifacts_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisArtifactsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/artifacts/{artifactsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2363,8 +2556,7 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_test_iam_permissions_exe
 
 pub fn apigeeregistry_projects_locations_apis_artifacts_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ApigeeregistryProjectsLocationsApisArtifactsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2374,7 +2566,9 @@ pub fn apigeeregistry_projects_locations_apis_artifacts_test_iam_permissions(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_artifacts_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_artifacts_test_iam_permissions_execute(builder)
 }
@@ -2486,6 +2680,17 @@ pub fn apigeeregistry_projects_locations_apis_deployments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: apiDeploymentId
+    pub apiDeploymentId: Option<String>,
+    /// Request body.
+    pub body: ApiDeployment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments
 /// Creates a specified deployment.
 ///
@@ -2498,9 +2703,7 @@ pub fn apigeeregistry_projects_locations_apis_deployments_create_execute(
 
 pub fn apigeeregistry_projects_locations_apis_deployments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    apiDeploymentId: Option<&str>,
-    body: &ApiDeployment,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiDeployment>, ApiError>, P = ApiPending>
         + Send
@@ -2509,9 +2712,9 @@ pub fn apigeeregistry_projects_locations_apis_deployments_create(
 > {
     let builder = apigeeregistry_projects_locations_apis_deployments_create_builder(
         client,
-        parent,
-        apiDeploymentId,
-        body,
+        &args.parent,
+        args.apiDeploymentId.as_deref(),
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_deployments_create_execute(builder)
 }
@@ -2618,6 +2821,15 @@ pub fn apigeeregistry_projects_locations_apis_deployments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}
 /// Removes a specified deployment, all revisions, and all child resources (e.g., artifacts).
 ///
@@ -2630,14 +2842,14 @@ pub fn apigeeregistry_projects_locations_apis_deployments_delete_execute(
 
 pub fn apigeeregistry_projects_locations_apis_deployments_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_apis_deployments_delete_builder(client, name, force)?;
+    let builder = apigeeregistry_projects_locations_apis_deployments_delete_builder(
+        client, &args.name, args.force,
+    )?;
     apigeeregistry_projects_locations_apis_deployments_delete_execute(builder)
 }
 
@@ -2733,6 +2945,13 @@ pub fn apigeeregistry_projects_locations_apis_deployments_delete_revision_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_delete_revision`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsDeleteRevisionArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:deleteRevision
 /// Deletes a revision of a deployment.
 ///
@@ -2745,15 +2964,16 @@ pub fn apigeeregistry_projects_locations_apis_deployments_delete_revision_execut
 
 pub fn apigeeregistry_projects_locations_apis_deployments_delete_revision(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsDeleteRevisionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiDeployment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_apis_deployments_delete_revision_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_apis_deployments_delete_revision_builder(
+        client, &args.name,
+    )?;
     apigeeregistry_projects_locations_apis_deployments_delete_revision_execute(builder)
 }
 
@@ -2849,6 +3069,13 @@ pub fn apigeeregistry_projects_locations_apis_deployments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}
 /// Returns a specified deployment.
 ///
@@ -2861,14 +3088,15 @@ pub fn apigeeregistry_projects_locations_apis_deployments_get_execute(
 
 pub fn apigeeregistry_projects_locations_apis_deployments_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiDeployment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_apis_deployments_get_builder(client, name)?;
+    let builder =
+        apigeeregistry_projects_locations_apis_deployments_get_builder(client, &args.name)?;
     apigeeregistry_projects_locations_apis_deployments_get_execute(builder)
 }
 
@@ -2974,6 +3202,15 @@ pub fn apigeeregistry_projects_locations_apis_deployments_get_iam_policy_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -2986,16 +3223,15 @@ pub fn apigeeregistry_projects_locations_apis_deployments_get_iam_policy_execute
 
 pub fn apigeeregistry_projects_locations_apis_deployments_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_deployments_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigeeregistry_projects_locations_apis_deployments_get_iam_policy_execute(builder)
 }
@@ -3118,6 +3354,21 @@ pub fn apigeeregistry_projects_locations_apis_deployments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments
 /// Returns matching deployments.
 ///
@@ -3130,11 +3381,7 @@ pub fn apigeeregistry_projects_locations_apis_deployments_list_execute(
 
 pub fn apigeeregistry_projects_locations_apis_deployments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListApiDeploymentsResponse>, ApiError>,
@@ -3144,7 +3391,12 @@ pub fn apigeeregistry_projects_locations_apis_deployments_list(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_deployments_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigeeregistry_projects_locations_apis_deployments_list_execute(builder)
 }
@@ -3263,6 +3515,19 @@ pub fn apigeeregistry_projects_locations_apis_deployments_list_revisions_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_list_revisions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsListRevisionsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:listRevisions
 /// Lists all revisions of a deployment. Revisions are returned in descending order of revision creation time.
 ///
@@ -3275,10 +3540,7 @@ pub fn apigeeregistry_projects_locations_apis_deployments_list_revisions_execute
 
 pub fn apigeeregistry_projects_locations_apis_deployments_list_revisions(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsListRevisionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListApiDeploymentRevisionsResponse>, ApiError>,
@@ -3288,7 +3550,11 @@ pub fn apigeeregistry_projects_locations_apis_deployments_list_revisions(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_deployments_list_revisions_builder(
-        client, name, filter, pageSize, pageToken,
+        client,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigeeregistry_projects_locations_apis_deployments_list_revisions_execute(builder)
 }
@@ -3404,6 +3670,19 @@ pub fn apigeeregistry_projects_locations_apis_deployments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ApiDeployment,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}
 /// Used to modify a specified deployment.
 ///
@@ -3416,10 +3695,7 @@ pub fn apigeeregistry_projects_locations_apis_deployments_patch_execute(
 
 pub fn apigeeregistry_projects_locations_apis_deployments_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    body: &ApiDeployment,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiDeployment>, ApiError>, P = ApiPending>
         + Send
@@ -3428,10 +3704,10 @@ pub fn apigeeregistry_projects_locations_apis_deployments_patch(
 > {
     let builder = apigeeregistry_projects_locations_apis_deployments_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_deployments_patch_execute(builder)
 }
@@ -3531,6 +3807,15 @@ pub fn apigeeregistry_projects_locations_apis_deployments_rollback_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_rollback`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsRollbackArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RollbackApiDeploymentRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:rollback
 /// Sets the current revision to a specified prior revision. Note that this creates a new revision with a new revision ID.
 ///
@@ -3543,16 +3828,16 @@ pub fn apigeeregistry_projects_locations_apis_deployments_rollback_execute(
 
 pub fn apigeeregistry_projects_locations_apis_deployments_rollback(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RollbackApiDeploymentRequest,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsRollbackArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiDeployment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_apis_deployments_rollback_builder(client, name, body)?;
+    let builder = apigeeregistry_projects_locations_apis_deployments_rollback_builder(
+        client, &args.name, &args.body,
+    )?;
     apigeeregistry_projects_locations_apis_deployments_rollback_execute(builder)
 }
 
@@ -3649,6 +3934,15 @@ pub fn apigeeregistry_projects_locations_apis_deployments_set_iam_policy_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -3661,14 +3955,15 @@ pub fn apigeeregistry_projects_locations_apis_deployments_set_iam_policy_execute
 
 pub fn apigeeregistry_projects_locations_apis_deployments_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_deployments_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_deployments_set_iam_policy_execute(builder)
 }
@@ -3768,6 +4063,15 @@ pub fn apigeeregistry_projects_locations_apis_deployments_tag_revision_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_tag_revision`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsTagRevisionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: TagApiDeploymentRevisionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:tagRevision
 /// Adds a tag to a specified revision of a deployment.
 ///
@@ -3780,8 +4084,7 @@ pub fn apigeeregistry_projects_locations_apis_deployments_tag_revision_execute(
 
 pub fn apigeeregistry_projects_locations_apis_deployments_tag_revision(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &TagApiDeploymentRevisionRequest,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsTagRevisionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiDeployment>, ApiError>, P = ApiPending>
         + Send
@@ -3789,7 +4092,7 @@ pub fn apigeeregistry_projects_locations_apis_deployments_tag_revision(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_deployments_tag_revision_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     apigeeregistry_projects_locations_apis_deployments_tag_revision_execute(builder)
 }
@@ -3891,6 +4194,15 @@ pub fn apigeeregistry_projects_locations_apis_deployments_test_iam_permissions_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -3903,8 +4215,7 @@ pub fn apigeeregistry_projects_locations_apis_deployments_test_iam_permissions_e
 
 pub fn apigeeregistry_projects_locations_apis_deployments_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -3914,7 +4225,9 @@ pub fn apigeeregistry_projects_locations_apis_deployments_test_iam_permissions(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_deployments_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_deployments_test_iam_permissions_execute(builder)
 }
@@ -4024,6 +4337,17 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_create_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_artifacts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsArtifactsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: artifactId
+    pub artifactId: Option<String>,
+    /// Request body.
+    pub body: Artifact,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}/artifacts
 /// Creates a specified artifact.
 ///
@@ -4036,15 +4360,16 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_create_execu
 
 pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    artifactId: Option<&str>,
-    body: &Artifact,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsArtifactsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Artifact>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_deployments_artifacts_create_builder(
-        client, parent, artifactId, body,
+        client,
+        &args.parent,
+        args.artifactId.as_deref(),
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_deployments_artifacts_create_execute(builder)
 }
@@ -4139,6 +4464,13 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_delete_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_artifacts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsArtifactsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}/artifacts/{artifactsId}
 /// Removes a specified artifact.
 ///
@@ -4151,13 +4483,14 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_delete_execu
 
 pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsArtifactsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_apis_deployments_artifacts_delete_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_apis_deployments_artifacts_delete_builder(
+        client, &args.name,
+    )?;
     apigeeregistry_projects_locations_apis_deployments_artifacts_delete_execute(builder)
 }
 
@@ -4251,6 +4584,13 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_artifacts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsArtifactsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}/artifacts/{artifactsId}
 /// Returns a specified artifact.
 ///
@@ -4263,13 +4603,14 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_get_execute(
 
 pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsArtifactsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Artifact>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_apis_deployments_artifacts_get_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_apis_deployments_artifacts_get_builder(
+        client, &args.name,
+    )?;
     apigeeregistry_projects_locations_apis_deployments_artifacts_get_execute(builder)
 }
 
@@ -4363,6 +4704,13 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_get_contents
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_artifacts_get_contents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsArtifactsGetContentsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}/artifacts/{artifactsId}:getContents
 /// Returns the contents of a specified artifact. If artifacts are stored with GZip compression, the default behavior is to return the artifact uncompressed (the mime_type response field indicates the exact format returned).
 ///
@@ -4375,14 +4723,14 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_get_contents
 
 pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_get_contents(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsArtifactsGetContentsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         apigeeregistry_projects_locations_apis_deployments_artifacts_get_contents_builder(
-            client, name,
+            client, &args.name,
         )?;
     apigeeregistry_projects_locations_apis_deployments_artifacts_get_contents_execute(builder)
 }
@@ -4503,6 +4851,21 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_list_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_artifacts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsArtifactsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}/artifacts
 /// Returns matching artifacts.
 ///
@@ -4515,11 +4878,7 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_list_execute
 
 pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsArtifactsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListArtifactsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -4527,7 +4886,12 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_list(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_deployments_artifacts_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigeeregistry_projects_locations_apis_deployments_artifacts_list_execute(builder)
 }
@@ -4625,6 +4989,15 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_replace_arti
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_deployments_artifacts_replace_artifact`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisDeploymentsArtifactsReplaceArtifactArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Artifact,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/deployments/{deploymentsId}/artifacts/{artifactsId}
 /// Used to replace a specified artifact.
 ///
@@ -4637,15 +5010,14 @@ pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_replace_arti
 
 pub fn apigeeregistry_projects_locations_apis_deployments_artifacts_replace_artifact(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &Artifact,
+    args: &ApigeeregistryProjectsLocationsApisDeploymentsArtifactsReplaceArtifactArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Artifact>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         apigeeregistry_projects_locations_apis_deployments_artifacts_replace_artifact_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     apigeeregistry_projects_locations_apis_deployments_artifacts_replace_artifact_execute(builder)
 }
@@ -4755,6 +5127,17 @@ pub fn apigeeregistry_projects_locations_apis_versions_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: apiVersionId
+    pub apiVersionId: Option<String>,
+    /// Request body.
+    pub body: ApiVersion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
 /// Creates a specified version.
 ///
@@ -4767,18 +5150,16 @@ pub fn apigeeregistry_projects_locations_apis_versions_create_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    apiVersionId: Option<&str>,
-    body: &ApiVersion,
+    args: &ApigeeregistryProjectsLocationsApisVersionsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiVersion>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_create_builder(
         client,
-        parent,
-        apiVersionId,
-        body,
+        &args.parent,
+        args.apiVersionId.as_deref(),
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_versions_create_execute(builder)
 }
@@ -4885,6 +5266,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
 /// Removes a specified version and all of the resources that it owns.
 ///
@@ -4897,14 +5287,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_delete_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ApigeeregistryProjectsLocationsApisVersionsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_apis_versions_delete_builder(client, name, force)?;
+    let builder = apigeeregistry_projects_locations_apis_versions_delete_builder(
+        client, &args.name, args.force,
+    )?;
     apigeeregistry_projects_locations_apis_versions_delete_execute(builder)
 }
 
@@ -4998,6 +5388,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
 /// Returns a specified version.
 ///
@@ -5010,12 +5407,12 @@ pub fn apigeeregistry_projects_locations_apis_versions_get_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisVersionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiVersion>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_apis_versions_get_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_apis_versions_get_builder(client, &args.name)?;
     apigeeregistry_projects_locations_apis_versions_get_execute(builder)
 }
 
@@ -5121,6 +5518,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -5133,16 +5539,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_get_iam_policy_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigeeregistryProjectsLocationsApisVersionsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigeeregistry_projects_locations_apis_versions_get_iam_policy_execute(builder)
 }
@@ -5263,6 +5668,21 @@ pub fn apigeeregistry_projects_locations_apis_versions_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions
 /// Returns matching versions.
 ///
@@ -5275,11 +5695,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_list_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeregistryProjectsLocationsApisVersionsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListApiVersionsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5287,7 +5703,12 @@ pub fn apigeeregistry_projects_locations_apis_versions_list(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigeeregistry_projects_locations_apis_versions_list_execute(builder)
 }
@@ -5401,6 +5822,19 @@ pub fn apigeeregistry_projects_locations_apis_versions_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ApiVersion,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}
 /// Used to modify a specified version.
 ///
@@ -5413,20 +5847,17 @@ pub fn apigeeregistry_projects_locations_apis_versions_patch_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    body: &ApiVersion,
+    args: &ApigeeregistryProjectsLocationsApisVersionsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiVersion>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_versions_patch_execute(builder)
 }
@@ -5524,6 +5955,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -5536,14 +5976,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_set_iam_policy_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_versions_set_iam_policy_execute(builder)
 }
@@ -5645,6 +6086,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_test_iam_permissions_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -5657,8 +6107,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_test_iam_permissions_exec
 
 pub fn apigeeregistry_projects_locations_apis_versions_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ApigeeregistryProjectsLocationsApisVersionsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -5668,7 +6117,9 @@ pub fn apigeeregistry_projects_locations_apis_versions_test_iam_permissions(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_versions_test_iam_permissions_execute(builder)
 }
@@ -5778,6 +6229,17 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_artifacts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsArtifactsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: artifactId
+    pub artifactId: Option<String>,
+    /// Request body.
+    pub body: Artifact,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts
 /// Creates a specified artifact.
 ///
@@ -5790,15 +6252,16 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_create_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_artifacts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    artifactId: Option<&str>,
-    body: &Artifact,
+    args: &ApigeeregistryProjectsLocationsApisVersionsArtifactsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Artifact>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_artifacts_create_builder(
-        client, parent, artifactId, body,
+        client,
+        &args.parent,
+        args.artifactId.as_deref(),
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_versions_artifacts_create_execute(builder)
 }
@@ -5893,6 +6356,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_artifacts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsArtifactsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts/{artifactsId}
 /// Removes a specified artifact.
 ///
@@ -5905,13 +6375,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_delete_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_artifacts_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisVersionsArtifactsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_apis_versions_artifacts_delete_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_apis_versions_artifacts_delete_builder(
+        client, &args.name,
+    )?;
     apigeeregistry_projects_locations_apis_versions_artifacts_delete_execute(builder)
 }
 
@@ -6005,6 +6476,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_artifacts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsArtifactsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts/{artifactsId}
 /// Returns a specified artifact.
 ///
@@ -6017,13 +6495,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisVersionsArtifactsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Artifact>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        apigeeregistry_projects_locations_apis_versions_artifacts_get_builder(client, name)?;
+        apigeeregistry_projects_locations_apis_versions_artifacts_get_builder(client, &args.name)?;
     apigeeregistry_projects_locations_apis_versions_artifacts_get_execute(builder)
 }
 
@@ -6117,6 +6595,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_contents_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_artifacts_get_contents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsArtifactsGetContentsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts/{artifactsId}:getContents
 /// Returns the contents of a specified artifact. If artifacts are stored with GZip compression, the default behavior is to return the artifact uncompressed (the mime_type response field indicates the exact format returned).
 ///
@@ -6129,13 +6614,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_contents_ex
 
 pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_contents(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisVersionsArtifactsGetContentsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_artifacts_get_contents_builder(
-        client, name,
+        client, &args.name,
     )?;
     apigeeregistry_projects_locations_apis_versions_artifacts_get_contents_execute(builder)
 }
@@ -6242,6 +6727,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_iam_policy_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_artifacts_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsArtifactsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts/{artifactsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -6254,16 +6748,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_iam_policy_
 
 pub fn apigeeregistry_projects_locations_apis_versions_artifacts_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigeeregistryProjectsLocationsApisVersionsArtifactsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_artifacts_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigeeregistry_projects_locations_apis_versions_artifacts_get_iam_policy_execute(builder)
 }
@@ -6384,6 +6877,21 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_artifacts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsArtifactsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts
 /// Returns matching artifacts.
 ///
@@ -6396,11 +6904,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_list_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_artifacts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeregistryProjectsLocationsApisVersionsArtifactsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListArtifactsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -6408,7 +6912,12 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_list(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_artifacts_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigeeregistry_projects_locations_apis_versions_artifacts_list_execute(builder)
 }
@@ -6506,6 +7015,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_replace_artifac
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_artifacts_replace_artifact`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsArtifactsReplaceArtifactArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Artifact,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts/{artifactsId}
 /// Used to replace a specified artifact.
 ///
@@ -6518,15 +7036,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_replace_artifac
 
 pub fn apigeeregistry_projects_locations_apis_versions_artifacts_replace_artifact(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &Artifact,
+    args: &ApigeeregistryProjectsLocationsApisVersionsArtifactsReplaceArtifactArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Artifact>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         apigeeregistry_projects_locations_apis_versions_artifacts_replace_artifact_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     apigeeregistry_projects_locations_apis_versions_artifacts_replace_artifact_execute(builder)
 }
@@ -6624,6 +7141,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_set_iam_policy_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_artifacts_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsArtifactsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts/{artifactsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -6636,14 +7162,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_set_iam_policy_
 
 pub fn apigeeregistry_projects_locations_apis_versions_artifacts_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ApigeeregistryProjectsLocationsApisVersionsArtifactsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_artifacts_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_versions_artifacts_set_iam_policy_execute(builder)
 }
@@ -6745,6 +7272,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_test_iam_permis
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_artifacts_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsArtifactsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/artifacts/{artifactsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -6757,8 +7293,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_test_iam_permis
 
 pub fn apigeeregistry_projects_locations_apis_versions_artifacts_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ApigeeregistryProjectsLocationsApisVersionsArtifactsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -6769,7 +7304,9 @@ pub fn apigeeregistry_projects_locations_apis_versions_artifacts_test_iam_permis
 > {
     let builder =
         apigeeregistry_projects_locations_apis_versions_artifacts_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     apigeeregistry_projects_locations_apis_versions_artifacts_test_iam_permissions_execute(builder)
 }
@@ -6879,6 +7416,17 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: apiSpecId
+    pub apiSpecId: Option<String>,
+    /// Request body.
+    pub body: ApiSpec,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
 /// Creates a specified spec.
 ///
@@ -6891,15 +7439,16 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_create_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    apiSpecId: Option<&str>,
-    body: &ApiSpec,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiSpec>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_specs_create_builder(
-        client, parent, apiSpecId, body,
+        client,
+        &args.parent,
+        args.apiSpecId.as_deref(),
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_versions_specs_create_execute(builder)
 }
@@ -7006,6 +7555,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
 /// Removes a specified spec, all revisions, and all child resources (e.g., artifacts).
 ///
@@ -7018,14 +7576,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_delete_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_apis_versions_specs_delete_builder(client, name, force)?;
+    let builder = apigeeregistry_projects_locations_apis_versions_specs_delete_builder(
+        client, &args.name, args.force,
+    )?;
     apigeeregistry_projects_locations_apis_versions_specs_delete_execute(builder)
 }
 
@@ -7119,6 +7677,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_delete_revision_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_delete_revision`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsDeleteRevisionArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:deleteRevision
 /// Deletes a revision of a spec.
 ///
@@ -7131,13 +7696,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_delete_revision_exe
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_delete_revision(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsDeleteRevisionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiSpec>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_specs_delete_revision_builder(
-        client, name,
+        client, &args.name,
     )?;
     apigeeregistry_projects_locations_apis_versions_specs_delete_revision_execute(builder)
 }
@@ -7232,6 +7797,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
 /// Returns a specified spec.
 ///
@@ -7244,12 +7816,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_get_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiSpec>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_apis_versions_specs_get_builder(client, name)?;
+    let builder =
+        apigeeregistry_projects_locations_apis_versions_specs_get_builder(client, &args.name)?;
     apigeeregistry_projects_locations_apis_versions_specs_get_execute(builder)
 }
 
@@ -7343,6 +7916,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_get_contents_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_get_contents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsGetContentsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:getContents
 /// Returns the contents of a specified spec. If specs are stored with GZip compression, the default behavior is to return the spec uncompressed (the mime_type response field indicates the exact format returned).
 ///
@@ -7355,13 +7935,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_get_contents_execut
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_get_contents(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsGetContentsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_apis_versions_specs_get_contents_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_apis_versions_specs_get_contents_builder(
+        client, &args.name,
+    )?;
     apigeeregistry_projects_locations_apis_versions_specs_get_contents_execute(builder)
 }
 
@@ -7467,6 +8048,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_get_iam_policy_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -7479,16 +8069,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_get_iam_policy_exec
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_specs_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigeeregistry_projects_locations_apis_versions_specs_get_iam_policy_execute(builder)
 }
@@ -7609,6 +8198,21 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs
 /// Returns matching specs.
 ///
@@ -7621,11 +8225,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_list_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListApiSpecsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7633,7 +8233,12 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_list(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_specs_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigeeregistry_projects_locations_apis_versions_specs_list_execute(builder)
 }
@@ -7752,6 +8357,19 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_list_revisions_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_list_revisions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsListRevisionsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:listRevisions
 /// Lists all revisions of a spec. Revisions are returned in descending order of revision creation time.
 ///
@@ -7764,10 +8382,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_list_revisions_exec
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_list_revisions(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsListRevisionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListApiSpecRevisionsResponse>, ApiError>,
@@ -7777,7 +8392,11 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_list_revisions(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_specs_list_revisions_builder(
-        client, name, filter, pageSize, pageToken,
+        client,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigeeregistry_projects_locations_apis_versions_specs_list_revisions_execute(builder)
 }
@@ -7891,6 +8510,19 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: allowMissing
+    pub allowMissing: Option<bool>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ApiSpec,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}
 /// Used to modify a specified spec.
 ///
@@ -7903,20 +8535,17 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_patch_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    allowMissing: Option<bool>,
-    updateMask: Option<&str>,
-    body: &ApiSpec,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiSpec>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_specs_patch_builder(
         client,
-        name,
-        allowMissing,
-        updateMask,
-        body,
+        &args.name,
+        args.allowMissing,
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_versions_specs_patch_execute(builder)
 }
@@ -8014,6 +8643,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_rollback_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_rollback`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsRollbackArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RollbackApiSpecRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:rollback
 /// Sets the current revision to a specified prior revision. Note that this creates a new revision with a new revision ID.
 ///
@@ -8026,14 +8664,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_rollback_execute(
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_rollback(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RollbackApiSpecRequest,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsRollbackArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiSpec>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_apis_versions_specs_rollback_builder(client, name, body)?;
+    let builder = apigeeregistry_projects_locations_apis_versions_specs_rollback_builder(
+        client, &args.name, &args.body,
+    )?;
     apigeeregistry_projects_locations_apis_versions_specs_rollback_execute(builder)
 }
 
@@ -8130,6 +8768,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_set_iam_policy_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -8142,14 +8789,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_set_iam_policy_exec
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_specs_set_iam_policy_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_versions_specs_set_iam_policy_execute(builder)
 }
@@ -8247,6 +8895,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_tag_revision_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_tag_revision`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsTagRevisionArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: TagApiSpecRevisionRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:tagRevision
 /// Adds a tag to a specified revision of a spec.
 ///
@@ -8259,14 +8916,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_tag_revision_execut
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_tag_revision(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &TagApiSpecRevisionRequest,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsTagRevisionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiSpec>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_specs_tag_revision_builder(
-        client, name, body,
+        client, &args.name, &args.body,
     )?;
     apigeeregistry_projects_locations_apis_versions_specs_tag_revision_execute(builder)
 }
@@ -8368,6 +9024,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_test_iam_permission
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -8380,8 +9045,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_test_iam_permission
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -8392,7 +9056,9 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_test_iam_permission
 > {
     let builder =
         apigeeregistry_projects_locations_apis_versions_specs_test_iam_permissions_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     apigeeregistry_projects_locations_apis_versions_specs_test_iam_permissions_execute(builder)
 }
@@ -8502,6 +9168,17 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_create_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_artifacts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: artifactId
+    pub artifactId: Option<String>,
+    /// Request body.
+    pub body: Artifact,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts
 /// Creates a specified artifact.
 ///
@@ -8514,15 +9191,16 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_create_ex
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    artifactId: Option<&str>,
-    body: &Artifact,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Artifact>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_specs_artifacts_create_builder(
-        client, parent, artifactId, body,
+        client,
+        &args.parent,
+        args.artifactId.as_deref(),
+        &args.body,
     )?;
     apigeeregistry_projects_locations_apis_versions_specs_artifacts_create_execute(builder)
 }
@@ -8617,6 +9295,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_delete_ex
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_artifacts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts/{artifactsId}
 /// Removes a specified artifact.
 ///
@@ -8629,13 +9314,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_delete_ex
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_specs_artifacts_delete_builder(
-        client, name,
+        client, &args.name,
     )?;
     apigeeregistry_projects_locations_apis_versions_specs_artifacts_delete_execute(builder)
 }
@@ -8730,6 +9415,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_execu
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_artifacts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts/{artifactsId}
 /// Returns a specified artifact.
 ///
@@ -8742,13 +9434,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_execu
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Artifact>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_builder(
+        client, &args.name,
+    )?;
     apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_execute(builder)
 }
 
@@ -8842,6 +9535,13 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_conte
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_contents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsGetContentsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts/{artifactsId}:getContents
 /// Returns the contents of a specified artifact. If artifacts are stored with GZip compression, the default behavior is to return the artifact uncompressed (the mime_type response field indicates the exact format returned).
 ///
@@ -8854,14 +9554,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_conte
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_contents(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsGetContentsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_contents_builder(
-            client, name,
+            client, &args.name,
         )?;
     apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_contents_execute(builder)
 }
@@ -8968,6 +9668,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_iam_p
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts/{artifactsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -8980,8 +9689,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_iam_p
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
@@ -8989,8 +9697,8 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_iam_p
     let builder =
         apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_iam_policy_builder(
             client,
-            resource,
-            options_requestedPolicyVersion,
+            &args.resource,
+            args.options_requestedPolicyVersion,
         )?;
     apigeeregistry_projects_locations_apis_versions_specs_artifacts_get_iam_policy_execute(builder)
 }
@@ -9111,6 +9819,21 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_list_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_artifacts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts
 /// Returns matching artifacts.
 ///
@@ -9123,11 +9846,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_list_exec
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListArtifactsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -9135,7 +9854,12 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_list(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_apis_versions_specs_artifacts_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigeeregistry_projects_locations_apis_versions_specs_artifacts_list_execute(builder)
 }
@@ -9233,6 +9957,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_replace_a
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_artifacts_replace_artifact`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsReplaceArtifactArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Artifact,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts/{artifactsId}
 /// Used to replace a specified artifact.
 ///
@@ -9245,15 +9978,14 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_replace_a
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_replace_artifact(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &Artifact,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsReplaceArtifactArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Artifact>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         apigeeregistry_projects_locations_apis_versions_specs_artifacts_replace_artifact_builder(
-            client, name, body,
+            client, &args.name, &args.body,
         )?;
     apigeeregistry_projects_locations_apis_versions_specs_artifacts_replace_artifact_execute(
         builder,
@@ -9353,6 +10085,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_set_iam_p
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_artifacts_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts/{artifactsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -9365,15 +10106,16 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_set_iam_p
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
         apigeeregistry_projects_locations_apis_versions_specs_artifacts_set_iam_policy_builder(
-            client, resource, body,
+            client,
+            &args.resource,
+            &args.body,
         )?;
     apigeeregistry_projects_locations_apis_versions_specs_artifacts_set_iam_policy_execute(builder)
 }
@@ -9475,6 +10217,15 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_test_iam_
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_apis_versions_specs_artifacts_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/apis/{apisId}/versions/{versionsId}/specs/{specsId}/artifacts/{artifactsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -9487,8 +10238,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_test_iam_
 
 pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ApigeeregistryProjectsLocationsApisVersionsSpecsArtifactsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -9497,7 +10247,7 @@ pub fn apigeeregistry_projects_locations_apis_versions_specs_artifacts_test_iam_
         + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_apis_versions_specs_artifacts_test_iam_permissions_builder(client, resource, body)?;
+    let builder = apigeeregistry_projects_locations_apis_versions_specs_artifacts_test_iam_permissions_builder(client, &args.resource, &args.body)?;
     apigeeregistry_projects_locations_apis_versions_specs_artifacts_test_iam_permissions_execute(
         builder,
     )
@@ -9608,6 +10358,17 @@ pub fn apigeeregistry_projects_locations_artifacts_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_artifacts_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsArtifactsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: artifactId
+    pub artifactId: Option<String>,
+    /// Request body.
+    pub body: Artifact,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/artifacts
 /// Creates a specified artifact.
 ///
@@ -9620,15 +10381,16 @@ pub fn apigeeregistry_projects_locations_artifacts_create_execute(
 
 pub fn apigeeregistry_projects_locations_artifacts_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    artifactId: Option<&str>,
-    body: &Artifact,
+    args: &ApigeeregistryProjectsLocationsArtifactsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Artifact>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_artifacts_create_builder(
-        client, parent, artifactId, body,
+        client,
+        &args.parent,
+        args.artifactId.as_deref(),
+        &args.body,
     )?;
     apigeeregistry_projects_locations_artifacts_create_execute(builder)
 }
@@ -9723,6 +10485,13 @@ pub fn apigeeregistry_projects_locations_artifacts_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_artifacts_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsArtifactsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/artifacts/{artifactsId}
 /// Removes a specified artifact.
 ///
@@ -9735,12 +10504,12 @@ pub fn apigeeregistry_projects_locations_artifacts_delete_execute(
 
 pub fn apigeeregistry_projects_locations_artifacts_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsArtifactsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_artifacts_delete_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_artifacts_delete_builder(client, &args.name)?;
     apigeeregistry_projects_locations_artifacts_delete_execute(builder)
 }
 
@@ -9834,6 +10603,13 @@ pub fn apigeeregistry_projects_locations_artifacts_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_artifacts_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsArtifactsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/artifacts/{artifactsId}
 /// Returns a specified artifact.
 ///
@@ -9846,12 +10622,12 @@ pub fn apigeeregistry_projects_locations_artifacts_get_execute(
 
 pub fn apigeeregistry_projects_locations_artifacts_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsArtifactsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Artifact>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_artifacts_get_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_artifacts_get_builder(client, &args.name)?;
     apigeeregistry_projects_locations_artifacts_get_execute(builder)
 }
 
@@ -9945,6 +10721,13 @@ pub fn apigeeregistry_projects_locations_artifacts_get_contents_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_artifacts_get_contents`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsArtifactsGetContentsArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/artifacts/{artifactsId}:getContents
 /// Returns the contents of a specified artifact. If artifacts are stored with GZip compression, the default behavior is to return the artifact uncompressed (the mime_type response field indicates the exact format returned).
 ///
@@ -9957,12 +10740,13 @@ pub fn apigeeregistry_projects_locations_artifacts_get_contents_execute(
 
 pub fn apigeeregistry_projects_locations_artifacts_get_contents(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsArtifactsGetContentsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_artifacts_get_contents_builder(client, name)?;
+    let builder =
+        apigeeregistry_projects_locations_artifacts_get_contents_builder(client, &args.name)?;
     apigeeregistry_projects_locations_artifacts_get_contents_execute(builder)
 }
 
@@ -10068,6 +10852,15 @@ pub fn apigeeregistry_projects_locations_artifacts_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_artifacts_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsArtifactsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/artifacts/{artifactsId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -10080,16 +10873,15 @@ pub fn apigeeregistry_projects_locations_artifacts_get_iam_policy_execute(
 
 pub fn apigeeregistry_projects_locations_artifacts_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigeeregistryProjectsLocationsArtifactsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_artifacts_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigeeregistry_projects_locations_artifacts_get_iam_policy_execute(builder)
 }
@@ -10210,6 +11002,21 @@ pub fn apigeeregistry_projects_locations_artifacts_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_artifacts_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsArtifactsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/artifacts
 /// Returns matching artifacts.
 ///
@@ -10222,11 +11029,7 @@ pub fn apigeeregistry_projects_locations_artifacts_list_execute(
 
 pub fn apigeeregistry_projects_locations_artifacts_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeregistryProjectsLocationsArtifactsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListArtifactsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -10234,7 +11037,12 @@ pub fn apigeeregistry_projects_locations_artifacts_list(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_artifacts_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigeeregistry_projects_locations_artifacts_list_execute(builder)
 }
@@ -10332,6 +11140,15 @@ pub fn apigeeregistry_projects_locations_artifacts_replace_artifact_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_artifacts_replace_artifact`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsArtifactsReplaceArtifactArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: Artifact,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/artifacts/{artifactsId}
 /// Used to replace a specified artifact.
 ///
@@ -10344,14 +11161,14 @@ pub fn apigeeregistry_projects_locations_artifacts_replace_artifact_execute(
 
 pub fn apigeeregistry_projects_locations_artifacts_replace_artifact(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &Artifact,
+    args: &ApigeeregistryProjectsLocationsArtifactsReplaceArtifactArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Artifact>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_artifacts_replace_artifact_builder(client, name, body)?;
+    let builder = apigeeregistry_projects_locations_artifacts_replace_artifact_builder(
+        client, &args.name, &args.body,
+    )?;
     apigeeregistry_projects_locations_artifacts_replace_artifact_execute(builder)
 }
 
@@ -10448,6 +11265,15 @@ pub fn apigeeregistry_projects_locations_artifacts_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_artifacts_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsArtifactsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/artifacts/{artifactsId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -10460,14 +11286,16 @@ pub fn apigeeregistry_projects_locations_artifacts_set_iam_policy_execute(
 
 pub fn apigeeregistry_projects_locations_artifacts_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ApigeeregistryProjectsLocationsArtifactsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_artifacts_set_iam_policy_builder(client, resource, body)?;
+    let builder = apigeeregistry_projects_locations_artifacts_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     apigeeregistry_projects_locations_artifacts_set_iam_policy_execute(builder)
 }
 
@@ -10568,6 +11396,15 @@ pub fn apigeeregistry_projects_locations_artifacts_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_artifacts_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsArtifactsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/artifacts/{artifactsId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -10580,8 +11417,7 @@ pub fn apigeeregistry_projects_locations_artifacts_test_iam_permissions_execute(
 
 pub fn apigeeregistry_projects_locations_artifacts_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ApigeeregistryProjectsLocationsArtifactsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -10591,7 +11427,9 @@ pub fn apigeeregistry_projects_locations_artifacts_test_iam_permissions(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_artifacts_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigeeregistry_projects_locations_artifacts_test_iam_permissions_execute(builder)
 }
@@ -10698,6 +11536,15 @@ pub fn apigeeregistry_projects_locations_documents_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_documents_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsDocumentsGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -10710,16 +11557,15 @@ pub fn apigeeregistry_projects_locations_documents_get_iam_policy_execute(
 
 pub fn apigeeregistry_projects_locations_documents_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigeeregistryProjectsLocationsDocumentsGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_documents_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigeeregistry_projects_locations_documents_get_iam_policy_execute(builder)
 }
@@ -10817,6 +11663,15 @@ pub fn apigeeregistry_projects_locations_documents_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_documents_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsDocumentsSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -10829,14 +11684,16 @@ pub fn apigeeregistry_projects_locations_documents_set_iam_policy_execute(
 
 pub fn apigeeregistry_projects_locations_documents_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ApigeeregistryProjectsLocationsDocumentsSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_documents_set_iam_policy_builder(client, resource, body)?;
+    let builder = apigeeregistry_projects_locations_documents_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     apigeeregistry_projects_locations_documents_set_iam_policy_execute(builder)
 }
 
@@ -10937,6 +11794,15 @@ pub fn apigeeregistry_projects_locations_documents_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_documents_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsDocumentsTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/documents:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -10949,8 +11815,7 @@ pub fn apigeeregistry_projects_locations_documents_test_iam_permissions_execute(
 
 pub fn apigeeregistry_projects_locations_documents_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ApigeeregistryProjectsLocationsDocumentsTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -10960,7 +11825,9 @@ pub fn apigeeregistry_projects_locations_documents_test_iam_permissions(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_documents_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigeeregistry_projects_locations_documents_test_iam_permissions_execute(builder)
 }
@@ -11070,6 +11937,17 @@ pub fn apigeeregistry_projects_locations_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: instanceId
+    pub instanceId: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances
 /// Provisions instance resources for the Registry.
 ///
@@ -11082,15 +11960,16 @@ pub fn apigeeregistry_projects_locations_instances_create_execute(
 
 pub fn apigeeregistry_projects_locations_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    instanceId: Option<&str>,
-    body: &Instance,
+    args: &ApigeeregistryProjectsLocationsInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_instances_create_builder(
-        client, parent, instanceId, body,
+        client,
+        &args.parent,
+        args.instanceId.as_deref(),
+        &args.body,
     )?;
     apigeeregistry_projects_locations_instances_create_execute(builder)
 }
@@ -11185,6 +12064,13 @@ pub fn apigeeregistry_projects_locations_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Deletes the Registry instance.
 ///
@@ -11197,12 +12083,12 @@ pub fn apigeeregistry_projects_locations_instances_delete_execute(
 
 pub fn apigeeregistry_projects_locations_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_instances_delete_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_instances_delete_builder(client, &args.name)?;
     apigeeregistry_projects_locations_instances_delete_execute(builder)
 }
 
@@ -11296,6 +12182,13 @@ pub fn apigeeregistry_projects_locations_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Gets details of a single Instance.
 ///
@@ -11308,12 +12201,12 @@ pub fn apigeeregistry_projects_locations_instances_get_execute(
 
 pub fn apigeeregistry_projects_locations_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_instances_get_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_instances_get_builder(client, &args.name)?;
     apigeeregistry_projects_locations_instances_get_execute(builder)
 }
 
@@ -11419,6 +12312,15 @@ pub fn apigeeregistry_projects_locations_instances_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_instances_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsInstancesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -11431,16 +12333,15 @@ pub fn apigeeregistry_projects_locations_instances_get_iam_policy_execute(
 
 pub fn apigeeregistry_projects_locations_instances_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigeeregistryProjectsLocationsInstancesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_instances_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigeeregistry_projects_locations_instances_get_iam_policy_execute(builder)
 }
@@ -11538,6 +12439,15 @@ pub fn apigeeregistry_projects_locations_instances_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_instances_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsInstancesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -11550,14 +12460,16 @@ pub fn apigeeregistry_projects_locations_instances_set_iam_policy_execute(
 
 pub fn apigeeregistry_projects_locations_instances_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ApigeeregistryProjectsLocationsInstancesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_instances_set_iam_policy_builder(client, resource, body)?;
+    let builder = apigeeregistry_projects_locations_instances_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     apigeeregistry_projects_locations_instances_set_iam_policy_execute(builder)
 }
 
@@ -11658,6 +12570,15 @@ pub fn apigeeregistry_projects_locations_instances_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_instances_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsInstancesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -11670,8 +12591,7 @@ pub fn apigeeregistry_projects_locations_instances_test_iam_permissions_execute(
 
 pub fn apigeeregistry_projects_locations_instances_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ApigeeregistryProjectsLocationsInstancesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -11681,7 +12601,9 @@ pub fn apigeeregistry_projects_locations_instances_test_iam_permissions(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_instances_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigeeregistry_projects_locations_instances_test_iam_permissions_execute(builder)
 }
@@ -11779,6 +12701,15 @@ pub fn apigeeregistry_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -11791,13 +12722,14 @@ pub fn apigeeregistry_projects_locations_operations_cancel_execute(
 
 pub fn apigeeregistry_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ApigeeregistryProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = apigeeregistry_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     apigeeregistry_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -11891,6 +12823,13 @@ pub fn apigeeregistry_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -11903,12 +12842,12 @@ pub fn apigeeregistry_projects_locations_operations_delete_execute(
 
 pub fn apigeeregistry_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_operations_delete_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_operations_delete_builder(client, &args.name)?;
     apigeeregistry_projects_locations_operations_delete_execute(builder)
 }
 
@@ -12002,6 +12941,13 @@ pub fn apigeeregistry_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -12014,12 +12960,12 @@ pub fn apigeeregistry_projects_locations_operations_get_execute(
 
 pub fn apigeeregistry_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ApigeeregistryProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = apigeeregistry_projects_locations_operations_get_builder(client, name)?;
+    let builder = apigeeregistry_projects_locations_operations_get_builder(client, &args.name)?;
     apigeeregistry_projects_locations_operations_get_execute(builder)
 }
 
@@ -12135,6 +13081,19 @@ pub fn apigeeregistry_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -12147,10 +13106,7 @@ pub fn apigeeregistry_projects_locations_operations_list_execute(
 
 pub fn apigeeregistry_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ApigeeregistryProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -12158,7 +13114,11 @@ pub fn apigeeregistry_projects_locations_operations_list(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_operations_list_builder(
-        client, name, filter, pageSize, pageToken,
+        client,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     apigeeregistry_projects_locations_operations_list_execute(builder)
 }
@@ -12265,6 +13225,15 @@ pub fn apigeeregistry_projects_locations_runtime_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_runtime_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsRuntimeGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/runtime:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -12277,16 +13246,15 @@ pub fn apigeeregistry_projects_locations_runtime_get_iam_policy_execute(
 
 pub fn apigeeregistry_projects_locations_runtime_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &ApigeeregistryProjectsLocationsRuntimeGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_runtime_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     apigeeregistry_projects_locations_runtime_get_iam_policy_execute(builder)
 }
@@ -12384,6 +13352,15 @@ pub fn apigeeregistry_projects_locations_runtime_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_runtime_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsRuntimeSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/runtime:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -12396,14 +13373,16 @@ pub fn apigeeregistry_projects_locations_runtime_set_iam_policy_execute(
 
 pub fn apigeeregistry_projects_locations_runtime_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &ApigeeregistryProjectsLocationsRuntimeSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        apigeeregistry_projects_locations_runtime_set_iam_policy_builder(client, resource, body)?;
+    let builder = apigeeregistry_projects_locations_runtime_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     apigeeregistry_projects_locations_runtime_set_iam_policy_execute(builder)
 }
 
@@ -12504,6 +13483,15 @@ pub fn apigeeregistry_projects_locations_runtime_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`apigeeregistry_projects_locations_runtime_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ApigeeregistryProjectsLocationsRuntimeTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/runtime:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -12516,8 +13504,7 @@ pub fn apigeeregistry_projects_locations_runtime_test_iam_permissions_execute(
 
 pub fn apigeeregistry_projects_locations_runtime_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &ApigeeregistryProjectsLocationsRuntimeTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -12527,7 +13514,9 @@ pub fn apigeeregistry_projects_locations_runtime_test_iam_permissions(
     ApiError,
 > {
     let builder = apigeeregistry_projects_locations_runtime_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     apigeeregistry_projects_locations_runtime_test_iam_permissions_execute(builder)
 }

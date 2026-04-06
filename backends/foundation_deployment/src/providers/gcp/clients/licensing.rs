@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
 /// Revoke a license.
@@ -108,6 +110,17 @@ pub fn licensing_license_assignments_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`licensing_license_assignments_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LicensingLicenseAssignmentsDeleteArgs {
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: skuId
+    pub skuId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
 /// Revoke a license.
 ///
@@ -120,14 +133,17 @@ pub fn licensing_license_assignments_delete_execute(
 
 pub fn licensing_license_assignments_delete(
     client: &SimpleHttpClient,
-    productId: &str,
-    skuId: &str,
-    userId: &str,
+    args: &LicensingLicenseAssignmentsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = licensing_license_assignments_delete_builder(client, productId, skuId, userId)?;
+    let builder = licensing_license_assignments_delete_builder(
+        client,
+        &args.productId,
+        &args.skuId,
+        &args.userId,
+    )?;
     licensing_license_assignments_delete_execute(builder)
 }
 
@@ -225,6 +241,17 @@ pub fn licensing_license_assignments_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`licensing_license_assignments_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LicensingLicenseAssignmentsGetArgs {
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: skuId
+    pub skuId: String,
+    /// Path parameter: userId
+    pub userId: String,
+}
+
 /// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
 /// Get a specific user's license by product SKU.
 ///
@@ -237,16 +264,19 @@ pub fn licensing_license_assignments_get_execute(
 
 pub fn licensing_license_assignments_get(
     client: &SimpleHttpClient,
-    productId: &str,
-    skuId: &str,
-    userId: &str,
+    args: &LicensingLicenseAssignmentsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LicenseAssignment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = licensing_license_assignments_get_builder(client, productId, skuId, userId)?;
+    let builder = licensing_license_assignments_get_builder(
+        client,
+        &args.productId,
+        &args.skuId,
+        &args.userId,
+    )?;
     licensing_license_assignments_get_execute(builder)
 }
 
@@ -346,6 +376,17 @@ pub fn licensing_license_assignments_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`licensing_license_assignments_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LicensingLicenseAssignmentsInsertArgs {
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: skuId
+    pub skuId: String,
+    /// Request body.
+    pub body: LicenseAssignmentInsert,
+}
+
 /// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user
 /// Assign a license.
 ///
@@ -358,16 +399,19 @@ pub fn licensing_license_assignments_insert_execute(
 
 pub fn licensing_license_assignments_insert(
     client: &SimpleHttpClient,
-    productId: &str,
-    skuId: &str,
-    body: &LicenseAssignmentInsert,
+    args: &LicensingLicenseAssignmentsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LicenseAssignment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = licensing_license_assignments_insert_builder(client, productId, skuId, body)?;
+    let builder = licensing_license_assignments_insert_builder(
+        client,
+        &args.productId,
+        &args.skuId,
+        &args.body,
+    )?;
     licensing_license_assignments_insert_execute(builder)
 }
 
@@ -480,6 +524,19 @@ pub fn licensing_license_assignments_list_for_product_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`licensing_license_assignments_list_for_product`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LicensingLicenseAssignmentsListForProductArgs {
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: customerId
+    pub customerId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET apps/licensing/v1/product/{productId}/users
 /// List all users assigned licenses for a specific product SKU.
 ///
@@ -492,10 +549,7 @@ pub fn licensing_license_assignments_list_for_product_execute(
 
 pub fn licensing_license_assignments_list_for_product(
     client: &SimpleHttpClient,
-    productId: &str,
-    customerId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LicensingLicenseAssignmentsListForProductArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LicenseAssignmentList>, ApiError>, P = ApiPending>
         + Send
@@ -503,7 +557,11 @@ pub fn licensing_license_assignments_list_for_product(
     ApiError,
 > {
     let builder = licensing_license_assignments_list_for_product_builder(
-        client, productId, customerId, maxResults, pageToken,
+        client,
+        &args.productId,
+        &args.customerId,
+        args.maxResults,
+        args.pageToken.as_deref(),
     )?;
     licensing_license_assignments_list_for_product_execute(builder)
 }
@@ -618,6 +676,21 @@ pub fn licensing_license_assignments_list_for_product_and_sku_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`licensing_license_assignments_list_for_product_and_sku`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LicensingLicenseAssignmentsListForProductAndSkuArgs {
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: skuId
+    pub skuId: String,
+    /// Path parameter: customerId
+    pub customerId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET apps/licensing/v1/product/{productId}/sku/{skuId}/users
 /// List all users assigned licenses for a specific product SKU.
 ///
@@ -630,11 +703,7 @@ pub fn licensing_license_assignments_list_for_product_and_sku_execute(
 
 pub fn licensing_license_assignments_list_for_product_and_sku(
     client: &SimpleHttpClient,
-    productId: &str,
-    skuId: &str,
-    customerId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &LicensingLicenseAssignmentsListForProductAndSkuArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LicenseAssignmentList>, ApiError>, P = ApiPending>
         + Send
@@ -642,7 +711,12 @@ pub fn licensing_license_assignments_list_for_product_and_sku(
     ApiError,
 > {
     let builder = licensing_license_assignments_list_for_product_and_sku_builder(
-        client, productId, skuId, customerId, maxResults, pageToken,
+        client,
+        &args.productId,
+        &args.skuId,
+        &args.customerId,
+        args.maxResults,
+        args.pageToken.as_deref(),
     )?;
     licensing_license_assignments_list_for_product_and_sku_execute(builder)
 }
@@ -744,6 +818,19 @@ pub fn licensing_license_assignments_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`licensing_license_assignments_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LicensingLicenseAssignmentsPatchArgs {
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: skuId
+    pub skuId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: LicenseAssignment,
+}
+
 /// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
 /// Reassign a user's product SKU with a different SKU in the same product. This method supports patch semantics.
 ///
@@ -756,18 +843,20 @@ pub fn licensing_license_assignments_patch_execute(
 
 pub fn licensing_license_assignments_patch(
     client: &SimpleHttpClient,
-    productId: &str,
-    skuId: &str,
-    userId: &str,
-    body: &LicenseAssignment,
+    args: &LicensingLicenseAssignmentsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LicenseAssignment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        licensing_license_assignments_patch_builder(client, productId, skuId, userId, body)?;
+    let builder = licensing_license_assignments_patch_builder(
+        client,
+        &args.productId,
+        &args.skuId,
+        &args.userId,
+        &args.body,
+    )?;
     licensing_license_assignments_patch_execute(builder)
 }
 
@@ -868,6 +957,19 @@ pub fn licensing_license_assignments_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`licensing_license_assignments_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct LicensingLicenseAssignmentsUpdateArgs {
+    /// Path parameter: productId
+    pub productId: String,
+    /// Path parameter: skuId
+    pub skuId: String,
+    /// Path parameter: userId
+    pub userId: String,
+    /// Request body.
+    pub body: LicenseAssignment,
+}
+
 /// GET apps/licensing/v1/product/{productId}/sku/{skuId}/user/{userId}
 /// Reassign a user's product SKU with a different SKU in the same product.
 ///
@@ -880,17 +982,19 @@ pub fn licensing_license_assignments_update_execute(
 
 pub fn licensing_license_assignments_update(
     client: &SimpleHttpClient,
-    productId: &str,
-    skuId: &str,
-    userId: &str,
-    body: &LicenseAssignment,
+    args: &LicensingLicenseAssignmentsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LicenseAssignment>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        licensing_license_assignments_update_builder(client, productId, skuId, userId, body)?;
+    let builder = licensing_license_assignments_update_builder(
+        client,
+        &args.productId,
+        &args.skuId,
+        &args.userId,
+        &args.body,
+    )?;
     licensing_license_assignments_update_execute(builder)
 }

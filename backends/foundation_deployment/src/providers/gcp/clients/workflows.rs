@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn workflows_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflows_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn workflows_projects_locations_get_execute(
 
 pub fn workflows_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkflowsProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workflows_projects_locations_get_builder(client, name)?;
+    let builder = workflows_projects_locations_get_builder(client, &args.name)?;
     workflows_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn workflows_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflows_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -255,11 +279,7 @@ pub fn workflows_projects_locations_list_execute(
 
 pub fn workflows_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkflowsProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn workflows_projects_locations_list(
 > {
     let builder = workflows_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     workflows_projects_locations_list_execute(builder)
 }
@@ -367,6 +387,13 @@ pub fn workflows_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflows_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -379,12 +406,12 @@ pub fn workflows_projects_locations_operations_delete_execute(
 
 pub fn workflows_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkflowsProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workflows_projects_locations_operations_delete_builder(client, name)?;
+    let builder = workflows_projects_locations_operations_delete_builder(client, &args.name)?;
     workflows_projects_locations_operations_delete_execute(builder)
 }
 
@@ -478,6 +505,13 @@ pub fn workflows_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflows_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -490,12 +524,12 @@ pub fn workflows_projects_locations_operations_get_execute(
 
 pub fn workflows_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkflowsProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workflows_projects_locations_operations_get_builder(client, name)?;
+    let builder = workflows_projects_locations_operations_get_builder(client, &args.name)?;
     workflows_projects_locations_operations_get_execute(builder)
 }
 
@@ -615,6 +649,21 @@ pub fn workflows_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflows_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -627,11 +676,7 @@ pub fn workflows_projects_locations_operations_list_execute(
 
 pub fn workflows_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &WorkflowsProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -640,11 +685,11 @@ pub fn workflows_projects_locations_operations_list(
 > {
     let builder = workflows_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     workflows_projects_locations_operations_list_execute(builder)
 }
@@ -754,6 +799,17 @@ pub fn workflows_projects_locations_workflows_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflows_projects_locations_workflows_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsWorkflowsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: workflowId
+    pub workflowId: Option<String>,
+    /// Request body.
+    pub body: Workflow,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows
 /// Creates a new workflow. If a workflow with the specified name already exists in the specified project and location, the long running operation returns a ALREADY_EXISTS error.
 ///
@@ -766,15 +822,17 @@ pub fn workflows_projects_locations_workflows_create_execute(
 
 pub fn workflows_projects_locations_workflows_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    workflowId: Option<&str>,
-    body: &Workflow,
+    args: &WorkflowsProjectsLocationsWorkflowsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        workflows_projects_locations_workflows_create_builder(client, parent, workflowId, body)?;
+    let builder = workflows_projects_locations_workflows_create_builder(
+        client,
+        &args.parent,
+        args.workflowId.as_deref(),
+        &args.body,
+    )?;
     workflows_projects_locations_workflows_create_execute(builder)
 }
 
@@ -868,6 +926,13 @@ pub fn workflows_projects_locations_workflows_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflows_projects_locations_workflows_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsWorkflowsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}
 /// Deletes a workflow with the specified name. This method also cancels and deletes all running executions of the workflow.
 ///
@@ -880,12 +945,12 @@ pub fn workflows_projects_locations_workflows_delete_execute(
 
 pub fn workflows_projects_locations_workflows_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &WorkflowsProjectsLocationsWorkflowsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workflows_projects_locations_workflows_delete_builder(client, name)?;
+    let builder = workflows_projects_locations_workflows_delete_builder(client, &args.name)?;
     workflows_projects_locations_workflows_delete_execute(builder)
 }
 
@@ -991,6 +1056,15 @@ pub fn workflows_projects_locations_workflows_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflows_projects_locations_workflows_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsWorkflowsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: revisionId
+    pub revisionId: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}
 /// Gets details of a single workflow.
 ///
@@ -1003,13 +1077,16 @@ pub fn workflows_projects_locations_workflows_get_execute(
 
 pub fn workflows_projects_locations_workflows_get(
     client: &SimpleHttpClient,
-    name: &str,
-    revisionId: Option<&str>,
+    args: &WorkflowsProjectsLocationsWorkflowsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Workflow>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = workflows_projects_locations_workflows_get_builder(client, name, revisionId)?;
+    let builder = workflows_projects_locations_workflows_get_builder(
+        client,
+        &args.name,
+        args.revisionId.as_deref(),
+    )?;
     workflows_projects_locations_workflows_get_execute(builder)
 }
 
@@ -1129,6 +1206,21 @@ pub fn workflows_projects_locations_workflows_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflows_projects_locations_workflows_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsWorkflowsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows
 /// Lists workflows in a given project and location. The default order is not specified.
 ///
@@ -1141,11 +1233,7 @@ pub fn workflows_projects_locations_workflows_list_execute(
 
 pub fn workflows_projects_locations_workflows_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkflowsProjectsLocationsWorkflowsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListWorkflowsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1153,7 +1241,12 @@ pub fn workflows_projects_locations_workflows_list(
     ApiError,
 > {
     let builder = workflows_projects_locations_workflows_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     workflows_projects_locations_workflows_list_execute(builder)
 }
@@ -1268,6 +1361,17 @@ pub fn workflows_projects_locations_workflows_list_revisions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflows_projects_locations_workflows_list_revisions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsWorkflowsListRevisionsArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}:listRevisions
 /// Lists revisions for a given workflow.
 ///
@@ -1280,9 +1384,7 @@ pub fn workflows_projects_locations_workflows_list_revisions_execute(
 
 pub fn workflows_projects_locations_workflows_list_revisions(
     client: &SimpleHttpClient,
-    name: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &WorkflowsProjectsLocationsWorkflowsListRevisionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListWorkflowRevisionsResponse>, ApiError>,
@@ -1292,7 +1394,10 @@ pub fn workflows_projects_locations_workflows_list_revisions(
     ApiError,
 > {
     let builder = workflows_projects_locations_workflows_list_revisions_builder(
-        client, name, pageSize, pageToken,
+        client,
+        &args.name,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     workflows_projects_locations_workflows_list_revisions_execute(builder)
 }
@@ -1402,6 +1507,17 @@ pub fn workflows_projects_locations_workflows_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`workflows_projects_locations_workflows_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct WorkflowsProjectsLocationsWorkflowsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Workflow,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/workflows/{workflowsId}
 /// Updates an existing workflow. Running this method has no impact on already running executions of the workflow. A new revision of the workflow might be created as a result of a successful update operation. In that case, the new revision is used in new workflow executions.
 ///
@@ -1414,14 +1530,16 @@ pub fn workflows_projects_locations_workflows_patch_execute(
 
 pub fn workflows_projects_locations_workflows_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Workflow,
+    args: &WorkflowsProjectsLocationsWorkflowsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        workflows_projects_locations_workflows_patch_builder(client, name, updateMask, body)?;
+    let builder = workflows_projects_locations_workflows_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     workflows_projects_locations_workflows_patch_execute(builder)
 }

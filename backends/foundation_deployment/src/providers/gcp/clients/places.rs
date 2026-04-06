@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/places:autocomplete
 /// Returns predictions for the given input.
@@ -110,6 +112,13 @@ pub fn places_places_autocomplete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`places_places_autocomplete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlacesPlacesAutocompleteArgs {
+    /// Request body.
+    pub body: GoogleMapsPlacesV1AutocompletePlacesRequest,
+}
+
 /// GET v1/places:autocomplete
 /// Returns predictions for the given input.
 ///
@@ -122,7 +131,7 @@ pub fn places_places_autocomplete_execute(
 
 pub fn places_places_autocomplete(
     client: &SimpleHttpClient,
-    body: &GoogleMapsPlacesV1AutocompletePlacesRequest,
+    args: &PlacesPlacesAutocompleteArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleMapsPlacesV1AutocompletePlacesResponse>, ApiError>,
@@ -131,7 +140,7 @@ pub fn places_places_autocomplete(
         + 'static,
     ApiError,
 > {
-    let builder = places_places_autocomplete_builder(client, body)?;
+    let builder = places_places_autocomplete_builder(client, &args.body)?;
     places_places_autocomplete_execute(builder)
 }
 
@@ -244,6 +253,19 @@ pub fn places_places_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`places_places_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlacesPlacesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: regionCode
+    pub regionCode: Option<String>,
+    /// Query parameter: sessionToken
+    pub sessionToken: Option<String>,
+}
+
 /// GET v1/places/{placesId}
 /// Get the details of a place based on its resource name, which is a string in the `places/{place_id}` format.
 ///
@@ -256,17 +278,20 @@ pub fn places_places_get_execute(
 
 pub fn places_places_get(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
-    regionCode: Option<&str>,
-    sessionToken: Option<&str>,
+    args: &PlacesPlacesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GoogleMapsPlacesV1Place>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = places_places_get_builder(client, name, languageCode, regionCode, sessionToken)?;
+    let builder = places_places_get_builder(
+        client,
+        &args.name,
+        args.languageCode.as_deref(),
+        args.regionCode.as_deref(),
+        args.sessionToken.as_deref(),
+    )?;
     places_places_get_execute(builder)
 }
 
@@ -363,6 +388,13 @@ pub fn places_places_search_nearby_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`places_places_search_nearby`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlacesPlacesSearchNearbyArgs {
+    /// Request body.
+    pub body: GoogleMapsPlacesV1SearchNearbyRequest,
+}
+
 /// GET v1/places:searchNearby
 /// Search for places near locations.
 ///
@@ -375,7 +407,7 @@ pub fn places_places_search_nearby_execute(
 
 pub fn places_places_search_nearby(
     client: &SimpleHttpClient,
-    body: &GoogleMapsPlacesV1SearchNearbyRequest,
+    args: &PlacesPlacesSearchNearbyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleMapsPlacesV1SearchNearbyResponse>, ApiError>,
@@ -384,7 +416,7 @@ pub fn places_places_search_nearby(
         + 'static,
     ApiError,
 > {
-    let builder = places_places_search_nearby_builder(client, body)?;
+    let builder = places_places_search_nearby_builder(client, &args.body)?;
     places_places_search_nearby_execute(builder)
 }
 
@@ -481,6 +513,13 @@ pub fn places_places_search_text_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`places_places_search_text`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlacesPlacesSearchTextArgs {
+    /// Request body.
+    pub body: GoogleMapsPlacesV1SearchTextRequest,
+}
+
 /// GET v1/places:searchText
 /// Text query based place search.
 ///
@@ -493,7 +532,7 @@ pub fn places_places_search_text_execute(
 
 pub fn places_places_search_text(
     client: &SimpleHttpClient,
-    body: &GoogleMapsPlacesV1SearchTextRequest,
+    args: &PlacesPlacesSearchTextArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleMapsPlacesV1SearchTextResponse>, ApiError>,
@@ -502,7 +541,7 @@ pub fn places_places_search_text(
         + 'static,
     ApiError,
 > {
-    let builder = places_places_search_text_builder(client, body)?;
+    let builder = places_places_search_text_builder(client, &args.body)?;
     places_places_search_text_execute(builder)
 }
 
@@ -620,6 +659,19 @@ pub fn places_places_photos_get_media_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`places_places_photos_get_media`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlacesPlacesPhotosGetMediaArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: maxHeightPx
+    pub maxHeightPx: Option<i32>,
+    /// Query parameter: maxWidthPx
+    pub maxWidthPx: Option<i32>,
+    /// Query parameter: skipHttpRedirect
+    pub skipHttpRedirect: Option<bool>,
+}
+
 /// GET v1/places/{placesId}/photos/{photosId}/media
 /// Get a photo media with a photo reference string.
 ///
@@ -632,10 +684,7 @@ pub fn places_places_photos_get_media_execute(
 
 pub fn places_places_photos_get_media(
     client: &SimpleHttpClient,
-    name: &str,
-    maxHeightPx: Option<i32>,
-    maxWidthPx: Option<i32>,
-    skipHttpRedirect: Option<bool>,
+    args: &PlacesPlacesPhotosGetMediaArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleMapsPlacesV1PhotoMedia>, ApiError>,
@@ -646,10 +695,10 @@ pub fn places_places_photos_get_media(
 > {
     let builder = places_places_photos_get_media_builder(
         client,
-        name,
-        maxHeightPx,
-        maxWidthPx,
-        skipHttpRedirect,
+        &args.name,
+        args.maxHeightPx,
+        args.maxWidthPx,
+        args.skipHttpRedirect,
     )?;
     places_places_photos_get_media_execute(builder)
 }

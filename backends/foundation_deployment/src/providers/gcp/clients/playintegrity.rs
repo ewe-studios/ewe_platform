@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/{v1Id}/deviceRecall:write
 /// Writes recall bits for the device where Play Integrity API token is obtained. The endpoint is available to select Play partners in an early access program (EAP).
@@ -111,6 +113,15 @@ pub fn playintegrity_device_recall_write_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playintegrity_device_recall_write`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlayintegrityDeviceRecallWriteArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Request body.
+    pub body: WriteDeviceRecallRequest,
+}
+
 /// GET v1/{v1Id}/deviceRecall:write
 /// Writes recall bits for the device where Play Integrity API token is obtained. The endpoint is available to select Play partners in an early access program (EAP).
 ///
@@ -123,15 +134,14 @@ pub fn playintegrity_device_recall_write_execute(
 
 pub fn playintegrity_device_recall_write(
     client: &SimpleHttpClient,
-    packageName: &str,
-    body: &WriteDeviceRecallRequest,
+    args: &PlayintegrityDeviceRecallWriteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WriteDeviceRecallResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = playintegrity_device_recall_write_builder(client, packageName, body)?;
+    let builder = playintegrity_device_recall_write_builder(client, &args.packageName, &args.body)?;
     playintegrity_device_recall_write_execute(builder)
 }
 
@@ -232,6 +242,15 @@ pub fn playintegrity_decode_integrity_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playintegrity_decode_integrity_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlayintegrityDecodeIntegrityTokenArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Request body.
+    pub body: DecodeIntegrityTokenRequest,
+}
+
 /// GET v1/{v1Id}:decodeIntegrityToken
 /// Decodes the integrity token and returns the token payload.
 ///
@@ -244,8 +263,7 @@ pub fn playintegrity_decode_integrity_token_execute(
 
 pub fn playintegrity_decode_integrity_token(
     client: &SimpleHttpClient,
-    packageName: &str,
-    body: &DecodeIntegrityTokenRequest,
+    args: &PlayintegrityDecodeIntegrityTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DecodeIntegrityTokenResponse>, ApiError>,
@@ -254,7 +272,8 @@ pub fn playintegrity_decode_integrity_token(
         + 'static,
     ApiError,
 > {
-    let builder = playintegrity_decode_integrity_token_builder(client, packageName, body)?;
+    let builder =
+        playintegrity_decode_integrity_token_builder(client, &args.packageName, &args.body)?;
     playintegrity_decode_integrity_token_execute(builder)
 }
 
@@ -355,6 +374,15 @@ pub fn playintegrity_decode_pc_integrity_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`playintegrity_decode_pc_integrity_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PlayintegrityDecodePcIntegrityTokenArgs {
+    /// Path parameter: packageName
+    pub packageName: String,
+    /// Request body.
+    pub body: DecodePcIntegrityTokenRequest,
+}
+
 /// GET v1/{v1Id}:decodePcIntegrityToken
 /// Decodes the PC integrity token and returns the PC token payload.
 ///
@@ -367,8 +395,7 @@ pub fn playintegrity_decode_pc_integrity_token_execute(
 
 pub fn playintegrity_decode_pc_integrity_token(
     client: &SimpleHttpClient,
-    packageName: &str,
-    body: &DecodePcIntegrityTokenRequest,
+    args: &PlayintegrityDecodePcIntegrityTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DecodePcIntegrityTokenResponse>, ApiError>,
@@ -377,6 +404,7 @@ pub fn playintegrity_decode_pc_integrity_token(
         + 'static,
     ApiError,
 > {
-    let builder = playintegrity_decode_pc_integrity_token_builder(client, packageName, body)?;
+    let builder =
+        playintegrity_decode_pc_integrity_token_builder(client, &args.packageName, &args.body)?;
     playintegrity_decode_pc_integrity_token_execute(builder)
 }

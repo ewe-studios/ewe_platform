@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1alpha1/projects/{projectsId}/locations/{locationsId}:generateShifts
 /// Generates shifts constrained by various parameters.
@@ -109,6 +111,15 @@ pub fn contactcenteraiplatform_projects_locations_generate_shifts_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenteraiplatform_projects_locations_generate_shifts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenteraiplatformProjectsLocationsGenerateShiftsArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: GenerateShiftsRequest,
+}
+
 /// GET v1alpha1/projects/{projectsId}/locations/{locationsId}:generateShifts
 /// Generates shifts constrained by various parameters.
 ///
@@ -121,14 +132,16 @@ pub fn contactcenteraiplatform_projects_locations_generate_shifts_execute(
 
 pub fn contactcenteraiplatform_projects_locations_generate_shifts(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &GenerateShiftsRequest,
+    args: &ContactcenteraiplatformProjectsLocationsGenerateShiftsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenteraiplatform_projects_locations_generate_shifts_builder(client, parent, body)?;
+    let builder = contactcenteraiplatform_projects_locations_generate_shifts_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     contactcenteraiplatform_projects_locations_generate_shifts_execute(builder)
 }
 
@@ -222,6 +235,13 @@ pub fn contactcenteraiplatform_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenteraiplatform_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenteraiplatformProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -234,12 +254,12 @@ pub fn contactcenteraiplatform_projects_locations_get_execute(
 
 pub fn contactcenteraiplatform_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenteraiplatformProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = contactcenteraiplatform_projects_locations_get_builder(client, name)?;
+    let builder = contactcenteraiplatform_projects_locations_get_builder(client, &args.name)?;
     contactcenteraiplatform_projects_locations_get_execute(builder)
 }
 
@@ -359,6 +379,21 @@ pub fn contactcenteraiplatform_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenteraiplatform_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenteraiplatformProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method lists locations based on the resource scope provided in the [ListLocationsRequest.name] field: * **Global locations**: If name is empty, the method lists the public locations available to all projects. * **Project-specific locations**: If name follows the format `projects/{project}`, the method lists locations visible to that specific project. This includes public, private, or other project-specific locations enabled for the project. For `gRPC` and client library implementations, the resource name is passed as the name field. For direct service calls, the resource name is incorporated into the request path based on the specific service implementation and version.
 ///
@@ -371,11 +406,7 @@ pub fn contactcenteraiplatform_projects_locations_list_execute(
 
 pub fn contactcenteraiplatform_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenteraiplatformProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -384,11 +415,11 @@ pub fn contactcenteraiplatform_projects_locations_list(
 > {
     let builder = contactcenteraiplatform_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contactcenteraiplatform_projects_locations_list_execute(builder)
 }
@@ -485,6 +516,13 @@ pub fn contactcenteraiplatform_projects_locations_query_contact_center_quota_exe
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenteraiplatform_projects_locations_query_contact_center_quota`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenteraiplatformProjectsLocationsQueryContactCenterQuotaArgs {
+    /// Path parameter: parent
+    pub parent: String,
+}
+
 /// GET v1alpha1/projects/{projectsId}/locations/{locationsId}:queryContactCenterQuota
 /// Queries the contact center quota, an aggregation over all the projects, that belongs to the billing account, which the input project belongs to.
 ///
@@ -497,7 +535,7 @@ pub fn contactcenteraiplatform_projects_locations_query_contact_center_quota_exe
 
 pub fn contactcenteraiplatform_projects_locations_query_contact_center_quota(
     client: &SimpleHttpClient,
-    parent: &str,
+    args: &ContactcenteraiplatformProjectsLocationsQueryContactCenterQuotaArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContactCenterQuota>, ApiError>, P = ApiPending>
         + Send
@@ -505,7 +543,8 @@ pub fn contactcenteraiplatform_projects_locations_query_contact_center_quota(
     ApiError,
 > {
     let builder = contactcenteraiplatform_projects_locations_query_contact_center_quota_builder(
-        client, parent,
+        client,
+        &args.parent,
     )?;
     contactcenteraiplatform_projects_locations_query_contact_center_quota_execute(builder)
 }
@@ -619,6 +658,19 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_create_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenteraiplatform_projects_locations_contact_centers_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenteraiplatformProjectsLocationsContactCentersCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: contactCenterId
+    pub contactCenterId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: ContactCenter,
+}
+
 /// GET v1alpha1/projects/{projectsId}/locations/{locationsId}/contactCenters
 /// Creates a new ContactCenter in a given project and location.
 ///
@@ -631,20 +683,17 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_create_execute
 
 pub fn contactcenteraiplatform_projects_locations_contact_centers_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    contactCenterId: Option<&str>,
-    requestId: Option<&str>,
-    body: &ContactCenter,
+    args: &ContactcenteraiplatformProjectsLocationsContactCentersCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = contactcenteraiplatform_projects_locations_contact_centers_create_builder(
         client,
-        parent,
-        contactCenterId,
-        requestId,
-        body,
+        &args.parent,
+        args.contactCenterId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     contactcenteraiplatform_projects_locations_contact_centers_create_execute(builder)
 }
@@ -751,6 +800,15 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_delete_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenteraiplatform_projects_locations_contact_centers_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenteraiplatformProjectsLocationsContactCentersDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v1alpha1/projects/{projectsId}/locations/{locationsId}/contactCenters/{contactCentersId}
 /// Deletes a single ContactCenter.
 ///
@@ -763,14 +821,15 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_delete_execute
 
 pub fn contactcenteraiplatform_projects_locations_contact_centers_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &ContactcenteraiplatformProjectsLocationsContactCentersDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = contactcenteraiplatform_projects_locations_contact_centers_delete_builder(
-        client, name, requestId,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
     )?;
     contactcenteraiplatform_projects_locations_contact_centers_delete_execute(builder)
 }
@@ -867,6 +926,13 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenteraiplatform_projects_locations_contact_centers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenteraiplatformProjectsLocationsContactCentersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/projects/{projectsId}/locations/{locationsId}/contactCenters/{contactCentersId}
 /// Gets details of a single ContactCenter.
 ///
@@ -879,7 +945,7 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_get_execute(
 
 pub fn contactcenteraiplatform_projects_locations_contact_centers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenteraiplatformProjectsLocationsContactCentersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ContactCenter>, ApiError>, P = ApiPending>
         + Send
@@ -887,7 +953,7 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_get(
     ApiError,
 > {
     let builder =
-        contactcenteraiplatform_projects_locations_contact_centers_get_builder(client, name)?;
+        contactcenteraiplatform_projects_locations_contact_centers_get_builder(client, &args.name)?;
     contactcenteraiplatform_projects_locations_contact_centers_get_execute(builder)
 }
 
@@ -1009,6 +1075,21 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenteraiplatform_projects_locations_contact_centers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenteraiplatformProjectsLocationsContactCentersListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1alpha1/projects/{projectsId}/locations/{locationsId}/contactCenters
 /// Lists ContactCenters in a given project and location.
 ///
@@ -1021,11 +1102,7 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_list_execute(
 
 pub fn contactcenteraiplatform_projects_locations_contact_centers_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &ContactcenteraiplatformProjectsLocationsContactCentersListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListContactCentersResponse>, ApiError>,
@@ -1035,7 +1112,12 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_list(
     ApiError,
 > {
     let builder = contactcenteraiplatform_projects_locations_contact_centers_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     contactcenteraiplatform_projects_locations_contact_centers_list_execute(builder)
 }
@@ -1149,6 +1231,19 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenteraiplatform_projects_locations_contact_centers_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenteraiplatformProjectsLocationsContactCentersPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: ContactCenter,
+}
+
 /// GET v1alpha1/projects/{projectsId}/locations/{locationsId}/contactCenters/{contactCentersId}
 /// Updates the parameters of a single ContactCenter.
 ///
@@ -1161,16 +1256,17 @@ pub fn contactcenteraiplatform_projects_locations_contact_centers_patch_execute(
 
 pub fn contactcenteraiplatform_projects_locations_contact_centers_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &ContactCenter,
+    args: &ContactcenteraiplatformProjectsLocationsContactCentersPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = contactcenteraiplatform_projects_locations_contact_centers_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     contactcenteraiplatform_projects_locations_contact_centers_patch_execute(builder)
 }
@@ -1268,6 +1364,15 @@ pub fn contactcenteraiplatform_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenteraiplatform_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenteraiplatformProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v1alpha1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -1280,14 +1385,14 @@ pub fn contactcenteraiplatform_projects_locations_operations_cancel_execute(
 
 pub fn contactcenteraiplatform_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &ContactcenteraiplatformProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        contactcenteraiplatform_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder = contactcenteraiplatform_projects_locations_operations_cancel_builder(
+        client, &args.name, &args.body,
+    )?;
     contactcenteraiplatform_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -1381,6 +1486,13 @@ pub fn contactcenteraiplatform_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenteraiplatform_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenteraiplatformProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -1393,13 +1505,13 @@ pub fn contactcenteraiplatform_projects_locations_operations_delete_execute(
 
 pub fn contactcenteraiplatform_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenteraiplatformProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        contactcenteraiplatform_projects_locations_operations_delete_builder(client, name)?;
+        contactcenteraiplatform_projects_locations_operations_delete_builder(client, &args.name)?;
     contactcenteraiplatform_projects_locations_operations_delete_execute(builder)
 }
 
@@ -1493,6 +1605,13 @@ pub fn contactcenteraiplatform_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenteraiplatform_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenteraiplatformProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1alpha1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -1505,12 +1624,13 @@ pub fn contactcenteraiplatform_projects_locations_operations_get_execute(
 
 pub fn contactcenteraiplatform_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &ContactcenteraiplatformProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = contactcenteraiplatform_projects_locations_operations_get_builder(client, name)?;
+    let builder =
+        contactcenteraiplatform_projects_locations_operations_get_builder(client, &args.name)?;
     contactcenteraiplatform_projects_locations_operations_get_execute(builder)
 }
 
@@ -1630,6 +1750,21 @@ pub fn contactcenteraiplatform_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`contactcenteraiplatform_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct ContactcenteraiplatformProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1alpha1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -1642,11 +1777,7 @@ pub fn contactcenteraiplatform_projects_locations_operations_list_execute(
 
 pub fn contactcenteraiplatform_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &ContactcenteraiplatformProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1655,11 +1786,11 @@ pub fn contactcenteraiplatform_projects_locations_operations_list(
 > {
     let builder = contactcenteraiplatform_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     contactcenteraiplatform_projects_locations_operations_list_execute(builder)
 }

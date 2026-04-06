@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/caseClassifications:search
 /// Retrieve valid classifications to use when creating a support case. Classifications are hierarchical. Each classification is a string containing all levels of the hierarchy separated by " &gt; ". For example, "Technical Issue &gt; Compute &gt; Compute Engine". Classification IDs returned by this endpoint are valid for at least six months. When a classification is deactivated, this endpoint immediately stops returning it. After six months, case.create requests using the classification will fail. EXAMPLES: `cURL`: shell curl \ --header "Authorization: Bearer $(gcloud auth print-access-token)" \ '<https://cloudsupport.googleapis.`com/v2/`caseClassifications``:search?query=display_name:"*Compute%20Engine*"'>  Python: python import googleapiclient.discovery `supportApiService` = googleapiclient.discovery.build( `serviceName`="cloudsupport", version="v2", `discoveryServiceUrl`=f"<https://cloudsupport.googleapis.com/$`discovery/rest`?version=v2",> ) request = `supportApiService`.`caseClassifications`().search( query='display_name:"*Compute Engine*"' ) print(request.execute())
@@ -126,6 +128,17 @@ pub fn cloudsupport_case_classifications_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudsupport_case_classifications_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsupportCaseClassificationsSearchArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v2/caseClassifications:search
 /// Retrieve valid classifications to use when creating a support case. Classifications are hierarchical. Each classification is a string containing all levels of the hierarchy separated by " &gt; ". For example, "Technical Issue &gt; Compute &gt; Compute Engine". Classification IDs returned by this endpoint are valid for at least six months. When a classification is deactivated, this endpoint immediately stops returning it. After six months, case.create requests using the classification will fail. EXAMPLES: `cURL`: shell curl \ --header "Authorization: Bearer $(gcloud auth print-access-token)" \ '<https://cloudsupport.googleapis.`com/v2/`caseClassifications``:search?query=display_name:"*Compute%20Engine*"'>  Python: python import googleapiclient.discovery `supportApiService` = googleapiclient.discovery.build( `serviceName`="cloudsupport", version="v2", `discoveryServiceUrl`=f"<https://cloudsupport.googleapis.com/$`discovery/rest`?version=v2",> ) request = `supportApiService`.`caseClassifications`().search( query='display_name:"*Compute Engine*"' ) print(request.execute())
 ///
@@ -138,9 +151,7 @@ pub fn cloudsupport_case_classifications_search_execute(
 
 pub fn cloudsupport_case_classifications_search(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &CloudsupportCaseClassificationsSearchArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SearchCaseClassificationsResponse>, ApiError>,
@@ -149,8 +160,12 @@ pub fn cloudsupport_case_classifications_search(
         + 'static,
     ApiError,
 > {
-    let builder =
-        cloudsupport_case_classifications_search_builder(client, pageSize, pageToken, query)?;
+    let builder = cloudsupport_case_classifications_search_builder(
+        client,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
+    )?;
     cloudsupport_case_classifications_search_execute(builder)
 }
 
@@ -247,6 +262,15 @@ pub fn cloudsupport_cases_close_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudsupport_cases_close`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsupportCasesCloseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CloseCaseRequest,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/cases/{casesId}:close
 /// Close a case. EXAMPLES: `cURL`: shell case="`projects/some-project/cases/43595344`" curl \ --request POST \ --header "Authorization: Bearer $(gcloud auth print-access-token)" \ "<https://cloudsupport.googleapis.`com/v2/`$case:close">  Python: python import googleapiclient.discovery api_version = "v2" `supportApiService` = googleapiclient.discovery.build( `serviceName`="cloudsupport", version=api_version, `discoveryServiceUrl`=f"<https://cloudsupport.googleapis.com/$`discovery/rest`?version={api_version}",> ) request = `supportApiService`.cases().close( name="`projects/some-project/cases/43595344`" ) print(request.execute())
 ///
@@ -259,13 +283,12 @@ pub fn cloudsupport_cases_close_execute(
 
 pub fn cloudsupport_cases_close(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CloseCaseRequest,
+    args: &CloudsupportCasesCloseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Case>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsupport_cases_close_builder(client, name, body)?;
+    let builder = cloudsupport_cases_close_builder(client, &args.name, &args.body)?;
     cloudsupport_cases_close_execute(builder)
 }
 
@@ -359,6 +382,15 @@ pub fn cloudsupport_cases_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudsupport_cases_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsupportCasesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Case,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/cases
 /// Create a new case and associate it with a parent. It must have the following fields set: display_name, description, classification, and priority. If you're just testing the API and don't want to route your case to an agent, set `testCase`=`true`. EXAMPLES: `cURL`: shell parent="`projects/some-project`" curl \ --request POST \ --header "Authorization: Bearer $(gcloud auth print-access-token)" \ --header 'Content-Type: `application/json`' \ --data '{ "display_name": "Test case created by me.", "description": "a random test case, feel free to close", "classification": { "id": "100IK2AKCLHMGRJ9CDGMOCGP8DM6UTB4BT262T31BT1M2T31DHNMENPO6KS36CPJ786L2TBFEHGN6NPI64R3CDHN8880G08I1H3MURR7DHII0GRCDTQM8" }, "time_zone": "-07:00", "subscriber_email_addresses": [ "foo@domain.com", "bar@domain.com" ], "`testCase`": `true`, "priority": "P3" }' \ "<https://cloudsupport.googleapis.`com/v2/`$`parent/cases`">  Python: python import googleapiclient.discovery api_version = "v2" `supportApiService` = googleapiclient.discovery.build( `serviceName`="cloudsupport", version=api_version, `discoveryServiceUrl`=f"<https://cloudsupport.googleapis.com/$`discovery/rest`?version={api_version}",> ) request = `supportApiService`.cases().create( parent="`projects/some-project`", body={ "`displayName`": "A Test Case", "description": "This is a test case.", "`testCase`": True, "priority": "P2", "classification": { "id": "100IK2AKCLHMGRJ9CDGMOCGP8DM6UTB4BT262T31BT1M2T31DHNMENPO6KS36CPJ786L2TBFEHGN6NPI64R3CDHN8880G08I1H3MURR7DHII0GRCDTQM8" }, }, ) print(request.execute())
 ///
@@ -371,13 +403,12 @@ pub fn cloudsupport_cases_create_execute(
 
 pub fn cloudsupport_cases_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Case,
+    args: &CloudsupportCasesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Case>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsupport_cases_create_builder(client, parent, body)?;
+    let builder = cloudsupport_cases_create_builder(client, &args.parent, &args.body)?;
     cloudsupport_cases_create_execute(builder)
 }
 
@@ -474,6 +505,15 @@ pub fn cloudsupport_cases_escalate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudsupport_cases_escalate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsupportCasesEscalateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: EscalateCaseRequest,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/cases/{casesId}:escalate
 /// Escalate a case, starting the Google Cloud Support escalation management process. This operation is only available for some support services. Go to <https://cloud.google.`com/support`> and look for 'Technical support escalations' in the feature list to find out which ones let you do that. EXAMPLES: `cURL`: shell case="`projects/some-project/cases/43595344`" curl \ --request POST \ --header "Authorization: Bearer $(gcloud auth print-access-token)" \ --header "Content-Type: `application/json`" \ --data '{ "escalation": { "reason": "BUSINESS_IMPACT", "justification": "This is a test escalation." } }' \ "<https://cloudsupport.googleapis.`com/v2/`$case:escalate">  Python: python import googleapiclient.discovery api_version = "v2" `supportApiService` = googleapiclient.discovery.build( `serviceName`="cloudsupport", version=api_version, `discoveryServiceUrl`=f"<https://cloudsupport.googleapis.com/$`discovery/rest`?version={api_version}",> ) request = `supportApiService`.cases().escalate( name="`projects/some-project/cases/43595344`", body={ "escalation": { "reason": "BUSINESS_IMPACT", "justification": "This is a test escalation.", }, }, ) print(request.execute())
 ///
@@ -486,13 +526,12 @@ pub fn cloudsupport_cases_escalate_execute(
 
 pub fn cloudsupport_cases_escalate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &EscalateCaseRequest,
+    args: &CloudsupportCasesEscalateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Case>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsupport_cases_escalate_builder(client, name, body)?;
+    let builder = cloudsupport_cases_escalate_builder(client, &args.name, &args.body)?;
     cloudsupport_cases_escalate_execute(builder)
 }
 
@@ -586,6 +625,13 @@ pub fn cloudsupport_cases_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudsupport_cases_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsupportCasesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/cases/{casesId}
 /// Retrieve a case. EXAMPLES: `cURL`: shell case="`projects/some-project/cases/16033687`" curl \ --header "Authorization: Bearer $(gcloud auth print-access-token)" \ "<https://cloudsupport.googleapis.`com/v2/`$case">  Python: python import googleapiclient.discovery api_version = "v2" `supportApiService` = googleapiclient.discovery.build( `serviceName`="cloudsupport", version=api_version, `discoveryServiceUrl`=f"<https://cloudsupport.googleapis.com/$`discovery/rest`?version={api_version}",> ) request = `supportApiService`.cases().get( name="`projects/some-project/cases/43595344`", ) print(request.execute())
 ///
@@ -598,12 +644,12 @@ pub fn cloudsupport_cases_get_execute(
 
 pub fn cloudsupport_cases_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudsupportCasesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Case>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsupport_cases_get_builder(client, name)?;
+    let builder = cloudsupport_cases_get_builder(client, &args.name)?;
     cloudsupport_cases_get_execute(builder)
 }
 
@@ -716,6 +762,19 @@ pub fn cloudsupport_cases_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudsupport_cases_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsupportCasesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/cases
 /// Retrieve all cases under a parent, but not its children. For example, listing cases under an organization only returns the cases that are directly parented by that organization. To retrieve cases under an organization and its projects, use cases.search. EXAMPLES: `cURL`: shell parent="`projects/some-project`" curl \ --header "Authorization: Bearer $(gcloud auth print-access-token)" \ "<https://cloudsupport.googleapis.`com/v2/`$`parent/cases`">  Python: python import googleapiclient.discovery api_version = "v2" `supportApiService` = googleapiclient.discovery.build( `serviceName`="cloudsupport", version=api_version, `discoveryServiceUrl`=f"<https://cloudsupport.googleapis.com/$`discovery/rest`?version={api_version}",> ) request = `supportApiService`.cases().list(parent="`projects/some-project`") print(request.execute())
 ///
@@ -728,17 +787,20 @@ pub fn cloudsupport_cases_list_execute(
 
 pub fn cloudsupport_cases_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudsupportCasesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCasesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudsupport_cases_list_builder(client, parent, filter, pageSize, pageToken)?;
+    let builder = cloudsupport_cases_list_builder(
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     cloudsupport_cases_list_execute(builder)
 }
 
@@ -847,6 +909,17 @@ pub fn cloudsupport_cases_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudsupport_cases_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsupportCasesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Case,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/cases/{casesId}
 /// Update a case. Only some fields can be updated. EXAMPLES: `cURL`: shell case="`projects/some-project/cases/43595344`" curl \ --request PATCH \ --header "Authorization: Bearer $(gcloud auth print-access-token)" \ --header "Content-Type: `application/json`" \ --data '{ "priority": "P1" }' \ "<https://cloudsupport.googleapis.`com/v2/`$case?`updateMask`=priority">  Python: python import googleapiclient.discovery api_version = "v2" `supportApiService` = googleapiclient.discovery.build( `serviceName`="cloudsupport", version=api_version, `discoveryServiceUrl`=f"<https://cloudsupport.googleapis.com/$`discovery/rest`?version={api_version}",> ) request = `supportApiService`.cases().patch( name="`projects/some-project/cases/43112854`", body={ "`displayName`": "This is Now a New Title", "priority": "P2", }, ) print(request.execute())
 ///
@@ -859,14 +932,17 @@ pub fn cloudsupport_cases_patch_execute(
 
 pub fn cloudsupport_cases_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Case,
+    args: &CloudsupportCasesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Case>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsupport_cases_patch_builder(client, name, updateMask, body)?;
+    let builder = cloudsupport_cases_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     cloudsupport_cases_patch_execute(builder)
 }
 
@@ -982,6 +1058,19 @@ pub fn cloudsupport_cases_search_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudsupport_cases_search`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsupportCasesSearchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: query
+    pub query: Option<String>,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/cases:search
 /// Search for cases using a query. EXAMPLES: `cURL`: shell parent="`projects/some-project`" curl \ --header "Authorization: Bearer $(gcloud auth print-access-token)" \ "<https://cloudsupport.googleapis.`com/v2/`$`parent/cases`:search">  Python: python import googleapiclient.discovery api_version = "v2" `supportApiService` = googleapiclient.discovery.build( `serviceName`="cloudsupport", version=api_version, `discoveryServiceUrl`=f"<https://cloudsupport.googleapis.com/$`discovery/rest`?version={api_version}",> ) request = `supportApiService`.cases().search( parent="`projects/some-project`", query="state=OPEN" ) print(request.execute())
 ///
@@ -994,17 +1083,20 @@ pub fn cloudsupport_cases_search_execute(
 
 pub fn cloudsupport_cases_search(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    args: &CloudsupportCasesSearchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SearchCasesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudsupport_cases_search_builder(client, parent, pageSize, pageToken, query)?;
+    let builder = cloudsupport_cases_search_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.query.as_deref(),
+    )?;
     cloudsupport_cases_search_execute(builder)
 }
 
@@ -1116,6 +1208,17 @@ pub fn cloudsupport_cases_attachments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudsupport_cases_attachments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsupportCasesAttachmentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/cases/{casesId}/attachments
 /// List all the attachments associated with a support case. EXAMPLES: `cURL`: shell case="`projects/some-project/cases/23598314`" curl \ --header "Authorization: Bearer $(gcloud auth print-access-token)" \ "<https://cloudsupport.googleapis.`com/v2/`$`case/attachments`">  Python: python import googleapiclient.discovery api_version = "v2" `supportApiService` = googleapiclient.discovery.build( `serviceName`="cloudsupport", version=api_version, `discoveryServiceUrl`=f"<https://cloudsupport.googleapis.com/$`discovery/rest`?version={api_version}",> ) request = ( `supportApiService`.cases() .attachments() .list(parent="`projects/some-project/cases/43595344`") ) print(request.execute())
 ///
@@ -1128,16 +1231,19 @@ pub fn cloudsupport_cases_attachments_list_execute(
 
 pub fn cloudsupport_cases_attachments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudsupportCasesAttachmentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListAttachmentsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudsupport_cases_attachments_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = cloudsupport_cases_attachments_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     cloudsupport_cases_attachments_list_execute(builder)
 }
 
@@ -1234,6 +1340,15 @@ pub fn cloudsupport_cases_comments_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudsupport_cases_comments_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsupportCasesCommentsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Comment,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/cases/{casesId}/comments
 /// Add a new comment to a case. The comment must have the following fields set: body. EXAMPLES: `cURL`: shell case="`projects/some-project/cases/43591344`" curl \ --request POST \ --header "Authorization: Bearer $(gcloud auth print-access-token)" \ --header 'Content-Type: `application/json`' \ --data '{ "body": "This is a test comment." }' \ "<https://cloudsupport.googleapis.`com/v2/`$`case/comments`">  Python: python import googleapiclient.discovery api_version = "v2" `supportApiService` = googleapiclient.discovery.build( `serviceName`="cloudsupport", version=api_version, `discoveryServiceUrl`=f"<https://cloudsupport.googleapis.com/$`discovery/rest`?version={api_version}",> ) request = ( `supportApiService`.cases() .comments() .create( parent="`projects/some-project/cases/43595344`", body={"body": "This is a test comment."}, ) ) print(request.execute())
 ///
@@ -1246,13 +1361,12 @@ pub fn cloudsupport_cases_comments_create_execute(
 
 pub fn cloudsupport_cases_comments_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Comment,
+    args: &CloudsupportCasesCommentsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsupport_cases_comments_create_builder(client, parent, body)?;
+    let builder = cloudsupport_cases_comments_create_builder(client, &args.parent, &args.body)?;
     cloudsupport_cases_comments_create_execute(builder)
 }
 
@@ -1364,6 +1478,17 @@ pub fn cloudsupport_cases_comments_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudsupport_cases_comments_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsupportCasesCommentsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/cases/{casesId}/comments
 /// List all the comments associated with a case. EXAMPLES: `cURL`: shell case="`projects/some-project/cases/43595344`" curl \ --header "Authorization: Bearer $(gcloud auth print-access-token)" \ "<https://cloudsupport.googleapis.`com/v2/`$`case/comments`">  Python: python import googleapiclient.discovery api_version = "v2" `supportApiService` = googleapiclient.discovery.build( `serviceName`="cloudsupport", version=api_version, `discoveryServiceUrl`=f"<https://cloudsupport.googleapis.com/$`discovery/rest`?version={api_version}",> ) request = ( `supportApiService`.cases() .comments() .list(parent="`projects/some-project/cases/43595344`") ) print(request.execute())
 ///
@@ -1376,16 +1501,19 @@ pub fn cloudsupport_cases_comments_list_execute(
 
 pub fn cloudsupport_cases_comments_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &CloudsupportCasesCommentsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCommentsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = cloudsupport_cases_comments_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = cloudsupport_cases_comments_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     cloudsupport_cases_comments_list_execute(builder)
 }
 
@@ -1479,6 +1607,13 @@ pub fn cloudsupport_media_download_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudsupport_media_download`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsupportMediaDownloadArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/cases/{casesId}/attachments/{attachmentsId}:download
 /// Download a file attached to a case. When this endpoint is called, no "response body" will be returned. Instead, the attachment's blob will be returned. Note: HTTP requests must append "?alt=media" to the URL. EXAMPLES: `cURL`: shell name="`projects/some-project/cases/43594844/attachments/0674M00000WijAnZAJ`" curl \ --header "Authorization: Bearer $(gcloud auth print-access-token)" \ "<https://cloudsupport.googleapis.`com/v2/`$name:download?alt=media">  Python: python import googleapiclient.discovery api_version = "v2" `supportApiService` = googleapiclient.discovery.build( `serviceName`="cloudsupport", version=api_version, `discoveryServiceUrl`=f"<https://cloudsupport.googleapis.com/$`discovery/rest`?version={api_version}",> ) request = `supportApiService`.media().download( name="`projects/some-project/cases/43595344/attachments/0684M00000Pw6pHQAR`" ) request.uri = request.uri.split("?")[0] + "?alt=media" print(request.execute())
 ///
@@ -1491,12 +1626,12 @@ pub fn cloudsupport_media_download_execute(
 
 pub fn cloudsupport_media_download(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &CloudsupportMediaDownloadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Media>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsupport_media_download_builder(client, name)?;
+    let builder = cloudsupport_media_download_builder(client, &args.name)?;
     cloudsupport_media_download_execute(builder)
 }
 
@@ -1593,6 +1728,15 @@ pub fn cloudsupport_media_upload_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`cloudsupport_media_upload`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct CloudsupportMediaUploadArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: CreateAttachmentRequest,
+}
+
 /// GET v2/{v2Id}/{v2Id1}/cases/{casesId}/attachments
 /// Create a file attachment on a case or Cloud resource. The attachment must have the following fields set: filename. EXAMPLES: `cURL`: shell echo "This text is in a file I'm uploading using CSAPI." \ &gt; "./example_file.txt" case="`projects/some-project/cases/43594844`" curl \ --header "Authorization: Bearer $(gcloud auth print-access-token)" \ --data-binary @"./example_file.txt" \ "<https://cloudsupport.googleapis.`com/upload/v2beta/`$`case/attachments`?attachment.filename=uploaded_via_curl.txt">  Python: python import googleapiclient.discovery api_version = "v2" `supportApiService` = googleapiclient.discovery.build( `serviceName`="cloudsupport", version=api_version, `discoveryServiceUrl`=f"<https://cloudsupport.googleapis.com/$`discovery/rest`?version={api_version}",> ) file_path = "./example_file.txt" with open(file_path, "w") as file: file.write( "This text is inside a file I'm going to upload using the Cloud Support API.", ) request = `supportApiService`.media().upload( parent="`projects/some-project/cases/43595344`", media_body=file_path ) request.uri = request.uri.split("?")[0] + "?attachment.filename=uploaded_via_python.txt" print(request.execute())
 ///
@@ -1605,12 +1749,11 @@ pub fn cloudsupport_media_upload_execute(
 
 pub fn cloudsupport_media_upload(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &CreateAttachmentRequest,
+    args: &CloudsupportMediaUploadArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Attachment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = cloudsupport_media_upload_builder(client, parent, body)?;
+    let builder = cloudsupport_media_upload_builder(client, &args.parent, &args.body)?;
     cloudsupport_media_upload_execute(builder)
 }

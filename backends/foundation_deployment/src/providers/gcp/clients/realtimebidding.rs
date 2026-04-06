@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/bidders/{biddersId}
 /// Gets a bidder account by its name.
@@ -103,6 +105,13 @@ pub fn realtimebidding_bidders_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/bidders/{biddersId}
 /// Gets a bidder account by its name.
 ///
@@ -115,12 +124,12 @@ pub fn realtimebidding_bidders_get_execute(
 
 pub fn realtimebidding_bidders_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RealtimebiddingBiddersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Bidder>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_bidders_get_builder(client, name)?;
+    let builder = realtimebidding_bidders_get_builder(client, &args.name)?;
     realtimebidding_bidders_get_execute(builder)
 }
 
@@ -228,6 +237,15 @@ pub fn realtimebidding_bidders_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/bidders
 /// Lists all the bidder accounts that belong to the caller.
 ///
@@ -240,15 +258,15 @@ pub fn realtimebidding_bidders_list_execute(
 
 pub fn realtimebidding_bidders_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RealtimebiddingBiddersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBiddersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_bidders_list_builder(client, pageSize, pageToken)?;
+    let builder =
+        realtimebidding_bidders_list_builder(client, args.pageSize, args.pageToken.as_deref())?;
     realtimebidding_bidders_list_execute(builder)
 }
 
@@ -368,6 +386,21 @@ pub fn realtimebidding_bidders_creatives_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_creatives_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersCreativesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/bidders/{biddersId}/creatives
 /// Lists creatives as they are at the time of the initial request. This call may take multiple hours to complete. For large, paginated requests, this method returns a snapshot of creatives at the time of request for the first page. `lastStatusUpdate` and `creativeServingDecision` may be outdated for creatives on sequential pages. We recommend [Google Cloud P`ub/Sub`](//cloud.google.`com/pubsub/docs/overview`) to view the latest status.
 ///
@@ -380,11 +413,7 @@ pub fn realtimebidding_bidders_creatives_list_execute(
 
 pub fn realtimebidding_bidders_creatives_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &RealtimebiddingBiddersCreativesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCreativesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -392,7 +421,12 @@ pub fn realtimebidding_bidders_creatives_list(
     ApiError,
 > {
     let builder = realtimebidding_bidders_creatives_list_builder(
-        client, parent, filter, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     realtimebidding_bidders_creatives_list_execute(builder)
 }
@@ -492,6 +526,15 @@ pub fn realtimebidding_bidders_creatives_watch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_creatives_watch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersCreativesWatchArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: WatchCreativesRequest,
+}
+
 /// GET v1/bidders/{biddersId}/creatives:watch
 /// Watches all creatives pertaining to a bidder. It is sufficient to invoke this endpoint once per bidder. A P`ub/Sub` topic will be created and notifications will be pushed to the topic when any of the bidder's creatives change status. All of the bidder's service accounts will have access to read from the topic. Subsequent invocations of this method will return the existing P`ub/Sub` configuration.
 ///
@@ -504,15 +547,15 @@ pub fn realtimebidding_bidders_creatives_watch_execute(
 
 pub fn realtimebidding_bidders_creatives_watch(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &WatchCreativesRequest,
+    args: &RealtimebiddingBiddersCreativesWatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<WatchCreativesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_bidders_creatives_watch_builder(client, parent, body)?;
+    let builder =
+        realtimebidding_bidders_creatives_watch_builder(client, &args.parent, &args.body)?;
     realtimebidding_bidders_creatives_watch_execute(builder)
 }
 
@@ -606,6 +649,13 @@ pub fn realtimebidding_bidders_endpoints_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_endpoints_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersEndpointsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/bidders/{biddersId}/endpoints/{endpointsId}
 /// Gets a bidder endpoint by its name.
 ///
@@ -618,12 +668,12 @@ pub fn realtimebidding_bidders_endpoints_get_execute(
 
 pub fn realtimebidding_bidders_endpoints_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RealtimebiddingBiddersEndpointsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_bidders_endpoints_get_builder(client, name)?;
+    let builder = realtimebidding_bidders_endpoints_get_builder(client, &args.name)?;
     realtimebidding_bidders_endpoints_get_execute(builder)
 }
 
@@ -735,6 +785,17 @@ pub fn realtimebidding_bidders_endpoints_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_endpoints_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersEndpointsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/bidders/{biddersId}/endpoints
 /// Lists all the bidder's endpoints.
 ///
@@ -747,17 +808,19 @@ pub fn realtimebidding_bidders_endpoints_list_execute(
 
 pub fn realtimebidding_bidders_endpoints_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RealtimebiddingBiddersEndpointsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListEndpointsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        realtimebidding_bidders_endpoints_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = realtimebidding_bidders_endpoints_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     realtimebidding_bidders_endpoints_list_execute(builder)
 }
 
@@ -866,6 +929,17 @@ pub fn realtimebidding_bidders_endpoints_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_endpoints_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersEndpointsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Endpoint,
+}
+
 /// GET v1/bidders/{biddersId}/endpoints/{endpointsId}
 /// Updates a bidder's endpoint.
 ///
@@ -878,14 +952,17 @@ pub fn realtimebidding_bidders_endpoints_patch_execute(
 
 pub fn realtimebidding_bidders_endpoints_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Endpoint,
+    args: &RealtimebiddingBiddersEndpointsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Endpoint>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_bidders_endpoints_patch_builder(client, name, updateMask, body)?;
+    let builder = realtimebidding_bidders_endpoints_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     realtimebidding_bidders_endpoints_patch_execute(builder)
 }
 
@@ -984,6 +1061,15 @@ pub fn realtimebidding_bidders_pretargeting_configs_activate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_pretargeting_configs_activate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPretargetingConfigsActivateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ActivatePretargetingConfigRequest,
+}
+
 /// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:activate
 /// Activates a pretargeting configuration.
 ///
@@ -996,16 +1082,16 @@ pub fn realtimebidding_bidders_pretargeting_configs_activate_execute(
 
 pub fn realtimebidding_bidders_pretargeting_configs_activate(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ActivatePretargetingConfigRequest,
+    args: &RealtimebiddingBiddersPretargetingConfigsActivateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        realtimebidding_bidders_pretargeting_configs_activate_builder(client, name, body)?;
+    let builder = realtimebidding_bidders_pretargeting_configs_activate_builder(
+        client, &args.name, &args.body,
+    )?;
     realtimebidding_bidders_pretargeting_configs_activate_execute(builder)
 }
 
@@ -1104,6 +1190,15 @@ pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_apps_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_pretargeting_configs_add_targeted_apps`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPretargetingConfigsAddTargetedAppsArgs {
+    /// Path parameter: pretargetingConfig
+    pub pretargetingConfig: String,
+    /// Request body.
+    pub body: AddTargetedAppsRequest,
+}
+
 /// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedApps
 /// Adds targeted apps to the pretargeting configuration.
 ///
@@ -1116,8 +1211,7 @@ pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_apps_execute(
 
 pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_apps(
     client: &SimpleHttpClient,
-    pretargetingConfig: &str,
-    body: &AddTargetedAppsRequest,
+    args: &RealtimebiddingBiddersPretargetingConfigsAddTargetedAppsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
         + Send
@@ -1126,8 +1220,8 @@ pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_apps(
 > {
     let builder = realtimebidding_bidders_pretargeting_configs_add_targeted_apps_builder(
         client,
-        pretargetingConfig,
-        body,
+        &args.pretargetingConfig,
+        &args.body,
     )?;
     realtimebidding_bidders_pretargeting_configs_add_targeted_apps_execute(builder)
 }
@@ -1227,6 +1321,15 @@ pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_exec
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_pretargeting_configs_add_targeted_publishers`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPretargetingConfigsAddTargetedPublishersArgs {
+    /// Path parameter: pretargetingConfig
+    pub pretargetingConfig: String,
+    /// Request body.
+    pub body: AddTargetedPublishersRequest,
+}
+
 /// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedPublishers
 /// Adds targeted publishers to the pretargeting config.
 ///
@@ -1239,8 +1342,7 @@ pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_exec
 
 pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_publishers(
     client: &SimpleHttpClient,
-    pretargetingConfig: &str,
-    body: &AddTargetedPublishersRequest,
+    args: &RealtimebiddingBiddersPretargetingConfigsAddTargetedPublishersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
         + Send
@@ -1249,8 +1351,8 @@ pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_publishers(
 > {
     let builder = realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_builder(
         client,
-        pretargetingConfig,
-        body,
+        &args.pretargetingConfig,
+        &args.body,
     )?;
     realtimebidding_bidders_pretargeting_configs_add_targeted_publishers_execute(builder)
 }
@@ -1350,6 +1452,15 @@ pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_sites_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_pretargeting_configs_add_targeted_sites`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPretargetingConfigsAddTargetedSitesArgs {
+    /// Path parameter: pretargetingConfig
+    pub pretargetingConfig: String,
+    /// Request body.
+    pub body: AddTargetedSitesRequest,
+}
+
 /// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:addTargetedSites
 /// Adds targeted sites to the pretargeting configuration.
 ///
@@ -1362,8 +1473,7 @@ pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_sites_execute(
 
 pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_sites(
     client: &SimpleHttpClient,
-    pretargetingConfig: &str,
-    body: &AddTargetedSitesRequest,
+    args: &RealtimebiddingBiddersPretargetingConfigsAddTargetedSitesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
         + Send
@@ -1372,8 +1482,8 @@ pub fn realtimebidding_bidders_pretargeting_configs_add_targeted_sites(
 > {
     let builder = realtimebidding_bidders_pretargeting_configs_add_targeted_sites_builder(
         client,
-        pretargetingConfig,
-        body,
+        &args.pretargetingConfig,
+        &args.body,
     )?;
     realtimebidding_bidders_pretargeting_configs_add_targeted_sites_execute(builder)
 }
@@ -1473,6 +1583,15 @@ pub fn realtimebidding_bidders_pretargeting_configs_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_pretargeting_configs_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPretargetingConfigsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: PretargetingConfig,
+}
+
 /// GET v1/bidders/{biddersId}/pretargetingConfigs
 /// Creates a pretargeting configuration. A pretargeting configuration's state (PretargetingConfig.state) is active upon creation, and it will start to affect traffic shortly after. A bidder may create a maximum of 10 pretargeting configurations. Attempts to exceed this maximum results in a 400 bad request error.
 ///
@@ -1485,16 +1604,18 @@ pub fn realtimebidding_bidders_pretargeting_configs_create_execute(
 
 pub fn realtimebidding_bidders_pretargeting_configs_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &PretargetingConfig,
+    args: &RealtimebiddingBiddersPretargetingConfigsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        realtimebidding_bidders_pretargeting_configs_create_builder(client, parent, body)?;
+    let builder = realtimebidding_bidders_pretargeting_configs_create_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     realtimebidding_bidders_pretargeting_configs_create_execute(builder)
 }
 
@@ -1588,6 +1709,13 @@ pub fn realtimebidding_bidders_pretargeting_configs_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_pretargeting_configs_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPretargetingConfigsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}
 /// Deletes a pretargeting configuration.
 ///
@@ -1600,12 +1728,12 @@ pub fn realtimebidding_bidders_pretargeting_configs_delete_execute(
 
 pub fn realtimebidding_bidders_pretargeting_configs_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RealtimebiddingBiddersPretargetingConfigsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_bidders_pretargeting_configs_delete_builder(client, name)?;
+    let builder = realtimebidding_bidders_pretargeting_configs_delete_builder(client, &args.name)?;
     realtimebidding_bidders_pretargeting_configs_delete_execute(builder)
 }
 
@@ -1701,6 +1829,13 @@ pub fn realtimebidding_bidders_pretargeting_configs_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_pretargeting_configs_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPretargetingConfigsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}
 /// Gets a pretargeting configuration.
 ///
@@ -1713,14 +1848,14 @@ pub fn realtimebidding_bidders_pretargeting_configs_get_execute(
 
 pub fn realtimebidding_bidders_pretargeting_configs_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RealtimebiddingBiddersPretargetingConfigsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_bidders_pretargeting_configs_get_builder(client, name)?;
+    let builder = realtimebidding_bidders_pretargeting_configs_get_builder(client, &args.name)?;
     realtimebidding_bidders_pretargeting_configs_get_execute(builder)
 }
 
@@ -1834,6 +1969,17 @@ pub fn realtimebidding_bidders_pretargeting_configs_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_pretargeting_configs_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPretargetingConfigsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/bidders/{biddersId}/pretargetingConfigs
 /// Lists all pretargeting configurations for a single bidder.
 ///
@@ -1846,9 +1992,7 @@ pub fn realtimebidding_bidders_pretargeting_configs_list_execute(
 
 pub fn realtimebidding_bidders_pretargeting_configs_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RealtimebiddingBiddersPretargetingConfigsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPretargetingConfigsResponse>, ApiError>,
@@ -1858,7 +2002,10 @@ pub fn realtimebidding_bidders_pretargeting_configs_list(
     ApiError,
 > {
     let builder = realtimebidding_bidders_pretargeting_configs_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     realtimebidding_bidders_pretargeting_configs_list_execute(builder)
 }
@@ -1970,6 +2117,17 @@ pub fn realtimebidding_bidders_pretargeting_configs_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_pretargeting_configs_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPretargetingConfigsPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: PretargetingConfig,
+}
+
 /// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}
 /// Updates a pretargeting configuration.
 ///
@@ -1982,17 +2140,19 @@ pub fn realtimebidding_bidders_pretargeting_configs_patch_execute(
 
 pub fn realtimebidding_bidders_pretargeting_configs_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &PretargetingConfig,
+    args: &RealtimebiddingBiddersPretargetingConfigsPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        realtimebidding_bidders_pretargeting_configs_patch_builder(client, name, updateMask, body)?;
+    let builder = realtimebidding_bidders_pretargeting_configs_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     realtimebidding_bidders_pretargeting_configs_patch_execute(builder)
 }
 
@@ -2091,6 +2251,15 @@ pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_execute
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_pretargeting_configs_remove_targeted_apps`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPretargetingConfigsRemoveTargetedAppsArgs {
+    /// Path parameter: pretargetingConfig
+    pub pretargetingConfig: String,
+    /// Request body.
+    pub body: RemoveTargetedAppsRequest,
+}
+
 /// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedApps
 /// Removes targeted apps from the pretargeting configuration.
 ///
@@ -2103,8 +2272,7 @@ pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_execute
 
 pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_apps(
     client: &SimpleHttpClient,
-    pretargetingConfig: &str,
-    body: &RemoveTargetedAppsRequest,
+    args: &RealtimebiddingBiddersPretargetingConfigsRemoveTargetedAppsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
         + Send
@@ -2113,8 +2281,8 @@ pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_apps(
 > {
     let builder = realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_builder(
         client,
-        pretargetingConfig,
-        body,
+        &args.pretargetingConfig,
+        &args.body,
     )?;
     realtimebidding_bidders_pretargeting_configs_remove_targeted_apps_execute(builder)
 }
@@ -2214,6 +2382,15 @@ pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_e
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPretargetingConfigsRemoveTargetedPublishersArgs {
+    /// Path parameter: pretargetingConfig
+    pub pretargetingConfig: String,
+    /// Request body.
+    pub body: RemoveTargetedPublishersRequest,
+}
+
 /// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedPublishers
 /// Removes targeted publishers from the pretargeting config.
 ///
@@ -2226,8 +2403,7 @@ pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_e
 
 pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers(
     client: &SimpleHttpClient,
-    pretargetingConfig: &str,
-    body: &RemoveTargetedPublishersRequest,
+    args: &RealtimebiddingBiddersPretargetingConfigsRemoveTargetedPublishersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
         + Send
@@ -2236,8 +2412,8 @@ pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers(
 > {
     let builder = realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_builder(
         client,
-        pretargetingConfig,
-        body,
+        &args.pretargetingConfig,
+        &args.body,
     )?;
     realtimebidding_bidders_pretargeting_configs_remove_targeted_publishers_execute(builder)
 }
@@ -2337,6 +2513,15 @@ pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_execut
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_pretargeting_configs_remove_targeted_sites`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPretargetingConfigsRemoveTargetedSitesArgs {
+    /// Path parameter: pretargetingConfig
+    pub pretargetingConfig: String,
+    /// Request body.
+    pub body: RemoveTargetedSitesRequest,
+}
+
 /// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:removeTargetedSites
 /// Removes targeted sites from the pretargeting configuration.
 ///
@@ -2349,8 +2534,7 @@ pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_execut
 
 pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_sites(
     client: &SimpleHttpClient,
-    pretargetingConfig: &str,
-    body: &RemoveTargetedSitesRequest,
+    args: &RealtimebiddingBiddersPretargetingConfigsRemoveTargetedSitesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
         + Send
@@ -2359,8 +2543,8 @@ pub fn realtimebidding_bidders_pretargeting_configs_remove_targeted_sites(
 > {
     let builder = realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_builder(
         client,
-        pretargetingConfig,
-        body,
+        &args.pretargetingConfig,
+        &args.body,
     )?;
     realtimebidding_bidders_pretargeting_configs_remove_targeted_sites_execute(builder)
 }
@@ -2460,6 +2644,15 @@ pub fn realtimebidding_bidders_pretargeting_configs_suspend_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_pretargeting_configs_suspend`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPretargetingConfigsSuspendArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: SuspendPretargetingConfigRequest,
+}
+
 /// GET v1/bidders/{biddersId}/pretargetingConfigs/{pretargetingConfigsId}:suspend
 /// Suspends a pretargeting configuration.
 ///
@@ -2472,15 +2665,16 @@ pub fn realtimebidding_bidders_pretargeting_configs_suspend_execute(
 
 pub fn realtimebidding_bidders_pretargeting_configs_suspend(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &SuspendPretargetingConfigRequest,
+    args: &RealtimebiddingBiddersPretargetingConfigsSuspendArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PretargetingConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_bidders_pretargeting_configs_suspend_builder(client, name, body)?;
+    let builder = realtimebidding_bidders_pretargeting_configs_suspend_builder(
+        client, &args.name, &args.body,
+    )?;
     realtimebidding_bidders_pretargeting_configs_suspend_execute(builder)
 }
 
@@ -2581,6 +2775,15 @@ pub fn realtimebidding_bidders_publisher_connections_batch_approve_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_publisher_connections_batch_approve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPublisherConnectionsBatchApproveArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchApprovePublisherConnectionsRequest,
+}
+
 /// GET v1/bidders/{biddersId}/publisherConnections:batchApprove
 /// Batch approves multiple publisher connections.
 ///
@@ -2593,8 +2796,7 @@ pub fn realtimebidding_bidders_publisher_connections_batch_approve_execute(
 
 pub fn realtimebidding_bidders_publisher_connections_batch_approve(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchApprovePublisherConnectionsRequest,
+    args: &RealtimebiddingBiddersPublisherConnectionsBatchApproveArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchApprovePublisherConnectionsResponse>, ApiError>,
@@ -2603,8 +2805,11 @@ pub fn realtimebidding_bidders_publisher_connections_batch_approve(
         + 'static,
     ApiError,
 > {
-    let builder =
-        realtimebidding_bidders_publisher_connections_batch_approve_builder(client, parent, body)?;
+    let builder = realtimebidding_bidders_publisher_connections_batch_approve_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     realtimebidding_bidders_publisher_connections_batch_approve_execute(builder)
 }
 
@@ -2706,6 +2911,15 @@ pub fn realtimebidding_bidders_publisher_connections_batch_reject_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_publisher_connections_batch_reject`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPublisherConnectionsBatchRejectArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: BatchRejectPublisherConnectionsRequest,
+}
+
 /// GET v1/bidders/{biddersId}/publisherConnections:batchReject
 /// Batch rejects multiple publisher connections.
 ///
@@ -2718,8 +2932,7 @@ pub fn realtimebidding_bidders_publisher_connections_batch_reject_execute(
 
 pub fn realtimebidding_bidders_publisher_connections_batch_reject(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &BatchRejectPublisherConnectionsRequest,
+    args: &RealtimebiddingBiddersPublisherConnectionsBatchRejectArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BatchRejectPublisherConnectionsResponse>, ApiError>,
@@ -2728,8 +2941,11 @@ pub fn realtimebidding_bidders_publisher_connections_batch_reject(
         + 'static,
     ApiError,
 > {
-    let builder =
-        realtimebidding_bidders_publisher_connections_batch_reject_builder(client, parent, body)?;
+    let builder = realtimebidding_bidders_publisher_connections_batch_reject_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     realtimebidding_bidders_publisher_connections_batch_reject_execute(builder)
 }
 
@@ -2825,6 +3041,13 @@ pub fn realtimebidding_bidders_publisher_connections_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_publisher_connections_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPublisherConnectionsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/bidders/{biddersId}/publisherConnections/{publisherConnectionsId}
 /// Gets a publisher connection.
 ///
@@ -2837,14 +3060,14 @@ pub fn realtimebidding_bidders_publisher_connections_get_execute(
 
 pub fn realtimebidding_bidders_publisher_connections_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RealtimebiddingBiddersPublisherConnectionsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PublisherConnection>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_bidders_publisher_connections_get_builder(client, name)?;
+    let builder = realtimebidding_bidders_publisher_connections_get_builder(client, &args.name)?;
     realtimebidding_bidders_publisher_connections_get_execute(builder)
 }
 
@@ -2966,6 +3189,21 @@ pub fn realtimebidding_bidders_publisher_connections_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_bidders_publisher_connections_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBiddersPublisherConnectionsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/bidders/{biddersId}/publisherConnections
 /// Lists publisher connections for a given bidder.
 ///
@@ -2978,11 +3216,7 @@ pub fn realtimebidding_bidders_publisher_connections_list_execute(
 
 pub fn realtimebidding_bidders_publisher_connections_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RealtimebiddingBiddersPublisherConnectionsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListPublisherConnectionsResponse>, ApiError>,
@@ -2992,7 +3226,12 @@ pub fn realtimebidding_bidders_publisher_connections_list(
     ApiError,
 > {
     let builder = realtimebidding_bidders_publisher_connections_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     realtimebidding_bidders_publisher_connections_list_execute(builder)
 }
@@ -3084,6 +3323,13 @@ pub fn realtimebidding_buyers_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_buyers_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBuyersGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/buyers/{buyersId}
 /// Gets a buyer account by its name.
 ///
@@ -3096,12 +3342,12 @@ pub fn realtimebidding_buyers_get_execute(
 
 pub fn realtimebidding_buyers_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RealtimebiddingBuyersGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Buyer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_get_builder(client, name)?;
+    let builder = realtimebidding_buyers_get_builder(client, &args.name)?;
     realtimebidding_buyers_get_execute(builder)
 }
 
@@ -3197,6 +3443,13 @@ pub fn realtimebidding_buyers_get_remarketing_tag_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_buyers_get_remarketing_tag`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBuyersGetRemarketingTagArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/buyers/{buyersId}:getRemarketingTag
 /// This has been sunset as of October 2023, and will return an error response if called. For more information, see the release notes: <https://developers.google.`com/authorized-buyers/apis/relnotes`#real-time-bidding-api> Gets remarketing tag for a buyer. A remarketing tag is a piece of JavaScript code that can be placed on a web page. When a user visits a page containing a remarketing tag, Google adds the user to a user list.
 ///
@@ -3209,14 +3462,14 @@ pub fn realtimebidding_buyers_get_remarketing_tag_execute(
 
 pub fn realtimebidding_buyers_get_remarketing_tag(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RealtimebiddingBuyersGetRemarketingTagArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetRemarketingTagResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_get_remarketing_tag_builder(client, name)?;
+    let builder = realtimebidding_buyers_get_remarketing_tag_builder(client, &args.name)?;
     realtimebidding_buyers_get_remarketing_tag_execute(builder)
 }
 
@@ -3324,6 +3577,15 @@ pub fn realtimebidding_buyers_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_buyers_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBuyersListArgs {
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/buyers
 /// Lists all buyer account information the calling buyer user or service account is permissioned to manage.
 ///
@@ -3336,15 +3598,15 @@ pub fn realtimebidding_buyers_list_execute(
 
 pub fn realtimebidding_buyers_list(
     client: &SimpleHttpClient,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RealtimebiddingBuyersListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListBuyersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_list_builder(client, pageSize, pageToken)?;
+    let builder =
+        realtimebidding_buyers_list_builder(client, args.pageSize, args.pageToken.as_deref())?;
     realtimebidding_buyers_list_execute(builder)
 }
 
@@ -3441,6 +3703,15 @@ pub fn realtimebidding_buyers_creatives_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_buyers_creatives_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBuyersCreativesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: Creative,
+}
+
 /// GET v1/buyers/{buyersId}/creatives
 /// Creates a creative.
 ///
@@ -3453,13 +3724,13 @@ pub fn realtimebidding_buyers_creatives_create_execute(
 
 pub fn realtimebidding_buyers_creatives_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &Creative,
+    args: &RealtimebiddingBuyersCreativesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_creatives_create_builder(client, parent, body)?;
+    let builder =
+        realtimebidding_buyers_creatives_create_builder(client, &args.parent, &args.body)?;
     realtimebidding_buyers_creatives_create_execute(builder)
 }
 
@@ -3565,6 +3836,15 @@ pub fn realtimebidding_buyers_creatives_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_buyers_creatives_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBuyersCreativesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/buyers/{buyersId}/creatives/{creativesId}
 /// Gets a creative.
 ///
@@ -3577,13 +3857,13 @@ pub fn realtimebidding_buyers_creatives_get_execute(
 
 pub fn realtimebidding_buyers_creatives_get(
     client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
+    args: &RealtimebiddingBuyersCreativesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_creatives_get_builder(client, name, view)?;
+    let builder =
+        realtimebidding_buyers_creatives_get_builder(client, &args.name, args.view.as_deref())?;
     realtimebidding_buyers_creatives_get_execute(builder)
 }
 
@@ -3703,6 +3983,21 @@ pub fn realtimebidding_buyers_creatives_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_buyers_creatives_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBuyersCreativesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: view
+    pub view: Option<String>,
+}
+
 /// GET v1/buyers/{buyersId}/creatives
 /// Lists creatives as they are at the time of the initial request. This call may take multiple hours to complete. For large, paginated requests, this method returns a snapshot of creatives at the time of request for the first page. `lastStatusUpdate` and `creativeServingDecision` may be outdated for creatives on sequential pages. We recommend [Google Cloud P`ub/Sub`](//cloud.google.`com/pubsub/docs/overview`) to view the latest status.
 ///
@@ -3715,11 +4010,7 @@ pub fn realtimebidding_buyers_creatives_list_execute(
 
 pub fn realtimebidding_buyers_creatives_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    args: &RealtimebiddingBuyersCreativesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListCreativesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3727,7 +4018,12 @@ pub fn realtimebidding_buyers_creatives_list(
     ApiError,
 > {
     let builder = realtimebidding_buyers_creatives_list_builder(
-        client, parent, filter, pageSize, pageToken, view,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.view.as_deref(),
     )?;
     realtimebidding_buyers_creatives_list_execute(builder)
 }
@@ -3837,6 +4133,17 @@ pub fn realtimebidding_buyers_creatives_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_buyers_creatives_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBuyersCreativesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Creative,
+}
+
 /// GET v1/buyers/{buyersId}/creatives/{creativesId}
 /// Updates a creative.
 ///
@@ -3849,14 +4156,17 @@ pub fn realtimebidding_buyers_creatives_patch_execute(
 
 pub fn realtimebidding_buyers_creatives_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Creative,
+    args: &RealtimebiddingBuyersCreativesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_creatives_patch_builder(client, name, updateMask, body)?;
+    let builder = realtimebidding_buyers_creatives_patch_builder(
+        client,
+        &args.name,
+        args.updateMask.as_deref(),
+        &args.body,
+    )?;
     realtimebidding_buyers_creatives_patch_execute(builder)
 }
 
@@ -3953,6 +4263,15 @@ pub fn realtimebidding_buyers_user_lists_close_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_buyers_user_lists_close`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBuyersUserListsCloseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CloseUserListRequest,
+}
+
 /// GET v1/buyers/{buyersId}/userLists/{userListsId}:close
 /// Changes the status of a user list to CLOSED. This prevents new users from being added to the user list.
 ///
@@ -3965,13 +4284,12 @@ pub fn realtimebidding_buyers_user_lists_close_execute(
 
 pub fn realtimebidding_buyers_user_lists_close(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CloseUserListRequest,
+    args: &RealtimebiddingBuyersUserListsCloseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_user_lists_close_builder(client, name, body)?;
+    let builder = realtimebidding_buyers_user_lists_close_builder(client, &args.name, &args.body)?;
     realtimebidding_buyers_user_lists_close_execute(builder)
 }
 
@@ -4068,6 +4386,15 @@ pub fn realtimebidding_buyers_user_lists_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_buyers_user_lists_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBuyersUserListsCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: UserList,
+}
+
 /// GET v1/buyers/{buyersId}/userLists
 /// Creates a new user list.
 ///
@@ -4080,13 +4407,13 @@ pub fn realtimebidding_buyers_user_lists_create_execute(
 
 pub fn realtimebidding_buyers_user_lists_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &UserList,
+    args: &RealtimebiddingBuyersUserListsCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_user_lists_create_builder(client, parent, body)?;
+    let builder =
+        realtimebidding_buyers_user_lists_create_builder(client, &args.parent, &args.body)?;
     realtimebidding_buyers_user_lists_create_execute(builder)
 }
 
@@ -4180,6 +4507,13 @@ pub fn realtimebidding_buyers_user_lists_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_buyers_user_lists_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBuyersUserListsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/buyers/{buyersId}/userLists/{userListsId}
 /// Gets a user list by its name.
 ///
@@ -4192,12 +4526,12 @@ pub fn realtimebidding_buyers_user_lists_get_execute(
 
 pub fn realtimebidding_buyers_user_lists_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RealtimebiddingBuyersUserListsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_user_lists_get_builder(client, name)?;
+    let builder = realtimebidding_buyers_user_lists_get_builder(client, &args.name)?;
     realtimebidding_buyers_user_lists_get_execute(builder)
 }
 
@@ -4293,6 +4627,13 @@ pub fn realtimebidding_buyers_user_lists_get_remarketing_tag_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_buyers_user_lists_get_remarketing_tag`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBuyersUserListsGetRemarketingTagArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/buyers/{buyersId}/userLists/{userListsId}:getRemarketingTag
 /// This has been sunset as of October 2023, and will return an error response if called. For more information, see the release notes: <https://developers.google.`com/authorized-buyers/apis/relnotes`#real-time-bidding-api> Gets remarketing tag for a buyer. A remarketing tag is a piece of JavaScript code that can be placed on a web page. When a user visits a page containing a remarketing tag, Google adds the user to a user list.
 ///
@@ -4305,14 +4646,15 @@ pub fn realtimebidding_buyers_user_lists_get_remarketing_tag_execute(
 
 pub fn realtimebidding_buyers_user_lists_get_remarketing_tag(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &RealtimebiddingBuyersUserListsGetRemarketingTagArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetRemarketingTagResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_user_lists_get_remarketing_tag_builder(client, name)?;
+    let builder =
+        realtimebidding_buyers_user_lists_get_remarketing_tag_builder(client, &args.name)?;
     realtimebidding_buyers_user_lists_get_remarketing_tag_execute(builder)
 }
 
@@ -4424,6 +4766,17 @@ pub fn realtimebidding_buyers_user_lists_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_buyers_user_lists_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBuyersUserListsListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/buyers/{buyersId}/userLists
 /// Lists the user lists visible to the current user.
 ///
@@ -4436,17 +4789,19 @@ pub fn realtimebidding_buyers_user_lists_list_execute(
 
 pub fn realtimebidding_buyers_user_lists_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &RealtimebiddingBuyersUserListsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListUserListsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        realtimebidding_buyers_user_lists_list_builder(client, parent, pageSize, pageToken)?;
+    let builder = realtimebidding_buyers_user_lists_list_builder(
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
+    )?;
     realtimebidding_buyers_user_lists_list_execute(builder)
 }
 
@@ -4543,6 +4898,15 @@ pub fn realtimebidding_buyers_user_lists_open_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_buyers_user_lists_open`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBuyersUserListsOpenArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: OpenUserListRequest,
+}
+
 /// GET v1/buyers/{buyersId}/userLists/{userListsId}:open
 /// Changes the status of a user list to OPEN. This allows new users to be added to the user list.
 ///
@@ -4555,13 +4919,12 @@ pub fn realtimebidding_buyers_user_lists_open_execute(
 
 pub fn realtimebidding_buyers_user_lists_open(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &OpenUserListRequest,
+    args: &RealtimebiddingBuyersUserListsOpenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_user_lists_open_builder(client, name, body)?;
+    let builder = realtimebidding_buyers_user_lists_open_builder(client, &args.name, &args.body)?;
     realtimebidding_buyers_user_lists_open_execute(builder)
 }
 
@@ -4658,6 +5021,15 @@ pub fn realtimebidding_buyers_user_lists_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`realtimebidding_buyers_user_lists_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RealtimebiddingBuyersUserListsUpdateArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UserList,
+}
+
 /// GET v1/buyers/{buyersId}/userLists/{userListsId}
 /// Updates the given user list. Only user lists with URLRestrictions can be updated.
 ///
@@ -4670,12 +5042,11 @@ pub fn realtimebidding_buyers_user_lists_update_execute(
 
 pub fn realtimebidding_buyers_user_lists_update(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UserList,
+    args: &RealtimebiddingBuyersUserListsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UserList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = realtimebidding_buyers_user_lists_update_builder(client, name, body)?;
+    let builder = realtimebidding_buyers_user_lists_update_builder(client, &args.name, &args.body)?;
     realtimebidding_buyers_user_lists_update_execute(builder)
 }

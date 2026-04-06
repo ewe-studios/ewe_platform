@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/forecast:lookup
 /// Returns up to 5 days of daily pollen information in more than 65 countries, up to 1km resolution.
@@ -140,6 +142,25 @@ pub fn pollen_forecast_lookup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pollen_forecast_lookup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PollenForecastLookupArgs {
+    /// Query parameter: days
+    pub days: Option<i32>,
+    /// Query parameter: languageCode
+    pub languageCode: Option<String>,
+    /// Query parameter: location_latitude
+    pub location_latitude: Option<f64>,
+    /// Query parameter: location_longitude
+    pub location_longitude: Option<f64>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: plantsDescription
+    pub plantsDescription: Option<bool>,
+}
+
 /// GET v1/forecast:lookup
 /// Returns up to 5 days of daily pollen information in more than 65 countries, up to 1km resolution.
 ///
@@ -152,13 +173,7 @@ pub fn pollen_forecast_lookup_execute(
 
 pub fn pollen_forecast_lookup(
     client: &SimpleHttpClient,
-    days: Option<i32>,
-    languageCode: Option<&str>,
-    location_latitude: Option<f64>,
-    location_longitude: Option<f64>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    plantsDescription: Option<bool>,
+    args: &PollenForecastLookupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LookupForecastResponse>, ApiError>, P = ApiPending>
         + Send
@@ -167,13 +182,13 @@ pub fn pollen_forecast_lookup(
 > {
     let builder = pollen_forecast_lookup_builder(
         client,
-        days,
-        languageCode,
-        location_latitude,
-        location_longitude,
-        pageSize,
-        pageToken,
-        plantsDescription,
+        args.days,
+        args.languageCode.as_deref(),
+        args.location_latitude,
+        args.location_longitude,
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.plantsDescription,
     )?;
     pollen_forecast_lookup_execute(builder)
 }
@@ -271,6 +286,19 @@ pub fn pollen_map_types_heatmap_tiles_lookup_heatmap_tile_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`pollen_map_types_heatmap_tiles_lookup_heatmap_tile`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PollenMapTypesHeatmapTilesLookupHeatmapTileArgs {
+    /// Path parameter: mapType
+    pub mapType: String,
+    /// Path parameter: zoom
+    pub zoom: String,
+    /// Path parameter: x
+    pub x: String,
+    /// Path parameter: y
+    pub y: String,
+}
+
 /// GET v1/mapTypes/{mapType}/heatmapTiles/{zoom}/{x}/{y}
 /// Returns a byte array containing the data of the tile PNG image.
 ///
@@ -283,15 +311,17 @@ pub fn pollen_map_types_heatmap_tiles_lookup_heatmap_tile_execute(
 
 pub fn pollen_map_types_heatmap_tiles_lookup_heatmap_tile(
     client: &SimpleHttpClient,
-    mapType: &str,
-    zoom: &str,
-    x: &str,
-    y: &str,
+    args: &PollenMapTypesHeatmapTilesLookupHeatmapTileArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        pollen_map_types_heatmap_tiles_lookup_heatmap_tile_builder(client, mapType, zoom, x, y)?;
+    let builder = pollen_map_types_heatmap_tiles_lookup_heatmap_tile_builder(
+        client,
+        &args.mapType,
+        &args.zoom,
+        &args.x,
+        &args.y,
+    )?;
     pollen_map_types_heatmap_tiles_lookup_heatmap_tile_execute(builder)
 }

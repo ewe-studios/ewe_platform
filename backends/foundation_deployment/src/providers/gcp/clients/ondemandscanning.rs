@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
@@ -106,6 +108,13 @@ pub fn ondemandscanning_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ondemandscanning_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OndemandscanningProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -118,12 +127,13 @@ pub fn ondemandscanning_projects_locations_operations_cancel_execute(
 
 pub fn ondemandscanning_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OndemandscanningProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ondemandscanning_projects_locations_operations_cancel_builder(client, name)?;
+    let builder =
+        ondemandscanning_projects_locations_operations_cancel_builder(client, &args.name)?;
     ondemandscanning_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -217,6 +227,13 @@ pub fn ondemandscanning_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ondemandscanning_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OndemandscanningProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -229,12 +246,13 @@ pub fn ondemandscanning_projects_locations_operations_delete_execute(
 
 pub fn ondemandscanning_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OndemandscanningProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ondemandscanning_projects_locations_operations_delete_builder(client, name)?;
+    let builder =
+        ondemandscanning_projects_locations_operations_delete_builder(client, &args.name)?;
     ondemandscanning_projects_locations_operations_delete_execute(builder)
 }
 
@@ -328,6 +346,13 @@ pub fn ondemandscanning_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ondemandscanning_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OndemandscanningProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -340,12 +365,12 @@ pub fn ondemandscanning_projects_locations_operations_get_execute(
 
 pub fn ondemandscanning_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &OndemandscanningProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = ondemandscanning_projects_locations_operations_get_builder(client, name)?;
+    let builder = ondemandscanning_projects_locations_operations_get_builder(client, &args.name)?;
     ondemandscanning_projects_locations_operations_get_execute(builder)
 }
 
@@ -465,6 +490,21 @@ pub fn ondemandscanning_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ondemandscanning_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OndemandscanningProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -477,11 +517,7 @@ pub fn ondemandscanning_projects_locations_operations_list_execute(
 
 pub fn ondemandscanning_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &OndemandscanningProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -490,11 +526,11 @@ pub fn ondemandscanning_projects_locations_operations_list(
 > {
     let builder = ondemandscanning_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     ondemandscanning_projects_locations_operations_list_execute(builder)
 }
@@ -601,6 +637,15 @@ pub fn ondemandscanning_projects_locations_operations_wait_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ondemandscanning_projects_locations_operations_wait`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OndemandscanningProjectsLocationsOperationsWaitArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: timeout
+    pub timeout: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:wait
 /// Waits until the specified long-running operation is done or reaches at most a specified timeout, returning the latest state. If the operation is already done, the latest state is immediately returned. If the timeout specified is greater than the default HTTP/RPC timeout, the HTTP/RPC timeout is used. If the server does not support this method, it returns google.rpc.Code.UNIMPLEMENTED. Note that this method is on a best-effort basis. It may return the latest state before the specified timeout (including immediately), meaning even an immediate response is no guarantee that the operation is done.
 ///
@@ -613,14 +658,16 @@ pub fn ondemandscanning_projects_locations_operations_wait_execute(
 
 pub fn ondemandscanning_projects_locations_operations_wait(
     client: &SimpleHttpClient,
-    name: &str,
-    timeout: Option<&str>,
+    args: &OndemandscanningProjectsLocationsOperationsWaitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        ondemandscanning_projects_locations_operations_wait_builder(client, name, timeout)?;
+    let builder = ondemandscanning_projects_locations_operations_wait_builder(
+        client,
+        &args.name,
+        args.timeout.as_deref(),
+    )?;
     ondemandscanning_projects_locations_operations_wait_execute(builder)
 }
 
@@ -717,6 +764,15 @@ pub fn ondemandscanning_projects_locations_scans_analyze_packages_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ondemandscanning_projects_locations_scans_analyze_packages`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OndemandscanningProjectsLocationsScansAnalyzePackagesArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Request body.
+    pub body: AnalyzePackagesRequestV1,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/scans:analyzePackages
 /// Initiates an analysis of the provided packages.
 ///
@@ -729,14 +785,16 @@ pub fn ondemandscanning_projects_locations_scans_analyze_packages_execute(
 
 pub fn ondemandscanning_projects_locations_scans_analyze_packages(
     client: &SimpleHttpClient,
-    parent: &str,
-    body: &AnalyzePackagesRequestV1,
+    args: &OndemandscanningProjectsLocationsScansAnalyzePackagesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        ondemandscanning_projects_locations_scans_analyze_packages_builder(client, parent, body)?;
+    let builder = ondemandscanning_projects_locations_scans_analyze_packages_builder(
+        client,
+        &args.parent,
+        &args.body,
+    )?;
     ondemandscanning_projects_locations_scans_analyze_packages_execute(builder)
 }
 
@@ -850,6 +908,17 @@ pub fn ondemandscanning_projects_locations_scans_vulnerabilities_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`ondemandscanning_projects_locations_scans_vulnerabilities_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct OndemandscanningProjectsLocationsScansVulnerabilitiesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v1/projects/{projectsId}/locations/{locationsId}/scans/{scansId}/vulnerabilities
 /// Lists vulnerabilities resulting from a successfully completed scan.
 ///
@@ -862,9 +931,7 @@ pub fn ondemandscanning_projects_locations_scans_vulnerabilities_list_execute(
 
 pub fn ondemandscanning_projects_locations_scans_vulnerabilities_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &OndemandscanningProjectsLocationsScansVulnerabilitiesListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ListVulnerabilitiesResponseV1>, ApiError>,
@@ -874,7 +941,10 @@ pub fn ondemandscanning_projects_locations_scans_vulnerabilities_list(
     ApiError,
 > {
     let builder = ondemandscanning_projects_locations_scans_vulnerabilities_list_builder(
-        client, parent, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     ondemandscanning_projects_locations_scans_vulnerabilities_list_execute(builder)
 }

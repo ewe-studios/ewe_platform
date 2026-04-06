@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET games/v1configuration/achievements/{achievementId}
 /// Delete the achievement configuration with the given ID.
@@ -103,6 +105,13 @@ pub fn games_configuration_achievement_configurations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_configuration_achievement_configurations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationAchievementConfigurationsDeleteArgs {
+    /// Path parameter: achievementId
+    pub achievementId: String,
+}
+
 /// GET games/v1configuration/achievements/{achievementId}
 /// Delete the achievement configuration with the given ID.
 ///
@@ -115,13 +124,13 @@ pub fn games_configuration_achievement_configurations_delete_execute(
 
 pub fn games_configuration_achievement_configurations_delete(
     client: &SimpleHttpClient,
-    achievementId: &str,
+    args: &GamesConfigurationAchievementConfigurationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        games_configuration_achievement_configurations_delete_builder(client, achievementId)?;
+        games_configuration_achievement_configurations_delete_builder(client, &args.achievementId)?;
     games_configuration_achievement_configurations_delete_execute(builder)
 }
 
@@ -217,6 +226,13 @@ pub fn games_configuration_achievement_configurations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_configuration_achievement_configurations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationAchievementConfigurationsGetArgs {
+    /// Path parameter: achievementId
+    pub achievementId: String,
+}
+
 /// GET games/v1configuration/achievements/{achievementId}
 /// Retrieves the metadata of the achievement configuration with the given ID.
 ///
@@ -229,7 +245,7 @@ pub fn games_configuration_achievement_configurations_get_execute(
 
 pub fn games_configuration_achievement_configurations_get(
     client: &SimpleHttpClient,
-    achievementId: &str,
+    args: &GamesConfigurationAchievementConfigurationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AchievementConfiguration>, ApiError>, P = ApiPending>
         + Send
@@ -237,7 +253,7 @@ pub fn games_configuration_achievement_configurations_get(
     ApiError,
 > {
     let builder =
-        games_configuration_achievement_configurations_get_builder(client, achievementId)?;
+        games_configuration_achievement_configurations_get_builder(client, &args.achievementId)?;
     games_configuration_achievement_configurations_get_execute(builder)
 }
 
@@ -336,6 +352,15 @@ pub fn games_configuration_achievement_configurations_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_configuration_achievement_configurations_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationAchievementConfigurationsInsertArgs {
+    /// Path parameter: applicationId
+    pub applicationId: String,
+    /// Request body.
+    pub body: AchievementConfiguration,
+}
+
 /// GET games/v1configuration/applications/{applicationId}/achievements
 /// Insert a new achievement configuration in this application.
 ///
@@ -348,16 +373,18 @@ pub fn games_configuration_achievement_configurations_insert_execute(
 
 pub fn games_configuration_achievement_configurations_insert(
     client: &SimpleHttpClient,
-    applicationId: &str,
-    body: &AchievementConfiguration,
+    args: &GamesConfigurationAchievementConfigurationsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AchievementConfiguration>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        games_configuration_achievement_configurations_insert_builder(client, applicationId, body)?;
+    let builder = games_configuration_achievement_configurations_insert_builder(
+        client,
+        &args.applicationId,
+        &args.body,
+    )?;
     games_configuration_achievement_configurations_insert_execute(builder)
 }
 
@@ -471,6 +498,17 @@ pub fn games_configuration_achievement_configurations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_configuration_achievement_configurations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationAchievementConfigurationsListArgs {
+    /// Path parameter: applicationId
+    pub applicationId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET games/v1configuration/applications/{applicationId}/achievements
 /// Returns a list of the achievement configurations in this application.
 ///
@@ -483,9 +521,7 @@ pub fn games_configuration_achievement_configurations_list_execute(
 
 pub fn games_configuration_achievement_configurations_list(
     client: &SimpleHttpClient,
-    applicationId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GamesConfigurationAchievementConfigurationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<AchievementConfigurationListResponse>, ApiError>,
@@ -496,9 +532,9 @@ pub fn games_configuration_achievement_configurations_list(
 > {
     let builder = games_configuration_achievement_configurations_list_builder(
         client,
-        applicationId,
-        maxResults,
-        pageToken,
+        &args.applicationId,
+        args.maxResults,
+        args.pageToken.as_deref(),
     )?;
     games_configuration_achievement_configurations_list_execute(builder)
 }
@@ -598,6 +634,15 @@ pub fn games_configuration_achievement_configurations_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_configuration_achievement_configurations_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationAchievementConfigurationsUpdateArgs {
+    /// Path parameter: achievementId
+    pub achievementId: String,
+    /// Request body.
+    pub body: AchievementConfiguration,
+}
+
 /// GET games/v1configuration/achievements/{achievementId}
 /// Update the metadata of the achievement configuration with the given ID.
 ///
@@ -610,16 +655,18 @@ pub fn games_configuration_achievement_configurations_update_execute(
 
 pub fn games_configuration_achievement_configurations_update(
     client: &SimpleHttpClient,
-    achievementId: &str,
-    body: &AchievementConfiguration,
+    args: &GamesConfigurationAchievementConfigurationsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AchievementConfiguration>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        games_configuration_achievement_configurations_update_builder(client, achievementId, body)?;
+    let builder = games_configuration_achievement_configurations_update_builder(
+        client,
+        &args.achievementId,
+        &args.body,
+    )?;
     games_configuration_achievement_configurations_update_execute(builder)
 }
 
@@ -710,6 +757,13 @@ pub fn games_configuration_leaderboard_configurations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_configuration_leaderboard_configurations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationLeaderboardConfigurationsDeleteArgs {
+    /// Path parameter: leaderboardId
+    pub leaderboardId: String,
+}
+
 /// GET games/v1configuration/leaderboards/{leaderboardId}
 /// Delete the leaderboard configuration with the given ID.
 ///
@@ -722,13 +776,13 @@ pub fn games_configuration_leaderboard_configurations_delete_execute(
 
 pub fn games_configuration_leaderboard_configurations_delete(
     client: &SimpleHttpClient,
-    leaderboardId: &str,
+    args: &GamesConfigurationLeaderboardConfigurationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder =
-        games_configuration_leaderboard_configurations_delete_builder(client, leaderboardId)?;
+        games_configuration_leaderboard_configurations_delete_builder(client, &args.leaderboardId)?;
     games_configuration_leaderboard_configurations_delete_execute(builder)
 }
 
@@ -824,6 +878,13 @@ pub fn games_configuration_leaderboard_configurations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_configuration_leaderboard_configurations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationLeaderboardConfigurationsGetArgs {
+    /// Path parameter: leaderboardId
+    pub leaderboardId: String,
+}
+
 /// GET games/v1configuration/leaderboards/{leaderboardId}
 /// Retrieves the metadata of the leaderboard configuration with the given ID.
 ///
@@ -836,7 +897,7 @@ pub fn games_configuration_leaderboard_configurations_get_execute(
 
 pub fn games_configuration_leaderboard_configurations_get(
     client: &SimpleHttpClient,
-    leaderboardId: &str,
+    args: &GamesConfigurationLeaderboardConfigurationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LeaderboardConfiguration>, ApiError>, P = ApiPending>
         + Send
@@ -844,7 +905,7 @@ pub fn games_configuration_leaderboard_configurations_get(
     ApiError,
 > {
     let builder =
-        games_configuration_leaderboard_configurations_get_builder(client, leaderboardId)?;
+        games_configuration_leaderboard_configurations_get_builder(client, &args.leaderboardId)?;
     games_configuration_leaderboard_configurations_get_execute(builder)
 }
 
@@ -943,6 +1004,15 @@ pub fn games_configuration_leaderboard_configurations_insert_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_configuration_leaderboard_configurations_insert`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationLeaderboardConfigurationsInsertArgs {
+    /// Path parameter: applicationId
+    pub applicationId: String,
+    /// Request body.
+    pub body: LeaderboardConfiguration,
+}
+
 /// GET games/v1configuration/applications/{applicationId}/leaderboards
 /// Insert a new leaderboard configuration in this application.
 ///
@@ -955,16 +1025,18 @@ pub fn games_configuration_leaderboard_configurations_insert_execute(
 
 pub fn games_configuration_leaderboard_configurations_insert(
     client: &SimpleHttpClient,
-    applicationId: &str,
-    body: &LeaderboardConfiguration,
+    args: &GamesConfigurationLeaderboardConfigurationsInsertArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LeaderboardConfiguration>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        games_configuration_leaderboard_configurations_insert_builder(client, applicationId, body)?;
+    let builder = games_configuration_leaderboard_configurations_insert_builder(
+        client,
+        &args.applicationId,
+        &args.body,
+    )?;
     games_configuration_leaderboard_configurations_insert_execute(builder)
 }
 
@@ -1078,6 +1150,17 @@ pub fn games_configuration_leaderboard_configurations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_configuration_leaderboard_configurations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationLeaderboardConfigurationsListArgs {
+    /// Path parameter: applicationId
+    pub applicationId: String,
+    /// Query parameter: maxResults
+    pub maxResults: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET games/v1configuration/applications/{applicationId}/leaderboards
 /// Returns a list of the leaderboard configurations in this application.
 ///
@@ -1090,9 +1173,7 @@ pub fn games_configuration_leaderboard_configurations_list_execute(
 
 pub fn games_configuration_leaderboard_configurations_list(
     client: &SimpleHttpClient,
-    applicationId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    args: &GamesConfigurationLeaderboardConfigurationsListArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<LeaderboardConfigurationListResponse>, ApiError>,
@@ -1103,9 +1184,9 @@ pub fn games_configuration_leaderboard_configurations_list(
 > {
     let builder = games_configuration_leaderboard_configurations_list_builder(
         client,
-        applicationId,
-        maxResults,
-        pageToken,
+        &args.applicationId,
+        args.maxResults,
+        args.pageToken.as_deref(),
     )?;
     games_configuration_leaderboard_configurations_list_execute(builder)
 }
@@ -1205,6 +1286,15 @@ pub fn games_configuration_leaderboard_configurations_update_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`games_configuration_leaderboard_configurations_update`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GamesConfigurationLeaderboardConfigurationsUpdateArgs {
+    /// Path parameter: leaderboardId
+    pub leaderboardId: String,
+    /// Request body.
+    pub body: LeaderboardConfiguration,
+}
+
 /// GET games/v1configuration/leaderboards/{leaderboardId}
 /// Update the metadata of the leaderboard configuration with the given ID.
 ///
@@ -1217,15 +1307,17 @@ pub fn games_configuration_leaderboard_configurations_update_execute(
 
 pub fn games_configuration_leaderboard_configurations_update(
     client: &SimpleHttpClient,
-    leaderboardId: &str,
-    body: &LeaderboardConfiguration,
+    args: &GamesConfigurationLeaderboardConfigurationsUpdateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LeaderboardConfiguration>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        games_configuration_leaderboard_configurations_update_builder(client, leaderboardId, body)?;
+    let builder = games_configuration_leaderboard_configurations_update_builder(
+        client,
+        &args.leaderboardId,
+        &args.body,
+    )?;
     games_configuration_leaderboard_configurations_update_execute(builder)
 }

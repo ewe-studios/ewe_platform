@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v1/token
 /// Exchanges a credential for a Google OAuth 2.0 access token. The token asserts an external identity within an identity pool, or it applies a Credential Access Boundary to a Google access token. Note that workforce pools do not support Credential Access Boundaries. When you call this method, do not send the Authorization HTTP header in the request. This method does not require the Authorization header, and using the header can cause the request to fail.
@@ -109,6 +111,13 @@ pub fn sts_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`sts_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct StsTokenArgs {
+    /// Request body.
+    pub body: GoogleIdentityStsV1ExchangeTokenRequest,
+}
+
 /// GET v1/token
 /// Exchanges a credential for a Google OAuth 2.0 access token. The token asserts an external identity within an identity pool, or it applies a Credential Access Boundary to a Google access token. Note that workforce pools do not support Credential Access Boundaries. When you call this method, do not send the Authorization HTTP header in the request. This method does not require the Authorization header, and using the header can cause the request to fail.
 ///
@@ -121,7 +130,7 @@ pub fn sts_token_execute(
 
 pub fn sts_token(
     client: &SimpleHttpClient,
-    body: &GoogleIdentityStsV1ExchangeTokenRequest,
+    args: &StsTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GoogleIdentityStsV1ExchangeTokenResponse>, ApiError>,
@@ -130,6 +139,6 @@ pub fn sts_token(
         + 'static,
     ApiError,
 > {
-    let builder = sts_token_builder(client, body)?;
+    let builder = sts_token_builder(client, &args.body)?;
     sts_token_execute(builder)
 }

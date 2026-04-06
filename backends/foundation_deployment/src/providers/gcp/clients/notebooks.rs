@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET v2/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
@@ -106,6 +108,13 @@ pub fn notebooks_projects_locations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}
 /// Gets information about a location.
 ///
@@ -118,12 +127,12 @@ pub fn notebooks_projects_locations_get_execute(
 
 pub fn notebooks_projects_locations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NotebooksProjectsLocationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = notebooks_projects_locations_get_builder(client, name)?;
+    let builder = notebooks_projects_locations_get_builder(client, &args.name)?;
     notebooks_projects_locations_get_execute(builder)
 }
 
@@ -243,6 +252,21 @@ pub fn notebooks_projects_locations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: extraLocationTypes
+    pub extraLocationTypes: Option<String>,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations
 /// Lists information about the supported locations for this service. This method can be called in two ways: * **List all public locations:** Use the path GET /v1/locations. * **List project-visible locations:** Use the path GET /v1/`projects/{project_id}/locations`. This may include public locations as well as private or other locations specifically visible to the project.
 ///
@@ -255,11 +279,7 @@ pub fn notebooks_projects_locations_list_execute(
 
 pub fn notebooks_projects_locations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NotebooksProjectsLocationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -268,11 +288,11 @@ pub fn notebooks_projects_locations_list(
 > {
     let builder = notebooks_projects_locations_list_builder(
         client,
-        name,
-        extraLocationTypes,
-        filter,
-        pageSize,
-        pageToken,
+        &args.name,
+        args.extraLocationTypes.as_deref(),
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     notebooks_projects_locations_list_execute(builder)
 }
@@ -374,6 +394,15 @@ pub fn notebooks_projects_locations_instances_check_authorization_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_check_authorization`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesCheckAuthorizationArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CheckAuthorizationRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:checkAuthorization
 /// Initiated by Cloud Console for Oauth consent flow for Workbench Instances. Do not use this method directly. Design doc: `go/wbi-euc`:auth-dd
 ///
@@ -386,8 +415,7 @@ pub fn notebooks_projects_locations_instances_check_authorization_execute(
 
 pub fn notebooks_projects_locations_instances_check_authorization(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CheckAuthorizationRequest,
+    args: &NotebooksProjectsLocationsInstancesCheckAuthorizationArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CheckAuthorizationResponse>, ApiError>,
@@ -396,8 +424,9 @@ pub fn notebooks_projects_locations_instances_check_authorization(
         + 'static,
     ApiError,
 > {
-    let builder =
-        notebooks_projects_locations_instances_check_authorization_builder(client, name, body)?;
+    let builder = notebooks_projects_locations_instances_check_authorization_builder(
+        client, &args.name, &args.body,
+    )?;
     notebooks_projects_locations_instances_check_authorization_execute(builder)
 }
 
@@ -495,6 +524,13 @@ pub fn notebooks_projects_locations_instances_check_upgradability_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_check_upgradability`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesCheckUpgradabilityArgs {
+    /// Path parameter: notebookInstance
+    pub notebookInstance: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:checkUpgradability
 /// Checks whether a notebook instance is upgradable.
 ///
@@ -507,7 +543,7 @@ pub fn notebooks_projects_locations_instances_check_upgradability_execute(
 
 pub fn notebooks_projects_locations_instances_check_upgradability(
     client: &SimpleHttpClient,
-    notebookInstance: &str,
+    args: &NotebooksProjectsLocationsInstancesCheckUpgradabilityArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CheckInstanceUpgradabilityResponse>, ApiError>,
@@ -518,7 +554,7 @@ pub fn notebooks_projects_locations_instances_check_upgradability(
 > {
     let builder = notebooks_projects_locations_instances_check_upgradability_builder(
         client,
-        notebookInstance,
+        &args.notebookInstance,
     )?;
     notebooks_projects_locations_instances_check_upgradability_execute(builder)
 }
@@ -632,6 +668,19 @@ pub fn notebooks_projects_locations_instances_create_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_create`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesCreateArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: instanceId
+    pub instanceId: Option<String>,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances
 /// Creates a new Instance in a given project and location.
 ///
@@ -644,16 +693,17 @@ pub fn notebooks_projects_locations_instances_create_execute(
 
 pub fn notebooks_projects_locations_instances_create(
     client: &SimpleHttpClient,
-    parent: &str,
-    instanceId: Option<&str>,
-    requestId: Option<&str>,
-    body: &Instance,
+    args: &NotebooksProjectsLocationsInstancesCreateArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = notebooks_projects_locations_instances_create_builder(
-        client, parent, instanceId, requestId, body,
+        client,
+        &args.parent,
+        args.instanceId.as_deref(),
+        args.requestId.as_deref(),
+        &args.body,
     )?;
     notebooks_projects_locations_instances_create_execute(builder)
 }
@@ -760,6 +810,15 @@ pub fn notebooks_projects_locations_instances_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Deletes a single Instance.
 ///
@@ -772,13 +831,16 @@ pub fn notebooks_projects_locations_instances_delete_execute(
 
 pub fn notebooks_projects_locations_instances_delete(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
+    args: &NotebooksProjectsLocationsInstancesDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = notebooks_projects_locations_instances_delete_builder(client, name, requestId)?;
+    let builder = notebooks_projects_locations_instances_delete_builder(
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+    )?;
     notebooks_projects_locations_instances_delete_execute(builder)
 }
 
@@ -875,6 +937,15 @@ pub fn notebooks_projects_locations_instances_diagnose_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_diagnose`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesDiagnoseArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: DiagnoseInstanceRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:diagnose
 /// Creates a Diagnostic File and runs Diagnostic Tool given an Instance.
 ///
@@ -887,13 +958,13 @@ pub fn notebooks_projects_locations_instances_diagnose_execute(
 
 pub fn notebooks_projects_locations_instances_diagnose(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &DiagnoseInstanceRequest,
+    args: &NotebooksProjectsLocationsInstancesDiagnoseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = notebooks_projects_locations_instances_diagnose_builder(client, name, body)?;
+    let builder =
+        notebooks_projects_locations_instances_diagnose_builder(client, &args.name, &args.body)?;
     notebooks_projects_locations_instances_diagnose_execute(builder)
 }
 
@@ -994,6 +1065,15 @@ pub fn notebooks_projects_locations_instances_generate_access_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_generate_access_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesGenerateAccessTokenArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: GenerateAccessTokenRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:generateAccessToken
 /// Called by VM to return an EUC for the instance owner. Do not use this method directly. Design doc: `go/wbi-euc`:dd
 ///
@@ -1006,8 +1086,7 @@ pub fn notebooks_projects_locations_instances_generate_access_token_execute(
 
 pub fn notebooks_projects_locations_instances_generate_access_token(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &GenerateAccessTokenRequest,
+    args: &NotebooksProjectsLocationsInstancesGenerateAccessTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GenerateAccessTokenResponse>, ApiError>,
@@ -1016,8 +1095,9 @@ pub fn notebooks_projects_locations_instances_generate_access_token(
         + 'static,
     ApiError,
 > {
-    let builder =
-        notebooks_projects_locations_instances_generate_access_token_builder(client, name, body)?;
+    let builder = notebooks_projects_locations_instances_generate_access_token_builder(
+        client, &args.name, &args.body,
+    )?;
     notebooks_projects_locations_instances_generate_access_token_execute(builder)
 }
 
@@ -1111,6 +1191,13 @@ pub fn notebooks_projects_locations_instances_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// Gets details of a single Instance.
 ///
@@ -1123,12 +1210,12 @@ pub fn notebooks_projects_locations_instances_get_execute(
 
 pub fn notebooks_projects_locations_instances_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NotebooksProjectsLocationsInstancesGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = notebooks_projects_locations_instances_get_builder(client, name)?;
+    let builder = notebooks_projects_locations_instances_get_builder(client, &args.name)?;
     notebooks_projects_locations_instances_get_execute(builder)
 }
 
@@ -1222,6 +1309,13 @@ pub fn notebooks_projects_locations_instances_get_config_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_get_config`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesGetConfigArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances:getConfig
 /// Returns various configuration parameters.
 ///
@@ -1234,12 +1328,12 @@ pub fn notebooks_projects_locations_instances_get_config_execute(
 
 pub fn notebooks_projects_locations_instances_get_config(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NotebooksProjectsLocationsInstancesGetConfigArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Config>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = notebooks_projects_locations_instances_get_config_builder(client, name)?;
+    let builder = notebooks_projects_locations_instances_get_config_builder(client, &args.name)?;
     notebooks_projects_locations_instances_get_config_execute(builder)
 }
 
@@ -1345,6 +1439,15 @@ pub fn notebooks_projects_locations_instances_get_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_get_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesGetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Query parameter: options_requestedPolicyVersion
+    pub options_requestedPolicyVersion: Option<i32>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:getIamPolicy
 /// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
 ///
@@ -1357,16 +1460,15 @@ pub fn notebooks_projects_locations_instances_get_iam_policy_execute(
 
 pub fn notebooks_projects_locations_instances_get_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    options_requestedPolicyVersion: Option<i32>,
+    args: &NotebooksProjectsLocationsInstancesGetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = notebooks_projects_locations_instances_get_iam_policy_builder(
         client,
-        resource,
-        options_requestedPolicyVersion,
+        &args.resource,
+        args.options_requestedPolicyVersion,
     )?;
     notebooks_projects_locations_instances_get_iam_policy_execute(builder)
 }
@@ -1487,6 +1589,21 @@ pub fn notebooks_projects_locations_instances_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesListArgs {
+    /// Path parameter: parent
+    pub parent: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: orderBy
+    pub orderBy: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances
 /// Lists instances in a given project and location.
 ///
@@ -1499,11 +1616,7 @@ pub fn notebooks_projects_locations_instances_list_execute(
 
 pub fn notebooks_projects_locations_instances_list(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    args: &NotebooksProjectsLocationsInstancesListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
         + Send
@@ -1511,7 +1624,12 @@ pub fn notebooks_projects_locations_instances_list(
     ApiError,
 > {
     let builder = notebooks_projects_locations_instances_list_builder(
-        client, parent, filter, orderBy, pageSize, pageToken,
+        client,
+        &args.parent,
+        args.filter.as_deref(),
+        args.orderBy.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
     )?;
     notebooks_projects_locations_instances_list_execute(builder)
 }
@@ -1625,6 +1743,19 @@ pub fn notebooks_projects_locations_instances_patch_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_patch`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesPatchArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: requestId
+    pub requestId: Option<String>,
+    /// Query parameter: updateMask
+    pub updateMask: Option<String>,
+    /// Request body.
+    pub body: Instance,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}
 /// UpdateInstance updates an Instance.
 ///
@@ -1637,16 +1768,17 @@ pub fn notebooks_projects_locations_instances_patch_execute(
 
 pub fn notebooks_projects_locations_instances_patch(
     client: &SimpleHttpClient,
-    name: &str,
-    requestId: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Instance,
+    args: &NotebooksProjectsLocationsInstancesPatchArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = notebooks_projects_locations_instances_patch_builder(
-        client, name, requestId, updateMask, body,
+        client,
+        &args.name,
+        args.requestId.as_deref(),
+        args.updateMask.as_deref(),
+        &args.body,
     )?;
     notebooks_projects_locations_instances_patch_execute(builder)
 }
@@ -1744,6 +1876,15 @@ pub fn notebooks_projects_locations_instances_report_info_system_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_report_info_system`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesReportInfoSystemArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ReportInstanceInfoSystemRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:reportInfoSystem
 /// Allows notebook instances to report their latest instance information to the Notebooks API server. The server will merge the reported information to the instance metadata store. Do not use this method directly.
 ///
@@ -1756,14 +1897,14 @@ pub fn notebooks_projects_locations_instances_report_info_system_execute(
 
 pub fn notebooks_projects_locations_instances_report_info_system(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ReportInstanceInfoSystemRequest,
+    args: &NotebooksProjectsLocationsInstancesReportInfoSystemArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        notebooks_projects_locations_instances_report_info_system_builder(client, name, body)?;
+    let builder = notebooks_projects_locations_instances_report_info_system_builder(
+        client, &args.name, &args.body,
+    )?;
     notebooks_projects_locations_instances_report_info_system_execute(builder)
 }
 
@@ -1860,6 +2001,15 @@ pub fn notebooks_projects_locations_instances_reset_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_reset`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesResetArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: ResetInstanceRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:reset
 /// Resets a notebook instance.
 ///
@@ -1872,13 +2022,13 @@ pub fn notebooks_projects_locations_instances_reset_execute(
 
 pub fn notebooks_projects_locations_instances_reset(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &ResetInstanceRequest,
+    args: &NotebooksProjectsLocationsInstancesResetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = notebooks_projects_locations_instances_reset_builder(client, name, body)?;
+    let builder =
+        notebooks_projects_locations_instances_reset_builder(client, &args.name, &args.body)?;
     notebooks_projects_locations_instances_reset_execute(builder)
 }
 
@@ -1975,6 +2125,15 @@ pub fn notebooks_projects_locations_instances_resize_disk_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_resize_disk`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesResizeDiskArgs {
+    /// Path parameter: notebookInstance
+    pub notebookInstance: String,
+    /// Request body.
+    pub body: ResizeDiskRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:resizeDisk
 /// Resize a notebook instance disk to a higher capacity.
 ///
@@ -1987,14 +2146,16 @@ pub fn notebooks_projects_locations_instances_resize_disk_execute(
 
 pub fn notebooks_projects_locations_instances_resize_disk(
     client: &SimpleHttpClient,
-    notebookInstance: &str,
-    body: &ResizeDiskRequest,
+    args: &NotebooksProjectsLocationsInstancesResizeDiskArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        notebooks_projects_locations_instances_resize_disk_builder(client, notebookInstance, body)?;
+    let builder = notebooks_projects_locations_instances_resize_disk_builder(
+        client,
+        &args.notebookInstance,
+        &args.body,
+    )?;
     notebooks_projects_locations_instances_resize_disk_execute(builder)
 }
 
@@ -2091,6 +2252,15 @@ pub fn notebooks_projects_locations_instances_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesRestoreArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RestoreInstanceRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:restore
 /// RestoreInstance restores an Instance from a BackupSource.
 ///
@@ -2103,13 +2273,13 @@ pub fn notebooks_projects_locations_instances_restore_execute(
 
 pub fn notebooks_projects_locations_instances_restore(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RestoreInstanceRequest,
+    args: &NotebooksProjectsLocationsInstancesRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = notebooks_projects_locations_instances_restore_builder(client, name, body)?;
+    let builder =
+        notebooks_projects_locations_instances_restore_builder(client, &args.name, &args.body)?;
     notebooks_projects_locations_instances_restore_execute(builder)
 }
 
@@ -2206,6 +2376,15 @@ pub fn notebooks_projects_locations_instances_rollback_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_rollback`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesRollbackArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: RollbackInstanceRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:rollback
 /// Rollbacks a notebook instance to the previous version.
 ///
@@ -2218,13 +2397,13 @@ pub fn notebooks_projects_locations_instances_rollback_execute(
 
 pub fn notebooks_projects_locations_instances_rollback(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &RollbackInstanceRequest,
+    args: &NotebooksProjectsLocationsInstancesRollbackArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = notebooks_projects_locations_instances_rollback_builder(client, name, body)?;
+    let builder =
+        notebooks_projects_locations_instances_rollback_builder(client, &args.name, &args.body)?;
     notebooks_projects_locations_instances_rollback_execute(builder)
 }
 
@@ -2321,6 +2500,15 @@ pub fn notebooks_projects_locations_instances_set_iam_policy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_set_iam_policy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesSetIamPolicyArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: SetIamPolicyRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:setIamPolicy
 /// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
 ///
@@ -2333,14 +2521,16 @@ pub fn notebooks_projects_locations_instances_set_iam_policy_execute(
 
 pub fn notebooks_projects_locations_instances_set_iam_policy(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
+    args: &NotebooksProjectsLocationsInstancesSetIamPolicyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        notebooks_projects_locations_instances_set_iam_policy_builder(client, resource, body)?;
+    let builder = notebooks_projects_locations_instances_set_iam_policy_builder(
+        client,
+        &args.resource,
+        &args.body,
+    )?;
     notebooks_projects_locations_instances_set_iam_policy_execute(builder)
 }
 
@@ -2437,6 +2627,15 @@ pub fn notebooks_projects_locations_instances_start_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_start`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesStartArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StartInstanceRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:start
 /// Starts a notebook instance.
 ///
@@ -2449,13 +2648,13 @@ pub fn notebooks_projects_locations_instances_start_execute(
 
 pub fn notebooks_projects_locations_instances_start(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StartInstanceRequest,
+    args: &NotebooksProjectsLocationsInstancesStartArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = notebooks_projects_locations_instances_start_builder(client, name, body)?;
+    let builder =
+        notebooks_projects_locations_instances_start_builder(client, &args.name, &args.body)?;
     notebooks_projects_locations_instances_start_execute(builder)
 }
 
@@ -2552,6 +2751,15 @@ pub fn notebooks_projects_locations_instances_stop_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_stop`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesStopArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: StopInstanceRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:stop
 /// Stops a notebook instance.
 ///
@@ -2564,13 +2772,13 @@ pub fn notebooks_projects_locations_instances_stop_execute(
 
 pub fn notebooks_projects_locations_instances_stop(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &StopInstanceRequest,
+    args: &NotebooksProjectsLocationsInstancesStopArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = notebooks_projects_locations_instances_stop_builder(client, name, body)?;
+    let builder =
+        notebooks_projects_locations_instances_stop_builder(client, &args.name, &args.body)?;
     notebooks_projects_locations_instances_stop_execute(builder)
 }
 
@@ -2671,6 +2879,15 @@ pub fn notebooks_projects_locations_instances_test_iam_permissions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_test_iam_permissions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesTestIamPermissionsArgs {
+    /// Path parameter: resource
+    pub resource: String,
+    /// Request body.
+    pub body: TestIamPermissionsRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:testIamPermissions
 /// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
 ///
@@ -2683,8 +2900,7 @@ pub fn notebooks_projects_locations_instances_test_iam_permissions_execute(
 
 pub fn notebooks_projects_locations_instances_test_iam_permissions(
     client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
+    args: &NotebooksProjectsLocationsInstancesTestIamPermissionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
@@ -2694,7 +2910,9 @@ pub fn notebooks_projects_locations_instances_test_iam_permissions(
     ApiError,
 > {
     let builder = notebooks_projects_locations_instances_test_iam_permissions_builder(
-        client, resource, body,
+        client,
+        &args.resource,
+        &args.body,
     )?;
     notebooks_projects_locations_instances_test_iam_permissions_execute(builder)
 }
@@ -2792,6 +3010,15 @@ pub fn notebooks_projects_locations_instances_upgrade_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_upgrade`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesUpgradeArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpgradeInstanceRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:upgrade
 /// Upgrades a notebook instance to the latest version.
 ///
@@ -2804,13 +3031,13 @@ pub fn notebooks_projects_locations_instances_upgrade_execute(
 
 pub fn notebooks_projects_locations_instances_upgrade(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpgradeInstanceRequest,
+    args: &NotebooksProjectsLocationsInstancesUpgradeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = notebooks_projects_locations_instances_upgrade_builder(client, name, body)?;
+    let builder =
+        notebooks_projects_locations_instances_upgrade_builder(client, &args.name, &args.body)?;
     notebooks_projects_locations_instances_upgrade_execute(builder)
 }
 
@@ -2907,6 +3134,15 @@ pub fn notebooks_projects_locations_instances_upgrade_system_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_instances_upgrade_system`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsInstancesUpgradeSystemArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: UpgradeInstanceSystemRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/instances/{instancesId}:upgradeSystem
 /// Allows notebook instances to upgrade themselves. Do not use this method directly.
 ///
@@ -2919,14 +3155,14 @@ pub fn notebooks_projects_locations_instances_upgrade_system_execute(
 
 pub fn notebooks_projects_locations_instances_upgrade_system(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &UpgradeInstanceSystemRequest,
+    args: &NotebooksProjectsLocationsInstancesUpgradeSystemArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        notebooks_projects_locations_instances_upgrade_system_builder(client, name, body)?;
+    let builder = notebooks_projects_locations_instances_upgrade_system_builder(
+        client, &args.name, &args.body,
+    )?;
     notebooks_projects_locations_instances_upgrade_system_execute(builder)
 }
 
@@ -3023,6 +3259,15 @@ pub fn notebooks_projects_locations_operations_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_operations_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsOperationsCancelArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Request body.
+    pub body: CancelOperationRequest,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}:cancel
 /// Starts asynchronous cancellation on a long-running operation. The server makes a best effort to cancel the operation, but success is not guaranteed. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED. Clients can use Operations.GetOperation or other methods to check whether the cancellation succeeded or whether the operation completed despite cancellation. On successful cancellation, the operation is not deleted; instead, it becomes an operation with an Operation.error value with a google.rpc.Status.code of 1, corresponding to Code.CANCELLED.
 ///
@@ -3035,13 +3280,13 @@ pub fn notebooks_projects_locations_operations_cancel_execute(
 
 pub fn notebooks_projects_locations_operations_cancel(
     client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelOperationRequest,
+    args: &NotebooksProjectsLocationsOperationsCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = notebooks_projects_locations_operations_cancel_builder(client, name, body)?;
+    let builder =
+        notebooks_projects_locations_operations_cancel_builder(client, &args.name, &args.body)?;
     notebooks_projects_locations_operations_cancel_execute(builder)
 }
 
@@ -3135,6 +3380,13 @@ pub fn notebooks_projects_locations_operations_delete_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_operations_delete`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsOperationsDeleteArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Deletes a long-running operation. This method indicates that the client is no longer interested in the operation result. It does not cancel the operation. If the server doesn't support this method, it returns google.rpc.Code.UNIMPLEMENTED.
 ///
@@ -3147,12 +3399,12 @@ pub fn notebooks_projects_locations_operations_delete_execute(
 
 pub fn notebooks_projects_locations_operations_delete(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NotebooksProjectsLocationsOperationsDeleteArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = notebooks_projects_locations_operations_delete_builder(client, name)?;
+    let builder = notebooks_projects_locations_operations_delete_builder(client, &args.name)?;
     notebooks_projects_locations_operations_delete_execute(builder)
 }
 
@@ -3246,6 +3498,13 @@ pub fn notebooks_projects_locations_operations_get_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_operations_get`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsOperationsGetArgs {
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations/{operationsId}
 /// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
 ///
@@ -3258,12 +3517,12 @@ pub fn notebooks_projects_locations_operations_get_execute(
 
 pub fn notebooks_projects_locations_operations_get(
     client: &SimpleHttpClient,
-    name: &str,
+    args: &NotebooksProjectsLocationsOperationsGetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = notebooks_projects_locations_operations_get_builder(client, name)?;
+    let builder = notebooks_projects_locations_operations_get_builder(client, &args.name)?;
     notebooks_projects_locations_operations_get_execute(builder)
 }
 
@@ -3383,6 +3642,21 @@ pub fn notebooks_projects_locations_operations_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`notebooks_projects_locations_operations_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct NotebooksProjectsLocationsOperationsListArgs {
+    /// Path parameter: name
+    pub name: String,
+    /// Query parameter: filter
+    pub filter: Option<String>,
+    /// Query parameter: pageSize
+    pub pageSize: Option<i32>,
+    /// Query parameter: pageToken
+    pub pageToken: Option<String>,
+    /// Query parameter: returnPartialSuccess
+    pub returnPartialSuccess: Option<bool>,
+}
+
 /// GET v2/projects/{projectsId}/locations/{locationsId}/operations
 /// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
 ///
@@ -3395,11 +3669,7 @@ pub fn notebooks_projects_locations_operations_list_execute(
 
 pub fn notebooks_projects_locations_operations_list(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
+    args: &NotebooksProjectsLocationsOperationsListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3408,11 +3678,11 @@ pub fn notebooks_projects_locations_operations_list(
 > {
     let builder = notebooks_projects_locations_operations_list_builder(
         client,
-        name,
-        filter,
-        pageSize,
-        pageToken,
-        returnPartialSuccess,
+        &args.name,
+        args.filter.as_deref(),
+        args.pageSize,
+        args.pageToken.as_deref(),
+        args.returnPartialSuccess,
     )?;
     notebooks_projects_locations_operations_list_execute(builder)
 }
