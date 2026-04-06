@@ -48,6 +48,8 @@ These skills cover:
 
 Implement a **Hugging Face Hub API provider** that reimplements the functionality of the `huggingface_hub_rust` crate using **only `valtron` and `simple_http`** — no `tokio`, no `reqwest`, no async unless absolutely unavoidable.
 
+Built from: github.com/huggingface/huggingface_hub_rust
+
 This provider enables:
 - **Repository management** — create, delete, move, and update repositories (models, datasets, spaces)
 - **File operations** — list, download, upload, and delete files in repositories
