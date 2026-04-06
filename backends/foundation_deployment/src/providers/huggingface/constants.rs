@@ -1,7 +1,7 @@
 //! Constants for Hugging Face Hub API client.
 
 /// Default Hugging Face Hub API endpoint.
-pub const HF_DEFAULT_ENDPOINT: &str = "https://huggingface.co/api";
+pub const HF_DEFAULT_ENDPOINT: &str = "https://huggingface.co";
 
 /// Environment variable names for configuration.
 pub const HF_ENDPOINT_ENV: &str = "HF_ENDPOINT";

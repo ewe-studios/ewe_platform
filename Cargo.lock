@@ -1930,7 +1930,6 @@ dependencies = [
  "rand_chacha 0.9.0",
  "regex",
  "serde",
- "tokio",
  "tracing",
 ]
 
@@ -2061,6 +2060,8 @@ dependencies = [
  "sha2",
  "toml 0.8.23",
  "tracing",
+ "tracing-subscriber",
+ "tracing-test",
  "urlencoding",
  "walkdir",
 ]
@@ -2107,11 +2108,10 @@ dependencies = [
  "criterion",
  "derive_more",
  "foundation_core",
+ "foundation_deployment",
  "foundation_nostd",
- "hf-hub",
  "serial_test",
  "sha1",
- "tokio",
  "tracing",
  "tracing-test",
 ]

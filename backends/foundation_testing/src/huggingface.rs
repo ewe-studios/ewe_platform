@@ -5,10 +5,8 @@
 //!
 //! WHAT: `TestHarness` struct manages downloading and caching models from HuggingFace.
 //!
-//! HOW: Uses the `hf-hub` crate with tokio runtime for async downloads.
-//!
-//! **Note**: This module is test-only. Tokio is used exclusively for the hf-hub
-//! async runtime during model downloads.
+//! HOW: Uses the new `foundation_deployment::providers::huggingface` client with
+//! simple_http (no tokio/async required).
 
 use std::path::{Path, PathBuf};
 use std::fs;
@@ -25,7 +23,7 @@ pub const DEFAULT_ARTIFACTS_DIR: &str = ".artifacts";
 /// use foundation_testing::huggingface::TestHarness;
 ///
 /// let harness = TestHarness::new(project_root);
-/// let model_path = harness.get_model("unsloth/SmolLM2-360M-Instruct-GGUF", "SmolLM2-360M-Instruct-Q2_K.gguf").await;
+/// let model_path = harness.get_model("unsloth/SmolLM2-360M-Instruct-GGUF", "SmolLM2-360M-Instruct-Q2_K.gguf");
 /// ```
 pub struct TestHarness {
     /// Root directory for storing downloaded models.
@@ -64,7 +62,7 @@ impl TestHarness {
     /// - The artifacts directory cannot be created
     /// - The download fails
     /// - The model file is not found after download
-    pub async fn get_model(&self, repo_id: &str, filename: &str) -> Result<PathBuf, Box<dyn std::error::Error + Send + Sync>> {
+    pub fn get_model(&self, repo_id: &str, filename: &str) -> Result<PathBuf, Box<dyn std::error::Error + Send + Sync>> {
         let model_path = self.artifacts_dir.join(filename);
 
         // Check if model already exists
@@ -79,22 +77,56 @@ impl TestHarness {
             info!("Created artifacts directory: {}", self.artifacts_dir.display());
         }
 
-        // Download from HuggingFace Hub
+        // Download from HuggingFace Hub using our new provider
         info!("Downloading model {filename} from {repo_id}...");
         debug!("This may take a while for large models...");
 
-        let api = hf_hub::api::tokio::ApiBuilder::new()
-            .with_progress(true)
-            .build()?;
+        let downloaded_path = self.download_model_internal(repo_id, filename)?;
 
-        let repo = api.repo(hf_hub::Repo::model(repo_id.to_string()));
-        let downloaded_path = repo.get(filename).await?;
-
-        // Move/copy the file to our artifacts directory
+        // Copy the file to our artifacts directory
         fs::copy(&downloaded_path, &model_path)?;
 
         info!("Model downloaded to: {}", model_path.display());
         Ok(model_path)
+    }
+
+    /// Internal download function using foundation_deployment huggingface provider.
+    fn download_model_internal(&self, repo_id: &str, filename: &str) -> Result<PathBuf, Box<dyn std::error::Error + Send + Sync>> {
+        use foundation_deployment::providers::huggingface::{HFClientBuilder, RepoDownloadFileParams};
+
+        // Initialize valtron pool for blocking execution
+        let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
+
+        // Build client with token from environment
+        let token = std::env::var("HF_TOKEN").ok();
+        let mut builder = HFClientBuilder::new();
+        if let Some(token) = token {
+            builder = builder.token(token);
+        }
+        let client = builder.build()?;
+
+        // Parse repo_id into owner and name
+        let parts: Vec<&str> = repo_id.split('/').collect();
+        if parts.len() != 2 {
+            return Err(format!("Invalid repo_id: {}. Expected format: 'owner/name'", repo_id).into());
+        }
+        let owner = parts[0].to_string();
+        let name = parts[1].to_string();
+
+        // Get repository handle
+        let repo = client.model(owner, name);
+
+        // Download to temp location first
+        let temp_path = std::env::temp_dir().join(filename);
+        let params = RepoDownloadFileParams {
+            filename: filename.to_string(),
+            revision: None,
+            destination: Some(temp_path.clone()),
+        };
+
+        repo.download_file(&params)?;
+
+        Ok(temp_path)
     }
 
     /// Get the default SmolLM2 model for testing.
@@ -108,42 +140,11 @@ impl TestHarness {
     /// # Errors
     ///
     /// Returns an error if the download fails.
-    pub async fn get_smollm_model(&self) -> Result<PathBuf, Box<dyn std::error::Error + Send + Sync>> {
+    pub fn get_smollm_model(&self) -> Result<PathBuf, Box<dyn std::error::Error + Send + Sync>> {
         self.get_model(
             "unsloth/SmolLM2-360M-Instruct-GGUF",
             "SmolLM2-360M-Instruct-Q2_K.gguf",
-        ).await
-    }
-
-    /// Get a model by repo and filename without caching.
-    ///
-    /// Similar to `get_model()` but downloads directly without copying to artifacts.
-    /// Useful for one-off downloads or when you want to manage the file location yourself.
-    ///
-    /// # Arguments
-    ///
-    /// * `repo_id` - HuggingFace repository ID
-    /// * `filename` - Model filename
-    ///
-    /// # Returns
-    ///
-    /// Path to the downloaded file in the HuggingFace cache.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the download fails.
-    pub async fn download_model(&self, repo_id: &str, filename: &str) -> Result<PathBuf, Box<dyn std::error::Error + Send + Sync>> {
-        info!("Downloading model {filename} from {repo_id}...");
-
-        let api = hf_hub::api::tokio::ApiBuilder::new()
-            .with_progress(true)
-            .build()?;
-
-        let repo = api.repo(hf_hub::Repo::model(repo_id.to_string()));
-        let downloaded_path = repo.get(filename).await?;
-
-        info!("Model cached at: {}", downloaded_path.display());
-        Ok(downloaded_path)
+        )
     }
 }
 

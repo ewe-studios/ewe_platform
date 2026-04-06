@@ -14,6 +14,7 @@ categories = ["development-tools::testing"]
 # Foundation primitives being tested
 foundation_nostd = { workspace = true, features = ["std"] }
 foundation_core = { workspace = true }
+foundation_deployment = { path = "../foundation_deployment" }
 tracing = { workspace = true }
 derive_more = { workspace = true }
 
@@ -23,10 +24,6 @@ criterion = { version = "0.5", features = ["html_reports"] }
 # WebSocket test server dependencies
 base64 = "0.21"
 sha1 = { version = "0.10", features = ["std"] }
-
-# Optional HuggingFace model downloading (for AI testing)
-hf-hub = { version = "0.4", features = ["tokio"], optional = true }
-tokio = { version = "1", features = ["rt-multi-thread"], optional = true }
 
 [dev-dependencies]
 serial_test = { workspace = true }
@@ -38,4 +35,4 @@ default = ["std"]
 std = ["foundation_nostd/std"]
 
 # HuggingFace model downloading for AI backend testing
-huggingface = ["hf-hub", "tokio"]
+huggingface = ["foundation_deployment/huggingface"]

@@ -58,6 +58,10 @@ pub struct ClientConfig {
     pub batch_size: usize,
     /// Maximum consecutive retries for WouldBlock/TimedOut errors (default: 100)
     pub max_retries: usize,
+    /// Whether to preserve Authorization header on cross-host redirects (default: false)
+    pub preserve_auth_on_redirect: bool,
+    /// Whether to preserve Cookie header on cross-host redirects (default: false)
+    pub preserve_cookies_on_redirect: bool,
 }
 
 impl ClientConfig {
@@ -219,6 +223,38 @@ impl ClientConfig {
         self.write_timeout = timeout;
         self
     }
+
+    /// Sets whether to preserve Authorization header on cross-host redirects.
+    ///
+    /// WHY: Some APIs (like HuggingFace CDN) require auth headers to be preserved
+    /// when redirecting to a different host.
+    ///
+    /// WHAT: Builder method to control auth header preservation on redirects.
+    ///
+    /// # Arguments
+    ///
+    /// * `preserve` - If true, Authorization header is preserved on cross-host redirects
+    #[must_use]
+    pub fn with_preserve_auth_on_redirect(mut self, preserve: bool) -> Self {
+        self.preserve_auth_on_redirect = preserve;
+        self
+    }
+
+    /// Sets whether to preserve Cookie header on cross-host redirects.
+    ///
+    /// WHY: Some applications require cookies to be preserved when redirecting
+    /// to a different host.
+    ///
+    /// WHAT: Builder method to control cookie header preservation on redirects.
+    ///
+    /// # Arguments
+    ///
+    /// * `preserve` - If true, Cookie header is preserved on cross-host redirects
+    #[must_use]
+    pub fn with_preserve_cookies_on_redirect(mut self, preserve: bool) -> Self {
+        self.preserve_cookies_on_redirect = preserve;
+        self
+    }
 }
 
 impl Default for ClientConfig {
@@ -227,7 +263,8 @@ impl Default for ClientConfig {
     /// WHY: Sensible defaults for most use cases. Users can customize via builder.
     ///
     /// WHAT: Default timeouts (15s connect, 10s read, 10s write), 5 redirects,
-    /// no default headers, pooling disabled, no proxy, no body size limit (client-friendly).
+    /// no default headers, pooling disabled, no proxy, no body size limit (client-friendly),
+    /// auth/cookies stripped on cross-host redirects (security best practice).
     fn default() -> Self {
         Self {
             inline_processing_timeout: std::time::Duration::from_millis(10),
@@ -244,6 +281,8 @@ impl Default for ClientConfig {
             full_body_threshold: 512 * 1024, // 512 KB
             batch_size: 8192,
             max_retries: 100,
+            preserve_auth_on_redirect: false,
+            preserve_cookies_on_redirect: false,
         }
     }
 }
@@ -751,6 +790,46 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     #[must_use]
     pub fn max_retries(mut self, max_retries: usize) -> Self {
         self.config.max_retries = max_retries;
+        self
+    }
+
+    /// Sets whether to preserve Authorization header on cross-host redirects.
+    ///
+    /// WHY: Some APIs (like HuggingFace CDN) require auth headers to be preserved
+    /// when redirecting to a different host for authenticated downloads.
+    ///
+    /// WHAT: Builder method to control auth header preservation on redirects.
+    ///
+    /// # Arguments
+    ///
+    /// * `preserve` - If true, Authorization header is preserved on cross-host redirects
+    ///
+    /// # Examples
+    ///
+    /// ```ignore
+    /// // For HuggingFace authenticated downloads
+    /// let client = SimpleHttpClient::from_system()
+    ///     .preserve_auth_on_redirect(true);
+    /// ```
+    #[must_use]
+    pub fn preserve_auth_on_redirect(mut self, preserve: bool) -> Self {
+        self.config.preserve_auth_on_redirect = preserve;
+        self
+    }
+
+    /// Sets whether to preserve Cookie header on cross-host redirects.
+    ///
+    /// WHY: Some applications require cookies to be preserved when redirecting
+    /// to a different host (e.g., SSO flows across subdomains).
+    ///
+    /// WHAT: Builder method to control cookie header preservation on redirects.
+    ///
+    /// # Arguments
+    ///
+    /// * `preserve` - If true, Cookie header is preserved on cross-host redirects
+    #[must_use]
+    pub fn preserve_cookies_on_redirect(mut self, preserve: bool) -> Self {
+        self.config.preserve_cookies_on_redirect = preserve;
         self
     }
 
