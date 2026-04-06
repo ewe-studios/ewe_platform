@@ -61,9 +61,9 @@ fn test_llama_model_loading() {
 /// This test downloads a small GGUF model (~150MB Q2_K quantized)
 /// from HuggingFace Hub for testing the llama.cpp backend.
 /// The model is cached in the `.artifacts` directory.
-#[tokio::test]
+#[test]
 #[ignore = "downloads a ~150MB model from HuggingFace"]
-async fn test_download_smollm_model() {
+fn test_download_smollm_model() {
     // Get the project root (workspace directory)
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
         .expect("CARGO_MANIFEST_DIR should be set");
@@ -74,7 +74,6 @@ async fn test_download_smollm_model() {
 
     let harness = TestHarness::new(project_root);
     let model_path = harness.get_smollm_model()
-        .await
         .expect("Failed to download model");
 
     assert!(model_path.exists(), "Model file should exist after download");
@@ -87,9 +86,9 @@ async fn test_download_smollm_model() {
 ///
 /// This test downloads the model if not present and then verifies
 /// the backend can load and use it for generation.
-#[tokio::test]
+#[test]
 #[ignore = "downloads a ~150MB model and performs generation"]
-async fn test_llama_with_smollm_model() {
+fn test_llama_with_smollm_model() {
     // Get the project root
     let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
         .expect("CARGO_MANIFEST_DIR should be set");
@@ -101,7 +100,6 @@ async fn test_llama_with_smollm_model() {
     // Download model using TestHarness
     let harness = TestHarness::new(project_root);
     let model_path = harness.get_smollm_model()
-        .await
         .expect("Failed to download model");
 
     // Create backend

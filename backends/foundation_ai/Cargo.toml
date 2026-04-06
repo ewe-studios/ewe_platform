@@ -37,9 +37,6 @@ tracing = { workspace = true }
 # Foundation testing with HuggingFace model downloading
 foundation_testing = { workspace = true, features = ["huggingface"] }
 
-# tokio for async tests (model downloads)
-tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
-
 [features]
 # vulkan + Apple Metal
 metal = ["infrastructure_llama_cpp/metal"]

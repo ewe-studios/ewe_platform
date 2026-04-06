@@ -1,10 +1,9 @@
 //! Hugging Face Hub API error types.
 
-use derive_more::From;
 use std::fmt;
 
 /// Hugging Face Hub API error types.
-#[derive(Debug, From)]
+#[derive(Debug)]
 pub enum HuggingFaceError {
     /// HTTP error with status, URL, and response body.
     Http {
@@ -35,11 +34,9 @@ pub enum HuggingFaceError {
     InvalidParameter(String),
 
     /// Generic backend error (wraps other errors).
-    #[from(ignore)]
     Backend(String),
 
     /// Valtron execution error.
-    #[from(ignore)]
     Valtron(String),
 
     /// I/O error.
@@ -91,6 +88,24 @@ impl std::error::Error for HuggingFaceError {
             HuggingFaceError::HttpParse(e) => Some(e),
             _ => None,
         }
+    }
+}
+
+impl From<serde_json::Error> for HuggingFaceError {
+    fn from(e: serde_json::Error) -> Self {
+        HuggingFaceError::Json(e)
+    }
+}
+
+impl From<std::io::Error> for HuggingFaceError {
+    fn from(e: std::io::Error) -> Self {
+        HuggingFaceError::Io(e)
+    }
+}
+
+impl From<http::Error> for HuggingFaceError {
+    fn from(e: http::Error) -> Self {
+        HuggingFaceError::HttpParse(e)
     }
 }
 

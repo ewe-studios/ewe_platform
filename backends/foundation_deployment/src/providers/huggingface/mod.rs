@@ -15,6 +15,7 @@ pub use repository::HFRepository;
 pub use types::{
     AddSource, CommitInfo, CommitOperation, CommitAuthor, DatasetInfo, DiffEntry,
     GitCommitInfo, ListDatasetsParams, ListModelsParams, ListSpacesParams, ModelInfo,
-    RepoInfo, RepoListTreeParams, RepoSibling, RepoTreeEntry, RepoType, RepoUrl,
+    RepoDownloadFileParams, RepoInfo, RepoListTreeParams, RepoSibling, RepoTreeEntry, RepoType, RepoUrl,
+    RepoUploadFileParams, RepoCreateCommitParams, RepoDeleteFileParams, RepoInfoParams,
     SpaceInfo, User,
 };

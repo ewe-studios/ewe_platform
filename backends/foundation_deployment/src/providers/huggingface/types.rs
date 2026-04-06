@@ -2,6 +2,7 @@
 
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use std::path::PathBuf;
 
 /// Type of repository on the Hub.
@@ -57,7 +58,7 @@ pub struct RepoSibling {
 }
 
 /// Tagged union for tree entries returned by list_repo_tree.
-#[derive(Debug, Clone, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum RepoTreeEntry {
     File {
@@ -159,7 +160,7 @@ pub struct SpaceInfo {
 }
 
 /// Union type for repository info responses.
-#[derive(Debug, Clone, JsonHash)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub enum RepoInfo {
     Model(ModelInfo),
     Dataset(DatasetInfo),
@@ -178,8 +179,9 @@ impl RepoInfo {
 }
 
 /// User information.
-#[derive(Debug, Clone, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
+    #[serde(rename = "name")]
     pub username: String,
     pub fullname: Option<String>,
     pub avatar_url: Option<String>,
@@ -191,7 +193,7 @@ pub struct User {
 }
 
 /// Organization membership.
-#[derive(Debug, Clone, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrgMembership {
     pub name: String,
     pub fullname: Option<String>,
@@ -199,7 +201,7 @@ pub struct OrgMembership {
 }
 
 /// Organization information.
-#[derive(Debug, Clone, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Organization {
     pub name: String,
     pub fullname: Option<String>,
@@ -209,7 +211,7 @@ pub struct Organization {
 }
 
 /// Commit author information.
-#[derive(Debug, Clone, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitAuthor {
     pub user: Option<String>,
     pub name: Option<String>,
@@ -217,7 +219,7 @@ pub struct CommitAuthor {
 }
 
 /// Git commit information.
-#[derive(Debug, Clone, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GitCommitInfo {
     pub id: String,
     pub authors: Vec<CommitAuthor>,
@@ -229,7 +231,7 @@ pub struct GitCommitInfo {
 }
 
 /// Commit information returned by commit operations.
-#[derive(Debug, Clone, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 #[serde(rename_all = "camelCase")]
 pub struct CommitInfo {
     pub commit_url: Option<String>,
@@ -241,7 +243,7 @@ pub struct CommitInfo {
 }
 
 /// A single entry in a commit diff.
-#[derive(Debug, Clone, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 #[serde(rename_all = "camelCase")]
 pub struct DiffEntry {
     pub path: Option<String>,
@@ -250,14 +252,14 @@ pub struct DiffEntry {
 }
 
 /// Source of content for an add operation.
-#[derive(Debug, Clone, JsonHash)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum AddSource {
     File(PathBuf),
     Bytes(Vec<u8>),
 }
 
 /// A file operation in a commit.
-#[derive(Debug, Clone, JsonHash)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub enum CommitOperation {
     /// Upload a file (from path or bytes).
     Add {
@@ -269,7 +271,7 @@ pub enum CommitOperation {
 }
 
 /// URL returned by create_repo/move_repo.
-#[derive(Debug, Clone, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepoUrl {
     pub url: String,
 }
@@ -359,7 +361,7 @@ pub struct RepoDownloadFileParams {
 }
 
 /// Parameters for file upload.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct RepoUploadFileParams {
     pub source: AddSource,
     pub path_in_repo: String,
@@ -384,5 +386,3 @@ pub struct RepoDeleteFileParams {
     pub revision: Option<String>,
     pub commit_message: Option<String>,
 }
-
-use std::fmt;

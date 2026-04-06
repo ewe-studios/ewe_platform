@@ -2,8 +2,6 @@
 //! This test spins up a local HTTP server that responds with 302 (redirect)
 //! and checks that the client triggers TooManyRedirects when max_redirects is exceeded.
 
-#![cfg(test)]
-
 use foundation_core::valtron;
 use foundation_core::wire::simple_http::client::*;
 use foundation_core::wire::simple_http::HttpClientError;

@@ -79,7 +79,14 @@ pub fn resolve_location(base: &ParsedUrl, location: &str) -> Result<ParsedUrl, H
 /// Build a follow-up `RequestDescriptor` for a redirect target.
 ///
 /// Follow-ups default to GET with no body to avoid re-sending non-repeatable bodies.
-/// Sensitive headers are stripped if the host changed.
+/// Sensitive headers are stripped if the host changed (unless preserve flags are true).
+///
+/// # Arguments
+///
+/// * `original` - Original request descriptor
+/// * `new_url` - Redirect target URL
+/// * `preserve_auth` - If true, Authorization header is preserved even on cross-host redirects
+/// * `preserve_cookies` - If true, Cookie header is preserved even on cross-host redirects
 ///
 /// # Errors
 ///
@@ -92,6 +99,8 @@ pub fn resolve_location(base: &ParsedUrl, location: &str) -> Result<ParsedUrl, H
 pub fn build_followup_request_from_request_descriptor(
     original: &RequestDescriptor,
     new_url: ParsedUrl,
+    preserve_auth: bool,
+    preserve_cookies: bool,
 ) -> Result<RequestDescriptor, HttpClientError> {
     // Clone headers and strip request-specific headers that must not be forwarded
     let mut headers = original.headers.clone();
@@ -103,10 +112,10 @@ pub fn build_followup_request_from_request_descriptor(
     headers.remove(&SimpleHeader::CONTENT_LENGTH);
     headers.remove(&SimpleHeader::CONTENT_TYPE);
 
-    // Strip Authorization if host differs
+    // Strip sensitive headers if host differs (unless preserve flags are true)
     let original_host = original.request_uri.host_str().unwrap_or_default();
     let new_host = new_url.host_str().unwrap_or_default();
-    strip_sensitive_headers_for_redirect(&mut headers, &original_host, &new_host);
+    strip_sensitive_headers_for_redirect(&mut headers, &original_host, &new_host, preserve_auth, preserve_cookies);
 
     Ok(RequestDescriptor {
         request_url: SimpleUrl::url_with_query(new_url.to_string()),
@@ -120,11 +129,20 @@ pub fn build_followup_request_from_request_descriptor(
 /// Build a follow-up `PreparedRequest` for a redirect target.
 ///
 /// Follow-ups default to GET with no body to avoid re-sending non-repeatable bodies.
-/// Sensitive headers are stripped if the host changed.
+/// Sensitive headers are stripped if the host changed (unless preserve flags are true).
+///
+/// # Arguments
+///
+/// * `original` - Original prepared request
+/// * `new_url` - Redirect target URL
+/// * `preserve_auth` - If true, Authorization header is preserved even on cross-host redirects
+/// * `preserve_cookies` - If true, Cookie header is preserved even on cross-host redirects
 #[must_use]
 pub fn build_followup_request_from(
     original: &PreparedRequest,
     new_url: ParsedUrl,
+    preserve_auth: bool,
+    preserve_cookies: bool,
 ) -> PreparedRequest {
     // Clone headers and strip request-specific headers that must not be forwarded
     let mut headers = original.headers.clone();
@@ -136,10 +154,10 @@ pub fn build_followup_request_from(
     headers.remove(&SimpleHeader::CONTENT_LENGTH);
     headers.remove(&SimpleHeader::CONTENT_TYPE);
 
-    // Strip Authorization if host differs
+    // Strip sensitive headers if host differs (unless preserve flags are true)
     let original_host = original.url.host_str().unwrap_or_default();
     let new_host = new_url.host_str().unwrap_or_default();
-    strip_sensitive_headers_for_redirect(&mut headers, &original_host, &new_host);
+    strip_sensitive_headers_for_redirect(&mut headers, &original_host, &new_host, preserve_auth, preserve_cookies);
 
     PreparedRequest {
         method: crate::wire::simple_http::SimpleMethod::GET,
@@ -152,16 +170,94 @@ pub fn build_followup_request_from(
 
 /// Strip sensitive headers when following redirects across hosts.
 ///
-/// Current implementation strips `Authorization` when the host changes.
-/// Additional sensitive headers can be stripped here in the future.
+/// Current implementation strips `Authorization` and `Cookie` when the host changes.
+///
+/// # Arguments
+///
+/// * `headers` - Headers to modify
+/// * `original_host` - Original request host
+/// * `new_host` - Redirect target host
+/// * `preserve_auth` - If true, Authorization header is preserved even on cross-host redirects
+/// * `preserve_cookies` - If true, Cookie header is preserved even on cross-host redirects
 pub fn strip_sensitive_headers_for_redirect(
     headers: &mut SimpleHeaders,
     original_host: &str,
     new_host: &str,
+    preserve_auth: bool,
+    preserve_cookies: bool,
 ) {
     if original_host != new_host {
-        headers.remove(&SimpleHeader::AUTHORIZATION);
-        // Potential future additions:
-        // headers.remove(&SimpleHeader::COOKIE);
+        if !preserve_auth {
+            headers.remove(&SimpleHeader::AUTHORIZATION);
+        }
+        if !preserve_cookies {
+            headers.remove(&SimpleHeader::COOKIE);
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::BTreeMap;
+
+    fn create_headers_with_auth_and_cookie() -> SimpleHeaders {
+        let mut headers: SimpleHeaders = BTreeMap::new();
+        headers.insert(SimpleHeader::AUTHORIZATION, vec!["Bearer token123".into()]);
+        headers.insert(SimpleHeader::COOKIE, vec!["session=abc123".into()]);
+        headers.insert(SimpleHeader::CONTENT_TYPE, vec!["application/json".into()]);
+        headers
+    }
+
+    #[test]
+    fn test_strip_sensitive_headers_same_host() {
+        let mut headers = create_headers_with_auth_and_cookie();
+        strip_sensitive_headers_for_redirect(&mut headers, "example.com", "example.com", false, false);
+
+        // Same host - nothing should be stripped
+        assert!(headers.contains_key(&SimpleHeader::AUTHORIZATION));
+        assert!(headers.contains_key(&SimpleHeader::COOKIE));
+        assert!(headers.contains_key(&SimpleHeader::CONTENT_TYPE));
+    }
+
+    #[test]
+    fn test_strip_sensitive_headers_different_host_default_behavior() {
+        let mut headers = create_headers_with_auth_and_cookie();
+        strip_sensitive_headers_for_redirect(&mut headers, "example.com", "cdn.example.com", false, false);
+
+        // Different host with preserve_auth=false, preserve_cookies=false
+        assert!(!headers.contains_key(&SimpleHeader::AUTHORIZATION), "Authorization should be stripped");
+        assert!(!headers.contains_key(&SimpleHeader::COOKIE), "Cookie should be stripped");
+        assert!(headers.contains_key(&SimpleHeader::CONTENT_TYPE), "Content-Type should remain");
+    }
+
+    #[test]
+    fn test_strip_sensitive_headers_preserve_auth_only() {
+        let mut headers = create_headers_with_auth_and_cookie();
+        strip_sensitive_headers_for_redirect(&mut headers, "example.com", "cdn.example.com", true, false);
+
+        // Different host with preserve_auth=true, preserve_cookies=false
+        assert!(headers.contains_key(&SimpleHeader::AUTHORIZATION), "Authorization should be preserved");
+        assert!(!headers.contains_key(&SimpleHeader::COOKIE), "Cookie should be stripped");
+    }
+
+    #[test]
+    fn test_strip_sensitive_headers_preserve_cookies_only() {
+        let mut headers = create_headers_with_auth_and_cookie();
+        strip_sensitive_headers_for_redirect(&mut headers, "example.com", "cdn.example.com", false, true);
+
+        // Different host with preserve_auth=false, preserve_cookies=true
+        assert!(!headers.contains_key(&SimpleHeader::AUTHORIZATION), "Authorization should be stripped");
+        assert!(headers.contains_key(&SimpleHeader::COOKIE), "Cookie should be preserved");
+    }
+
+    #[test]
+    fn test_strip_sensitive_headers_preserve_both() {
+        let mut headers = create_headers_with_auth_and_cookie();
+        strip_sensitive_headers_for_redirect(&mut headers, "example.com", "cdn.example.com", true, true);
+
+        // Different host with preserve_auth=true, preserve_cookies=true
+        assert!(headers.contains_key(&SimpleHeader::AUTHORIZATION), "Authorization should be preserved");
+        assert!(headers.contains_key(&SimpleHeader::COOKIE), "Cookie should be preserved");
     }
 }

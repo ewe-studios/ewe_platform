@@ -7,14 +7,15 @@ use crate::providers::huggingface::constants::{
 };
 use crate::providers::huggingface::error::{HuggingFaceError, Result};
 use crate::providers::huggingface::types::{
-    CommitInfo, CreateRepoParams, DatasetInfo, DeleteRepoParams, ListDatasetsParams,
-    ListModelsParams, ListSpacesParams, ModelInfo, MoveRepoParams, RepoInfo, RepoType, SpaceInfo,
-    User,
+    CreateRepoParams, DatasetInfo, DeleteRepoParams, ListDatasetsParams, ListModelsParams,
+    ListSpacesParams, ModelInfo, MoveRepoParams, RepoType, SpaceInfo, User, RepoUrl,
 };
-use foundation_core::valtron::{execute, Stream, StreamIteratorExt, TaskIteratorExt};
+use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{
-    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
+    body_reader, DnsResolver, RequestIntro, SimpleHttpClient,
 };
+use foundation_core::wire::simple_http::client::ClientRequestBuilder;
+use foundation_core::wire::simple_http::{SimpleHeader, SimpleHeaders, Status};
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -99,7 +100,10 @@ impl HFClientBuilder {
 
         let cache_enabled = self.cache_enabled.unwrap_or(true);
 
-        let client = SimpleHttpClient::from_system();
+        // Configure client to preserve auth headers on redirects
+        // HuggingFace redirects to CDN (cas-bridge.xethub.hf.co) for file downloads
+        let client = SimpleHttpClient::from_system()
+            .preserve_auth_on_redirect(true);
 
         Ok(HFClient {
             inner: Arc::new(HFClientInner {
@@ -146,6 +150,20 @@ fn resolve_token() -> Option<String> {
     None
 }
 
+/// Check if status code indicates success (2xx).
+#[inline]
+pub(crate) fn is_success_status(status: &Status) -> bool {
+    let code: usize = status.clone().into();
+    code >= 200 && code < 300
+}
+
+/// Get status code as u16.
+#[inline]
+pub(crate) fn status_code(status: &Status) -> u16 {
+    let code: usize = status.clone().into();
+    code as u16
+}
+
 impl HFClient {
     /// Create a new client with defaults from environment.
     pub fn new() -> Result<Self> {
@@ -163,24 +181,36 @@ impl HFClient {
     pub fn whoami(&self) -> Result<User> {
         let client = self.inner.client.clone();
         let url = format!("{}{}", self.inner.endpoint, HF_API_WHOAMI);
-        let headers = self.auth_headers();
 
         let builder = client
             .get(&url)
-            .map_err(|e| HuggingFaceError::HttpParse(e.into()))?
-            .headers(headers);
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+            .header(SimpleHeader::USER_AGENT, HF_USER_AGENT);
+
+        let builder = if let Some(ref token) = self.inner.token {
+            let implicit_disabled = std::env::var(HF_HUB_DISABLE_IMPLICIT_TOKEN_ENV)
+                .map(|v| v == "1" || v == "true")
+                .unwrap_or(false);
+            if !implicit_disabled {
+                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
+            } else {
+                builder
+            }
+        } else {
+            builder
+        };
 
         let task = builder
             .build_send_request()
-            .map_err(|e| HuggingFaceError::HttpParse(e.into()))?
-            .map_ready(|intro| match intro {
-                RequestIntro::Success { stream, status } => {
-                    let headers = status.headers().clone();
-                    if !status.is_success() {
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+            .map_ready(move |intro| match intro {
+                RequestIntro::Success { stream, intro, .. } => {
+                    let status = &intro.0;
+                    if !is_success_status(status) {
                         return Err(HuggingFaceError::Http {
-                            status: status.as_u16(),
+                            status: status_code(status),
                             url: url.clone(),
-                            body: format!("HTTP {}", status.as_u16()),
+                            body: format!("HTTP {}", status_code(status)),
                         });
                     }
                     let body = body_reader::collect_string(stream);
@@ -198,12 +228,8 @@ impl HFClient {
         let stream = execute(task, None)
             .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
-        stream
-            .find_map(|s| match s {
-                Stream::Next(result) => Some(result),
-                _ => None,
-            })
-            .ok_or_else(|| HuggingFaceError::Backend("No result from whoami".into()))
+        collect_one(stream)
+            .ok_or_else(|| HuggingFaceError::Backend("No result from whoami".into()))?
     }
 
     /// Check if token is valid.
@@ -223,18 +249,19 @@ impl HFClient {
 
         let builder = client
             .get(&url)
-            .map_err(|e| HuggingFaceError::HttpParse(e.into()))?;
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
 
         let task = builder
             .build_send_request()
-            .map_err(|e| HuggingFaceError::HttpParse(e.into()))?
-            .map_ready(|intro| match intro {
-                RequestIntro::Success { stream, status } => {
-                    if !status.is_success() {
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+            .map_ready(move |intro| match intro {
+                RequestIntro::Success { stream, intro, .. } => {
+                    let status = &intro.0;
+                    if !is_success_status(status) {
                         return Err(HuggingFaceError::Http {
-                            status: status.as_u16(),
+                            status: status_code(status),
                             url: url.clone(),
-                            body: format!("HTTP {}", status.as_u16()),
+                            body: format!("HTTP {}", status_code(status)),
                         });
                     }
                     let body = body_reader::collect_string(stream);
@@ -252,13 +279,17 @@ impl HFClient {
         let stream = execute(task, None)
             .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
-        Ok(stream.flat_map_next(|result| match result {
-            Ok(models) => models
-                .into_iter()
-                .map(|m| Stream::Next(Ok(m)))
-                .collect::<Vec<_>>()
-                .into_iter(),
-            Err(e) => vec![Stream::Next(Err(e))].into_iter(),
+        Ok(stream.flat_map_next(|result| {
+            match result {
+                Ok(models) => {
+                    let v: Vec<_> = Iterator::collect(models.into_iter().map(Ok));
+                    v.into_iter()
+                }
+                Err(e) => {
+                    let v: Vec<_> = Iterator::collect(vec![Err(e)].into_iter());
+                    v.into_iter()
+                }
+            }
         }))
     }
 
@@ -272,18 +303,19 @@ impl HFClient {
 
         let builder = client
             .get(&url)
-            .map_err(|e| HuggingFaceError::HttpParse(e.into()))?;
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
 
         let task = builder
             .build_send_request()
-            .map_err(|e| HuggingFaceError::HttpParse(e.into()))?
-            .map_ready(|intro| match intro {
-                RequestIntro::Success { stream, status } => {
-                    if !status.is_success() {
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+            .map_ready(move |intro| match intro {
+                RequestIntro::Success { stream, intro, .. } => {
+                    let status = &intro.0;
+                    if !is_success_status(status) {
                         return Err(HuggingFaceError::Http {
-                            status: status.as_u16(),
+                            status: status_code(status),
                             url: url.clone(),
-                            body: format!("HTTP {}", status.as_u16()),
+                            body: format!("HTTP {}", status_code(status)),
                         });
                     }
                     let body = body_reader::collect_string(stream);
@@ -302,12 +334,14 @@ impl HFClient {
             .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
         Ok(stream.flat_map_next(|result| match result {
-            Ok(datasets) => datasets
-                .into_iter()
-                .map(|d| Stream::Next(Ok(d)))
-                .collect::<Vec<_>>()
-                .into_iter(),
-            Err(e) => vec![Stream::Next(Err(e))].into_iter(),
+            Ok(datasets) => {
+                let v: Vec<_> = Iterator::collect(datasets.into_iter().map(Ok));
+                v.into_iter()
+            }
+            Err(e) => {
+                let v: Vec<_> = Iterator::collect(vec![Err(e)].into_iter());
+                v.into_iter()
+            }
         }))
     }
 
@@ -321,18 +355,19 @@ impl HFClient {
 
         let builder = client
             .get(&url)
-            .map_err(|e| HuggingFaceError::HttpParse(e.into()))?;
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
 
         let task = builder
             .build_send_request()
-            .map_err(|e| HuggingFaceError::HttpParse(e.into()))?
-            .map_ready(|intro| match intro {
-                RequestIntro::Success { stream, status } => {
-                    if !status.is_success() {
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+            .map_ready(move |intro| match intro {
+                RequestIntro::Success { stream, intro, .. } => {
+                    let status = &intro.0;
+                    if !is_success_status(status) {
                         return Err(HuggingFaceError::Http {
-                            status: status.as_u16(),
+                            status: status_code(status),
                             url: url.clone(),
-                            body: format!("HTTP {}", status.as_u16()),
+                            body: format!("HTTP {}", status_code(status)),
                         });
                     }
                     let body = body_reader::collect_string(stream);
@@ -351,12 +386,14 @@ impl HFClient {
             .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
         Ok(stream.flat_map_next(|result| match result {
-            Ok(spaces) => spaces
-                .into_iter()
-                .map(|s| Stream::Next(Ok(s)))
-                .collect::<Vec<_>>()
-                .into_iter(),
-            Err(e) => vec![Stream::Next(Err(e))].into_iter(),
+            Ok(spaces) => {
+                let v: Vec<_> = Iterator::collect(spaces.into_iter().map(Ok));
+                v.into_iter()
+            }
+            Err(e) => {
+                let v: Vec<_> = Iterator::collect(vec![Err(e)].into_iter());
+                v.into_iter()
+            }
         }))
     }
 
@@ -364,7 +401,6 @@ impl HFClient {
     pub fn create_repo(&self, params: &CreateRepoParams) -> Result<RepoUrl> {
         let client = self.inner.client.clone();
         let url = format!("{}{}", self.inner.endpoint, HF_API_REPOS_CREATE);
-        let headers = self.auth_headers();
 
         let body_json = serde_json::json!({
             "name": params.repo_id,
@@ -381,21 +417,25 @@ impl HFClient {
 
         let builder = client
             .post(&url)
-            .map_err(|e| HuggingFaceError::HttpParse(e.into()))?
-            .headers(headers)
-            .header("Content-Type", "application/json");
+            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| HuggingFaceError::Backend(e.to_string()))?;
+
+        let builder = self.apply_auth_headers(builder);
+
+        let builder = builder
+            .body_json(&body_json)
+            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| HuggingFaceError::Backend(e.to_string()))?;
 
         let task = builder
-            .body(serde_json::to_string(&body_json).map_err(HuggingFaceError::Json)?)
             .build_send_request()
-            .map_err(|e| HuggingFaceError::HttpParse(e.into()))?
-            .map_ready(|intro| match intro {
-                RequestIntro::Success { stream, status } => {
-                    if !status.is_success() {
+            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| HuggingFaceError::Backend(e.to_string()))?
+            .map_ready(move |intro| match intro {
+                RequestIntro::Success { stream, intro, .. } => {
+                    let status = &intro.0;
+                    if !is_success_status(status) {
                         return Err(HuggingFaceError::Http {
-                            status: status.as_u16(),
+                            status: status_code(status),
                             url: url.clone(),
-                            body: format!("HTTP {}", status.as_u16()),
+                            body: format!("HTTP {}", status_code(status)),
                         });
                     }
                     let body = body_reader::collect_string(stream);
@@ -413,19 +453,14 @@ impl HFClient {
         let stream = execute(task, None)
             .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
-        stream
-            .find_map(|s| match s {
-                Stream::Next(result) => Some(result),
-                _ => None,
-            })
-            .ok_or_else(|| HuggingFaceError::Backend("No result from create_repo".into()))
+        collect_one(stream)
+            .ok_or_else(|| HuggingFaceError::Backend("No result from create_repo".into()))?
     }
 
     /// Delete a repository.
     pub fn delete_repo(&self, params: &DeleteRepoParams) -> Result<()> {
         let client = self.inner.client.clone();
         let url = format!("{}{}", self.inner.endpoint, HF_API_REPOS_DELETE);
-        let headers = self.auth_headers();
 
         let body_json = serde_json::json!({
             "name": params.repo_id,
@@ -440,21 +475,25 @@ impl HFClient {
 
         let builder = client
             .delete(&url)
-            .map_err(|e| HuggingFaceError::HttpParse(e.into()))?
-            .headers(headers)
-            .header("Content-Type", "application/json");
+            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| HuggingFaceError::Backend(e.to_string()))?;
+
+        let builder = self.apply_auth_headers(builder);
+
+        let builder = builder
+            .body_json(&body_json)
+            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| HuggingFaceError::Backend(e.to_string()))?;
 
         let task = builder
-            .body(serde_json::to_string(&body_json).map_err(HuggingFaceError::Json)?)
             .build_send_request()
-            .map_err(|e| HuggingFaceError::HttpParse(e.into()))?
-            .map_ready(|intro| match intro {
-                RequestIntro::Success { stream, status } => {
-                    if !status.is_success() {
+            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| HuggingFaceError::Backend(e.to_string()))?
+            .map_ready(move |intro| match intro {
+                RequestIntro::Success { stream, intro, .. } => {
+                    let status = &intro.0;
+                    if !is_success_status(status) {
                         return Err(HuggingFaceError::Http {
-                            status: status.as_u16(),
+                            status: status_code(status),
                             url: url.clone(),
-                            body: format!("HTTP {}", status.as_u16()),
+                            body: format!("HTTP {}", status_code(status)),
                         });
                     }
                     let _ = body_reader::collect_string(stream);
@@ -470,19 +509,14 @@ impl HFClient {
         let stream = execute(task, None)
             .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
-        stream
-            .find_map(|s| match s {
-                Stream::Next(result) => Some(result),
-                _ => None,
-            })
-            .ok_or_else(|| HuggingFaceError::Backend("No result from delete_repo".into()))
+        collect_one(stream)
+            .ok_or_else(|| HuggingFaceError::Backend("No result from delete_repo".into()))?
     }
 
     /// Move/rename a repository.
     pub fn move_repo(&self, params: &MoveRepoParams) -> Result<RepoUrl> {
         let client = self.inner.client.clone();
         let url = format!("{}{}", self.inner.endpoint, HF_API_REPOS_MOVE);
-        let headers = self.auth_headers();
 
         let body_json = serde_json::json!({
             "from": params.from_id,
@@ -497,21 +531,25 @@ impl HFClient {
 
         let builder = client
             .post(&url)
-            .map_err(|e| HuggingFaceError::HttpParse(e.into()))?
-            .headers(headers)
-            .header("Content-Type", "application/json");
+            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| HuggingFaceError::Backend(e.to_string()))?;
+
+        let builder = self.apply_auth_headers(builder);
+
+        let builder = builder
+            .body_json(&body_json)
+            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| HuggingFaceError::Backend(e.to_string()))?;
 
         let task = builder
-            .body(serde_json::to_string(&body_json).map_err(HuggingFaceError::Json)?)
             .build_send_request()
-            .map_err(|e| HuggingFaceError::HttpParse(e.into()))?
-            .map_ready(|intro| match intro {
-                RequestIntro::Success { stream, status } => {
-                    if !status.is_success() {
+            .map_err(|e: foundation_core::wire::simple_http::HttpClientError| HuggingFaceError::Backend(e.to_string()))?
+            .map_ready(move |intro| match intro {
+                RequestIntro::Success { stream, intro, .. } => {
+                    let status = &intro.0;
+                    if !is_success_status(status) {
                         return Err(HuggingFaceError::Http {
-                            status: status.as_u16(),
+                            status: status_code(status),
                             url: url.clone(),
-                            body: format!("HTTP {}", status.as_u16()),
+                            body: format!("HTTP {}", status_code(status)),
                         });
                     }
                     let body = body_reader::collect_string(stream);
@@ -529,12 +567,8 @@ impl HFClient {
         let stream = execute(task, None)
             .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
-        stream
-            .find_map(|s| match s {
-                Stream::Next(result) => Some(result),
-                _ => None,
-            })
-            .ok_or_else(|| HuggingFaceError::Backend("No result from move_repo".into()))
+        collect_one(stream)
+            .ok_or_else(|| HuggingFaceError::Backend("No result from move_repo".into()))?
     }
 
     /// Get repository handle for model operations.
@@ -553,12 +587,12 @@ impl HFClient {
     }
 
     /// Build authentication headers.
-    pub fn auth_headers(&self) -> http::HeaderMap {
-        let mut headers = http::HeaderMap::new();
-        headers.insert(
-            "User-Agent",
-            http::HeaderValue::from_static(HF_USER_AGENT),
-        );
+    ///
+    /// Note: This returns only auth-related headers. For use with a request builder,
+    /// use `apply_auth_headers()` to add them without replacing the Host header.
+    pub fn auth_headers(&self) -> SimpleHeaders {
+        let mut headers = SimpleHeaders::new();
+        headers.insert(SimpleHeader::USER_AGENT, vec![HF_USER_AGENT.to_string()]);
 
         if let Some(ref token) = self.inner.token {
             // Check if implicit token is disabled
@@ -568,13 +602,55 @@ impl HFClient {
 
             if !implicit_disabled {
                 headers.insert(
-                    "Authorization",
-                    http::HeaderValue::from_str(&format!("Bearer {}", token)).unwrap(),
+                    SimpleHeader::AUTHORIZATION,
+                    vec![format!("Bearer {}", token)],
                 );
             }
         }
 
         headers
+    }
+
+    /// Apply authentication headers to a request builder.
+    ///
+    /// This adds headers individually to avoid replacing the Host header.
+    pub fn apply_auth_headers<T: DnsResolver + 'static>(
+        &self,
+        builder: ClientRequestBuilder<T>,
+    ) -> ClientRequestBuilder<T> {
+        let builder = builder.header(SimpleHeader::USER_AGENT, HF_USER_AGENT);
+
+        if let Some(ref token) = self.inner.token {
+            if !Self::is_implicit_token_disabled() {
+                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
+            } else {
+                builder
+            }
+        } else {
+            builder
+        }
+    }
+
+    /// Get the endpoint URL.
+    pub(crate) fn endpoint(&self) -> &str {
+        &self.inner.endpoint
+    }
+
+    /// Get the token, if set.
+    pub(crate) fn token(&self) -> Option<&str> {
+        self.inner.token.as_deref()
+    }
+
+    /// Check if implicit token is disabled.
+    pub(crate) fn is_implicit_token_disabled() -> bool {
+        std::env::var(HF_HUB_DISABLE_IMPLICIT_TOKEN_ENV)
+            .map(|v| v == "1" || v == "true")
+            .unwrap_or(false)
+    }
+
+    /// Get a clone of the underlying SimpleHttpClient.
+    pub(crate) fn simple_http(&self) -> SimpleHttpClient {
+        self.inner.client.clone()
     }
 
     /// Build API URL for a repository.
