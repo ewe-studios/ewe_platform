@@ -277,7 +277,7 @@ pub struct RepoUrl {
 }
 
 /// Parameters for listing models.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ListModelsParams {
     pub search: Option<String>,
     pub author: Option<String>,
@@ -291,7 +291,7 @@ pub struct ListModelsParams {
 }
 
 /// Parameters for listing datasets.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ListDatasetsParams {
     pub search: Option<String>,
     pub author: Option<String>,
@@ -302,7 +302,7 @@ pub struct ListDatasetsParams {
 }
 
 /// Parameters for listing spaces.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ListSpacesParams {
     pub search: Option<String>,
     pub author: Option<String>,
@@ -313,7 +313,7 @@ pub struct ListSpacesParams {
 }
 
 /// Parameters for creating a repository.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct CreateRepoParams {
     pub repo_id: String,
     pub repo_type: Option<RepoType>,
@@ -323,7 +323,7 @@ pub struct CreateRepoParams {
 }
 
 /// Parameters for deleting a repository.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DeleteRepoParams {
     pub repo_id: String,
     pub repo_type: Option<RepoType>,
@@ -331,7 +331,7 @@ pub struct DeleteRepoParams {
 }
 
 /// Parameters for moving a repository.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct MoveRepoParams {
     pub from_id: String,
     pub to_id: String,
@@ -339,13 +339,13 @@ pub struct MoveRepoParams {
 }
 
 /// Parameters for repository info.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RepoInfoParams {
     pub revision: Option<String>,
 }
 
 /// Parameters for repository tree listing.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RepoListTreeParams {
     pub revision: Option<String>,
     pub recursive: Option<bool>,
@@ -353,15 +353,16 @@ pub struct RepoListTreeParams {
 }
 
 /// Parameters for file download.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RepoDownloadFileParams {
     pub filename: String,
     pub revision: Option<String>,
-    pub destination: Option<PathBuf>,
+    /// Destination directory path (filename will be appended to form complete path)
+    pub directory: PathBuf,
 }
 
 /// Parameters for file upload.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct RepoUploadFileParams {
     pub source: AddSource,
     pub path_in_repo: String,
@@ -370,7 +371,7 @@ pub struct RepoUploadFileParams {
 }
 
 /// Parameters for creating a commit.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RepoCreateCommitParams {
     pub operations: Vec<CommitOperation>,
     pub commit_message: String,
@@ -380,7 +381,7 @@ pub struct RepoCreateCommitParams {
 }
 
 /// Parameters for deleting a file.
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RepoDeleteFileParams {
     pub path_in_repo: String,
     pub revision: Option<String>,

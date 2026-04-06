@@ -12,6 +12,8 @@ use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, 
 use foundation_core::wire::simple_http::client::body_reader;
 use foundation_core::wire::simple_http::client::RequestIntro;
 use foundation_core::wire::simple_http::SimpleHeader;
+use foundation_macros::JsonHash;
+use serde::Serialize;
 use std::path::PathBuf;
 use std::sync::Arc;
 
@@ -26,7 +28,15 @@ struct HFRepositoryInner {
     owner: String,
     name: String,
     repo_type: RepoType,
-    default_revision: Option<String>,
+}
+
+/// Arguments for creating a repository handle.
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct RepositoryArgs {
+    pub owner: String,
+    pub name: String,
+    pub repo_type: RepoType,
+    pub default_revision: Option<String>,
 }
 
 impl HFRepository {
@@ -43,7 +53,24 @@ impl HFRepository {
                 owner,
                 name,
                 repo_type,
-                default_revision: None,
+            }),
+        }
+    }
+
+    /// Create a new repository handle with arguments.
+    pub fn with_args(client: HFClient, args: RepositoryArgs) -> Self {
+        let RepositoryArgs {
+            owner,
+            name,
+            repo_type,
+            default_revision: _,
+        } = args;
+        Self {
+            inner: Arc::new(HFRepositoryInner {
+                client,
+                owner,
+                name,
+                repo_type,
             }),
         }
     }
@@ -348,9 +375,8 @@ impl HFRepository {
             &params.filename,
         );
 
-        let destination = params.destination.clone().unwrap_or_else(|| {
-            PathBuf::from(&params.filename)
-        });
+        // Build destination path: directory/filename
+        let destination = params.directory.join(&params.filename);
 
         let http_client = self.inner.client.simple_http();
 
