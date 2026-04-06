@@ -87,4 +87,4 @@ pub use stress::{StressConfig, StressHarness, StressResult};
 
 // Re-export huggingface items when feature is enabled
 #[cfg(feature = "huggingface")]
-pub use huggingface::{TestHarness, DEFAULT_ARTIFACTS_DIR};
+pub use huggingface::{TestHarness, DEFAULT_ARTEFACTS_DIR, MODELS_SUBDIR};

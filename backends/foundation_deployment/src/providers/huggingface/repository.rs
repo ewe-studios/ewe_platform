@@ -419,8 +419,8 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
                         body: format!("HTTP {}", status_code(status)),
                     });
                 }
-                let body = body_reader::collect_string(stream);
-                std::fs::write(&destination, body.as_bytes())
+                let bytes = body_reader::collect_bytes(stream);
+                std::fs::write(&destination, &bytes)
                     .map_err(HuggingFaceError::Io)?;
                 Ok(destination.clone())
             }
