@@ -30,13 +30,13 @@ impl std::fmt::Display for SpecFetchPending {
     }
 }
 
-/// WHY: Unified representation of a distilled OpenAPI spec.
+/// WHY: Unified representation of API metadata from providers.
 ///
 /// WHAT: Common metadata extracted from any provider's spec format.
 ///
 /// HOW: Normalized format that all providers can be converted to.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DistilledSpec {
+pub struct APIMetadata {
     /// Provider name (e.g., "fly-io", "gcp", "neon")
     pub provider: String,
 
@@ -78,7 +78,7 @@ pub struct SpecEndpoint {
 
 /// WHY: Result of a spec fetch operation.
 ///
-/// WHAT: Contains the distilled spec and metadata about the fetch.
+/// WHAT: Contains the API metadata and metadata about the fetch.
 ///
 /// HOW: Returned by individual fetch tasks.
-pub type FetchResult = Result<DistilledSpec, crate::gen_resources::provider_specs_errors::SpecFetchError>;
+pub type FetchResult = Result<APIMetadata, crate::gen_resources::provider_specs_errors::SpecFetchError>;

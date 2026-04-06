@@ -18,7 +18,7 @@ use std::collections::BTreeMap;
 use std::path::PathBuf;
 use std::time::Instant;
 
-use crate::gen_resources::provider_specs_core::{DistilledSpec, SpecEndpoint};
+use crate::gen_resources::provider_specs_core::{APIMetadata, SpecEndpoint};
 use crate::gen_resources::provider_specs_errors::SpecFetchError;
 
 /// WHY: Orchestrates fetching specs from multiple providers.
@@ -48,7 +48,7 @@ impl ProviderSpecFetcher {
         &self,
         client: &SimpleHttpClient,
         gcp_api_filter: Option<Vec<String>>,
-    ) -> Result<BTreeMap<String, DistilledSpec>, SpecFetchError>
+    ) -> Result<BTreeMap<String, APIMetadata>, SpecFetchError>
     {
         // Artefacts directory for raw JSON specs
         let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
@@ -73,7 +73,7 @@ impl ProviderSpecFetcher {
 
         // Build fetch streams for each provider
         // Each returns a StreamIterator that runs on the Valtron thread pool
-        // Streams yield PathBuf results that we'll consolidate into DistilledSpec
+        // Streams yield PathBuf results that we'll consolidate into APIMetadata
         let mut streams: Vec<
             Box<
                 dyn foundation_core::valtron::StreamIterator<
@@ -112,7 +112,7 @@ impl ProviderSpecFetcher {
             }
         }
 
-        // Execute all streams and collect results, building DistilledSpec for each provider
+        // Execute all streams and collect results, building APIMetadata for each provider
         let mut specs = BTreeMap::new();
 
         for stream in streams {
@@ -141,7 +141,7 @@ impl ProviderSpecFetcher {
                 }
             }
 
-            // Build DistilledSpec from collected paths
+            // Build APIMetadata from collected paths
             if !paths.is_empty() {
                 let provider = provider_name.unwrap_or_else(|| "unknown".to_string());
 
@@ -162,7 +162,7 @@ impl ProviderSpecFetcher {
                     })
                     .collect();
 
-                let mut spec = DistilledSpec {
+                let mut spec = APIMetadata {
                     provider: provider.clone(),
                     version: chrono::Utc::now().format("%Y%m%d").to_string(),
                     fetched_at: chrono::Utc::now(),
@@ -210,7 +210,7 @@ impl ProviderSpecFetcher {
         client: &SimpleHttpClient,
         provider: &str,
         gcp_api_filter: Option<Vec<String>>,
-    ) -> Result<DistilledSpec, SpecFetchError> {
+    ) -> Result<APIMetadata, SpecFetchError> {
         let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
         let provider_dir = artefacts_dir.join(provider);
 
@@ -288,7 +288,7 @@ impl ProviderSpecFetcher {
             })
             .collect();
 
-        let mut spec = DistilledSpec {
+        let mut spec = APIMetadata {
             provider: provider.to_string(),
             version: chrono::Utc::now().format("%Y%m%d").to_string(),
             fetched_at: chrono::Utc::now(),
@@ -418,8 +418,8 @@ impl ProviderSpecFetcher {
 
     /// Read a written spec file and run extraction via `openapi::process_spec`.
     ///
-    /// Populates `DistilledSpec` with version, endpoints, and content hash.
-    fn enrich_spec(provider: &str, spec_path: &std::path::Path, spec: &mut DistilledSpec) {
+    /// Populates `APIMetadata` with version, endpoints, and content hash.
+    fn enrich_spec(provider: &str, spec_path: &std::path::Path, spec: &mut APIMetadata) {
         let Ok(content) = std::fs::read_to_string(spec_path) else {
             tracing::warn!("{provider}: could not read spec file for extraction");
             return;
