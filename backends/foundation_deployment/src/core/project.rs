@@ -51,8 +51,7 @@ impl ProjectScanner {
 
         let name = root
             .file_name()
-            .map(|n| n.to_string_lossy().into_owned())
-            .unwrap_or_else(|| "unknown".to_string());
+            .map_or_else(|| "unknown".to_string(), |n| n.to_string_lossy().into_owned());
 
         Ok(ProjectInfo {
             name,

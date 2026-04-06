@@ -38,9 +38,17 @@ impl AwsConfig {
     ///
     /// Returns `DeploymentError::ConfigInvalid` if the file cannot be read
     /// or parsed.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the path has no parent directory.
     pub fn from_file(path: &Path) -> Result<Self, DeploymentError> {
         // Check for samconfig.toml first for actual config
-        let config_path = path.parent().unwrap().join("samconfig.toml");
+        let parent = path.parent().ok_or_else(|| DeploymentError::ConfigInvalid {
+            file: path.display().to_string(),
+            reason: "path has no parent directory".to_string(),
+        })?;
+        let config_path = parent.join("samconfig.toml");
         if config_path.exists() {
             Self::from_samconfig(&config_path)
         } else {
@@ -117,7 +125,7 @@ impl DeploymentProvider for AwsCliProvider {
     type Config = AwsConfig;
     type Resources = AwsResources;
 
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "aws"
     }
 
@@ -160,7 +168,7 @@ impl DeploymentProvider for AwsCliProvider {
         let region_flag = config
             .region
             .as_ref()
-            .map(|r| format!("--region={}", r))
+            .map(|r| format!("--region={r}"))
             .unwrap_or_default();
 
         // Try sam build first
@@ -190,9 +198,10 @@ impl DeploymentProvider for AwsCliProvider {
                     if let Ok(entries) = std::fs::read_dir(&build_dir) {
                         for entry in entries.flatten() {
                             if let Ok(meta) = entry.metadata() {
-                                let artifact_type = if entry.path().extension()
-                                    .map(|e| e == "zip")
-                                    .unwrap_or(false)
+                                let artifact_type = if entry
+                                    .path()
+                                    .extension()
+                                    .is_some_and(|e| e == "zip")
                                 {
                                     crate::core::types::ArtifactType::ZipArchive
                                 } else {
@@ -230,7 +239,7 @@ impl DeploymentProvider for AwsCliProvider {
         let region_flag = config
             .region
             .as_ref()
-            .map(|r| format!("--region={}", r))
+            .map(|r| format!("--region={r}"))
             .unwrap_or_default();
 
         let stack_name = if let Some(env_name) = env {
@@ -240,7 +249,7 @@ impl DeploymentProvider for AwsCliProvider {
         };
 
         let s3_bucket = config.s3_bucket.clone().unwrap_or_else(|| {
-            format!("{}-deploy-bucket", stack_name)
+            format!("{stack_name}-deploy-bucket")
         });
 
         // Use sam deploy
@@ -274,7 +283,7 @@ impl DeploymentProvider for AwsCliProvider {
                 tracing::info!("sam deploy stderr: {}", stderr);
 
                 // Parse deployment outputs from CloudFormation
-                let url = extract_lambda_url(&config, stdout.as_str());
+                let url = extract_lambda_url(config, stdout.as_str());
 
                 Ok(DeploymentResult {
                     deployment_id: format!("{}-{}", stack_name, Utc::now().timestamp()),
@@ -306,7 +315,7 @@ impl DeploymentProvider for AwsCliProvider {
         let region_flag = config
             .region
             .as_ref()
-            .map(|r| format!("--region={}", r))
+            .map(|r| format!("--region={r}"))
             .unwrap_or_default();
 
         let stack_name = if let Some(env_name) = env {
@@ -349,7 +358,7 @@ impl DeploymentProvider for AwsCliProvider {
         let region_flag = config
             .region
             .as_ref()
-            .map(|r| format!("--region={}", r))
+            .map(|r| format!("--region={r}"))
             .unwrap_or_default();
 
         let function_name = config
@@ -360,7 +369,7 @@ impl DeploymentProvider for AwsCliProvider {
         let mut executor = ShellExecutor::new("aws")
             .arg("logs")
             .arg("tail")
-            .arg(format!("/aws/lambda/{}", function_name))
+            .arg(format!("/aws/lambda/{function_name}"))
             .arg("--follow");
 
         if !region_flag.is_empty() {
@@ -379,7 +388,7 @@ impl DeploymentProvider for AwsCliProvider {
         let region_flag = config
             .region
             .as_ref()
-            .map(|r| format!("--region={}", r))
+            .map(|r| format!("--region={r}"))
             .unwrap_or_default();
 
         let stack_name = if let Some(env_name) = env {
@@ -423,7 +432,7 @@ impl DeploymentProvider for AwsCliProvider {
         let region_flag = config
             .region
             .as_ref()
-            .map(|r| format!("--region={}", r))
+            .map(|r| format!("--region={r}"))
             .unwrap_or_default();
 
         let stack_name = if let Some(env_name) = env {
@@ -503,7 +512,7 @@ impl DeploymentProvider for AwsCliProvider {
             ShellDone::Failed { stderr, .. } => {
                 if stderr.contains("does not exist") {
                     Err(DeploymentError::NoProviderDetected {
-                        project_dir: format!("stack {} not found", stack_name),
+                        project_dir: format!("stack {stack_name} not found"),
                     })
                 } else {
                     Err(DeploymentError::DeployRejected {
@@ -518,7 +527,7 @@ impl DeploymentProvider for AwsCliProvider {
 /// AWS Lambda deployment resources/status information.
 #[derive(Debug, Clone)]
 pub struct AwsResources {
-    /// Deployment identifier (StackId or function ARN).
+    /// Deployment identifier (`StackId` or function ARN).
     pub deployment_id: String,
     /// S3 bucket where deployment artifact is stored.
     pub s3_bucket: String,

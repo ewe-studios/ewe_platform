@@ -13,7 +13,9 @@ use std::sync::{Arc, Mutex};
 use zeroize::Zeroizing;
 
 use crate::errors::{StorageError, StorageResult};
-use crate::storage_provider::{DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream};
+use crate::storage_provider::{
+    DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+};
 use foundation_core::valtron::Stream;
 
 /// JSON file storage backend.
@@ -190,13 +192,21 @@ impl KeyValueStore for JsonFileStorage {
 
 /// `QueryStore` not supported for `JsonFileStorage`.
 impl QueryStore for JsonFileStorage {
-    fn query(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>> {
+    fn query(
+        &self,
+        _sql: &str,
+        _params: &[DataValue],
+    ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
         Err(StorageError::Generic(
             "QueryStore not supported for JsonFileStorage".to_string(),
         ))
     }
 
-    fn execute(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<StorageItemStream<'_, u64>> {
+    fn execute(
+        &self,
+        _sql: &str,
+        _params: &[DataValue],
+    ) -> StorageResult<StorageItemStream<'_, u64>> {
         Err(StorageError::Generic(
             "QueryStore not supported for JsonFileStorage".to_string(),
         ))

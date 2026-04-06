@@ -44,11 +44,21 @@ pub trait DeploymentProvider {
     /// Validate the configuration without deploying.
     ///
     /// Checks that required fields are present, credentials are available, etc.
+    ///
+    /// # Errors
+    ///
+    /// Returns `DeploymentError::ConfigInvalid` if configuration is invalid,
+    /// or `DeploymentError::BuildFailed` if required tools are missing.
     fn validate(&self, config: &Self::Config) -> Result<(), DeploymentError>;
 
     /// Build the project artifacts.
     ///
     /// `env` selects a named environment (staging, production, etc.).
+    ///
+    /// # Errors
+    ///
+    /// Returns `DeploymentError::BuildFailed` if the build process fails,
+    /// or `DeploymentError::ProcessFailed` if a required command fails.
     fn build(
         &self,
         config: &Self::Config,
@@ -58,6 +68,11 @@ pub trait DeploymentProvider {
     /// Deploy to the target.
     ///
     /// If `dry_run` is true, validate and build but don't push to the provider.
+    ///
+    /// # Errors
+    ///
+    /// Returns `DeploymentError::DeployRejected` if the provider rejects the deployment,
+    /// or `DeploymentError::BuildFailed` if building artifacts fails.
     fn deploy(
         &self,
         config: &Self::Config,
@@ -72,6 +87,11 @@ pub trait DeploymentProvider {
     ///
     /// `previous_state` contains the last known-good deployment state
     /// from the state store, if one exists.
+    ///
+    /// # Errors
+    ///
+    /// Returns `DeploymentError::StateFailed` if rollback is not supported,
+    /// or `DeploymentError::DeployRejected` if the provider rejects the rollback.
     fn rollback(
         &self,
         config: &Self::Config,
@@ -80,12 +100,25 @@ pub trait DeploymentProvider {
     ) -> Result<(), DeploymentError>;
 
     /// Tail logs from the deployed service.
+    ///
+    /// # Errors
+    ///
+    /// Returns `DeploymentError::ProcessFailed` if the log streaming command fails.
     fn logs(&self, config: &Self::Config, env: Option<&str>) -> Result<(), DeploymentError>;
 
     /// Tear down deployed resources.
+    ///
+    /// # Errors
+    ///
+    /// Returns `DeploymentError::DeployRejected` if the provider rejects the deletion.
     fn destroy(&self, config: &Self::Config, env: Option<&str>) -> Result<(), DeploymentError>;
 
     /// Query current status of deployed resources.
+    ///
+    /// # Errors
+    ///
+    /// Returns `DeploymentError::HttpError` if the provider API request fails,
+    /// or `DeploymentError::StateFailed` if state retrieval fails.
     fn status(
         &self,
         config: &Self::Config,
@@ -97,6 +130,10 @@ pub trait DeploymentProvider {
     /// Called after deploy to confirm the deployment succeeded.
     /// Returns `Ok(true)` if healthy, `Ok(false)` if not yet healthy
     /// (may be retried), or `Err(e)` if verification itself fails.
+    ///
+    /// # Errors
+    ///
+    /// Returns `DeploymentError::HttpError` if the health check request fails.
     fn verify(&self, result: &DeploymentResult) -> Result<bool, DeploymentError> {
         let _ = result;
         Ok(true)

@@ -89,7 +89,11 @@ impl ResourceState {
     pub fn needs_deploy(&self, new_config_hash: &str) -> bool {
         match &self.status {
             StateStatus::Created => self.config_changed(new_config_hash),
-            StateStatus::Failed { .. } | StateStatus::Creating | StateStatus::Updating | StateStatus::Deleting | StateStatus::Deleted => true,
+            StateStatus::Failed { .. }
+            | StateStatus::Creating
+            | StateStatus::Updating
+            | StateStatus::Deleting
+            | StateStatus::Deleted => true,
         }
     }
 }

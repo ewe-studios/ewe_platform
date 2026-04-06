@@ -1,9 +1,9 @@
-//! Supabase OpenAPI spec fetcher.
+//! Supabase `` `OpenAPI` `` spec fetcher.
 //!
 //! WHY: Supabase is an open-source Firebase alternative providing database,
 //! auth, and storage backends for deployments.
 //!
-//! WHAT: Fetches the Supabase Management API OpenAPI spec and writes it to
+//! WHAT: Fetches the Supabase Management API `` `OpenAPI` `` spec and writes it to
 //! the provider's output directory.
 //!
 //! HOW: Delegates to `standard::fetch::fetch_standard_spec` for HTTP download.
@@ -15,13 +15,17 @@ use crate::providers::standard;
 use foundation_core::valtron::StreamIterator;
 use std::path::PathBuf;
 
-/// Supabase Management API OpenAPI spec URL.
+/// Supabase Management API `` `OpenAPI` `` spec URL.
 pub const SPEC_URL: &str = "https://api.supabase.com/api/v1-json";
 
 /// Provider identifier.
 pub const PROVIDER_NAME: &str = "supabase";
 
-/// Fetch the Supabase OpenAPI spec.
+/// Fetch the Supabase `` `OpenAPI` `` spec.
+///
+/// # Errors
+///
+/// Returns `DeploymentError` if the HTTP fetch fails or writing the file fails.
 pub fn fetch_supabase_specs(
     output_dir: PathBuf,
 ) -> Result<
@@ -32,6 +36,11 @@ pub fn fetch_supabase_specs(
 }
 
 /// Process a fetched Supabase spec.
+///
+/// # Returns
+///
+/// Returns a `ProcessedSpec` with extracted endpoints and metadata.
+#[must_use]
 pub fn process_spec(spec: &serde_json::Value) -> ProcessedSpec {
     openapi::process_spec(spec)
 }

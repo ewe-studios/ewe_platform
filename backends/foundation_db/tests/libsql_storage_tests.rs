@@ -20,9 +20,13 @@ fn test_libsql_storage_basic() {
     let storage = LibsqlStorage::new(url).unwrap();
     storage.init_schema().unwrap();
 
-    let _: () = collect_one(storage.set::<String>("test_key", "test_value".to_string()).unwrap())
-        .unwrap()
-        .unwrap();
+    let _: () = collect_one(
+        storage
+            .set::<String>("test_key", "test_value".to_string())
+            .unwrap(),
+    )
+    .unwrap()
+    .unwrap();
 
     let value: Option<String> = collect_one(storage.get("test_key").unwrap())
         .unwrap()
@@ -59,15 +63,27 @@ fn test_libsql_storage_list_keys() {
     let storage = LibsqlStorage::new(url).unwrap();
     storage.init_schema().unwrap();
 
-    let _: () = collect_one(storage.set::<String>("prefix:key1", "value1".to_string()).unwrap())
-        .unwrap()
-        .unwrap();
-    let _: () = collect_one(storage.set::<String>("prefix:key2", "value2".to_string()).unwrap())
-        .unwrap()
-        .unwrap();
-    let _: () = collect_one(storage.set::<String>("other:key3", "value3".to_string()).unwrap())
-        .unwrap()
-        .unwrap();
+    let _: () = collect_one(
+        storage
+            .set::<String>("prefix:key1", "value1".to_string())
+            .unwrap(),
+    )
+    .unwrap()
+    .unwrap();
+    let _: () = collect_one(
+        storage
+            .set::<String>("prefix:key2", "value2".to_string())
+            .unwrap(),
+    )
+    .unwrap()
+    .unwrap();
+    let _: () = collect_one(
+        storage
+            .set::<String>("other:key3", "value3".to_string())
+            .unwrap(),
+    )
+    .unwrap()
+    .unwrap();
 
     // List all keys - flat_map to extract Result from Stream, then collect
     let keys: Vec<String> = storage

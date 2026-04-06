@@ -2,8 +2,8 @@
 //!
 //! Migration runner uses synchronous [`QueryStore`] trait with [`DataValue`] params.
 
-use crate::storage_provider::{DataValue, QueryStore};
 use crate::errors::StorageResult;
+use crate::storage_provider::{DataValue, QueryStore};
 
 /// A single database migration.
 pub struct Migration {

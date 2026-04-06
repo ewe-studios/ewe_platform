@@ -1,4 +1,4 @@
-//! Cloudflare OpenAPI spec fetcher.
+//! Cloudflare `OpenAPI` spec fetcher.
 //!
 //! WHY: Cloudflare API schemas are hosted in a GitHub repository,
 //! requiring git clone to fetch.
@@ -6,7 +6,7 @@
 //! WHAT: Clones the api-schemas repo and extracts relevant API spec files.
 //!
 //! HOW: Uses `foundation_core::valtron::from_future` to wrap the sync git clone
-//! operation, then `execute()` to get a StreamIterator. The stream yields
+//! operation, then `execute()` to get a `StreamIterator`. The stream yields
 //! the result when the clone + file processing completes.
 
 use crate::error::DeploymentError;
@@ -37,17 +37,23 @@ pub type CloudflareFetchPending = ();
 
 /// Fetch Cloudflare specs by cloning the GitHub repo.
 ///
-/// Returns a StreamIterator that yields the result when complete.
+/// Returns a `StreamIterator` that yields the result when complete.
 /// The work runs on the Valtron thread pool.
 ///
 /// # Arguments
 ///
 /// * `temp_dir` - Temporary directory for cloning
-/// * `output_dir` - Output directory for consolidated spec (artefacts/cloud_providers/cloudflare/)
+/// * `output_dir` - Output directory for consolidated spec (`artefacts/cloud_providers/cloudflare/`)
 ///
 /// # Returns
 ///
-/// StreamIterator yielding Result<PathBuf, DeploymentError>.
+/// `StreamIterator` yielding `Result<PathBuf, DeploymentError>`.
+///
+/// # Errors
+///
+/// Returns `DeploymentError::ProcessFailed` if git clone fails,
+/// `DeploymentError::IoError` if file operations fail,
+/// or `DeploymentError::JsonInvalid` if spec parsing fails.
 pub fn fetch_cloudflare_specs(
     temp_dir: PathBuf,
     output_dir: PathBuf,
@@ -70,8 +76,7 @@ pub fn fetch_cloudflare_specs(
             let stderr = String::from_utf8_lossy(&clone_output.stderr);
             tracing::error!("Git clone stderr: {}", stderr);
             return Err(DeploymentError::Generic(format!(
-                "Git clone failed: {}",
-                stderr
+                "Git clone failed: {stderr}"
             )));
         }
 
@@ -79,7 +84,7 @@ pub fn fetch_cloudflare_specs(
         tracing::debug!("Source dir: {:?}", source_dir);
 
         // Find and consolidate relevant API specs
-        let spec_files = find_cloudflare_api_files(&source_dir)?;
+        let spec_files = find_cloudflare_api_files(&source_dir);
         tracing::info!("Found {} relevant Cloudflare API spec files", spec_files.len());
         for (name, _) in &spec_files {
             tracing::debug!("  Found spec file: {}", name);
@@ -97,7 +102,7 @@ pub fn fetch_cloudflare_specs(
         for (name, src_path) in &spec_files {
             tracing::debug!("Reading spec file: {:?}", src_path);
             let content = std::fs::read_to_string(src_path).map_err(|e| DeploymentError::Generic(format!(
-                "Failed to read {}: {e}", name
+                "Failed to read {name}: {e}"
             )))?;
 
             tracing::debug!("  Content length: {} bytes", content.len());
@@ -161,7 +166,7 @@ pub fn fetch_cloudflare_specs(
 }
 
 /// Find relevant Cloudflare API spec files in the cloned repo.
-fn find_cloudflare_api_files(source: &Path) -> Result<Vec<(String, PathBuf)>, DeploymentError> {
+fn find_cloudflare_api_files(source: &Path) -> Vec<(String, PathBuf)> {
     let mut files = Vec::new();
 
     for entry in walkdir::WalkDir::new(source).into_iter().flatten() {
@@ -172,12 +177,11 @@ fn find_cloudflare_api_files(source: &Path) -> Result<Vec<(String, PathBuf)>, De
                 .to_string_lossy()
                 .to_string();
 
-            // Include openapi.json directly, or prefixed files
             if file_name == "openapi.json" || RELEVANT_PREFIXES.iter().any(|p| file_name.starts_with(p)) {
                 files.push((file_name.clone(), entry.path().to_path_buf()));
             }
         }
     }
 
-    Ok(files)
+    files
 }

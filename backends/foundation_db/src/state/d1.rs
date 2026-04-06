@@ -13,9 +13,9 @@ use foundation_core::valtron::ThreadedValue;
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, Status};
 
-use crate::errors::StorageError;
 use super::traits::{StateStore, StateStoreStream};
 use super::types::{ResourceState, StateStatus};
+use crate::errors::StorageError;
 
 const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
 
@@ -112,11 +112,7 @@ impl D1StateStore {
             SendSafeBody::Text(s) => s.clone(),
             SendSafeBody::Bytes(b) => String::from_utf8(b.clone())
                 .map_err(|e| StorageError::Backend(format!("D1 response not UTF-8: {e}")))?,
-            _ => {
-                return Err(StorageError::Backend(
-                    "D1: empty response body".to_string(),
-                ))
-            }
+            _ => return Err(StorageError::Backend("D1: empty response body".to_string())),
         };
 
         serde_json::from_str(&text)
@@ -244,8 +240,7 @@ impl StateStore for D1StateStore {
     }
 
     fn count(&self) -> Result<StateStoreStream<usize>, StorageError> {
-        let response =
-            self.execute_sql("SELECT COUNT(*) as cnt FROM deployment_resources", &[])?;
+        let response = self.execute_sql("SELECT COUNT(*) as cnt FROM deployment_resources", &[])?;
         let rows = Self::extract_rows(&response);
         let count = rows
             .first()

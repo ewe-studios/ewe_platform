@@ -107,14 +107,10 @@ fn test_json_file_storage_persistence() {
     let storage2 = JsonFileStorage::new(&file_path).unwrap();
 
     // Data should persist
-    let value1: Option<String> = collect_one(storage2.get("key1").unwrap())
-        .unwrap()
-        .unwrap();
+    let value1: Option<String> = collect_one(storage2.get("key1").unwrap()).unwrap().unwrap();
     assert_eq!(value1, Some("value1".to_string()));
 
-    let value2: Option<String> = collect_one(storage2.get("key2").unwrap())
-        .unwrap()
-        .unwrap();
+    let value2: Option<String> = collect_one(storage2.get("key2").unwrap()).unwrap().unwrap();
     assert_eq!(value2, Some("value2".to_string()));
 }
 

@@ -16,10 +16,10 @@ use std::sync::Arc;
 
 use foundation_core::valtron::ThreadedValue;
 
-use crate::backends::async_utils::{exec_future, schedule_future};
-use crate::errors::StorageError;
 use super::traits::{StateStore, StateStoreStream};
 use super::types::{ResourceState, StateStatus};
+use crate::backends::async_utils::{exec_future, schedule_future};
+use crate::errors::StorageError;
 
 /// SQL schema for the resources table.
 pub const CREATE_TABLE_SQL: &str = r"
@@ -71,9 +71,7 @@ impl SqliteStateStore {
             std::fs::create_dir_all(parent)?;
         }
         let path_str = db_path.to_string_lossy().to_string();
-        let db = exec_future(async move {
-            libsql::Builder::new_local(&path_str).build().await
-        })?;
+        let db = exec_future(async move { libsql::Builder::new_local(&path_str).build().await })?;
         let conn = db
             .connect()
             .map_err(|e| StorageError::Connection(format!("SQLite connection failed: {e}")))?;
@@ -228,9 +226,9 @@ impl StateStore for SqliteStateStore {
         use foundation_core::valtron::{ShortCircuit, Stream, StreamIteratorExt};
         let circuit = stream.map_circuit(|item| match item {
             Stream::Next(Ok(ids)) => ShortCircuit::Continue(Stream::Next(Ok(ids))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                StorageError::Backend(e.to_string()),
-            ))),
+            Stream::Next(Err(e)) => {
+                ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string()))))
+            }
             _ => ShortCircuit::Continue(Stream::Ignore),
         });
 
@@ -281,7 +279,11 @@ impl StateStore for SqliteStateStore {
                 .query([id])
                 .await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
-            match rows.next().await.map_err(|e| StorageError::Backend(e.to_string()))? {
+            match rows
+                .next()
+                .await
+                .map_err(|e| StorageError::Backend(e.to_string()))?
+            {
                 Some(row) => {
                     let state = parse_resource_row(&row)?;
                     Ok::<_, StorageError>(Some(state))
@@ -309,7 +311,11 @@ impl StateStore for SqliteStateStore {
                     .query([id.clone()])
                     .await
                     .map_err(|e| StorageError::Backend(e.to_string()))?;
-                if let Some(row) = rows.next().await.map_err(|e| StorageError::Backend(e.to_string()))? {
+                if let Some(row) = rows
+                    .next()
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?
+                {
                     results.push(parse_resource_row(&row)?);
                 }
             }
@@ -349,7 +355,11 @@ impl StateStore for SqliteStateStore {
                 .await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             let mut results = Vec::new();
-            while let Some(row) = rows.next().await.map_err(|e| StorageError::Backend(e.to_string()))? {
+            while let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| StorageError::Backend(e.to_string()))?
+            {
                 results.push(parse_resource_row(&row)?);
             }
             Ok::<_, StorageError>(results)

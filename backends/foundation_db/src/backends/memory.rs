@@ -10,7 +10,9 @@ use serde::{de::DeserializeOwned, Serialize};
 use zeroize::Zeroizing;
 
 use crate::errors::{StorageError, StorageResult};
-use crate::storage_provider::{DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream};
+use crate::storage_provider::{
+    DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+};
 use foundation_core::valtron::Stream;
 
 /// In-memory storage with zeroizing support for sensitive data.
@@ -35,10 +37,14 @@ impl Default for MemoryStorage {
 }
 
 impl KeyValueStore for MemoryStorage {
-    fn get<'a, V: DeserializeOwned + Send + 'static>(&'a self, key: &str) -> StorageResult<StorageItemStream<'a, Option<V>>> {
-        let data = self.data.lock().map_err(|e| {
-            StorageError::Backend(format!("Mutex poisoned: {e}"))
-        })?;
+    fn get<'a, V: DeserializeOwned + Send + 'static>(
+        &'a self,
+        key: &str,
+    ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
+        let data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
 
         let result = match data.get(key) {
             Some(bytes) => {
@@ -52,36 +58,42 @@ impl KeyValueStore for MemoryStorage {
     }
 
     fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
-        let bytes = serde_json::to_vec(&value)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        let bytes =
+            serde_json::to_vec(&value).map_err(|e| StorageError::Serialization(e.to_string()))?;
 
-        let mut data = self.data.lock().map_err(|e| {
-            StorageError::Backend(format!("Mutex poisoned: {e}"))
-        })?;
+        let mut data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
 
         data.insert(key.to_string(), Zeroizing::new(bytes));
         Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
     }
 
     fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
-        let mut data = self.data.lock().map_err(|e| {
-            StorageError::Backend(format!("Mutex poisoned: {e}"))
-        })?;
+        let mut data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         data.remove(key);
         Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
     }
 
     fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
-        let data = self.data.lock().map_err(|e| {
-            StorageError::Backend(format!("Mutex poisoned: {e}"))
-        })?;
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(data.contains_key(key))))))
+        let data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
+        Ok(Box::new(std::iter::once(Stream::Next(Ok(
+            data.contains_key(key)
+        )))))
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
-        let data = self.data.lock().map_err(|e| {
-            StorageError::Backend(format!("Mutex poisoned: {e}"))
-        })?;
+        let data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
 
         let keys: Vec<String> = data
             .keys()
@@ -96,13 +108,21 @@ impl KeyValueStore for MemoryStorage {
 /// In-memory implementation of [`QueryStore`] for testing.
 /// Note: This is a simplified implementation for testing purposes.
 impl QueryStore for MemoryStorage {
-    fn query(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>> {
+    fn query(
+        &self,
+        _sql: &str,
+        _params: &[DataValue],
+    ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
         Err(StorageError::Generic(
             "QueryStore not supported for MemoryStorage".to_string(),
         ))
     }
 
-    fn execute(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<StorageItemStream<'_, u64>> {
+    fn execute(
+        &self,
+        _sql: &str,
+        _params: &[DataValue],
+    ) -> StorageResult<StorageItemStream<'_, u64>> {
         Err(StorageError::Generic(
             "QueryStore not supported for MemoryStorage".to_string(),
         ))
@@ -135,9 +155,10 @@ impl RateLimiterStore for MemoryStorage {
             .unwrap()
             .as_secs();
 
-        let data = self.data.lock().map_err(|e| {
-            StorageError::Backend(format!("Mutex poisoned: {e}"))
-        })?;
+        let data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
 
         let rate_key = format!("_rate_limit:{key}");
         let allowed = match data.get(&rate_key) {
@@ -163,25 +184,36 @@ impl RateLimiterStore for MemoryStorage {
             .as_secs();
 
         let rate_key = format!("_rate_limit:{key}");
-        let mut data = self.data.lock().map_err(|e| {
-            StorageError::Backend(format!("Mutex poisoned: {e}"))
-        })?;
+        let mut data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
 
         let new_count = if let Some(bytes) = data.get(&rate_key) {
             let mut entry: RateLimitEntry = serde_json::from_slice(bytes)
                 .map_err(|e| StorageError::Serialization(e.to_string()))?;
             entry.count += 1;
             entry.window_start = now;
-            data.insert(rate_key.clone(), Zeroizing::new(serde_json::to_vec(&entry)
-                .map_err(|e| StorageError::Serialization(e.to_string()))?));
+            data.insert(
+                rate_key.clone(),
+                Zeroizing::new(
+                    serde_json::to_vec(&entry)
+                        .map_err(|e| StorageError::Serialization(e.to_string()))?,
+                ),
+            );
             entry.count
         } else {
             let entry = RateLimitEntry {
                 count: 1,
                 window_start: now,
             };
-            data.insert(rate_key.clone(), Zeroizing::new(serde_json::to_vec(&entry)
-                .map_err(|e| StorageError::Serialization(e.to_string()))?));
+            data.insert(
+                rate_key.clone(),
+                Zeroizing::new(
+                    serde_json::to_vec(&entry)
+                        .map_err(|e| StorageError::Serialization(e.to_string()))?,
+                ),
+            );
             1
         };
 
@@ -190,9 +222,10 @@ impl RateLimiterStore for MemoryStorage {
 
     fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
         let rate_key = format!("_rate_limit:{key}");
-        let mut data = self.data.lock().map_err(|e| {
-            StorageError::Backend(format!("Mutex poisoned: {e}"))
-        })?;
+        let mut data = self
+            .data
+            .lock()
+            .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         data.remove(&rate_key);
         Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
     }

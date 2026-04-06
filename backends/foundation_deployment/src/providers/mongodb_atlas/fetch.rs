@@ -1,9 +1,9 @@
-//! MongoDB Atlas OpenAPI spec fetcher.
+//! `` `MongoDB` `` Atlas `` `OpenAPI` `` spec fetcher.
 //!
-//! WHY: MongoDB Atlas is a managed database service commonly used as a
+//! WHY: `` `MongoDB` `` Atlas is a managed database service commonly used as a
 //! deployment backend for applications.
 //!
-//! WHAT: Fetches the MongoDB Atlas Admin API v2 OpenAPI spec and writes it
+//! WHAT: Fetches the `` `MongoDB` `` Atlas Admin API v2 `` `OpenAPI` `` spec and writes it
 //! to the provider's output directory.
 //!
 //! HOW: Delegates to `standard::fetch::fetch_standard_spec` for HTTP download.
@@ -15,13 +15,17 @@ use crate::providers::standard;
 use foundation_core::valtron::StreamIterator;
 use std::path::PathBuf;
 
-/// MongoDB Atlas Admin API v2 OpenAPI spec URL.
+/// `` `MongoDB` `` Atlas Admin API v2 `` `OpenAPI` `` spec URL.
 pub const SPEC_URL: &str = "https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2.json";
 
 /// Provider identifier.
 pub const PROVIDER_NAME: &str = "mongodb_atlas";
 
-/// Fetch the MongoDB Atlas OpenAPI spec.
+/// Fetch the `` `MongoDB` `` Atlas `` `OpenAPI` `` spec.
+///
+/// # Errors
+///
+/// Returns `DeploymentError` if the HTTP fetch fails or writing the file fails.
 pub fn fetch_mongodb_atlas_specs(
     output_dir: PathBuf,
 ) -> Result<
@@ -31,7 +35,12 @@ pub fn fetch_mongodb_atlas_specs(
     standard::fetch::fetch_standard_spec(PROVIDER_NAME, SPEC_URL, output_dir)
 }
 
-/// Process a fetched MongoDB Atlas spec.
+/// Process a fetched `` `MongoDB` `` Atlas spec.
+///
+/// # Returns
+///
+/// Returns a `ProcessedSpec` with extracted endpoints and metadata.
+#[must_use]
 pub fn process_spec(spec: &serde_json::Value) -> ProcessedSpec {
     openapi::process_spec(spec)
 }

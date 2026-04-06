@@ -69,6 +69,7 @@ pub struct DeploymentResult {
 
 impl DeploymentResult {
     /// Create a result for a dry-run (no actual deployment).
+    #[must_use]
     pub fn dry_run(provider: &str, resource_name: &str) -> Self {
         Self {
             deployment_id: "dry-run".to_string(),
@@ -81,6 +82,7 @@ impl DeploymentResult {
     }
 
     /// Create a result for a skipped deployment (config unchanged).
+    #[must_use]
     pub fn skipped(reason: &str) -> Self {
         Self {
             deployment_id: format!("skipped: {reason}"),

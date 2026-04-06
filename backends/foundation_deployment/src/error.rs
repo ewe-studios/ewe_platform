@@ -45,7 +45,7 @@ pub enum DeploymentError {
     /// IO error.
     IoError(std::io::Error),
 
-    /// SQLite / Turso error.
+    /// `SQLite` / Turso error.
     SqliteError(String),
 
     /// Executor scheduling error.

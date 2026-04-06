@@ -62,7 +62,7 @@ impl DeploymentProvider for GcpCliProvider {
     type Config = GcpConfig;
     type Resources = GcpResources;
 
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "gcp"
     }
 
@@ -99,18 +99,18 @@ impl DeploymentProvider for GcpCliProvider {
         config: &Self::Config,
         _env: Option<&str>,
     ) -> Result<BuildOutput, DeploymentError> {
-        let region = config.region.clone().unwrap_or_else(|| "us-central1".to_string());
+        let region: String = config.region.clone().unwrap_or_else(|| "us-central1".to_string());
         let project_flag = config
             .project_id
             .as_ref()
-            .map(|p| format!("--project={}", p))
+            .map(|p| format!("--project={p}"))
             .unwrap_or_default();
 
         // Build and submit container using Cloud Build
         let image = config
             .image
             .clone()
-            .unwrap_or_else(|| format!("gcr.io/{}/{}:latest", config.project_id.as_deref().unwrap_or("PROJECT"), config.name));
+            .unwrap_or_else(|| format!("gcr.io/{project}/{name}:latest", project = config.project_id.as_deref().unwrap_or("PROJECT"), name = config.name));
 
         let mut executor = ShellExecutor::new("gcloud")
             .arg("builds")
@@ -133,8 +133,8 @@ impl DeploymentProvider for GcpCliProvider {
 
         match result {
             ShellDone::Success { stdout, stderr, .. } => {
-                tracing::debug!("gcloud build stdout: {}", stdout);
-                tracing::debug!("gcloud build stderr: {}", stderr);
+                tracing::debug!("gcloud build stdout: {stdout}");
+                tracing::debug!("gcloud build stderr: {stderr}");
 
                 Ok(BuildOutput {
                     artifacts: vec![BuildArtifact {
@@ -157,15 +157,15 @@ impl DeploymentProvider for GcpCliProvider {
         env: Option<&str>,
         dry_run: bool,
     ) -> Result<DeploymentResult, DeploymentError> {
-        let region = config.region.clone().unwrap_or_else(|| "us-central1".to_string());
+        let region: String = config.region.clone().unwrap_or_else(|| "us-central1".to_string());
         let project_flag = config
             .project_id
             .as_ref()
-            .map(|p| format!("--project={}", p))
+            .map(|p| format!("--project={p}"))
             .unwrap_or_default();
 
-        let service_name = if let Some(env_name) = env {
-            format!("{}-{}", config.name, env_name)
+        let service_name: String = if let Some(env_name) = env {
+            format!("{config_name}-{env_name}", config_name = config.name, env_name = env_name)
         } else {
             config.name.clone()
         };
@@ -173,7 +173,7 @@ impl DeploymentProvider for GcpCliProvider {
         let image = config
             .image
             .clone()
-            .unwrap_or_else(|| format!("gcr.io/{}/{}:latest", config.project_id.as_deref().unwrap_or("PROJECT"), config.name));
+            .unwrap_or_else(|| format!("gcr.io/{project}/{name}:latest", project = config.project_id.as_deref().unwrap_or("PROJECT"), name = config.name));
 
         let mut executor = ShellExecutor::new("gcloud")
             .arg("run")
@@ -204,14 +204,14 @@ impl DeploymentProvider for GcpCliProvider {
 
         match result {
             ShellDone::Success { stdout, stderr, .. } => {
-                tracing::info!("gcloud deploy stdout: {}", stdout);
-                tracing::info!("gcloud deploy stderr: {}", stderr);
+                tracing::info!("gcloud deploy stdout: {stdout}");
+                tracing::info!("gcloud deploy stderr: {stderr}");
 
                 // Parse deployment URL from output
                 let url = extract_deployed_url(&stdout);
 
                 Ok(DeploymentResult {
-                    deployment_id: format!("{}-{}", service_name, Utc::now().timestamp()),
+                    deployment_id: format!("{service_name}-{timestamp}", service_name = service_name, timestamp = Utc::now().timestamp()),
                     provider: "gcp".to_string(),
                     resource_name: service_name,
                     environment: env.map(String::from),
@@ -237,15 +237,15 @@ impl DeploymentProvider for GcpCliProvider {
             ));
         };
 
-        let region = config.region.clone().unwrap_or_else(|| "us-central1".to_string());
+        let region: String = config.region.clone().unwrap_or_else(|| "us-central1".to_string());
         let project_flag = config
             .project_id
             .as_ref()
-            .map(|p| format!("--project={}", p))
+            .map(|p| format!("--project={p}"))
             .unwrap_or_default();
 
-        let service_name = if let Some(env_name) = env {
-            format!("{}-{}", config.name, env_name)
+        let service_name: String = if let Some(env_name) = env {
+            format!("{config_name}-{env_name}", config_name = config.name, env_name = env_name)
         } else {
             config.name.clone()
         };
@@ -282,10 +282,10 @@ impl DeploymentProvider for GcpCliProvider {
     }
 
     fn logs(&self, config: &Self::Config, env: Option<&str>) -> Result<(), DeploymentError> {
-        let region = config.region.clone().unwrap_or_else(|| "us-central1".to_string());
+        let region: String = config.region.clone().unwrap_or_else(|| "us-central1".to_string());
 
-        let service_name = if let Some(env_name) = env {
-            format!("{}-{}", config.name, env_name)
+        let service_name: String = if let Some(env_name) = env {
+            format!("{config_name}-{env_name}", config_name = config.name, env_name = env_name)
         } else {
             config.name.clone()
         };
@@ -305,15 +305,15 @@ impl DeploymentProvider for GcpCliProvider {
     }
 
     fn destroy(&self, config: &Self::Config, env: Option<&str>) -> Result<(), DeploymentError> {
-        let region = config.region.clone().unwrap_or_else(|| "us-central1".to_string());
+        let region: String = config.region.clone().unwrap_or_else(|| "us-central1".to_string());
         let project_flag = config
             .project_id
             .as_ref()
-            .map(|p| format!("--project={}", p))
+            .map(|p| format!("--project={p}"))
             .unwrap_or_default();
 
-        let service_name = if let Some(env_name) = env {
-            format!("{}-{}", config.name, env_name)
+        let service_name: String = if let Some(env_name) = env {
+            format!("{config_name}-{env_name}", config_name = config.name, env_name = env_name)
         } else {
             config.name.clone()
         };
@@ -353,10 +353,10 @@ impl DeploymentProvider for GcpCliProvider {
         config: &Self::Config,
         env: Option<&str>,
     ) -> Result<Self::Resources, DeploymentError> {
-        let region = config.region.clone().unwrap_or_else(|| "us-central1".to_string());
+        let region: String = config.region.clone().unwrap_or_else(|| "us-central1".to_string());
 
-        let service_name = if let Some(env_name) = env {
-            format!("{}-{}", config.name, env_name)
+        let service_name: String = if let Some(env_name) = env {
+            format!("{config_name}-{env_name}", config_name = config.name, env_name = env_name)
         } else {
             config.name.clone()
         };
@@ -389,7 +389,7 @@ impl DeploymentProvider for GcpCliProvider {
                     }
                 })?;
 
-                let deployment_id = json["metadata"]["generation"]
+                let deployment_id: String = json["metadata"]["generation"]
                     .as_u64()
                     .map(|g| g.to_string())
                     .unwrap_or_default();
@@ -410,13 +410,12 @@ impl DeploymentProvider for GcpCliProvider {
                     url,
                     ready: json["status"]["conditions"]
                         .as_array()
-                        .map(|conditions| {
+                        .is_some_and(|conditions| {
                             conditions.iter().any(|c| {
                                 c["type"].as_str() == Some("Ready")
                                     && c["status"].as_str() == Some("True")
                             })
-                        })
-                        .unwrap_or(false),
+                        }),
                 })
             }
             ShellDone::Failed { stderr, .. } => Err(DeploymentError::DeployRejected {

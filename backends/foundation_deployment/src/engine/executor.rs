@@ -193,8 +193,7 @@ where
             Some(Stream::Next(outcome)) => {
                 last_outcome = Some(outcome);
             }
-            Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Ignore) => {}
-            Some(Stream::Init) => {}
+            Some(Stream::Pending(_) | Stream::Delayed(_) | Stream::Ignore | Stream::Init) => {}
             None => break,
         }
     }

@@ -10,21 +10,22 @@
 
 use serde::{de::DeserializeOwned, Serialize};
 
-#[cfg(feature = "turso")]
-use crate::backends::turso_backend::TursoStorage;
+use crate::backends::json_file::JsonFileStorage;
 #[cfg(feature = "libsql")]
 use crate::backends::libsql_backend::LibsqlStorage;
 use crate::backends::memory::MemoryStorage;
-use crate::backends::json_file::JsonFileStorage;
-use crate::errors::StorageResult;
+#[cfg(feature = "turso")]
+use crate::backends::turso_backend::TursoStorage;
 pub use crate::errors::StorageError;
+use crate::errors::StorageResult;
 use foundation_core::valtron::Stream;
 
 /// Type alias for streamed storage items.
 /// This is a Valtron Stream-based lazy iterator that yields items one at a time.
 /// Errors are yielded in the stream as `Stream::Next(Err(e))` - callers can use
 /// `.flatten()` to extract only successful values or collect into `Result` to propagate errors.
-pub type StorageItemStream<'a, T> = Box<dyn Iterator<Item = Stream<Result<T, StorageError>, ()>> + Send + 'a>;
+pub type StorageItemStream<'a, T> =
+    Box<dyn Iterator<Item = Stream<Result<T, StorageError>, ()>> + Send + 'a>;
 
 /// A single SQL parameter value (crate-owned, backend-agnostic).
 #[derive(Debug, Clone)]
@@ -80,9 +81,7 @@ impl SqlRow {
             .iter()
             .find(|(col_name, _)| col_name == name)
             .ok_or_else(|| {
-                crate::errors::StorageError::SqlConversion(format!(
-                    "Column '{name}' not found"
-                ))
+                crate::errors::StorageError::SqlConversion(format!("Column '{name}' not found"))
             })
             .and_then(|(_, v)| T::from_data_value(v))
     }
@@ -191,7 +190,10 @@ pub trait KeyValueStore: Send + Sync {
     /// # Errors
     ///
     /// Returns an error if scheduling fails or deserialization fails.
-    fn get<'a, V: DeserializeOwned + Send + 'static>(&'a self, key: &str) -> StorageResult<StorageItemStream<'a, Option<V>>>;
+    fn get<'a, V: DeserializeOwned + Send + 'static>(
+        &'a self,
+        key: &str,
+    ) -> StorageResult<StorageItemStream<'a, Option<V>>>;
 
     /// Set a key-value pair. Yields one `Next(())`.
     ///
@@ -262,7 +264,11 @@ pub trait QueryStore: Send + Sync {
     /// # Errors
     ///
     /// Returns an error if the query fails or parameter conversion fails.
-    fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>>;
+    fn query(
+        &self,
+        sql: &str,
+        params: &[DataValue],
+    ) -> StorageResult<StorageItemStream<'_, SqlRow>>;
 
     /// Execute a statement that returns number of rows affected.
     /// Yields one `Next(u64)`.
@@ -270,7 +276,8 @@ pub trait QueryStore: Send + Sync {
     /// # Errors
     ///
     /// Returns an error if the statement fails or parameter conversion fails.
-    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, u64>>;
+    fn execute(&self, sql: &str, params: &[DataValue])
+        -> StorageResult<StorageItemStream<'_, u64>>;
 
     /// Execute a batch of SQL statements. Yields one `Next(())`.
     ///
@@ -365,16 +372,12 @@ impl StorageProvider {
                     inner: StorageProviderInner::Libsql(Box::new(storage)),
                 })
             }
-            StorageBackend::D1 => {
-                Err(crate::errors::StorageError::Generic(
-                    "D1 backend not yet implemented".to_string(),
-                ))
-            }
-            StorageBackend::R2 { .. } => {
-                Err(crate::errors::StorageError::Generic(
-                    "R2 backend not yet implemented".to_string(),
-                ))
-            }
+            StorageBackend::D1 => Err(crate::errors::StorageError::Generic(
+                "D1 backend not yet implemented".to_string(),
+            )),
+            StorageBackend::R2 { .. } => Err(crate::errors::StorageError::Generic(
+                "R2 backend not yet implemented".to_string(),
+            )),
             StorageBackend::JsonFile { path } => {
                 let storage = JsonFileStorage::new(&path)?;
                 Ok(Self {
@@ -412,7 +415,10 @@ impl StorageProvider {
 }
 
 impl KeyValueStore for StorageProvider {
-    fn get<'a, V: DeserializeOwned + Send + 'static>(&'a self, key: &str) -> StorageResult<StorageItemStream<'a, Option<V>>> {
+    fn get<'a, V: DeserializeOwned + Send + 'static>(
+        &'a self,
+        key: &str,
+    ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
         match &self.inner {
             #[cfg(feature = "turso")]
             StorageProviderInner::Turso(storage) => storage.get(key),
@@ -469,7 +475,11 @@ impl KeyValueStore for StorageProvider {
 }
 
 impl QueryStore for StorageProvider {
-    fn query(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, SqlRow>> {
+    fn query(
+        &self,
+        sql: &str,
+        params: &[DataValue],
+    ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
         match &self.inner {
             #[cfg(feature = "turso")]
             StorageProviderInner::Turso(storage) => storage.query(sql, params),
@@ -480,7 +490,11 @@ impl QueryStore for StorageProvider {
         }
     }
 
-    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, u64>> {
+    fn execute(
+        &self,
+        sql: &str,
+        params: &[DataValue],
+    ) -> StorageResult<StorageItemStream<'_, u64>> {
         match &self.inner {
             #[cfg(feature = "turso")]
             StorageProviderInner::Turso(storage) => storage.execute(sql, params),
@@ -512,11 +526,19 @@ impl RateLimiterStore for StorageProvider {
     ) -> StorageResult<StorageItemStream<'_, bool>> {
         match &self.inner {
             #[cfg(feature = "turso")]
-            StorageProviderInner::Turso(storage) => storage.check_rate_limit(key, max_count, window_seconds),
+            StorageProviderInner::Turso(storage) => {
+                storage.check_rate_limit(key, max_count, window_seconds)
+            }
             #[cfg(feature = "libsql")]
-            StorageProviderInner::Libsql(storage) => storage.check_rate_limit(key, max_count, window_seconds),
-            StorageProviderInner::JsonFile(storage) => storage.check_rate_limit(key, max_count, window_seconds),
-            StorageProviderInner::Memory(storage) => storage.check_rate_limit(key, max_count, window_seconds),
+            StorageProviderInner::Libsql(storage) => {
+                storage.check_rate_limit(key, max_count, window_seconds)
+            }
+            StorageProviderInner::JsonFile(storage) => {
+                storage.check_rate_limit(key, max_count, window_seconds)
+            }
+            StorageProviderInner::Memory(storage) => {
+                storage.check_rate_limit(key, max_count, window_seconds)
+            }
         }
     }
 

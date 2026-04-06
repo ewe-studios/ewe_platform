@@ -172,7 +172,71 @@ All three are mapped to `StorageError` variants, preserving the original error m
 
 Both Turso and libsql connections are wrapped in `Arc<Connection>` to enable cloning into async blocks without lifetime issues. The connection is created once in `new()` and shared across all operations.
 
+## Encryption at Rest with ChaCha20-Poly1305
+
+### Overview
+
+The encryption integration adds transparent encryption/decryption for sensitive data stored in SQL backends. When an `EncryptionKey` is provided to `TursoStorage::with_encryption()`, all values are encrypted before being written to the database and decrypted when read.
+
+### Implementation Pattern
+
+```rust
+pub struct TursoStorage {
+    conn: Arc<turso::Connection>,
+    encryption_key: Option<EncryptionKey>,
+}
+
+impl TursoStorage {
+    pub fn with_encryption(url: &str, key: Option<EncryptionKey>) -> StorageResult<Self> {
+        // ... connection setup ...
+        Ok(Self { conn, encryption_key: key })
+    }
+
+    fn maybe_encrypt(&self, json_str: &str) -> StorageResult<String> {
+        match &self.encryption_key {
+            Some(key) => {
+                let encrypted = encrypt(key, json_str.as_bytes())?;
+                Ok(STANDARD.encode(&encrypted))  // Base64 for TEXT column
+            }
+            None => Ok(json_str.to_string()),
+        }
+    }
+
+    fn maybe_decrypt(&self, stored_value: &str) -> StorageResult<String> {
+        match &self.encryption_key {
+            Some(key) => {
+                let encrypted = STANDARD.decode(stored_value)?;
+                let decrypted = decrypt(key, &encrypted)?;
+                String::from_utf8(decrypted)
+                    .map_err(|e| StorageError::Encryption(...))
+            }
+            None => Ok(stored_value.to_string()),
+        }
+    }
+}
+```
+
+### Key Design Decisions
+
+1. **Optional encryption** - The same storage instance can work with or without encryption based on the `encryption_key` option
+2. **Base64 encoding** - Encrypted binary data is base64-encoded for safe storage in TEXT columns
+3. **Transparent to callers** - The `get` and `set` methods handle encryption/decryption internally; callers don't need to know
+4. **ChaCha20-Poly1305** - AEAD cipher provides both confidentiality and integrity verification
+
+### Testing
+
+Key test scenarios:
+- `test_turso_storage_encryption` - Verifies encryption on write, decryption on read, and that stored value differs from plaintext
+- `test_turso_storage_encryption_wrong_key` - Verifies that decryption fails with a different key
+
+### Security Considerations
+
+- Keys are zeroized on drop via `EncryptionKey::Drop`
+- Each encryption operation uses a random nonce (12 bytes)
+- Authenticated encryption (Poly1305 tag) detects tampering
+- Key management is the caller's responsibility (store securely, rotate as needed)
+
 ---
 
 _Created: 2026-03-28_
-_Source: backends/foundation_db/src/backends/ (async_utils.rs, turso_backend.rs, libsql_backend.rs, memory.rs)_
+_Source: backends/foundation_db/src/backends/ (async_utils.rs, turso_backend.rs, libsql_backend.rs, memory.rs), backends/foundation_db/src/crypto/ (encryption.rs, zeroize.rs)_

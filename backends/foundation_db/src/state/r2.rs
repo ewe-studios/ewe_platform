@@ -13,9 +13,9 @@ use foundation_core::valtron::ThreadedValue;
 use foundation_core::wire::simple_http::client::SimpleHttpClient;
 use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, Status};
 
-use crate::errors::StorageError;
 use super::traits::{StateStore, StateStoreStream};
 use super::types::ResourceState;
+use crate::errors::StorageError;
 
 const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
 
@@ -34,12 +34,7 @@ pub struct R2StateStore {
 impl R2StateStore {
     /// Create a new R2 state store.
     #[must_use]
-    pub fn new(
-        api_token: &str,
-        account_id: &str,
-        bucket_name: &str,
-        prefix: Option<&str>,
-    ) -> Self {
+    pub fn new(api_token: &str, account_id: &str, bucket_name: &str, prefix: Option<&str>) -> Self {
         Self {
             api_token: api_token.to_string(),
             account_id: account_id.to_string(),
@@ -60,12 +55,15 @@ impl R2StateStore {
     ///
     /// Returns an error if required env vars are missing.
     pub fn from_env() -> Result<Self, StorageError> {
-        let bucket = std::env::var("DEPLOYMENT_R2_BUCKET")
-            .map_err(|_| StorageError::Connection("DEPLOYMENT_R2_BUCKET must be set".to_string()))?;
-        let token = std::env::var("CLOUDFLARE_API_TOKEN")
-            .map_err(|_| StorageError::Connection("CLOUDFLARE_API_TOKEN must be set".to_string()))?;
-        let account = std::env::var("CLOUDFLARE_ACCOUNT_ID")
-            .map_err(|_| StorageError::Connection("CLOUDFLARE_ACCOUNT_ID must be set".to_string()))?;
+        let bucket = std::env::var("DEPLOYMENT_R2_BUCKET").map_err(|_| {
+            StorageError::Connection("DEPLOYMENT_R2_BUCKET must be set".to_string())
+        })?;
+        let token = std::env::var("CLOUDFLARE_API_TOKEN").map_err(|_| {
+            StorageError::Connection("CLOUDFLARE_API_TOKEN must be set".to_string())
+        })?;
+        let account = std::env::var("CLOUDFLARE_ACCOUNT_ID").map_err(|_| {
+            StorageError::Connection("CLOUDFLARE_ACCOUNT_ID must be set".to_string())
+        })?;
         let prefix = std::env::var("DEPLOYMENT_R2_PREFIX").ok();
         Ok(Self::new(&token, &account, &bucket, prefix.as_deref()))
     }

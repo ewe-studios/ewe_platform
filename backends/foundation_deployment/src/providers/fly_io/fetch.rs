@@ -1,8 +1,8 @@
-//! Fly.io OpenAPI spec fetcher.
+//! Fly.io `OpenAPI` spec fetcher.
 //!
 //! WHY: Fly.io is a deployment target for applications via the Machines API.
 //!
-//! WHAT: Fetches the Fly.io Machines API OpenAPI spec from a single URL and
+//! WHAT: Fetches the Fly.io Machines API `OpenAPI` spec from a single URL and
 //! writes it to the provider's output directory.
 //!
 //! HOW: Delegates to `standard::fetch::fetch_standard_spec` for the actual
@@ -16,13 +16,19 @@ use crate::providers::standard;
 use foundation_core::valtron::StreamIterator;
 use std::path::PathBuf;
 
-/// Fly.io Machines API OpenAPI spec URL.
+/// Fly.io Machines API `OpenAPI` spec URL.
 pub const SPEC_URL: &str = "https://docs.machines.dev/spec/openapi3.json";
 
 /// Provider identifier used in output paths and logs.
 pub const PROVIDER_NAME: &str = "fly_io";
 
-/// Fetch the Fly.io OpenAPI spec.
+/// Fetch the Fly.io `OpenAPI` spec.
+///
+/// # Errors
+///
+/// Returns `DeploymentError` if the HTTP fetch fails or writing the file fails.
+///
+/// # Returns
 ///
 /// Returns a `StreamIterator` that yields `Result<PathBuf>` when complete.
 pub fn fetch_fly_io_specs(
@@ -35,6 +41,11 @@ pub fn fetch_fly_io_specs(
 }
 
 /// Process a fetched Fly.io spec into version, endpoints, and content hash.
+///
+/// # Returns
+///
+/// Returns a `ProcessedSpec` with extracted endpoints and metadata.
+#[must_use]
 pub fn process_spec(spec: &serde_json::Value) -> ProcessedSpec {
     openapi::process_spec(spec)
 }

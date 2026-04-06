@@ -5,7 +5,9 @@
 //! Multi-value operations return `StorageItemStream` for lazy iteration.
 
 use crate::backends::async_utils::{exec_future, schedule_future};
+use crate::crypto::{decrypt, encrypt, EncryptionKey};
 use crate::errors::StorageResult;
+use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::{run_future_iter, Stream, StreamIteratorExt, ThreadedValue};
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
@@ -16,18 +18,38 @@ use crate::storage_provider::{
     DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 
-/// Turso storage backend.
+/// Turso storage backend with optional encryption support.
+///
+/// When an encryption key is provided, all values are encrypted at rest
+/// using ChaCha20-Poly1305 before being stored in the database.
+#[derive(Clone)]
 pub struct TursoStorage {
     conn: Arc<turso::Connection>,
+    encryption_key: Option<EncryptionKey>,
 }
 
 impl TursoStorage {
-    /// Create a new Turso storage connection.
+    /// Create a new Turso storage connection without encryption.
     ///
     /// # Errors
     ///
     /// Returns a `StorageError` if the database connection fails.
     pub fn new(url: &str) -> StorageResult<Self> {
+        Self::with_encryption(url, None)
+    }
+
+    /// Create a new Turso storage connection with optional encryption.
+    ///
+    /// When an encryption key is provided, all values are encrypted at rest
+    /// using ChaCha20-Poly1305 before being stored in the database.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `StorageError` if the database connection fails.
+    pub fn with_encryption(
+        url: &str,
+        encryption_key: Option<EncryptionKey>,
+    ) -> StorageResult<Self> {
         let url = url.to_string();
         let db: turso::Database =
             exec_future(async move { Builder::new_local(&url).build().await })?;
@@ -36,6 +58,7 @@ impl TursoStorage {
             .map_err(|e| StorageError::Backend(format!("Connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
+            encryption_key,
         })
     }
 
@@ -131,6 +154,43 @@ impl TursoStorage {
             DataValue::Blob(b) => turso::Value::Blob(b.clone()),
         }
     }
+
+    /// Encrypt a JSON-serialized value if encryption is enabled.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if encryption fails.
+    fn maybe_encrypt(&self, json_str: &str) -> StorageResult<String> {
+        match &self.encryption_key {
+            Some(key) => {
+                let encrypted = encrypt(key, json_str.as_bytes())?;
+                // Encode as base64 for safe storage in TEXT column
+                Ok(STANDARD.encode(&encrypted))
+            }
+            None => Ok(json_str.to_string()),
+        }
+    }
+
+    /// Decrypt a value if encryption is enabled.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if decryption fails.
+    fn maybe_decrypt(&self, stored_value: &str) -> StorageResult<String> {
+        match &self.encryption_key {
+            Some(key) => {
+                // Decode from base64
+                let encrypted = STANDARD
+                    .decode(stored_value)
+                    .map_err(|e| StorageError::Encryption(format!("Base64 decode failed: {e}")))?;
+                let decrypted = decrypt(key, &encrypted)?;
+                String::from_utf8(decrypted).map_err(|e| {
+                    StorageError::Encryption(format!("Invalid UTF-8 in decrypted data: {e}"))
+                })
+            }
+            None => Ok(stored_value.to_string()),
+        }
+    }
 }
 
 impl KeyValueStore for TursoStorage {
@@ -140,7 +200,9 @@ impl KeyValueStore for TursoStorage {
     ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
+        let storage = self.clone();
 
+        // First, get the encrypted value from the database
         let stream = schedule_future(async move {
             let mut stmt = conn
                 .prepare("SELECT value FROM kv_store WHERE key = ?")
@@ -148,8 +210,8 @@ impl KeyValueStore for TursoStorage {
             let mut rows = stmt.query([key]).await?;
             match rows.next().await? {
                 Some(row) => {
-                    let value: String = row.get(0)?;
-                    Ok::<_, turso::Error>(Some(value))
+                    let stored_value: String = row.get(0)?;
+                    Ok::<_, turso::Error>(Some(stored_value))
                 }
                 None => Ok::<_, turso::Error>(None),
             }
@@ -169,29 +231,39 @@ impl KeyValueStore for TursoStorage {
             }
         });
 
-        Ok(Box::new(circuit_stream.map_done(|opt_result| {
-            // opt_result: Result<Option<String>, StorageError>
-            // We want: Result<Option<V>, StorageError>
-            match opt_result {
-                Ok(Some(json_str)) => serde_json::from_str::<V>(&json_str)
-                    .map(Some)
-                    .map_err(|e| StorageError::Serialization(e.to_string())),
-                Ok(None) => Ok(None),
-                Err(e) => Err(e),
-            }
-        })))
+        // Now decrypt and deserialize in map_done
+        Ok(Box::new(circuit_stream.map_done(
+            move |opt_result: Result<Option<String>, StorageError>| {
+                match opt_result {
+                    Ok(Some(stored_value)) => {
+                        // Decrypt the value
+                        let json_str = storage
+                            .maybe_decrypt(&stored_value)
+                            .map_err(|e| StorageError::Encryption(e.to_string()))?;
+                        // Deserialize
+                        let value: V = serde_json::from_str(&json_str)
+                            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+                        Ok(Some(value))
+                    }
+                    Ok(None) => Ok(None),
+                    Err(e) => Err(e),
+                }
+            },
+        )))
     }
 
     fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
         let serialized = serde_json::to_string(&value)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        // Encrypt if encryption is enabled
+        let stored_value = self.maybe_encrypt(&serialized)?;
         let key = key.to_string();
         let conn = Arc::clone(&self.conn);
 
         let stream = schedule_future(async move {
             conn.execute(
                 "INSERT INTO kv_store (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 1000",
-                [key.clone(), serialized.clone(), serialized],
+                [key.clone(), stored_value.clone(), stored_value],
             )
             .await
         })?;

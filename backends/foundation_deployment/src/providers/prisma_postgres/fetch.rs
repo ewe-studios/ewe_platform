@@ -1,9 +1,9 @@
-//! Prisma Postgres OpenAPI spec fetcher.
+//! Prisma Postgres `` `OpenAPI` `` spec fetcher.
 //!
 //! WHY: Prisma Postgres is a managed database service for application
 //! deployments.
 //!
-//! WHAT: Fetches the Prisma Postgres API OpenAPI spec and writes it to the
+//! WHAT: Fetches the Prisma Postgres API `` `OpenAPI` `` spec and writes it to the
 //! provider's output directory.
 //!
 //! HOW: Delegates to `standard::fetch::fetch_standard_spec` for HTTP download.
@@ -15,13 +15,17 @@ use crate::providers::standard;
 use foundation_core::valtron::StreamIterator;
 use std::path::PathBuf;
 
-/// Prisma Postgres API OpenAPI spec URL.
+/// Prisma Postgres API `` `OpenAPI` `` spec URL.
 pub const SPEC_URL: &str = "https://api.prisma.io/v1/doc";
 
 /// Provider identifier.
 pub const PROVIDER_NAME: &str = "prisma_postgres";
 
-/// Fetch the Prisma Postgres OpenAPI spec.
+/// Fetch the Prisma Postgres `` `OpenAPI` `` spec.
+///
+/// # Errors
+///
+/// Returns `DeploymentError` if the HTTP fetch fails or writing the file fails.
 pub fn fetch_prisma_postgres_specs(
     output_dir: PathBuf,
 ) -> Result<
@@ -32,6 +36,11 @@ pub fn fetch_prisma_postgres_specs(
 }
 
 /// Process a fetched Prisma Postgres spec.
+///
+/// # Returns
+///
+/// Returns a `ProcessedSpec` with extracted endpoints and metadata.
+#[must_use]
 pub fn process_spec(spec: &serde_json::Value) -> ProcessedSpec {
     openapi::process_spec(spec)
 }

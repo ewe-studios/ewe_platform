@@ -250,9 +250,12 @@ fn resource_state_needs_deploy() {
     assert!(!created.needs_deploy(&hash), "same config = no deploy");
     assert!(created.needs_deploy(&diff), "different config = deploy");
 
-    let failed = make_state("worker", StateStatus::Failed {
-        error: "err".to_string(),
-    });
+    let failed = make_state(
+        "worker",
+        StateStatus::Failed {
+            error: "err".to_string(),
+        },
+    );
     assert!(failed.needs_deploy(&hash), "failed always deploys");
 
     let creating = make_state("worker", StateStatus::Creating);

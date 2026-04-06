@@ -10,6 +10,7 @@ use zeroize::Zeroizing;
 use crate::errors::{StorageError, StorageResult};
 
 /// 256-bit encryption key for ChaCha20-Poly1305.
+#[derive(Clone)]
 pub struct EncryptionKey([u8; 32]);
 
 impl EncryptionKey {
