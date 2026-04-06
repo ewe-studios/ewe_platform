@@ -8,12 +8,13 @@ use crate::backends::async_utils::{exec_future, schedule_future};
 use crate::crypto::{decrypt, encrypt, EncryptionKey};
 use crate::errors::StorageResult;
 use base64::{engine::general_purpose::STANDARD, Engine};
-use foundation_core::valtron::{run_future_iter, Stream, StreamIteratorExt, ThreadedValue};
+use foundation_core::valtron::{run_future_iter, ShortCircuit, Stream, StreamIteratorExt, ThreadedValue};
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
 use turso::Builder;
 
 use crate::errors::StorageError;
+use crate::rows_stream::RowsIterator;
 use crate::storage_provider::{
     DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
@@ -155,6 +156,31 @@ impl TursoStorage {
         }
     }
 
+    /// Convert `turso::Row` to crate-owned [`SqlRow`].
+    fn turso_row_to_sql_row(row: &turso::Row, column_count: i32) -> StorageResult<SqlRow> {
+        let mut columns = Vec::with_capacity(column_count.unsigned_abs() as usize);
+
+        for i in 0..column_count {
+            let name = format!("col{i}");
+            #[allow(clippy::cast_sign_loss)]
+            let value = Self::turso_value_to_data_value(row.get_value(i as usize)?);
+            columns.push((name, value));
+        }
+
+        Ok(SqlRow::new(columns))
+    }
+
+    /// Convert `turso::Value` to crate-owned [`DataValue`].
+    fn turso_value_to_data_value(value: turso::Value) -> DataValue {
+        match value {
+            turso::Value::Null => DataValue::Null,
+            turso::Value::Integer(i) => DataValue::Integer(i),
+            turso::Value::Real(r) => DataValue::Real(r),
+            turso::Value::Text(s) => DataValue::Text(s),
+            turso::Value::Blob(b) => DataValue::Blob(b),
+        }
+    }
+
     /// Encrypt a JSON-serialized value if encryption is enabled.
     ///
     /// # Errors
@@ -219,7 +245,6 @@ impl KeyValueStore for TursoStorage {
 
         // Use map_circuit to short-circuit on error, yielding error in stream
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(opt) => ShortCircuit::Continue(Stream::Next(Ok(opt))),
@@ -271,7 +296,6 @@ impl KeyValueStore for TursoStorage {
         // Use map_circuit to short-circuit on error, yielding error in stream
         // Then map_done to transform Ok(u64) -> Ok(())
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
@@ -299,7 +323,6 @@ impl KeyValueStore for TursoStorage {
 
         // Use map_circuit to short-circuit on error, yielding error in stream
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
@@ -330,7 +353,6 @@ impl KeyValueStore for TursoStorage {
 
         // Use map_circuit to short-circuit on error, yielding error in stream
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(val) => ShortCircuit::Continue(Stream::Next(Ok(val))),
@@ -346,8 +368,6 @@ impl KeyValueStore for TursoStorage {
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
-        use crate::rows_stream::RowsIterator;
-
         let (sql, param): (&str, String) = match prefix {
             Some(p) => (
                 "SELECT key FROM kv_store WHERE key LIKE ? ORDER BY key",
@@ -359,7 +379,6 @@ impl KeyValueStore for TursoStorage {
         let turso_params = Self::to_turso_params(&[DataValue::Text(param.clone())]);
         let conn = Arc::clone(&self.conn);
 
-        // Use run_future_iter for streaming query results
         let iter = run_future_iter(
             move || async move {
                 let mut stmt = conn
@@ -373,22 +392,18 @@ impl KeyValueStore for TursoStorage {
                 }
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-                Ok::<_, StorageError>(RowsIterator::new(rows))
+                Ok::<_, StorageError>(RowsIterator::new(rows, |row| {
+                    row.get::<String>(0)
+                        .map_err(|e| StorageError::SqlConversion(e.to_string()))
+                }))
             },
-            None, // default queue size
-            None, // default backpressure sleep
+            None,
+            None,
         )
         .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        // Convert ThreadedValue to Stream
         let stream = iter.map(|threaded_value| match threaded_value {
-            ThreadedValue::Value(row_result) => match row_result {
-                Ok(row) => match row.get::<String>(0) {
-                    Ok(key) => Stream::Next(Ok(key)),
-                    Err(e) => Stream::Next(Err(StorageError::SqlConversion(e.to_string()))),
-                },
-                Err(e) => Stream::Next(Err(e)),
-            },
+            ThreadedValue::Value(result) => Stream::Next(result),
         });
 
         Ok(Box::new(stream))
@@ -401,13 +416,10 @@ impl QueryStore for TursoStorage {
         sql: &str,
         params: &[DataValue],
     ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
-        use crate::rows_stream::RowsIterator;
-
         let turso_params = Self::to_turso_params(params);
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
 
-        // Use run_future_iter to spawn worker thread that owns !Send turso::Rows
         let iter = run_future_iter(
             move || async move {
                 let mut stmt = conn
@@ -418,14 +430,16 @@ impl QueryStore for TursoStorage {
                     .query(turso_params)
                     .await
                     .map_err(|e| StorageError::Backend(e.to_string()))?;
-                Ok::<_, StorageError>(RowsIterator::new(rows))
+                Ok::<_, StorageError>(RowsIterator::new(rows, |row| {
+                    #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap)]
+                    Self::turso_row_to_sql_row(row, row.column_count() as i32)
+                }))
             },
-            None, // default queue size
-            None, // default backpressure sleep
+            None,
+            None,
         )
         .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        // Convert ThreadedValue to Stream
         let stream = iter.map(|threaded_value| match threaded_value {
             ThreadedValue::Value(result) => Stream::Next(result),
         });
@@ -446,7 +460,6 @@ impl QueryStore for TursoStorage {
 
         // Use map_circuit to yield Ok(rows) or Err(e)
         let circuit_stream = raw_stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
@@ -469,7 +482,6 @@ impl QueryStore for TursoStorage {
 
         // Use map_circuit to yield Ok(()) or Err(e)
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(()) => ShortCircuit::Continue(Stream::Next(Ok(()))),
@@ -534,7 +546,6 @@ impl RateLimiterStore for TursoStorage {
 
         // Use map_circuit to yield Ok(value) or Err(e)
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(val) => ShortCircuit::Continue(Stream::Next(Ok(val))),
@@ -584,7 +595,6 @@ impl RateLimiterStore for TursoStorage {
 
         // Use map_circuit to yield Ok(value) or Err(e)
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(val) => ShortCircuit::Continue(Stream::Next(Ok(val))),
@@ -610,7 +620,6 @@ impl RateLimiterStore for TursoStorage {
 
         // Use map_circuit for error propagation, then map_done to transform u64 -> ()
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(Ok(rows)) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
                 Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(

@@ -15,6 +15,7 @@ use foundation_core::wire::simple_http::{SendSafeBody, SimpleHeader, Status};
 
 use super::traits::{StateStore, StateStoreStream};
 use super::types::{ResourceState, StateStatus};
+use crate::crypto::ZeroizingString;
 use crate::errors::StorageError;
 
 const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
@@ -31,7 +32,7 @@ const UPSERT_SQL: &str =
 /// Executes SQL over HTTP via the Cloudflare D1 API.
 /// Uses `SimpleHttpClient` for all requests — synchronous, no Valtron.
 pub struct D1StateStore {
-    api_token: String,
+    api_token: ZeroizingString,
     account_id: String,
     database_id: String,
     client: SimpleHttpClient,
@@ -42,7 +43,7 @@ impl D1StateStore {
     #[must_use]
     pub fn new(api_token: &str, account_id: &str, database_id: &str) -> Self {
         Self {
-            api_token: api_token.to_string(),
+            api_token: ZeroizingString::from_string(api_token.to_string()),
             account_id: account_id.to_string(),
             database_id: database_id.to_string(),
             client: SimpleHttpClient::from_system(),
@@ -79,7 +80,7 @@ impl D1StateStore {
     }
 
     fn auth_header(&self) -> String {
-        format!("Bearer {}", self.api_token)
+        format!("Bearer {}", self.api_token.as_str())
     }
 
     /// Execute a SQL query via the D1 HTTP API and return the parsed response.
@@ -230,13 +231,18 @@ impl StateStore for D1StateStore {
     fn list(&self) -> Result<StateStoreStream<String>, StorageError> {
         let response = self.execute_sql("SELECT id FROM deployment_resources ORDER BY id", &[])?;
         let rows = Self::extract_rows(&response);
-        let mut ids = Vec::new();
-        for row in &rows {
-            if let Some(id) = row.get("id").and_then(serde_json::Value::as_str) {
-                ids.push(id.to_string());
-            }
-        }
-        Ok(Self::wrap_vec(ids))
+        let ids: Result<Vec<String>, StorageError> = rows
+            .iter()
+            .map(|row| {
+                row.get("id")
+                    .and_then(serde_json::Value::as_str)
+                    .map(String::from)
+                    .ok_or_else(|| {
+                        StorageError::SqlConversion("missing id field".to_string())
+                    })
+            })
+            .collect();
+        Ok(Self::wrap_vec(ids?))
     }
 
     fn count(&self) -> Result<StateStoreStream<usize>, StorageError> {
@@ -270,18 +276,31 @@ impl StateStore for D1StateStore {
     }
 
     fn get_batch(&self, ids: &[&str]) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        let mut results = Vec::new();
-        for id in ids {
-            let response = self.execute_sql(
-                "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM deployment_resources WHERE id = ?",
-                &[serde_json::Value::String((*id).to_string())],
-            )?;
-            let rows = Self::extract_rows(&response);
-            if let Some(row) = rows.first() {
-                results.push(Self::parse_row(row)?);
-            }
+        if ids.is_empty() {
+            return Ok(Self::wrap_vec(Vec::new()));
         }
-        Ok(Self::wrap_vec(results))
+
+        // Build IN clause placeholders
+        let placeholders = ids
+            .iter()
+            .map(|_| "?")
+            .collect::<Vec<_>>()
+            .join(",");
+        let sql = format!(
+            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM deployment_resources WHERE id IN ({placeholders})"
+        );
+        let params: Vec<serde_json::Value> = ids
+            .iter()
+            .map(|id| serde_json::Value::String((*id).to_string()))
+            .collect();
+
+        let response = self.execute_sql(&sql, &params)?;
+        let rows = Self::extract_rows(&response);
+        let results: Result<Vec<_>, _> = rows
+            .iter()
+            .map(Self::parse_row)
+            .collect();
+        Ok(Self::wrap_vec(results?))
     }
 
     fn all(&self) -> Result<StateStoreStream<ResourceState>, StorageError> {
@@ -290,11 +309,11 @@ impl StateStore for D1StateStore {
             &[],
         )?;
         let rows = Self::extract_rows(&response);
-        let mut results = Vec::new();
-        for row in &rows {
-            results.push(Self::parse_row(row)?);
-        }
-        Ok(Self::wrap_vec(results))
+        let results: Result<Vec<_>, _> = rows
+            .iter()
+            .map(Self::parse_row)
+            .collect();
+        Ok(Self::wrap_vec(results?))
     }
 
     fn set(

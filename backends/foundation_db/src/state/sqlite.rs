@@ -14,12 +14,13 @@
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use foundation_core::valtron::ThreadedValue;
+use foundation_core::valtron::{run_future_iter, Stream, ThreadedValue};
 
 use super::traits::{StateStore, StateStoreStream};
 use super::types::{ResourceState, StateStatus};
 use crate::backends::async_utils::{exec_future, schedule_future};
 use crate::errors::StorageError;
+use crate::rows_stream::LibsqlRowsIterator;
 
 /// SQL schema for the resources table.
 pub const CREATE_TABLE_SQL: &str = r"
@@ -194,7 +195,6 @@ pub fn to_state_stream<T: Send + 'static>(
         + Send
         + 'static,
 ) -> StateStoreStream<T> {
-    use foundation_core::valtron::Stream;
     Box::new(stream.filter_map(|item| match item {
         Stream::Next(result) => Some(ThreadedValue::Value(result)),
         _ => None,
@@ -210,40 +210,28 @@ impl StateStore for SqliteStateStore {
 
     fn list(&self) -> Result<StateStoreStream<String>, StorageError> {
         let conn = Arc::clone(&self.conn);
-        let stream = schedule_future(async move {
-            let mut stmt = conn
-                .prepare("SELECT id FROM deployment_resources ORDER BY id")
-                .await?;
-            let mut rows = stmt.query([libsql::Value::Null; 0]).await?;
-            let mut ids = Vec::new();
-            while let Some(row) = rows.next().await? {
-                let id: String = row.get(0)?;
-                ids.push(id);
-            }
-            Ok::<_, libsql::Error>(ids)
-        })?;
 
-        use foundation_core::valtron::{ShortCircuit, Stream, StreamIteratorExt};
-        let circuit = stream.map_circuit(|item| match item {
-            Stream::Next(Ok(ids)) => ShortCircuit::Continue(Stream::Next(Ok(ids))),
-            Stream::Next(Err(e)) => {
-                ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string()))))
-            }
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        });
+        let iter = run_future_iter(
+            move || async move {
+                let mut stmt = conn
+                    .prepare("SELECT id FROM deployment_resources ORDER BY id")
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = stmt
+                    .query([libsql::Value::Null; 0])
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, |row| {
+                    row.get::<String>(0)
+                        .map_err(|e| StorageError::SqlConversion(e.to_string()))
+                }))
+            },
+            None,
+            None,
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        let flat = circuit.flat_map_next(|result| match result {
-            Ok(ids) => ids.into_iter().map(Ok).collect(),
-            Err(e) => vec![Err(e)],
-        });
-
-        Ok(Box::new(flat.filter_map(|item| {
-            use foundation_core::valtron::Stream;
-            match item {
-                Stream::Next(result) => Some(ThreadedValue::Value(result)),
-                _ => None,
-            }
-        })))
+        Ok(Box::new(iter))
     }
 
     fn count(&self) -> Result<StateStoreStream<usize>, StorageError> {
@@ -300,90 +288,62 @@ impl StateStore for SqliteStateStore {
         }
         let owned_ids: Vec<String> = ids.iter().map(|s| (*s).to_string()).collect();
         let conn = Arc::clone(&self.conn);
-        let stream = schedule_future(async move {
-            let mut results = Vec::new();
-            for id in &owned_ids {
+
+        let iter = run_future_iter(
+            move || async move {
+                let placeholders = owned_ids
+                    .iter()
+                    .map(|_| "?")
+                    .collect::<Vec<_>>()
+                    .join(",");
+                let sql = format!(
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM deployment_resources WHERE id IN ({})",
+                    placeholders
+                );
+                let params: Vec<libsql::Value> = owned_ids
+                    .iter()
+                    .map(|id| libsql::Value::Text(id.clone()))
+                    .collect();
+
                 let mut stmt = conn
-                    .prepare("SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM deployment_resources WHERE id = ?")
+                    .prepare(&sql)
                     .await
                     .map_err(|e| StorageError::Backend(e.to_string()))?;
-                let mut rows = stmt
-                    .query([id.clone()])
+                let rows = stmt
+                    .query(params)
                     .await
                     .map_err(|e| StorageError::Backend(e.to_string()))?;
-                if let Some(row) = rows
-                    .next()
-                    .await
-                    .map_err(|e| StorageError::Backend(e.to_string()))?
-                {
-                    results.push(parse_resource_row(&row)?);
-                }
-            }
-            Ok::<_, StorageError>(results)
-        })?;
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, parse_resource_row))
+            },
+            None,
+            None,
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        use foundation_core::valtron::{ShortCircuit, Stream, StreamIteratorExt};
-        let circuit = stream.map_circuit(|item| match item {
-            Stream::Next(Ok(results)) => ShortCircuit::Continue(Stream::Next(Ok(results))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(e))),
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        });
-
-        let flat = circuit.flat_map_next(|result| match result {
-            Ok(states) => states.into_iter().map(Ok).collect(),
-            Err(e) => vec![Err(e)],
-        });
-
-        Ok(Box::new(flat.filter_map(|item| {
-            use foundation_core::valtron::Stream;
-            match item {
-                Stream::Next(result) => Some(ThreadedValue::Value(result)),
-                _ => None,
-            }
-        })))
+        Ok(Box::new(iter))
     }
 
     fn all(&self) -> Result<StateStoreStream<ResourceState>, StorageError> {
         let conn = Arc::clone(&self.conn);
-        let stream = schedule_future(async move {
-            let mut stmt = conn
-                .prepare("SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM deployment_resources ORDER BY id")
-                .await
-                .map_err(|e| StorageError::Backend(e.to_string()))?;
-            let mut rows = stmt
-                .query([libsql::Value::Null; 0])
-                .await
-                .map_err(|e| StorageError::Backend(e.to_string()))?;
-            let mut results = Vec::new();
-            while let Some(row) = rows
-                .next()
-                .await
-                .map_err(|e| StorageError::Backend(e.to_string()))?
-            {
-                results.push(parse_resource_row(&row)?);
-            }
-            Ok::<_, StorageError>(results)
-        })?;
 
-        use foundation_core::valtron::{ShortCircuit, Stream, StreamIteratorExt};
-        let circuit = stream.map_circuit(|item| match item {
-            Stream::Next(Ok(results)) => ShortCircuit::Continue(Stream::Next(Ok(results))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(e))),
-            _ => ShortCircuit::Continue(Stream::Ignore),
-        });
+        let iter = run_future_iter(
+            move || async move {
+                let mut stmt = conn
+                    .prepare("SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM deployment_resources ORDER BY id")
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = stmt
+                    .query([libsql::Value::Null; 0])
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, parse_resource_row))
+            },
+            None,
+            None,
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        let flat = circuit.flat_map_next(|result| match result {
-            Ok(states) => states.into_iter().map(Ok).collect(),
-            Err(e) => vec![Err(e)],
-        });
-
-        Ok(Box::new(flat.filter_map(|item| {
-            use foundation_core::valtron::Stream;
-            match item {
-                Stream::Next(result) => Some(ThreadedValue::Value(result)),
-                _ => None,
-            }
-        })))
+        Ok(Box::new(iter))
     }
 
     fn set(

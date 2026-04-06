@@ -6,15 +6,16 @@
 
 use crate::backends::async_utils::{exec_future, schedule_future};
 use crate::errors::StorageResult;
-use foundation_core::valtron::{run_future_iter, Stream, StreamIteratorExt, ThreadedValue};
+use crate::rows_stream::LibsqlRowsIterator;
+use crate::storage_provider::{
+    DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+};
+use foundation_core::valtron::{run_future_iter, ShortCircuit, Stream, StreamIteratorExt, ThreadedValue};
 use libsql::Builder;
 use serde::{de::DeserializeOwned, Serialize};
 use std::sync::Arc;
 
 use crate::errors::StorageError;
-use crate::storage_provider::{
-    DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
-};
 
 /// libsql storage backend.
 pub struct LibsqlStorage {
@@ -178,7 +179,6 @@ impl KeyValueStore for LibsqlStorage {
 
         // Use map_circuit to short-circuit on error, yielding error in stream
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(opt) => ShortCircuit::Continue(Stream::Next(Ok(opt))),
@@ -217,7 +217,6 @@ impl KeyValueStore for LibsqlStorage {
 
         // Use map_circuit to yield errors in stream, then map_done to transform u64 -> ()
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
@@ -245,7 +244,6 @@ impl KeyValueStore for LibsqlStorage {
 
         // Use map_circuit to yield errors in stream, then map_done to transform u64 -> ()
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
@@ -271,12 +269,11 @@ impl KeyValueStore for LibsqlStorage {
                 .prepare("SELECT 1 FROM kv_store WHERE key = ? LIMIT 1")
                 .await?;
             let mut rows = stmt.query([key]).await?;
-            Ok(rows.next().await?.is_some())
+            Ok::<bool, libsql::Error>(rows.next().await?.is_some())
         })?;
 
         // Use map_circuit to yield errors in stream
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(b) => ShortCircuit::Continue(Stream::Next(Ok(b))),
@@ -302,43 +299,36 @@ impl KeyValueStore for LibsqlStorage {
 
         let conn = Arc::clone(&self.conn);
 
-        let stream = schedule_future(async move {
-            let mut stmt = conn.prepare(sql).await?;
-            let mut rows = if param.is_empty() {
-                stmt.query([libsql::Value::Null; 0]).await?
-            } else {
-                stmt.query([param]).await?
-            };
+        let iter = run_future_iter(
+            move || async move {
+                let mut stmt = conn
+                    .prepare(&sql)
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?;
+                let rows = if param.is_empty() {
+                    stmt.query([libsql::Value::Null; 0])
+                        .await
+                        .map_err(|e| StorageError::Backend(e.to_string()))?
+                } else {
+                    stmt.query([param])
+                        .await
+                        .map_err(|e| StorageError::Backend(e.to_string()))?
+                };
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, |row| {
+                    row.get::<String>(0)
+                        .map_err(|e| StorageError::SqlConversion(e.to_string()))
+                }))
+            },
+            None,
+            None,
+        )
+        .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-            let mut keys = Vec::new();
-            while let Some(row) = rows.next().await? {
-                if let Ok(key) = row.get::<String>(0) {
-                    keys.push(key);
-                }
-            }
-            Ok::<_, libsql::Error>(keys)
-        })?;
-
-        // Use map_circuit to yield errors, then flat_map_next to expand Vec into iterator
-        let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
-            match stream_item {
-                Stream::Next(result) => match result {
-                    Ok(keys) => ShortCircuit::Continue(Stream::Next(Ok(keys))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                        StorageError::Backend(e.to_string()),
-                    ))),
-                },
-                _ => ShortCircuit::Continue(Stream::Ignore),
-            }
+        let stream = iter.map(|threaded_value| match threaded_value {
+            ThreadedValue::Value(result) => Stream::Next(result),
         });
 
-        Ok(Box::new(circuit_stream.flat_map_next(
-            |keys_result| match keys_result {
-                Ok(keys) => keys.into_iter().map(Ok).collect(),
-                Err(e) => vec![Err(e)],
-            },
-        )))
+        Ok(Box::new(stream))
     }
 }
 
@@ -348,14 +338,10 @@ impl QueryStore for LibsqlStorage {
         sql: &str,
         params: &[DataValue],
     ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
-        use crate::rows_stream::LibsqlRowsIterator;
-        use foundation_core::valtron::Stream;
-
         let libsql_params = Self::to_libsql_params(params);
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
 
-        // Use run_future_iter to spawn worker thread that owns !Send libsql::Rows
         let iter = run_future_iter(
             move || async move {
                 let mut stmt = conn
@@ -366,14 +352,15 @@ impl QueryStore for LibsqlStorage {
                     .query(libsql_params)
                     .await
                     .map_err(|e| StorageError::Backend(e.to_string()))?;
-                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows))
+                Ok::<_, StorageError>(LibsqlRowsIterator::new(rows, |row| {
+                    Self::libsql_row_to_sql_row(row, row.column_count())
+                }))
             },
-            None, // default queue size
-            None, // default backpressure sleep
+            None,
+            None,
         )
         .map_err(|e| StorageError::Backend(e.to_string()))?;
 
-        // Convert ThreadedValue to Stream
         let stream = iter.map(|threaded_value| match threaded_value {
             ThreadedValue::Value(result) => Stream::Next(result),
         });
@@ -394,7 +381,6 @@ impl QueryStore for LibsqlStorage {
 
         // Use map_circuit to yield errors in stream
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows as u64))),
@@ -413,14 +399,16 @@ impl QueryStore for LibsqlStorage {
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);
 
-        let stream = schedule_future(async move { conn.execute_batch(&sql).await })?;
+        let stream = schedule_future(async move {
+            conn.execute_batch(&sql).await?;
+            Ok::<_, libsql::Error>(())
+        })?;
 
-        // Use map_circuit to yield errors in stream, then map_done to transform Result<(), libsql::Error> -> Result<(), StorageError>
+        // Use map_circuit to yield Ok(()) or Err(e)
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
-                    Ok(_) => ShortCircuit::Continue(Stream::Next(Ok(()))),
+                    Ok(()) => ShortCircuit::Continue(Stream::Next(Ok(()))),
                     Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
                         StorageError::Backend(e.to_string()),
                     ))),
@@ -481,7 +469,6 @@ impl RateLimiterStore for LibsqlStorage {
 
         // Use map_circuit to yield errors in stream
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(b) => ShortCircuit::Continue(Stream::Next(Ok(b))),
@@ -531,7 +518,6 @@ impl RateLimiterStore for LibsqlStorage {
 
         // Use map_circuit to yield errors in stream
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(count) => ShortCircuit::Continue(Stream::Next(Ok(count))),
@@ -552,15 +538,15 @@ impl RateLimiterStore for LibsqlStorage {
 
         let stream = schedule_future(async move {
             conn.execute("DELETE FROM rate_limits WHERE key = ?", [key])
-                .await
+                .await?;
+            Ok::<_, libsql::Error>(())
         })?;
 
-        // Use map_circuit to yield errors in stream, then map_done to transform
+        // Use map_circuit to yield Ok(()) or Err(e)
         let circuit_stream = stream.map_circuit(|stream_item| {
-            use foundation_core::valtron::ShortCircuit;
             match stream_item {
                 Stream::Next(result) => match result {
-                    Ok(_) => ShortCircuit::Continue(Stream::Next(Ok(()))),
+                    Ok(()) => ShortCircuit::Continue(Stream::Next(Ok(()))),
                     Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
                         StorageError::Backend(e.to_string()),
                     ))),
