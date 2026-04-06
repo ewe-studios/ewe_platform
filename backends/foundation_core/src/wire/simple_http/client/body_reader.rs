@@ -28,6 +28,7 @@
 use crate::wire::simple_http::{
     ChunkedData, HttpReaderError, IncomingResponseParts, LineFeed, SendSafeBody,
 };
+use crate::extensions::result_ext::BoxedError;
 use serde::de::DeserializeOwned;
 
 // ============================================================================
@@ -559,6 +560,154 @@ pub fn collect_bytes_direct(
     bytes
 }
 
+// ============================================================================
+// Internal Helper Functions for SendSafeBody Processing
+// ============================================================================
+
+/// Process a stream iterator, collecting bytes into a Vec.
+/// Used internally by collect_bytes_from_send_safe for Stream variant.
+fn collect_from_stream<I>(iter: I) -> Vec<u8>
+where
+    I: Iterator<Item = Result<Vec<u8>, BoxedError>>,
+{
+    let mut bytes = Vec::new();
+    for chunk_result in iter {
+        match chunk_result {
+            Ok(data) => bytes.extend_from_slice(&data),
+            Err(e) => {
+                tracing::warn!("Stream error during byte collection: {e}");
+                break;
+            }
+        }
+    }
+    bytes
+}
+
+/// Process a chunked stream iterator, collecting bytes into a Vec.
+/// Used internally by collect_bytes_from_send_safe for ChunkedStream variant.
+fn collect_from_chunked_stream<I>(iter: I) -> Vec<u8>
+where
+    I: Iterator<Item = Result<ChunkedData, BoxedError>>,
+{
+    let mut bytes = Vec::new();
+    for chunk_result in iter {
+        match chunk_result {
+            Ok(ChunkedData::Data(data, _)) => {
+                bytes.extend_from_slice(&data);
+            }
+            Ok(ChunkedData::Trailers(_)) => {
+                // Silently ignore trailers
+            }
+            Ok(ChunkedData::DataEnded) => break,
+            Err(e) => {
+                tracing::warn!("Chunked stream error: {e}");
+                break;
+            }
+        }
+    }
+    bytes
+}
+
+/// Process a line-feed stream iterator, collecting bytes into a Vec.
+/// Used internally by collect_bytes_from_send_safe for LineFeedStream variant.
+fn collect_from_linefeed_stream<I>(iter: I) -> Vec<u8>
+where
+    I: Iterator<Item = Result<LineFeed, BoxedError>>,
+{
+    let mut bytes = Vec::new();
+    for line_result in iter {
+        match line_result {
+            Ok(LineFeed::Line(line)) => {
+                bytes.extend_from_slice(line.as_bytes());
+                bytes.push(b'\n');
+            }
+            Ok(LineFeed::SKIP | LineFeed::END) => continue,
+            Err(e) => {
+                tracing::warn!("Line stream error: {e}");
+                break;
+            }
+        }
+    }
+    bytes
+}
+
+/// Process a stream iterator, writing bytes to a writer.
+/// Returns total bytes written or first error encountered.
+fn write_from_stream<I, W>(iter: I, writer: &mut W) -> Result<u64, Box<dyn std::error::Error + Send + Sync>>
+where
+    I: Iterator<Item = Result<Vec<u8>, BoxedError>>,
+    W: std::io::Write,
+{
+    let mut total_bytes: u64 = 0;
+    for chunk_result in iter {
+        match chunk_result {
+            Ok(data) => {
+                writer.write_all(&data)?;
+                total_bytes += data.len() as u64;
+            }
+            Err(e) => {
+                return Err(format!("Stream error during write: {e}").into());
+            }
+        }
+    }
+    Ok(total_bytes)
+}
+
+/// Process a chunked stream iterator, writing bytes to a writer.
+/// Returns total bytes written or first error encountered.
+fn write_from_chunked_stream<I, W>(iter: I, writer: &mut W) -> Result<u64, Box<dyn std::error::Error + Send + Sync>>
+where
+    I: Iterator<Item = Result<ChunkedData, BoxedError>>,
+    W: std::io::Write,
+{
+    let mut total_bytes: u64 = 0;
+    for chunk_result in iter {
+        match chunk_result {
+            Ok(ChunkedData::Data(data, _)) => {
+                writer.write_all(&data)?;
+                total_bytes += data.len() as u64;
+            }
+            Ok(ChunkedData::Trailers(_)) => {
+                // Silently ignore trailers
+            }
+            Ok(ChunkedData::DataEnded) => break,
+            Err(e) => {
+                return Err(format!("Chunked stream error during write: {e}").into());
+            }
+        }
+    }
+    Ok(total_bytes)
+}
+
+/// Process a line-feed stream iterator, writing bytes to a writer.
+/// Returns total bytes written or first error encountered.
+fn write_from_linefeed_stream<I, W>(iter: I, writer: &mut W) -> Result<u64, Box<dyn std::error::Error + Send + Sync>>
+where
+    I: Iterator<Item = Result<LineFeed, BoxedError>>,
+    W: std::io::Write,
+{
+    let mut total_bytes: u64 = 0;
+    for line_result in iter {
+        match line_result {
+            Ok(LineFeed::Line(line)) => {
+                writer.write_all(line.as_bytes())?;
+                total_bytes += line.len() as u64;
+                writer.write_all(&[b'\n'])?;
+                total_bytes += 1;
+            }
+            Ok(LineFeed::SKIP | LineFeed::END) => continue,
+            Err(e) => {
+                return Err(format!("Line stream error during write: {e}").into());
+            }
+        }
+    }
+    Ok(total_bytes)
+}
+
+// ============================================================================
+// SendSafeBody Byte Collection
+// ============================================================================
+
 /// Collect response body as bytes directly from a `SendSafeBody`.
 ///
 /// WHY: When you already have a `SendSafeBody` (e.g., from a collected response),
@@ -589,61 +738,84 @@ pub fn collect_bytes_from_send_safe(body: SendSafeBody) -> Vec<u8> {
         SendSafeBody::Bytes(b) => b,
         SendSafeBody::None => Vec::new(),
         SendSafeBody::Stream(mut opt_iter) => {
-            let mut bytes = Vec::new();
-            if let Some(iter) = opt_iter.take() {
-                for chunk_result in iter {
-                    match chunk_result {
-                        Ok(data) => bytes.extend_from_slice(&data),
-                        Err(e) => {
-                            tracing::warn!("Stream error during byte collection: {e}");
-                            break;
-                        }
-                    }
-                }
-            }
-            bytes
+            opt_iter.take().map_or(Vec::new(), collect_from_stream)
         }
         SendSafeBody::ChunkedStream(mut opt_iter) => {
-            let mut bytes = Vec::new();
-            if let Some(iter) = opt_iter.take() {
-                for chunk_result in iter {
-                    match chunk_result {
-                        Ok(ChunkedData::Data(data, _)) => {
-                            bytes.extend_from_slice(&data);
-                        }
-                        Ok(ChunkedData::Trailers(_)) => {
-                            // Silently ignore trailers
-                        }
-                        Ok(ChunkedData::DataEnded) => break,
-                        Err(e) => {
-                            tracing::warn!("Chunked stream error: {e}");
-                            break;
-                        }
-                    }
-                }
-            }
-            bytes
+            opt_iter.take().map_or(Vec::new(), collect_from_chunked_stream)
         }
         SendSafeBody::LineFeedStream(mut opt_iter) => {
-            let mut bytes = Vec::new();
-            if let Some(iter) = opt_iter.take() {
-                for line_result in iter {
-                    match line_result {
-                        Ok(LineFeed::Line(line)) => {
-                            bytes.extend_from_slice(line.as_bytes());
-                            bytes.push(b'\n');
-                        }
-                        Ok(LineFeed::SKIP | LineFeed::END) => continue,
-                        Err(e) => {
-                            tracing::warn!("Line stream error: {e}");
-                            break;
-                        }
-                    }
-                }
-            }
-            bytes
+            opt_iter.take().map_or(Vec::new(), collect_from_linefeed_stream)
         }
     }
+}
+
+/// Stream response body from `SendSafeBody` directly into an `io::Write` implementer.
+///
+/// WHY: For large files or streaming scenarios, writing directly to a file or socket
+/// avoids allocating the entire body in memory.
+///
+/// WHAT: Handles all `SendSafeBody` variants and streams data directly to the writer.
+/// Returns errors to the caller for proper error handling.
+///
+/// HOW: Matches on the body variant and writes chunks directly to the writer.
+/// Returns the total bytes written on success, or the first error encountered.
+///
+/// # Type Parameters
+///
+/// * `W` - Writer type implementing `std::io::Write`
+///
+/// # Arguments
+///
+/// * `body` - The `SendSafeBody` to stream from
+/// * `writer` - The writer to stream data into
+///
+/// # Returns
+///
+/// `Result<u64, Box<dyn std::error::Error + Send + Sync>>` - Total bytes written on success, error on failure.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// // Download directly to file
+/// let response = client.get(url).send()?;
+/// let (_, _, body, ..) = response.into_parts();
+/// let mut file = std::fs::File::create("download.bin")?;
+/// let bytes_written = collect_bytes_into(body, &mut file)?;
+/// ```
+pub fn collect_bytes_into<W: std::io::Write>(body: SendSafeBody, writer: &mut W) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
+    let mut total_bytes: u64 = 0;
+
+    match body {
+        SendSafeBody::Text(t) => {
+            let bytes = t.as_bytes();
+            writer.write_all(bytes)?;
+            total_bytes = bytes.len() as u64;
+        }
+        SendSafeBody::Bytes(b) => {
+            writer.write_all(&b)?;
+            total_bytes = b.len() as u64;
+        }
+        SendSafeBody::None => {
+            // No body to write
+        }
+        SendSafeBody::Stream(mut opt_iter) => {
+            if let Some(iter) = opt_iter.take() {
+                total_bytes = write_from_stream(iter, writer)?;
+            }
+        }
+        SendSafeBody::ChunkedStream(mut opt_iter) => {
+            if let Some(iter) = opt_iter.take() {
+                total_bytes = write_from_chunked_stream(iter, writer)?;
+            }
+        }
+        SendSafeBody::LineFeedStream(mut opt_iter) => {
+            if let Some(iter) = opt_iter.take() {
+                total_bytes = write_from_linefeed_stream(iter, writer)?;
+            }
+        }
+    }
+
+    Ok(total_bytes)
 }
 
 // ============================================================================
@@ -1065,6 +1237,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::extensions::result_ext::{BoxedError, SendableBoxedError};
     use serde::Deserialize;
 
     #[test]
@@ -1168,5 +1341,378 @@ mod tests {
         let invalid_json = r#"{"data": invalid}"#;
         let result = ApiResponse::parse(invalid_json, "test");
         assert_eq!(result, Vec::<String>::new());
+    }
+
+    // ========================================================================
+    // Tests for internal helper functions
+    // ========================================================================
+
+    /// Helper to create a BoxedError for testing
+    fn make_error(msg: &str) -> BoxedError {
+        msg.to_string().into()
+    }
+
+    #[test]
+    fn test_collect_from_stream_success() {
+        let data = vec![
+            Ok(b"hello".to_vec()),
+            Ok(b" ".to_vec()),
+            Ok(b"world".to_vec()),
+        ];
+        let result = collect_from_stream(data.into_iter());
+        assert_eq!(result, b"hello world".to_vec());
+    }
+
+    #[test]
+    fn test_collect_from_stream_error() {
+        let data: Vec<Result<Vec<u8>, BoxedError>> = vec![
+            Ok(b"hello".to_vec()),
+            Err(make_error("stream error")),
+        ];
+        let result = collect_from_stream(data.into_iter());
+        // Should collect what it got before error
+        assert_eq!(result, b"hello".to_vec());
+    }
+
+    #[test]
+    fn test_collect_from_stream_empty() {
+        let data: Vec<Result<Vec<u8>, BoxedError>> = vec![];
+        let result = collect_from_stream(data.into_iter());
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_collect_from_chunked_stream_success() {
+        let data = vec![
+            Ok(ChunkedData::Data(b"chunk1".to_vec(), None)),
+            Ok(ChunkedData::Data(b"chunk2".to_vec(), None)),
+            Ok(ChunkedData::DataEnded),
+        ];
+        let result = collect_from_chunked_stream(data.into_iter());
+        assert_eq!(result, b"chunk1chunk2".to_vec());
+    }
+
+    #[test]
+    fn test_collect_from_chunked_stream_with_trailers() {
+        let data = vec![
+            Ok(ChunkedData::Data(b"data".to_vec(), None)),
+            Ok(ChunkedData::Trailers(vec![])),
+            Ok(ChunkedData::DataEnded),
+        ];
+        let result = collect_from_chunked_stream(data.into_iter());
+        assert_eq!(result, b"data".to_vec());
+    }
+
+    #[test]
+    fn test_collect_from_chunked_stream_error() {
+        let data: Vec<Result<ChunkedData, BoxedError>> = vec![
+            Ok(ChunkedData::Data(b"hello".to_vec(), None)),
+            Err(make_error("chunked error")),
+        ];
+        let result = collect_from_chunked_stream(data.into_iter());
+        assert_eq!(result, b"hello".to_vec());
+    }
+
+    #[test]
+    fn test_collect_from_linefeed_stream_success() {
+        let data = vec![
+            Ok(LineFeed::Line("line1".to_string())),
+            Ok(LineFeed::Line("line2".to_string())),
+            Ok(LineFeed::END),
+        ];
+        let result = collect_from_linefeed_stream(data.into_iter());
+        // Each line gets \n appended
+        assert_eq!(result, b"line1\nline2\n".to_vec());
+    }
+
+    #[test]
+    fn test_collect_from_linefeed_stream_with_skip() {
+        let data = vec![
+            Ok(LineFeed::Line("line1".to_string())),
+            Ok(LineFeed::SKIP),
+            Ok(LineFeed::Line("line2".to_string())),
+            Ok(LineFeed::END),
+        ];
+        let result = collect_from_linefeed_stream(data.into_iter());
+        assert_eq!(result, b"line1\nline2\n".to_vec());
+    }
+
+    #[test]
+    fn test_collect_from_linefeed_stream_error() {
+        let data: Vec<Result<LineFeed, BoxedError>> = vec![
+            Ok(LineFeed::Line("line1".to_string())),
+            Err(make_error("line error")),
+        ];
+        let result = collect_from_linefeed_stream(data.into_iter());
+        assert_eq!(result, b"line1\n".to_vec());
+    }
+
+    // ========================================================================
+    // Tests for write_* helper functions
+    // ========================================================================
+
+    #[test]
+    fn test_write_from_stream_success() {
+        let data = vec![
+            Ok(b"hello".to_vec()),
+            Ok(b" world".to_vec()),
+        ];
+        let mut output = Vec::new();
+        let result = write_from_stream(data.into_iter(), &mut output);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 11);
+        assert_eq!(output, b"hello world".to_vec());
+    }
+
+    #[test]
+    fn test_write_from_stream_error() {
+        let data: Vec<Result<Vec<u8>, BoxedError>> = vec![
+            Ok(b"hello".to_vec()),
+            Err(make_error("write error")),
+        ];
+        let mut output = Vec::new();
+        let result = write_from_stream(data.into_iter(), &mut output);
+        assert!(result.is_err());
+        assert_eq!(output, b"hello".to_vec());
+    }
+
+    #[test]
+    fn test_write_from_chunked_stream_success() {
+        let data = vec![
+            Ok(ChunkedData::Data(b"chunk1".to_vec(), None)),
+            Ok(ChunkedData::Data(b"chunk2".to_vec(), None)),
+            Ok(ChunkedData::DataEnded),
+        ];
+        let mut output = Vec::new();
+        let result = write_from_chunked_stream(data.into_iter(), &mut output);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 12);
+        assert_eq!(output, b"chunk1chunk2".to_vec());
+    }
+
+    #[test]
+    fn test_write_from_linefeed_stream_success() {
+        let data = vec![
+            Ok(LineFeed::Line("line1".to_string())),
+            Ok(LineFeed::Line("line2".to_string())),
+            Ok(LineFeed::END),
+        ];
+        let mut output = Vec::new();
+        let result = write_from_linefeed_stream(data.into_iter(), &mut output);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 12);
+        assert_eq!(output, b"line1\nline2\n".to_vec());
+    }
+
+    // ========================================================================
+    // Tests for collect_bytes_from_send_safe
+    // ========================================================================
+
+    #[test]
+    fn test_collect_bytes_from_send_safe_text() {
+        let body = SendSafeBody::Text("hello world".to_string());
+        let result = collect_bytes_from_send_safe(body);
+        assert_eq!(result, b"hello world".to_vec());
+    }
+
+    #[test]
+    fn test_collect_bytes_from_send_safe_bytes() {
+        let body = SendSafeBody::Bytes(b"binary data".to_vec());
+        let result = collect_bytes_from_send_safe(body);
+        assert_eq!(result, b"binary data".to_vec());
+    }
+
+    #[test]
+    fn test_collect_bytes_from_send_safe_none() {
+        let body = SendSafeBody::None;
+        let result = collect_bytes_from_send_safe(body);
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_collect_bytes_from_send_safe_stream() {
+        // Use SendableBoxedError which has Send + Sync for the iterator
+        let stream_data: Vec<Result<Vec<u8>, SendableBoxedError>> = vec![
+            Ok(b"chunk1".to_vec()),
+            Ok(b"chunk2".to_vec()),
+        ];
+        // Cast to BoxedError iterator via Box<dyn Iterator + Send>
+        let send_iter: Box<dyn Iterator<Item = Result<Vec<u8>, BoxedError>> + Send> = Box::new(
+            stream_data
+                .into_iter()
+                .map(|r| r.map_err(|e| e as BoxedError)),
+        );
+        let body = SendSafeBody::Stream(Some(send_iter));
+        let result = collect_bytes_from_send_safe(body);
+        assert_eq!(result, b"chunk1chunk2".to_vec());
+    }
+
+    #[test]
+    fn test_collect_bytes_from_send_safe_stream_none() {
+        let body = SendSafeBody::Stream(None);
+        let result = collect_bytes_from_send_safe(body);
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_collect_bytes_from_send_safe_chunked_stream() {
+        let stream_data: Vec<Result<ChunkedData, SendableBoxedError>> = vec![
+            Ok(ChunkedData::Data(b"data1".to_vec(), None)),
+            Ok(ChunkedData::Data(b"data2".to_vec(), None)),
+            Ok(ChunkedData::DataEnded),
+        ];
+        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send> = Box::new(
+            stream_data
+                .into_iter()
+                .map(|r| r.map_err(|e| e as BoxedError)),
+        );
+        let body = SendSafeBody::ChunkedStream(Some(send_iter));
+        let result = collect_bytes_from_send_safe(body);
+        assert_eq!(result, b"data1data2".to_vec());
+    }
+
+    #[test]
+    fn test_collect_bytes_from_send_safe_chunked_stream_none() {
+        let body = SendSafeBody::ChunkedStream(None);
+        let result = collect_bytes_from_send_safe(body);
+        assert!(result.is_empty());
+    }
+
+    #[test]
+    fn test_collect_bytes_from_send_safe_linefeed_stream() {
+        let stream_data: Vec<Result<LineFeed, SendableBoxedError>> = vec![
+            Ok(LineFeed::Line("line1".to_string())),
+            Ok(LineFeed::Line("line2".to_string())),
+            Ok(LineFeed::END),
+        ];
+        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send> = Box::new(
+            stream_data
+                .into_iter()
+                .map(|r| r.map_err(|e| e as BoxedError)),
+        );
+        let body = SendSafeBody::LineFeedStream(Some(send_iter));
+        let result = collect_bytes_from_send_safe(body);
+        assert_eq!(result, b"line1\nline2\n".to_vec());
+    }
+
+    #[test]
+    fn test_collect_bytes_from_send_safe_linefeed_stream_none() {
+        let body = SendSafeBody::LineFeedStream(None);
+        let result = collect_bytes_from_send_safe(body);
+        assert!(result.is_empty());
+    }
+
+    // ========================================================================
+    // Tests for collect_bytes_into
+    // ========================================================================
+
+    #[test]
+    fn test_collect_bytes_into_text() {
+        let body = SendSafeBody::Text("hello".to_string());
+        let mut output = Vec::new();
+        let result = collect_bytes_into(body, &mut output);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 5);
+        assert_eq!(output, b"hello".to_vec());
+    }
+
+    #[test]
+    fn test_collect_bytes_into_bytes() {
+        let body = SendSafeBody::Bytes(b"binary".to_vec());
+        let mut output = Vec::new();
+        let result = collect_bytes_into(body, &mut output);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 6);
+        assert_eq!(output, b"binary".to_vec());
+    }
+
+    #[test]
+    fn test_collect_bytes_into_none() {
+        let body = SendSafeBody::None;
+        let mut output = Vec::new();
+        let result = collect_bytes_into(body, &mut output);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 0);
+        assert!(output.is_empty());
+    }
+
+    #[test]
+    fn test_collect_bytes_into_stream() {
+        let stream_data: Vec<Result<Vec<u8>, SendableBoxedError>> = vec![
+            Ok(b"chunk1".to_vec()),
+            Ok(b"chunk2".to_vec()),
+        ];
+        let send_iter: Box<dyn Iterator<Item = Result<Vec<u8>, BoxedError>> + Send> = Box::new(
+            stream_data
+                .into_iter()
+                .map(|r| r.map_err(|e| e as BoxedError)),
+        );
+        let body = SendSafeBody::Stream(Some(send_iter));
+        let mut output = Vec::new();
+        let result = collect_bytes_into(body, &mut output);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 12);
+        assert_eq!(output, b"chunk1chunk2".to_vec());
+    }
+
+    #[test]
+    fn test_collect_bytes_into_chunked_stream() {
+        let stream_data: Vec<Result<ChunkedData, SendableBoxedError>> = vec![
+            Ok(ChunkedData::Data(b"data1".to_vec(), None)),
+            Ok(ChunkedData::Data(b"data2".to_vec(), None)),
+            Ok(ChunkedData::DataEnded),
+        ];
+        let send_iter: Box<dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send> = Box::new(
+            stream_data
+                .into_iter()
+                .map(|r| r.map_err(|e| e as BoxedError)),
+        );
+        let body = SendSafeBody::ChunkedStream(Some(send_iter));
+        let mut output = Vec::new();
+        let result = collect_bytes_into(body, &mut output);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 10);
+        assert_eq!(output, b"data1data2".to_vec());
+    }
+
+    #[test]
+    fn test_collect_bytes_into_linefeed_stream() {
+        let stream_data: Vec<Result<LineFeed, SendableBoxedError>> = vec![
+            Ok(LineFeed::Line("line1".to_string())),
+            Ok(LineFeed::Line("line2".to_string())),
+        ];
+        let send_iter: Box<dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send> = Box::new(
+            stream_data
+                .into_iter()
+                .map(|r| r.map_err(|e| e as BoxedError)),
+        );
+        let body = SendSafeBody::LineFeedStream(Some(send_iter));
+        let mut output = Vec::new();
+        let result = collect_bytes_into(body, &mut output);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 12);
+        assert_eq!(output, b"line1\nline2\n".to_vec());
+    }
+
+    #[test]
+    fn test_collect_bytes_into_file() {
+        // Test writing to an actual file
+        let body = SendSafeBody::Bytes(b"file content".to_vec());
+        let temp_dir = std::env::temp_dir();
+        let test_file = temp_dir.join("test_collect_bytes_into.txt");
+
+        {
+            let mut file = std::fs::File::create(&test_file).unwrap();
+            let result = collect_bytes_into(body, &mut file);
+            assert!(result.is_ok());
+            assert_eq!(result.unwrap(), 12);
+        }
+
+        // Verify file contents
+        let contents = std::fs::read(&test_file).unwrap();
+        assert_eq!(contents, b"file content".to_vec());
+
+        // Cleanup
+        let _ = std::fs::remove_file(&test_file);
     }
 }

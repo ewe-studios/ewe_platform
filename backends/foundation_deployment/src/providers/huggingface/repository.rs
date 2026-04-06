@@ -13,7 +13,7 @@ use crate::providers::huggingface::types::{
 };
 use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, TaskIteratorExt};
 use foundation_core::synca::RunOnDrop;
-use foundation_core::wire::simple_http::client::body_reader::{self, collect_bytes_from_send_safe};
+use foundation_core::wire::simple_http::client::body_reader::{self, collect_bytes_into};
 use foundation_core::wire::simple_http::client::{RequestIntro, ResponseIntro};
 use foundation_core::wire::simple_http::SimpleHeader;
 use foundation_macros::JsonHash;
@@ -472,10 +472,12 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
                 pool.return_to_pool(conn);
             }
         });
-        let bytes = collect_bytes_from_send_safe(body);
 
-        std::fs::write(&destination, &bytes)
+        // Stream body directly to file
+        let mut file = std::fs::File::create(&destination)
             .map_err(HuggingFaceError::Io)?;
+        collect_bytes_into(body, &mut file)
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
     } else {
         // Direct download (no redirect) - use simpler send() API
         drop(request); // Drop the partial request
@@ -503,10 +505,12 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
                 pool.return_to_pool(conn);
             }
         });
-        let bytes = collect_bytes_from_send_safe(body);
 
-        std::fs::write(&destination, &bytes)
+        // Stream body directly to file
+        let mut file = std::fs::File::create(&destination)
             .map_err(HuggingFaceError::Io)?;
+        collect_bytes_into(body, &mut file)
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
     }
 
     Ok(destination)
