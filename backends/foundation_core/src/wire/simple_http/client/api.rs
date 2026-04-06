@@ -77,6 +77,17 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
     ) -> Self {
         Self(response, Some(pool), Some(conn))
     }
+
+    /// Check if the response status is successful (2xx).
+    ///
+    /// # Returns
+    ///
+    /// `true` if status code is in range 200-299, `false` otherwise.
+    #[must_use]
+    pub fn is_success(&self) -> bool {
+        let status_code = self.0.get_status().into_usize();
+        (200..=299).contains(&status_code)
+    }
 }
 
 impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
