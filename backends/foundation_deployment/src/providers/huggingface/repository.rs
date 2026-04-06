@@ -1,4 +1,7 @@
-//! Repository handle for Hugging Face Hub operations.
+//! Repository handle and operations for Hugging Face Hub.
+//!
+//! This module provides the [`HFRepository`] struct and repository-specific operations.
+//! All functions take a `&HFRepository` as the first parameter.
 
 use crate::providers::huggingface::client::{is_success_status, status_code, HFClient};
 use crate::providers::huggingface::constants;
@@ -84,501 +87,506 @@ impl HFRepository {
     pub fn repo_type(&self) -> RepoType {
         self.inner.repo_type
     }
+}
 
-    /// Get repository info.
-    pub fn info(&self, params: &RepoInfoParams) -> Result<RepoInfo> {
-        let url = match self.inner.repo_type {
-            RepoType::Dataset => format!(
-                "{}/api/datasets/{}",
-                self.inner.client.endpoint(),
-                self.repo_path()
-            ),
-            RepoType::Space => format!(
-                "{}/api/spaces/{}",
-                self.inner.client.endpoint(),
-                self.repo_path()
-            ),
-            _ => format!(
-                "{}/api/models/{}",
-                self.inner.client.endpoint(),
-                self.repo_path()
-            ),
-        };
+// ============================================================================
+// Repository API Functions
+// ============================================================================
+// Operations that work with an HFRepository instance.
 
-        let url = if let Some(ref revision) = params.revision {
-            format!("{}/revision/{}", url, revision)
+/// Get repository info.
+pub fn repo_info(repo: &HFRepository, params: &RepoInfoParams) -> Result<RepoInfo> {
+    let url = match repo.inner.repo_type {
+        RepoType::Dataset => format!(
+            "{}/api/datasets/{}",
+            repo.inner.client.endpoint(),
+            repo.repo_path()
+        ),
+        RepoType::Space => format!(
+            "{}/api/spaces/{}",
+            repo.inner.client.endpoint(),
+            repo.repo_path()
+        ),
+        _ => format!(
+            "{}/api/models/{}",
+            repo.inner.client.endpoint(),
+            repo.repo_path()
+        ),
+    };
+
+    let url = if let Some(ref revision) = params.revision {
+        format!("{}/revision/{}", url, revision)
+    } else {
+        url
+    };
+
+    let http_client = repo.inner.client.simple_http();
+
+    let builder = http_client
+        .get(&url)
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
+
+    let builder = {
+        if let Some(ref token) = repo.inner.client.token() {
+            if !HFClient::is_implicit_token_disabled() {
+                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
+            } else {
+                builder
+            }
         } else {
-            url
-        };
-
-        let http_client = self.inner.client.simple_http();
-
-        let builder = http_client
-            .get(&url)
-            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-            .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
-
-        let builder = {
-            if let Some(ref token) = self.inner.client.token() {
-                if !HFClient::is_implicit_token_disabled() {
-                    builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
-                } else {
-                    builder
-                }
-            } else {
-                builder
-            }
-        };
-
-        let task = builder
-            .build_send_request()
-            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-            .map_ready(move |intro| match intro {
-                RequestIntro::Success { stream, intro, .. } => {
-                    let status = &intro.0;
-                    if !is_success_status(status) {
-                        return Err(HuggingFaceError::Http {
-                            status: status_code(status),
-                            url: url.clone(),
-                            body: format!("HTTP {}", status_code(status)),
-                        });
-                    }
-                    let body = body_reader::collect_string(stream);
-                    let info: RepoInfo = serde_json::from_str(&body)
-                        .map_err(HuggingFaceError::Json)?;
-                    Ok(info)
-                }
-                RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                    "Request failed: {}",
-                    e
-                ))),
-            })
-            .map_pending(|_| ());
-
-        let stream = execute(task, None)
-            .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-        collect_one(stream)
-            .ok_or_else(|| HuggingFaceError::Backend("No result from repo info".into()))?
-    }
-
-    /// Check if repository exists.
-    pub fn exists(&self) -> Result<bool> {
-        let url = match self.inner.repo_type {
-            RepoType::Dataset => format!(
-                "{}/api/datasets/{}",
-                self.inner.client.endpoint(),
-                self.repo_path()
-            ),
-            RepoType::Space => format!(
-                "{}/api/spaces/{}",
-                self.inner.client.endpoint(),
-                self.repo_path()
-            ),
-            _ => format!(
-                "{}/api/models/{}",
-                self.inner.client.endpoint(),
-                self.repo_path()
-            ),
-        };
-
-        let http_client = self.inner.client.simple_http();
-
-        let builder = http_client
-            .get(&url)
-            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-            .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
-
-        let builder = {
-            if let Some(ref token) = self.inner.client.token() {
-                if !HFClient::is_implicit_token_disabled() {
-                    builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
-                } else {
-                    builder
-                }
-            } else {
-                builder
-            }
-        };
-
-        let task = builder
-            .build_send_request()
-            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-            .map_ready(move |intro| match intro {
-                RequestIntro::Success { intro, .. } => {
-                    let status = &intro.0;
-                    Ok(is_success_status(status))
-                }
-                RequestIntro::Failed(_) => Ok(false),
-            })
-            .map_pending(|_| ());
-
-        let stream = execute(task, None)
-            .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-        match collect_one(stream) {
-            Some(Ok(value)) => Ok(value),
-            Some(Err(e)) => Err(e),
-            None => Ok(false),
+            builder
         }
-    }
+    };
 
-    /// Check if revision exists.
-    pub fn revision_exists(&self, revision: &str) -> Result<bool> {
-        let url = match self.inner.repo_type {
-            RepoType::Dataset => format!(
-                "{}/api/datasets/{}/revision/{}",
-                self.inner.client.endpoint(),
-                self.repo_path(),
-                revision
-            ),
-            RepoType::Space => format!(
-                "{}/api/spaces/{}/revision/{}",
-                self.inner.client.endpoint(),
-                self.repo_path(),
-                revision
-            ),
-            _ => format!(
-                "{}/api/models/{}/revision/{}",
-                self.inner.client.endpoint(),
-                self.repo_path(),
-                revision
-            ),
-        };
-
-        let http_client = self.inner.client.simple_http();
-
-        let builder = http_client
-            .get(&url)
-            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-            .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
-
-        let builder = {
-            if let Some(ref token) = self.inner.client.token() {
-                if !HFClient::is_implicit_token_disabled() {
-                    builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
-                } else {
-                    builder
+    let task = builder
+        .build_send_request()
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .map_ready(move |intro| match intro {
+            RequestIntro::Success { stream, intro, .. } => {
+                let status = &intro.0;
+                if !is_success_status(status) {
+                    return Err(HuggingFaceError::Http {
+                        status: status_code(status),
+                        url: url.clone(),
+                        body: format!("HTTP {}", status_code(status)),
+                    });
                 }
+                let body = body_reader::collect_string(stream);
+                let info: RepoInfo = serde_json::from_str(&body)
+                    .map_err(HuggingFaceError::Json)?;
+                Ok(info)
+            }
+            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
+                "Request failed: {}",
+                e
+            ))),
+        })
+        .map_pending(|_| ());
+
+    let stream = execute(task, None)
+        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+
+    collect_one(stream)
+        .ok_or_else(|| HuggingFaceError::Backend("No result from repo_info".into()))?
+}
+
+/// Check if repository exists.
+pub fn repo_exists(repo: &HFRepository) -> Result<bool> {
+    let url = match repo.inner.repo_type {
+        RepoType::Dataset => format!(
+            "{}/api/datasets/{}",
+            repo.inner.client.endpoint(),
+            repo.repo_path()
+        ),
+        RepoType::Space => format!(
+            "{}/api/spaces/{}",
+            repo.inner.client.endpoint(),
+            repo.repo_path()
+        ),
+        _ => format!(
+            "{}/api/models/{}",
+            repo.inner.client.endpoint(),
+            repo.repo_path()
+        ),
+    };
+
+    let http_client = repo.inner.client.simple_http();
+
+    let builder = http_client
+        .get(&url)
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
+
+    let builder = {
+        if let Some(ref token) = repo.inner.client.token() {
+            if !HFClient::is_implicit_token_disabled() {
+                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
             } else {
                 builder
             }
-        };
-
-        let task = builder
-            .build_send_request()
-            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-            .map_ready(move |intro| match intro {
-                RequestIntro::Success { intro, .. } => {
-                    let status = &intro.0;
-                    Ok(is_success_status(status))
-                }
-                RequestIntro::Failed(_) => Ok(false),
-            })
-            .map_pending(|_| ());
-
-        let stream = execute(task, None)
-            .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-        match collect_one(stream) {
-            Some(Ok(value)) => Ok(value),
-            Some(Err(e)) => Err(e),
-            None => Ok(false),
+        } else {
+            builder
         }
-    }
+    };
 
-    /// List tree entries.
-    pub fn list_tree(
-        &self,
-        params: &RepoListTreeParams,
-    ) -> Result<impl Iterator<Item = Stream<Result<RepoTreeEntry>, ()>> + Send + 'static> {
-        let base_path = match self.inner.repo_type {
-            RepoType::Dataset => "datasets",
-            RepoType::Space => "spaces",
-            _ => "models",
-        };
-        let revision = params.revision.as_deref().unwrap_or("main");
-        let url = format!(
-            "{}/api/{}/{}/tree/{}",
-            self.inner.client.endpoint(),
-            base_path,
-            self.repo_path(),
+    let task = builder
+        .build_send_request()
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .map_ready(move |intro| match intro {
+            RequestIntro::Success { intro, .. } => {
+                let status = &intro.0;
+                Ok(is_success_status(status))
+            }
+            RequestIntro::Failed(_) => Ok(false),
+        })
+        .map_pending(|_| ());
+
+    let stream = execute(task, None)
+        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+
+    match collect_one(stream) {
+        Some(Ok(value)) => Ok(value),
+        Some(Err(e)) => Err(e),
+        None => Ok(false),
+    }
+}
+
+/// Check if revision exists.
+pub fn repo_revision_exists(repo: &HFRepository, revision: &str) -> Result<bool> {
+    let url = match repo.inner.repo_type {
+        RepoType::Dataset => format!(
+            "{}/api/datasets/{}/revision/{}",
+            repo.inner.client.endpoint(),
+            repo.repo_path(),
             revision
-        );
-
-        let http_client = self.inner.client.simple_http();
-
-        let builder = http_client
-            .get(&url)
-            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-            .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
-
-        let builder = {
-            if let Some(ref token) = self.inner.client.token() {
-                if !HFClient::is_implicit_token_disabled() {
-                    builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
-                } else {
-                    builder
-                }
-            } else {
-                builder
-            }
-        };
-
-        let task = builder
-            .build_send_request()
-            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-            .map_ready(move |intro| match intro {
-                RequestIntro::Success { stream, intro, .. } => {
-                    let status = &intro.0;
-                    if !is_success_status(status) {
-                        return Err(HuggingFaceError::Http {
-                            status: status_code(status),
-                            url: url.clone(),
-                            body: format!("HTTP {}", status_code(status)),
-                        });
-                    }
-                    let body = body_reader::collect_string(stream);
-                    let entries: Vec<RepoTreeEntry> = serde_json::from_str(&body)
-                        .map_err(HuggingFaceError::Json)?;
-                    Ok(entries)
-                }
-                RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                    "Request failed: {}",
-                    e
-                ))),
-            })
-            .map_pending(|_| ());
-
-        let stream = execute(task, None)
-            .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-        Ok(stream.flat_map_next(|result| match result {
-            Ok(entries) => {
-                let v: Vec<_> = Iterator::collect(entries.into_iter().map(Ok));
-                v.into_iter()
-            }
-            Err(e) => {
-                let v: Vec<_> = Iterator::collect(vec![Err(e)].into_iter());
-                v.into_iter()
-            }
-        }))
-    }
-
-    /// Download a file.
-    pub fn download_file(&self, params: &RepoDownloadFileParams) -> Result<PathBuf> {
-        let revision = params.revision.as_deref().unwrap_or("main");
-        let url = self.inner.client.download_url(
-            Some(self.inner.repo_type),
-            &self.repo_path(),
-            revision,
-            &params.filename,
-        );
-
-        // Build destination path: directory/filename
-        let destination = params.directory.join(&params.filename);
-
-        let http_client = self.inner.client.simple_http();
-
-        let builder = http_client
-            .get(&url)
-            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-            .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
-
-        let builder = {
-            if let Some(ref token) = self.inner.client.token() {
-                if !HFClient::is_implicit_token_disabled() {
-                    builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
-                } else {
-                    builder
-                }
-            } else {
-                builder
-            }
-        };
-
-        let task = builder
-            .build_send_request()
-            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-            .map_ready(move |intro| match intro {
-                RequestIntro::Success { stream, intro, .. } => {
-                    let status = &intro.0;
-                    if !is_success_status(status) {
-                        return Err(HuggingFaceError::Http {
-                            status: status_code(status),
-                            url: url.clone(),
-                            body: format!("HTTP {}", status_code(status)),
-                        });
-                    }
-                    let body = body_reader::collect_string(stream);
-                    std::fs::write(&destination, body.as_bytes())
-                        .map_err(HuggingFaceError::Io)?;
-                    Ok(destination.clone())
-                }
-                RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                    "Request failed: {}",
-                    e
-                ))),
-            })
-            .map_pending(|_| ());
-
-        let stream = execute(task, None)
-            .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
-
-        collect_one(stream)
-            .ok_or_else(|| HuggingFaceError::Backend("No result from download_file".into()))?
-    }
-
-    /// Upload a file.
-    pub fn upload_file(&self, params: &RepoUploadFileParams) -> Result<CommitInfo> {
-        let commit_params = RepoCreateCommitParams {
-            operations: vec![CommitOperation::Add {
-                path_in_repo: params.path_in_repo.clone(),
-                source: params.source.clone(),
-            }],
-            commit_message: params
-                .commit_message
-                .clone()
-                .unwrap_or_else(|| format!("Upload {}", params.path_in_repo)),
-            commit_description: None,
-            revision: params.revision.clone(),
-            create_pr: None,
-        };
-        self.create_commit(&commit_params)
-    }
-
-    /// Delete a file.
-    pub fn delete_file(&self, params: &RepoDeleteFileParams) -> Result<CommitInfo> {
-        let commit_params = RepoCreateCommitParams {
-            operations: vec![CommitOperation::Delete {
-                path_in_repo: params.path_in_repo.clone(),
-            }],
-            commit_message: params
-                .commit_message
-                .clone()
-                .unwrap_or_else(|| format!("Delete {}", params.path_in_repo)),
-            commit_description: None,
-            revision: params.revision.clone(),
-            create_pr: None,
-        };
-        self.create_commit(&commit_params)
-    }
-
-    /// Create a commit with multiple operations.
-    pub fn create_commit(&self, params: &RepoCreateCommitParams) -> Result<CommitInfo> {
-        let base_path = match self.inner.repo_type {
-            RepoType::Dataset => "datasets",
-            RepoType::Space => "spaces",
-            _ => "models",
-        };
-        let revision = params.revision.as_deref().unwrap_or("main");
-        let url = format!(
-            "{}/api/{}/{}/commit/{}",
-            self.inner.client.endpoint(),
-            base_path,
-            self.repo_path(),
+        ),
+        RepoType::Space => format!(
+            "{}/api/spaces/{}/revision/{}",
+            repo.inner.client.endpoint(),
+            repo.repo_path(),
             revision
-        );
+        ),
+        _ => format!(
+            "{}/api/models/{}/revision/{}",
+            repo.inner.client.endpoint(),
+            repo.repo_path(),
+            revision
+        ),
+    };
 
-        // Build multipart body
-        let boundary = "----RustBoundary".to_string();
-        let mut body = String::new();
+    let http_client = repo.inner.client.simple_http();
 
-        body.push_str(&format!("--{}\r\n", boundary));
-        body.push_str("Content-Disposition: form-data; name=\"summary\"\r\n\r\n");
-        body.push_str(&serde_json::to_string(&serde_json::json!({
-            "type": "commit",
-            "summary": params.commit_message,
-            "description": params.commit_description,
-            "hub": "huggingface.co",
-        }))?);
-        body.push_str("\r\n");
+    let builder = http_client
+        .get(&url)
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
 
-        for (_i, op) in params.operations.iter().enumerate() {
-            match op {
-                CommitOperation::Add { path_in_repo, source } => {
-                    body.push_str(&format!("--{}\r\n", boundary));
-                    body.push_str(&format!(
-                        "Content-Disposition: form-data; name=\"files\"; filename=\"{}\"\r\n",
-                        path_in_repo
-                    ));
-                    body.push_str("Content-Type: application/octet-stream\r\n\r\n");
-                    match source {
-                        AddSource::Bytes(data) => {
-                            body.push_str(&String::from_utf8_lossy(data));
-                        }
-                        AddSource::File(path) => {
-                            let content = std::fs::read_to_string(path)
-                                .map_err(HuggingFaceError::Io)?;
-                            body.push_str(&content);
-                        }
+    let builder = {
+        if let Some(ref token) = repo.inner.client.token() {
+            if !HFClient::is_implicit_token_disabled() {
+                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
+            } else {
+                builder
+            }
+        } else {
+            builder
+        }
+    };
+
+    let task = builder
+        .build_send_request()
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .map_ready(move |intro| match intro {
+            RequestIntro::Success { intro, .. } => {
+                let status = &intro.0;
+                Ok(is_success_status(status))
+            }
+            RequestIntro::Failed(_) => Ok(false),
+        })
+        .map_pending(|_| ());
+
+    let stream = execute(task, None)
+        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+
+    match collect_one(stream) {
+        Some(Ok(value)) => Ok(value),
+        Some(Err(e)) => Err(e),
+        None => Ok(false),
+    }
+}
+
+/// List tree entries.
+pub fn repo_list_tree(
+    repo: &HFRepository,
+    params: &RepoListTreeParams,
+) -> Result<impl Iterator<Item = Stream<Result<RepoTreeEntry>, ()>> + Send + 'static> {
+    let base_path = match repo.inner.repo_type {
+        RepoType::Dataset => "datasets",
+        RepoType::Space => "spaces",
+        _ => "models",
+    };
+    let revision = params.revision.as_deref().unwrap_or("main");
+    let url = format!(
+        "{}/api/{}/{}/tree/{}",
+        repo.inner.client.endpoint(),
+        base_path,
+        repo.repo_path(),
+        revision
+    );
+
+    let http_client = repo.inner.client.simple_http();
+
+    let builder = http_client
+        .get(&url)
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
+
+    let builder = {
+        if let Some(ref token) = repo.inner.client.token() {
+            if !HFClient::is_implicit_token_disabled() {
+                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
+            } else {
+                builder
+            }
+        } else {
+            builder
+        }
+    };
+
+    let task = builder
+        .build_send_request()
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .map_ready(move |intro| match intro {
+            RequestIntro::Success { stream, intro, .. } => {
+                let status = &intro.0;
+                if !is_success_status(status) {
+                    return Err(HuggingFaceError::Http {
+                        status: status_code(status),
+                        url: url.clone(),
+                        body: format!("HTTP {}", status_code(status)),
+                    });
+                }
+                let body = body_reader::collect_string(stream);
+                let entries: Vec<RepoTreeEntry> = serde_json::from_str(&body)
+                    .map_err(HuggingFaceError::Json)?;
+                Ok(entries)
+            }
+            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
+                "Request failed: {}",
+                e
+            ))),
+        })
+        .map_pending(|_| ());
+
+    let stream = execute(task, None)
+        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+
+    Ok(stream.flat_map_next(|result| match result {
+        Ok(entries) => {
+            let v: Vec<_> = Iterator::collect(entries.into_iter().map(Ok));
+            v.into_iter()
+        }
+        Err(e) => {
+            let v: Vec<_> = Iterator::collect(vec![Err(e)].into_iter());
+            v.into_iter()
+        }
+    }))
+}
+
+/// Download a file.
+pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) -> Result<PathBuf> {
+    let revision = params.revision.as_deref().unwrap_or("main");
+    let url = repo.inner.client.download_url(
+        Some(repo.inner.repo_type),
+        &repo.repo_path(),
+        revision,
+        &params.filename,
+    );
+
+    // Build destination path: directory/filename
+    let destination = params.directory.join(&params.filename);
+
+    let http_client = repo.inner.client.simple_http();
+
+    let builder = http_client
+        .get(&url)
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
+
+    let builder = {
+        if let Some(ref token) = repo.inner.client.token() {
+            if !HFClient::is_implicit_token_disabled() {
+                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
+            } else {
+                builder
+            }
+        } else {
+            builder
+        }
+    };
+
+    let task = builder
+        .build_send_request()
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .map_ready(move |intro| match intro {
+            RequestIntro::Success { stream, intro, .. } => {
+                let status = &intro.0;
+                if !is_success_status(status) {
+                    return Err(HuggingFaceError::Http {
+                        status: status_code(status),
+                        url: url.clone(),
+                        body: format!("HTTP {}", status_code(status)),
+                    });
+                }
+                let body = body_reader::collect_string(stream);
+                std::fs::write(&destination, body.as_bytes())
+                    .map_err(HuggingFaceError::Io)?;
+                Ok(destination.clone())
+            }
+            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
+                "Request failed: {}",
+                e
+            ))),
+        })
+        .map_pending(|_| ());
+
+    let stream = execute(task, None)
+        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+
+    collect_one(stream)
+        .ok_or_else(|| HuggingFaceError::Backend("No result from repo_download_file".into()))?
+}
+
+/// Upload a file.
+pub fn repo_upload_file(repo: &HFRepository, params: &RepoUploadFileParams) -> Result<CommitInfo> {
+    let commit_params = RepoCreateCommitParams {
+        operations: vec![CommitOperation::Add {
+            path_in_repo: params.path_in_repo.clone(),
+            source: params.source.clone(),
+        }],
+        commit_message: params
+            .commit_message
+            .clone()
+            .unwrap_or_else(|| format!("Upload {}", params.path_in_repo)),
+        commit_description: None,
+        revision: params.revision.clone(),
+        create_pr: None,
+    };
+    repo_create_commit(repo, &commit_params)
+}
+
+/// Delete a file.
+pub fn repo_delete_file(repo: &HFRepository, params: &RepoDeleteFileParams) -> Result<CommitInfo> {
+    let commit_params = RepoCreateCommitParams {
+        operations: vec![CommitOperation::Delete {
+            path_in_repo: params.path_in_repo.clone(),
+        }],
+        commit_message: params
+            .commit_message
+            .clone()
+            .unwrap_or_else(|| format!("Delete {}", params.path_in_repo)),
+        commit_description: None,
+        revision: params.revision.clone(),
+        create_pr: None,
+    };
+    repo_create_commit(repo, &commit_params)
+}
+
+/// Create a commit with multiple operations.
+pub fn repo_create_commit(repo: &HFRepository, params: &RepoCreateCommitParams) -> Result<CommitInfo> {
+    let base_path = match repo.inner.repo_type {
+        RepoType::Dataset => "datasets",
+        RepoType::Space => "spaces",
+        _ => "models",
+    };
+    let revision = params.revision.as_deref().unwrap_or("main");
+    let url = format!(
+        "{}/api/{}/{}/commit/{}",
+        repo.inner.client.endpoint(),
+        base_path,
+        repo.repo_path(),
+        revision
+    );
+
+    // Build multipart body
+    let boundary = "----RustBoundary".to_string();
+    let mut body = String::new();
+
+    body.push_str(&format!("--{}\r\n", boundary));
+    body.push_str("Content-Disposition: form-data; name=\"summary\"\r\n\r\n");
+    body.push_str(&serde_json::to_string(&serde_json::json!({
+        "type": "commit",
+        "summary": params.commit_message,
+        "description": params.commit_description,
+        "hub": "huggingface.co",
+    }))?);
+    body.push_str("\r\n");
+
+    for (_i, op) in params.operations.iter().enumerate() {
+        match op {
+            CommitOperation::Add { path_in_repo, source } => {
+                body.push_str(&format!("--{}\r\n", boundary));
+                body.push_str(&format!(
+                    "Content-Disposition: form-data; name=\"files\"; filename=\"{}\"\r\n",
+                    path_in_repo
+                ));
+                body.push_str("Content-Type: application/octet-stream\r\n\r\n");
+                match source {
+                    AddSource::Bytes(data) => {
+                        body.push_str(&String::from_utf8_lossy(data));
                     }
-                    body.push_str("\r\n");
+                    AddSource::File(path) => {
+                        let content = std::fs::read_to_string(path)
+                            .map_err(HuggingFaceError::Io)?;
+                        body.push_str(&content);
+                    }
                 }
-                CommitOperation::Delete { path_in_repo } => {
-                    body.push_str(&format!("--{}\r\n", boundary));
-                    body.push_str("Content-Disposition: form-data; name=\"deletedFiles\"\r\n\r\n");
-                    body.push_str(path_in_repo);
-                    body.push_str("\r\n");
-                }
+                body.push_str("\r\n");
+            }
+            CommitOperation::Delete { path_in_repo } => {
+                body.push_str(&format!("--{}\r\n", boundary));
+                body.push_str("Content-Disposition: form-data; name=\"deletedFiles\"\r\n\r\n");
+                body.push_str(path_in_repo);
+                body.push_str("\r\n");
             }
         }
+    }
 
-        body.push_str(&format!("--{}--\r\n", boundary));
+    body.push_str(&format!("--{}--\r\n", boundary));
 
-        let http_client = self.inner.client.simple_http();
+    let http_client = repo.inner.client.simple_http();
 
-        let content_type = format!("multipart/form-data; boundary={}", boundary);
-        let builder = http_client
-            .post(&url)
-            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-            .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
+    let content_type = format!("multipart/form-data; boundary={}", boundary);
+    let builder = http_client
+        .post(&url)
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
 
-        let builder = {
-            if let Some(ref token) = self.inner.client.token() {
-                if !HFClient::is_implicit_token_disabled() {
-                    builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
-                } else {
-                    builder
-                }
+    let builder = {
+        if let Some(ref token) = repo.inner.client.token() {
+            if !HFClient::is_implicit_token_disabled() {
+                builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", token))
             } else {
                 builder
             }
-        };
+        } else {
+            builder
+        }
+    };
 
-        let builder = builder
-            .header(SimpleHeader::CONTENT_TYPE, content_type)
-            .body_text(body);
+    let builder = builder
+        .header(SimpleHeader::CONTENT_TYPE, content_type)
+        .body_text(body);
 
-        let task = builder
-            .build_send_request()
-            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-            .map_ready(move |intro| match intro {
-                RequestIntro::Success { stream, intro, .. } => {
-                    let status = &intro.0;
-                    if !is_success_status(status) {
-                        return Err(HuggingFaceError::Http {
-                            status: status_code(status),
-                            url: url.clone(),
-                            body: format!("HTTP {}", status_code(status)),
-                        });
-                    }
-                    let body = body_reader::collect_string(stream);
-                    let commit_info: CommitInfo = serde_json::from_str(&body)
-                        .map_err(HuggingFaceError::Json)?;
-                    Ok(commit_info)
+    let task = builder
+        .build_send_request()
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+        .map_ready(move |intro| match intro {
+            RequestIntro::Success { stream, intro, .. } => {
+                let status = &intro.0;
+                if !is_success_status(status) {
+                    return Err(HuggingFaceError::Http {
+                        status: status_code(status),
+                        url: url.clone(),
+                        body: format!("HTTP {}", status_code(status)),
+                    });
                 }
-                RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                    "Request failed: {}",
-                    e
-                ))),
-            })
-            .map_pending(|_| ());
+                let body = body_reader::collect_string(stream);
+                let commit_info: CommitInfo = serde_json::from_str(&body)
+                    .map_err(HuggingFaceError::Json)?;
+                Ok(commit_info)
+            }
+            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
+                "Request failed: {}",
+                e
+            ))),
+        })
+        .map_pending(|_| ());
 
-        let stream = execute(task, None)
-            .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+    let stream = execute(task, None)
+        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
 
-        collect_one(stream)
-            .ok_or_else(|| HuggingFaceError::Backend("No result from create_commit".into()))?
-    }
+    collect_one(stream)
+        .ok_or_else(|| HuggingFaceError::Backend("No result from repo_create_commit".into()))?
 }

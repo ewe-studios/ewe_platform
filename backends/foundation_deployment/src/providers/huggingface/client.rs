@@ -1,4 +1,22 @@
-//! Hugging Face Hub API client.
+//! Hugging Face Hub API client and core operations.
+//!
+//! This module provides the [`HFClient`] struct and core API operations.
+//! Functions are organized to make it clear which operations work with a client.
+//!
+//! # Client Operations
+//!
+//! - [`whoami`] - Get authenticated user info
+//! - [`auth_check`] - Verify token is valid
+//! - [`list_models`] - List models with pagination
+//! - [`list_datasets`] - List datasets with pagination
+//! - [`list_spaces`] - List spaces with pagination
+//! - [`create_repo`] - Create a new repository
+//! - [`delete_repo`] - Delete a repository
+//! - [`move_repo`] - Move/rename a repository
+//!
+//! # Repository Operations
+//!
+//! For repository-specific operations, see the [`repository`](super::repository) module.
 
 use crate::providers::huggingface::constants::{
     HF_API_DATASETS, HF_API_MODELS, HF_API_REPOS_CREATE, HF_API_REPOS_DELETE, HF_API_REPOS_MOVE,
@@ -266,10 +284,9 @@ impl HFClient {
 }
 
 // ============================================================================
-// Standalone API Functions
+// Client API Functions
 // ============================================================================
-// These functions take an &HFClient as the first parameter, allowing users
-// to call operations with a client they've initialized as they see fit.
+// Core API operations that work with an HFClient instance.
 
 /// Get authenticated user info.
 ///
