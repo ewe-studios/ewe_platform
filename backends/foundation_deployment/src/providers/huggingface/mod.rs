@@ -35,12 +35,6 @@ pub mod repository;
 pub mod types;
 
 pub use client::{HFClient, HFClientBuilder};
-pub use repository::{HFRepository, RepositoryArgs};
 pub use error::{HuggingFaceError, Result};
-pub use types::{
-    AddSource, CommitInfo, CommitOperation, CommitAuthor, DatasetInfo, DiffEntry,
-    GitCommitInfo, ListDatasetsParams, ListModelsParams, ListSpacesParams, ModelInfo,
-    RepoDownloadFileParams, RepoInfo, RepoListTreeParams, RepoSibling, RepoTreeEntry, RepoType, RepoUrl,
-    RepoUploadFileParams, RepoCreateCommitParams, RepoDeleteFileParams, RepoInfoParams,
-    SpaceInfo, User,
-};
+pub use repository::{HFRepository, RepositoryArgs};
+pub use types::*;
