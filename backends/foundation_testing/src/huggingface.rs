@@ -8,9 +8,8 @@
 //! HOW: Uses the new `foundation_deployment::providers::huggingface` client with
 //! simple_http (no tokio/async required).
 
-use foundation_core::valtron;
 use foundation_deployment::providers::huggingface::{
-    client, repository, HFClientBuilder, RepoDownloadFileParams,
+    repository, HFClientBuilder, RepoDownloadFileParams,
 };
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -109,10 +108,10 @@ impl TestHarness {
     }
 
     /// Build a repository handle from a repo_id string.
-    fn build_repo(&self, repo_id: &str) -> Result<repository::HFRepository, Box<dyn std::error::Error + Send + Sync>> {
-        // Initialize valtron pool for blocking execution
-        let _guard = valtron::initialize_pool(42, Some(4));
-
+    fn build_repo(
+        &self,
+        repo_id: &str,
+    ) -> Result<repository::HFRepository, Box<dyn std::error::Error + Send + Sync>> {
         // Build client with token from environment
         let token = std::env::var("HF_TOKEN").ok();
         let mut builder = HFClientBuilder::new();
