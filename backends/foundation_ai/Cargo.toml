@@ -36,6 +36,8 @@ tracing = { workspace = true }
 [dev-dependencies]
 # Foundation testing with HuggingFace model downloading
 foundation_testing = { workspace = true, features = ["huggingface"] }
+serial_test = { workspace = true }
+tracing-test = { version = "0.2.5",  features = ["no-env-filter"] }
 
 [features]
 # vulkan + Apple Metal

@@ -10,8 +10,10 @@ use foundation_ai::types::{
 };
 use foundation_core::valtron;
 use foundation_testing::huggingface::TestHarness;
+use tracing_test::traced_test;
 
 #[test]
+#[traced_test]
 #[ignore = "requires a local GGUF model file"]
 fn test_llama_backend_creation() {
     // Initialize valtron pool for blocking execution
@@ -33,6 +35,7 @@ fn test_llama_backend_creation() {
 /// This test downloads the model if not present and then verifies
 /// the backend can load it.
 #[test]
+#[traced_test]
 #[ignore = "downloads a ~150MB model from HuggingFace"]
 fn test_llama_model_loading() {
     // Initialize valtron pool for blocking execution
@@ -82,6 +85,7 @@ fn test_llama_model_loading() {
 /// from HuggingFace Hub for testing the llama.cpp backend.
 /// The model is cached in the `.artifacts` directory.
 #[test]
+#[traced_test]
 #[ignore = "downloads a ~150MB model from HuggingFace"]
 fn test_download_smollm_model() {
     // Initialize valtron pool for blocking execution
@@ -113,6 +117,7 @@ fn test_download_smollm_model() {
 /// This test downloads the model if not present and then verifies
 /// the backend can load and use it for generation.
 #[test]
+#[traced_test]
 #[ignore = "downloads a ~150MB model and performs generation"]
 fn test_llama_with_smollm_model() {
     // Initialize valtron pool for blocking execution

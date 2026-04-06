@@ -12,8 +12,9 @@ use crate::providers::huggingface::types::{
     RepoUploadFileParams,
 };
 use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, TaskIteratorExt};
-use foundation_core::wire::simple_http::client::body_reader;
-use foundation_core::wire::simple_http::client::RequestIntro;
+use foundation_core::synca::RunOnDrop;
+use foundation_core::wire::simple_http::client::body_reader::{self, collect_bytes_from_send_safe};
+use foundation_core::wire::simple_http::client::{RequestIntro, ResponseIntro};
 use foundation_core::wire::simple_http::SimpleHeader;
 use foundation_macros::JsonHash;
 use serde::Serialize;
@@ -374,8 +375,13 @@ pub fn repo_list_tree(
     }))
 }
 
-/// Download a file.
+/// Download a file, handling HuggingFace's CDN redirect.
+///
+/// HuggingFace returns a 302 redirect to their CDN for file downloads.
+/// This function handles that redirect manually.
 pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) -> Result<PathBuf> {
+    use foundation_core::wire::simple_http::{SimpleHeaders, SimpleHeader};
+
     let revision = params.revision.as_deref().unwrap_or("main");
     let url = repo.inner.client.download_url(
         Some(repo.inner.repo_type),
@@ -406,36 +412,104 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
         }
     };
 
-    let task = builder
-        .build_send_request()
-        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
-        .map_ready(move |intro| match intro {
-            RequestIntro::Success { stream, intro, .. } => {
-                let status = &intro.0;
-                if !is_success_status(status) {
-                    return Err(HuggingFaceError::Http {
-                        status: status_code(status),
-                        url: url.clone(),
-                        body: format!("HTTP {}", status_code(status)),
-                    });
-                }
-                let bytes = body_reader::collect_bytes(stream);
-                std::fs::write(&destination, &bytes)
-                    .map_err(HuggingFaceError::Io)?;
-                Ok(destination.clone())
+    // First request - may return 302 redirect to CDN
+    let mut request = builder
+        .build_client()
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
+
+    let (intro_stream, _body_stream) = request
+        .start()
+        .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
+
+    // Get intro (status + headers)
+    let mut intro_data: Option<(ResponseIntro, SimpleHeaders)> = None;
+    for intro_element in intro_stream {
+        if let Stream::Next(value) = intro_element {
+            intro_data = Some(value);
+            break;
+        }
+    }
+
+    let (intro, headers) = intro_data.ok_or_else(|| {
+        HuggingFaceError::Backend("No response intro received".into())
+    })?;
+
+    let status = &intro.status;
+
+    // Check if this is a redirect (302)
+    if status_code(status) == 302 {
+        // Extract Location header for redirect
+        let location = headers.get(&SimpleHeader::LOCATION).and_then(|v| v.first());
+        let redirect_url = location.ok_or_else(|| {
+            HuggingFaceError::Backend("302 redirect but no Location header".into())
+        })?;
+
+        tracing::debug!("HuggingFace returned 302, redirecting to: {}", redirect_url);
+
+        // Build second request to CDN URL
+        // The presigned URL contains all necessary auth, but we preserve User-Agent
+        let mut redirect_builder = http_client
+            .get(redirect_url)
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+            .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT);
+
+        // Preserve LINK header for Xet authentication if present
+        if let Some(link_values) = headers.get(&SimpleHeader::LINK) {
+            for link in link_values {
+                redirect_builder = redirect_builder.header(SimpleHeader::LINK, link.clone());
             }
-            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(format!(
-                "Request failed: {}",
-                e
-            ))),
-        })
-        .map_pending(|_| ());
+        }
 
-    let stream = execute(task, None)
-        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+        let response = redirect_builder
+            .build_client()
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+            .send()
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
 
-    collect_one(stream)
-        .ok_or_else(|| HuggingFaceError::Backend("No result from repo_download_file".into()))?
+        let (_, _, body, pool, conn) = response.into_parts();
+        let _guard = RunOnDrop::new(move || {
+            if let (Some(pool), Some(conn)) = (pool, conn) {
+                pool.return_to_pool(conn);
+            }
+        });
+        let bytes = collect_bytes_from_send_safe(body);
+
+        std::fs::write(&destination, &bytes)
+            .map_err(HuggingFaceError::Io)?;
+    } else {
+        // Direct download (no redirect) - use simpler send() API
+        drop(request); // Drop the partial request
+
+        let response = http_client
+            .get(&url)
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+            .header(SimpleHeader::USER_AGENT, constants::HF_USER_AGENT)
+            .build_client()
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?
+            .send()
+            .map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
+
+        if !response.is_success() {
+            return Err(HuggingFaceError::Http {
+                status: status_code(&response.get_status()),
+                url: url.clone(),
+                body: format!("HTTP {}", status_code(&response.get_status())),
+            });
+        }
+
+        let (_, _, body, pool, conn) = response.into_parts();
+        let _guard = RunOnDrop::new(move || {
+            if let (Some(pool), Some(conn)) = (pool, conn) {
+                pool.return_to_pool(conn);
+            }
+        });
+        let bytes = collect_bytes_from_send_safe(body);
+
+        std::fs::write(&destination, &bytes)
+            .map_err(HuggingFaceError::Io)?;
+    }
+
+    Ok(destination)
 }
 
 /// Upload a file.

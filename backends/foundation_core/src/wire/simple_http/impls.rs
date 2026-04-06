@@ -2704,6 +2704,16 @@ impl<T> SimpleResponse<T> {
     }
 }
 
+impl<T> SimpleResponse<T> {
+    pub fn into_parts(self) -> (Status, SimpleHeaders, T) {
+        (self.0, self.1, self.2)
+    }
+
+    pub fn take_body(self) -> T {
+        self.2
+    }
+}
+
 pub type Protocol = String;
 
 /// [`HttpResponseIntro`] represents the definition properties a http response message

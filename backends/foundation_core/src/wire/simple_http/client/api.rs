@@ -64,7 +64,7 @@ impl core::fmt::Debug for ClientRequestState {
 }
 
 pub struct FinalizedResponse<T, R: DnsResolver + 'static>(
-    SimpleResponse<T>,
+    Option<SimpleResponse<T>>,
     Option<Arc<HttpConnectionPool<R>>>,
     Option<HttpClientConnection>,
 );
@@ -75,7 +75,7 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
         conn: HttpClientConnection,
         pool: Arc<HttpConnectionPool<R>>,
     ) -> Self {
-        Self(response, Some(pool), Some(conn))
+        Self(Some(response), Some(pool), Some(conn))
     }
 
     /// Check if the response status is successful (2xx).
@@ -85,30 +85,40 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
     /// `true` if status code is in range 200-299, `false` otherwise.
     #[must_use]
     pub fn is_success(&self) -> bool {
-        let status_code = self.0.get_status().into_usize();
+        let status_code = self.0.as_ref().expect("response already taken").get_status().into_usize();
         (200..=299).contains(&status_code)
     }
 }
 
 impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
     pub fn get_status(&self) -> Status {
-        self.0.get_status()
+        self.0.as_ref().expect("response already taken").get_status()
     }
 
     pub fn get_headers_ref(&self) -> &SimpleHeaders {
-        self.0.get_headers_ref()
+        self.0.as_ref().expect("response already taken").get_headers_ref()
     }
 
     pub fn get_headers_mut(&mut self) -> &mut SimpleHeaders {
-        self.0.get_headers_mut()
+        self.0.as_mut().expect("response already taken").get_headers_mut()
     }
 
     pub fn get_body_ref(&self) -> &T {
-        self.0.get_body_ref()
+        self.0.as_ref().expect("response already taken").get_body_ref()
     }
 
     pub fn get_body_mut(&mut self) -> &mut T {
-        self.0.get_body_mut()
+        self.0.as_mut().expect("response already taken").get_body_mut()
+    }
+
+    pub fn into_parts(mut self) -> (Status, SimpleHeaders, T, Option<Arc<HttpConnectionPool<R>>>, Option<HttpClientConnection>) {
+        let response = self.0.take().expect("response already taken");
+        let status = response.get_status();
+        let headers = response.get_headers_ref().clone();
+        let body = response.take_body();
+        let pool = self.1.take();
+        let conn = self.2.take();
+        (status, headers, body, pool, conn)
     }
 }
 
@@ -118,6 +128,8 @@ impl<T, R: DnsResolver + 'static> Drop for FinalizedResponse<T, R> {
         if let (Some(pool), Some(stream)) = (self.1.take(), self.2.take()) {
             pool.return_to_pool(stream);
         }
+        // Take and drop the response to release body
+        let _ = self.0.take();
     }
 }
 

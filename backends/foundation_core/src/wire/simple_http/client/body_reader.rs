@@ -559,6 +559,93 @@ pub fn collect_bytes_direct(
     bytes
 }
 
+/// Collect response body as bytes directly from a `SendSafeBody`.
+///
+/// WHY: When you already have a `SendSafeBody` (e.g., from a collected response),
+/// this provides a unified way to extract bytes without repeating match logic.
+///
+/// WHAT: Handles all `SendSafeBody` variants (Text, Bytes, Stream, ChunkedStream, LineFeedStream, None).
+///
+/// HOW: Matches on the body variant and collects bytes appropriately.
+/// Returns empty Vec for None body.
+///
+/// # Arguments
+///
+/// * `body` - The `SendSafeBody` to collect bytes from
+///
+/// # Returns
+///
+/// `Vec<u8>` containing the body bytes. Returns empty vec for NoBody.
+///
+/// # Examples
+///
+/// ```rust,ignore
+/// let response = client.get(url).send()?;
+/// let bytes = collect_bytes_from_send_safe(response.take_body());
+/// ```
+pub fn collect_bytes_from_send_safe(body: SendSafeBody) -> Vec<u8> {
+    match body {
+        SendSafeBody::Text(t) => t.into_bytes(),
+        SendSafeBody::Bytes(b) => b,
+        SendSafeBody::None => Vec::new(),
+        SendSafeBody::Stream(mut opt_iter) => {
+            let mut bytes = Vec::new();
+            if let Some(iter) = opt_iter.take() {
+                for chunk_result in iter {
+                    match chunk_result {
+                        Ok(data) => bytes.extend_from_slice(&data),
+                        Err(e) => {
+                            tracing::warn!("Stream error during byte collection: {e}");
+                            break;
+                        }
+                    }
+                }
+            }
+            bytes
+        }
+        SendSafeBody::ChunkedStream(mut opt_iter) => {
+            let mut bytes = Vec::new();
+            if let Some(iter) = opt_iter.take() {
+                for chunk_result in iter {
+                    match chunk_result {
+                        Ok(ChunkedData::Data(data, _)) => {
+                            bytes.extend_from_slice(&data);
+                        }
+                        Ok(ChunkedData::Trailers(_)) => {
+                            // Silently ignore trailers
+                        }
+                        Ok(ChunkedData::DataEnded) => break,
+                        Err(e) => {
+                            tracing::warn!("Chunked stream error: {e}");
+                            break;
+                        }
+                    }
+                }
+            }
+            bytes
+        }
+        SendSafeBody::LineFeedStream(mut opt_iter) => {
+            let mut bytes = Vec::new();
+            if let Some(iter) = opt_iter.take() {
+                for line_result in iter {
+                    match line_result {
+                        Ok(LineFeed::Line(line)) => {
+                            bytes.extend_from_slice(line.as_bytes());
+                            bytes.push(b'\n');
+                        }
+                        Ok(LineFeed::SKIP | LineFeed::END) => continue,
+                        Err(e) => {
+                            tracing::warn!("Line stream error: {e}");
+                            break;
+                        }
+                    }
+                }
+            }
+            bytes
+        }
+    }
+}
+
 // ============================================================================
 // JSON Body Parsing
 // ============================================================================
